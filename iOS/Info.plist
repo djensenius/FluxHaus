@@ -61,5 +61,9 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>For the weather!!!</string>
+	<key>UIStatusBarHidden</key>
+	<true/>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>

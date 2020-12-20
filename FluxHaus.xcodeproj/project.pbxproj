@@ -130,11 +130,11 @@
 		632CBC23258682C8003E4988 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				632CBC24258682C8003E4988 /* FluxHausApp.swift */,
 				636B9B4F258E912A00DE97BD /* BackgroundView.swift */,
 				632CBC25258682C8003E4988 /* ContentView.swift */,
 				636B9B39258E57D400DE97BD /* WeatherView.swift */,
 				632CBC7D25870CBB003E4988 /* AppliancesView.swift */,
+				632CBC24258682C8003E4988 /* FluxHausApp.swift */,
 				632CBC8F2587B4AD003E4988 /* HomeConnect.swift */,
 				632CBC7625870B74003E4988 /* FluxHausConsts.swift */,
 				636B9B44258E5C3600DE97BD /* Weather.swift */,

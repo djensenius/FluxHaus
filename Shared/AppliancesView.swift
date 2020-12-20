@@ -11,87 +11,44 @@ struct Appliances: View {
     @ObservedObject var hc = HomeConnect.init()
     @ObservedObject var miele = Miele.init()
 
+    private var gridItemLayout = [GridItem(.flexible())]
+
+    private let theAppliances = [ (name: "HomeConnect", index: 0), (name: "Miele", index: 0), (name: "Miele", index: 1) ]
+
     var body: some View {
-        HStack {
-            if shouldShow(type: "HomeConnect", index: 0) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                        .fill(getApplianceColor(type: "HomeConnect", index: 0))
-                        .frame(width: 90, height: 90)
-
-                    VStack {
-                        Text(getApplianceName(type: "HomeConnect", index: 0))
-                            .font(.caption)
-                        Text(hc.appliance.timeFinish)
-                            .font(.subheadline)
-                    }
+        ScrollView {
+                LazyVGrid(columns: gridItemLayout, spacing: 5) {
+                    ForEach((0..<3), id: \.self) { i in
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                .fill(Color(UIColor.systemGray6))
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    HStack {
+                                        Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
+                                            .font(.title2)
+                                            .padding(.leading)
+                                        Spacer()
+                                    }
+                                    Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
+                                        .font(.subheadline)
+                                        .padding(.leading)
+                                }
+                                Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
+                                    .font(.largeTitle)
+                                    .padding()
+                            }
+                        }
+                    }.padding(.horizontal)
                 }
-            }
-
-            if shouldShow(type: "Miele", index: 0) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                        .fill(Color.green)
-                        .frame(width: 90, height: 90)
-
-                    VStack {
-                        Text(getApplianceName(type: "Miele", index: 0))
-                            .font(.callout)
-                        Text(getTimeRemaining(type: "Miele", index: 0))
-                            .font(.caption2)
-                        Text(getProgram(type: "Miele", index: 0))
-                            .font(.caption2)
-                    }
-                }
-            }
-
-            if shouldShow(type: "Miele", index: 1) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                        .fill(Color.green)
-                        .frame(width: 90, height: 90)
-
-                    VStack {
-                        Text(getApplianceName(type: "Miele", index: 1))
-                            .font(.callout)
-                        Text(getTimeRemaining(type: "Miele", index: 1))
-                            .font(.caption2)
-                        Text(getProgram(type: "Miele", index: 1))
-                            .font(.caption2)
-                    }
-                }
-            }
-        }
-        .onAppear(perform: {let _ = self.updateTimer; fetchAppliances()})
-    }
-
-    func getApplianceColor(type: String, index: Int) -> Color {
-        if (type == "HomeConnect") {
-            if (hc.appliance.inUse == true) {
-                return Color.green
-            }
-        }
-
-        return Color.gray
-    }
-
-    func shouldShow(type: String, index: Int) -> Bool {
-        if (type == "HomeConnect") {
-            if hc.appliance.inUse == true {
-                return true
-            }
-        } else if (type == "Miele") {
-            if (miele.appliances.count > index) {
-                if miele.appliances[index].inUse == true {
-                    return true
-                }
-            }
-        }
-        return false
+        }.onAppear(perform: {let _ = self.updateTimer; fetchAppliances()})
     }
 
     func getApplianceName(type: String, index: Int) -> String {
         if (type == "HomeConnect") {
+            if (hc.appliance.name == "") {
+                return "🍽 Dishwasher"
+            }
             return "🍽 \(hc.appliance.name)"
         }
 
@@ -104,28 +61,31 @@ struct Appliances: View {
                 return "\(emoji) \(miele.appliances[index].name)"
             }
         }
-        return ""
+        return "Fetching"
     }
 
     func getProgram(type: String, index: Int) -> String {
         if (type == "Miele") {
-            return "\(miele.appliances[index].step) (\(miele.appliances[index].programName))"
+            if (miele.appliances.count > index && miele.appliances[index].programName != "") {
+                return "\(miele.appliances[index].step) (\(miele.appliances[index].programName))"
+            } else if (miele.appliances.count > index)  {
+                return "\(miele.appliances[index].step)"
+            }
         }
         return ""
     }
 
     func getTimeRemaining(type: String, index: Int) -> String {
-        if (type == "Miele") {
-            return "Finish: \(miele.appliances[index].timeFinish)\nIn \(miele.appliances[index].timeRemaining) minutes"
+        if (type == "Miele" && miele.appliances.count > index) {
+            return "\(miele.appliances[index].timeRemaining)m"
         }
-        return ""
+        return "Off"
     }
 
     var updateTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 25, repeats: true,
                              block: {_ in
                                 fetchAppliances()
-                                // self.washingMachine = HomeConnect.appliance
                              })
     }
 

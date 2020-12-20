@@ -41,7 +41,7 @@ struct FluxHausApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                BackgroundView()
+                // BackgroundView()
                 VStack {
                     ContentView()
                         .onOpenURL { (url) in
