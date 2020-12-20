@@ -11,8 +11,8 @@ import OAuth2
 let oauth2 = OAuth2CodeGrant(settings: [
     "client_id": FluxHausConsts.boschClientId,
     "client_secret": FluxHausConsts.boschSecretId,
-    "authorize_uri": "https://simulator.home-connect.com/security/oauth/authorize",
-    "token_uri": "https://simulator.home-connect.com/security/oauth/token",
+    "authorize_uri": "https://api.home-connect.com/security/oauth/authorize",
+    "token_uri": "https://api.home-connect.com/security/oauth/token",
     "redirect_uris": ["fluxhaus://oauth/callback"],
     "scope": "IdentifyAppliance Monitor",
     "keychain": true,
@@ -40,19 +40,25 @@ let miele = Miele.init()
 struct FluxHausApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .onOpenURL { (url) in
-                    print("Hi David \(url)")// Handle url here
-                    if (url.absoluteString.contains("fluxhaus_miele")) {
-                        print("Handle Miele")
-                        oauth2Miele.handleRedirectURL(url)
-                    } else {
-                        print("Handle HomeConnect")
-                        oauth2.handleRedirectURL(url)
-                    }
+            ZStack {
+                BackgroundView()
+                VStack {
+                    ContentView()
+                        .onOpenURL { (url) in
+                            print("Hi David \(url)")// Handle url here
+                            if (url.absoluteString.contains("fluxhaus_miele")) {
+                                print("Handle Miele")
+                                oauth2Miele.handleRedirectURL(url)
+                            } else {
+                                print("Handle HomeConnect")
+                                oauth2.handleRedirectURL(url)
+                            }
+                        }
+                    Weather()
+                    Appliances()
+                    Spacer()
                 }
-            Weather()
-            Appliances()
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ struct ContentView: View {
             HStack {
                 Spacer()
                 Text("\(dateString(date: date))")
+                    .accentColor(.white)
                     .onAppear(perform: {let _ = self.updateTimer;})
                     .font(.title)
                     .padding(.horizontal)
@@ -24,10 +25,9 @@ struct ContentView: View {
                 Text("\(timeString(date: date))")
                     .font(.subheadline)
                     .padding(.horizontal)
+                    .accentColor(.white)
             }
         }
-
-
     }
 
     var dateFormat: DateFormatter {

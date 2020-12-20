@@ -30,6 +30,8 @@
 		636B9B3B258E57D400DE97BD /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
 		636B9B45258E5C3600DE97BD /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
 		636B9B46258E5C3600DE97BD /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
+		636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
+		636B9B51258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,6 +75,7 @@
 		632CBC8F2587B4AD003E4988 /* HomeConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConnect.swift; sourceTree = "<group>"; };
 		636B9B39258E57D400DE97BD /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
 		636B9B44258E5C3600DE97BD /* Weather.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weather.swift; sourceTree = "<group>"; };
+		636B9B4F258E912A00DE97BD /* BackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				632CBC24258682C8003E4988 /* FluxHausApp.swift */,
+				636B9B4F258E912A00DE97BD /* BackgroundView.swift */,
 				632CBC25258682C8003E4988 /* ContentView.swift */,
 				636B9B39258E57D400DE97BD /* WeatherView.swift */,
 				632CBC7D25870CBB003E4988 /* AppliancesView.swift */,
@@ -278,7 +282,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1220;
-				LastUpgradeCheck = 1220;
+				LastUpgradeCheck = 1230;
 				TargetAttributes = {
 					632CBC2A258682C9003E4988 = {
 						CreatedOnToolsVersion = 12.2;
@@ -358,6 +362,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
 				636B9B45258E5C3600DE97BD /* Weather.swift in Sources */,
 				632CBC7E25870CBB003E4988 /* AppliancesView.swift in Sources */,
 				632CBC902587B4AD003E4988 /* HomeConnect.swift in Sources */,
@@ -373,6 +378,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				636B9B51258E912A00DE97BD /* BackgroundView.swift in Sources */,
 				636B9B46258E5C3600DE97BD /* Weather.swift in Sources */,
 				632CBC7F25870CBB003E4988 /* AppliancesView.swift in Sources */,
 				632CBC912587B4AD003E4988 /* HomeConnect.swift in Sources */,
@@ -584,6 +590,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
@@ -608,6 +615,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;

@@ -102,32 +102,17 @@ struct Temp: Codable {
 }
 
 // MARK: - Location services
-class LocationManager: NSObject, ObservableObject {
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
-    @Published var status: CLAuthorizationStatus? {
-        willSet { objectWillChange.send() }
-    }
+    private var status: CLAuthorizationStatus?
 
-    @Published var location: CLLocation? {
-        willSet { objectWillChange.send() }
-    }
+    private var location: CLLocation?
 
     @Published var weather = OpenWeather(lat: 0, timezone: "UTC", daily: [], timezoneOffset: 0, current: nil, lon: 0)
 
-    override init() {
-        super.init()
-
-        if ((weather.current == nil) && ((self.location?.coordinate.latitude) != nil) && ((self.location?.coordinate.longitude) != nil)) {
-            fetchTheWeather()
-        }
-        self.locationManager.delegate = self
-        self.locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
-        self.locationManager.requestWhenInUseAuthorization()
-        self.locationManager.startUpdatingLocation()
-    }
-
     func fetchTheWeather() {
+        print("Getting Weather")
         guard let location = self.location else { return }
 
         guard let url = URL(
@@ -140,19 +125,25 @@ class LocationManager: NSObject, ObservableObject {
         let request = URLRequest(url: url)
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(OpenWeather.self, from: data) {
-                    DispatchQueue.main.async {
-                       print(decodedResponse)
+                DispatchQueue.main.async {
+                    if let decodedResponse = try? JSONDecoder().decode(OpenWeather.self, from: data) {
                         self.weather = decodedResponse
                     }
-                    return
                 }
             }
         }.resume()
     }
-}
 
-extension LocationManager: CLLocationManagerDelegate {
+    func startMonitoring() {
+        if ((weather.current == nil) && ((self.location?.coordinate.latitude) != nil) && ((self.location?.coordinate.longitude) != nil)) {
+            fetchTheWeather()
+        }
+        self.locationManager.delegate = self
+        self.locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
+        self.locationManager.requestWhenInUseAuthorization()
+        self.locationManager.startMonitoringSignificantLocationChanges()
+    }
+
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         self.status = status
     }
@@ -161,6 +152,7 @@ extension LocationManager: CLLocationManagerDelegate {
         guard let location = locations.last else { return }
         if (self.location?.coordinate.longitude != location.coordinate.longitude ||
                 self.location?.coordinate.latitude != location.coordinate.latitude) {
+
             self.location = location
             self.fetchTheWeather()
 

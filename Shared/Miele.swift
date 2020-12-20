@@ -15,6 +15,7 @@ struct Appliance {
     let timeRemaining: Int
     let timeFinish: String
     let step: String
+    let programName: String
     let inUse: Bool
 }
 
@@ -357,16 +358,14 @@ class JSONAny: Codable {
 // MARK: - Miele
 
 class Miele: ObservableObject {
-    @Published var appliances = [Appliance(name: "", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", inUse: false)]
+    @Published var appliances: [Appliance] = []
 
     init() {
         print("Hi Miele");
-        appliances = [Appliance(name: "", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", inUse: false)]
+        appliances = []
     }
 
     func fetchAppliance(appliance: String) {
-        // oauth2Miele.logger = OAuth2DebugLogger(.trace)
-
         print("Fetch Miele");
         let base = URL(string: "https://api.mcs3.miele.com")!
         let url = base.appendingPathComponent("v1/devices/\(appliance)?language=en")
@@ -379,29 +378,39 @@ class Miele: ObservableObject {
                 let decoder = JSONDecoder()
                 let mApps = try? decoder.decode(MieleAppliances.self, from: response.responseData())
                 let inUse = mApps!.stateType.status.valueLocalized == "Off" ? false: true
+                let programName = mApps!.stateType.programID.valueLocalized
 
                 let currentDate = Date()
                 let finishTime = Calendar.current.date(byAdding: .minute, value: mApps!.stateType.remainingTime[1], to: currentDate) ?? currentDate
                 let formatter = DateFormatter()
                 formatter.dateFormat = "h:mm a"
                 let formatedTime = formatter.string(from: finishTime)
+                var name = mApps!.ident.type.valueLocalized ?? ""
+                if (mApps!.ident.type.valueLocalized == "Washing Machine") {
+                    name = "Washer"
+                } else if (mApps!.ident.type.valueLocalized == "Clothes Dryer") {
+                    name = "Dryer"
+                }
                 let appliance = Appliance(
-                    name: mApps!.ident.type.valueLocalized ?? "",
+                    name: name,
                     timeRunning: mApps!.stateType.elapsedTime[1],
                     timeRemaining: mApps!.stateType.remainingTime[1],
                     timeFinish: formatedTime,
                     step: mApps!.stateType.programPhase.valueLocalized ?? "",
+                    programName: programName!,
                     inUse: inUse
                 )
-                var found = false
-                for (index, app) in self.appliances.enumerated() {
-                    if app.name == appliance.name {
-                        self.appliances[index] = appliance
-                        found = true
+                DispatchQueue.main.async {
+                    var found = false
+                    for (index, app) in self.appliances.enumerated() {
+                        if app.name == appliance.name {
+                            self.appliances[index] = appliance
+                            found = true
+                        }
                     }
-                }
-                if found == false {
-                    self.appliances.append(appliance)
+                    if found == false {
+                        self.appliances.append(appliance)
+                    }
                 }
             }
         }
