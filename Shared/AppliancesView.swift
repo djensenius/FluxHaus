@@ -65,7 +65,10 @@ struct Appliances: View {
     }
 
     func getProgram(type: String, index: Int) -> String {
-        if (type == "Miele") {
+        if (miele.appliances.count > index && type == "Miele") {
+            if (miele.appliances[index].inUse == false) {
+                return "Off"
+            }
             if (miele.appliances.count > index && miele.appliances[index].programName != "") {
                 return "\(miele.appliances[index].step) (\(miele.appliances[index].programName))"
             } else if (miele.appliances.count > index)  {
@@ -77,6 +80,9 @@ struct Appliances: View {
 
     func getTimeRemaining(type: String, index: Int) -> String {
         if (type == "Miele" && miele.appliances.count > index) {
+            if (miele.appliances[index].inUse == false) {
+                return "Off"
+            }
             return "\(miele.appliances[index].timeRemaining)m"
         }
         return "Off"

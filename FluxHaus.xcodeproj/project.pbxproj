@@ -32,6 +32,10 @@
 		636B9B46258E5C3600DE97BD /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
 		636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		636B9B51258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
+		636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
+		636B9B5C258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
+		636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		636B9B63258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +80,8 @@
 		636B9B39258E57D400DE97BD /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
 		636B9B44258E5C3600DE97BD /* Weather.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Weather.swift; sourceTree = "<group>"; };
 		636B9B4F258E912A00DE97BD /* BackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundView.swift; sourceTree = "<group>"; };
+		636B9B5A258FBB6300DE97BD /* HomeKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitView.swift; sourceTree = "<group>"; };
+		636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitIntegration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +138,8 @@
 			children = (
 				636B9B4F258E912A00DE97BD /* BackgroundView.swift */,
 				632CBC25258682C8003E4988 /* ContentView.swift */,
+				636B9B5A258FBB6300DE97BD /* HomeKitView.swift */,
+				636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */,
 				636B9B39258E57D400DE97BD /* WeatherView.swift */,
 				632CBC7D25870CBB003E4988 /* AppliancesView.swift */,
 				632CBC24258682C8003E4988 /* FluxHausApp.swift */,
@@ -362,8 +370,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
 				636B9B45258E5C3600DE97BD /* Weather.swift in Sources */,
+				636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */,
 				632CBC7E25870CBB003E4988 /* AppliancesView.swift in Sources */,
 				632CBC902587B4AD003E4988 /* HomeConnect.swift in Sources */,
 				632CBC4F258682C9003E4988 /* ContentView.swift in Sources */,
@@ -378,8 +388,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				636B9B5C258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				636B9B51258E912A00DE97BD /* BackgroundView.swift in Sources */,
 				636B9B46258E5C3600DE97BD /* Weather.swift in Sources */,
+				636B9B63258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */,
 				632CBC7F25870CBB003E4988 /* AppliancesView.swift in Sources */,
 				632CBC912587B4AD003E4988 /* HomeConnect.swift in Sources */,
 				632CBC50258682C9003E4988 /* ContentView.swift in Sources */,

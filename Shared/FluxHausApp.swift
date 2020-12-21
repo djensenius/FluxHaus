@@ -55,6 +55,7 @@ struct FluxHausApp: App {
                             }
                         }
                     Weather()
+                    HomeKitView()
                     Appliances()
                     Spacer()
                 }

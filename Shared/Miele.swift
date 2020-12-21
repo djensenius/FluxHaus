@@ -394,7 +394,7 @@ class Miele: ObservableObject {
                 let appliance = Appliance(
                     name: name,
                     timeRunning: mApps!.stateType.elapsedTime[1],
-                    timeRemaining: mApps!.stateType.remainingTime[1],
+                    timeRemaining: (mApps!.stateType.remainingTime[0] * 60) + mApps!.stateType.remainingTime[1],
                     timeFinish: formatedTime,
                     step: mApps!.stateType.programPhase.valueLocalized ?? "",
                     programName: programName!,

@@ -65,5 +65,7 @@
 	<true/>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSHomeKitUsageDescription</key>
+	<string>For the shortcuts to see our home!!!</string>
 </dict>
 </plist>
