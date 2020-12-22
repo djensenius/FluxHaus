@@ -35,7 +35,7 @@ struct Appliances: View {
                                         .padding(.leading)
                                 }
                                 Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
-                                    .font(.largeTitle)
+                                    .font(.title)
                                     .padding()
                             }
                         }
@@ -45,45 +45,61 @@ struct Appliances: View {
     }
 
     func getApplianceName(type: String, index: Int) -> String {
-        if (type == "HomeConnect") {
-            if (hc.appliance.name == "") {
-                return "🍽 Dishwasher"
-            }
-            return "🍽 \(hc.appliance.name)"
+        var tAppliance: [Appliance]
+        if (type == "Miele") {
+            tAppliance = miele.appliances
+        } else {
+            tAppliance = hc.appliances
         }
 
-        if (type == "Miele") {
-            if (miele.appliances.count > index) {
-                var emoji = "👖"
-                if (miele.appliances[index].name == "Washer") {
-                    emoji = "👕"
-                }
-                return "\(emoji) \(miele.appliances[index].name)"
+        if (tAppliance.count > index) {
+            var emoji = "👖"
+            if (tAppliance[index].name == "Washer") {
+                emoji = "👕"
+            } else if (tAppliance[index].name == "Dishwasher") {
+                emoji = "🍽"
             }
+            return "\(emoji) \(tAppliance[index].name)"
         }
         return "Fetching"
     }
 
     func getProgram(type: String, index: Int) -> String {
-        if (miele.appliances.count > index && type == "Miele") {
-            if (miele.appliances[index].inUse == false) {
+        var tAppliance: [Appliance]
+        if (type == "Miele") {
+            tAppliance = miele.appliances
+        } else {
+            tAppliance = hc.appliances
+        }
+
+        if (tAppliance.count > index) {
+            if (tAppliance[index].inUse == false) {
                 return "Off"
             }
-            if (miele.appliances.count > index && miele.appliances[index].programName != "") {
-                return "\(miele.appliances[index].step) (\(miele.appliances[index].programName))"
-            } else if (miele.appliances.count > index)  {
-                return "\(miele.appliances[index].step)"
+            if (tAppliance.count > index && tAppliance[index].programName != "") {
+                return "\(tAppliance[index].step) (\(tAppliance[index].programName))"
+            } else if (tAppliance.count > index)  {
+                return "\(tAppliance[index].step)"
             }
         }
         return ""
     }
 
     func getTimeRemaining(type: String, index: Int) -> String {
-        if (type == "Miele" && miele.appliances.count > index) {
-            if (miele.appliances[index].inUse == false) {
+        var tAppliance: [Appliance]
+        if (type == "Miele") {
+            tAppliance = miele.appliances
+        } else {
+            tAppliance = hc.appliances
+        }
+        if (tAppliance.count > index) {
+            if (tAppliance[index].inUse == false) {
                 return "Off"
             }
-            return "\(miele.appliances[index].timeRemaining)m"
+            if (tAppliance[index].timeRemaining > 60) {
+                return tAppliance[index].timeFinish
+            }
+            return "\(tAppliance[index].timeRemaining)m"
         }
         return "Off"
     }

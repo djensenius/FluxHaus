@@ -23,17 +23,17 @@ struct HomeKitView: View {
                         }) {
                             HStack {
                                 Text(home.favourites[i].name)
-                                    .font(.headline)
-                                    .frame(width: 110, height: 50, alignment: .center)
+                                    .font(.subheadline)
+                                    .frame(width: 100)
                             }
                             .padding()
                             .foregroundColor(getButtonForegroundColor(favourite: home.favourites[i]))
                             .background(getButtonBackgroundColor(favourite: home.favourites[i]))
                             .cornerRadius(20)
-                            .frame(width: 150, height: 50, alignment: .center)
-                        }.frame(width: 150, height: 150, alignment: .center)
+                            .frame(width: 150, height: 70, alignment: .center)
+                        }.frame(minWidth: 150, idealWidth: 150, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
                     }
-                }.frame(width: 150, height: 150, alignment: .center)
+                }
             }.onAppear(perform: {
                 home.startHome()
                 let _ = self.updateTimer

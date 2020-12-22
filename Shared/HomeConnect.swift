@@ -70,11 +70,10 @@ enum Value: Codable {
 }
 
 class HomeConnect: ObservableObject {
-    @Published var appliance = Appliance(name: "", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", programName: "", inUse: false)
+    @Published var appliances: [Appliance] = []
 
     init() {
-        print("Hi David");
-        appliance = Appliance(name: "", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", programName: "", inUse: false)
+        appliances = []
         self.authorize()
     }
 
@@ -94,35 +93,42 @@ class HomeConnect: ObservableObject {
                     let decoder = JSONDecoder()
                     let activeProgram = try? decoder.decode(HomeConnectStruct.self, from: response.responseData())
                     if activeProgram == nil {
-                        self.appliance = Appliance(name: "Dishwasher", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", programName: "", inUse: false)
+                        self.appliances.append(Appliance(name: "Dishwasher", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", programName: "", inUse: false))
                     } else {
-                        let name = "Dishwasher"
-                        let program = activeProgram!.data.key
-                        var timeRunning = 0
-                        var timeRemaining = 0
-                        for option in activeProgram!.data.options {
-                            if option.key == "BSH.Common.Option.RemainingProgramTime" {
-                                timeRemaining = option.value.intValue
-                            } else if option.key == "BSH.Common.Option.ElapsedProgramTime" {
-                               timeRunning = option.value.intValue
+                        DispatchQueue.main.async {
+                            var options: [String] = []
+                            let name = "Dishwasher"
+                            let step = activeProgram!.data.name
+                            var timeRunning = 0
+                            var timeRemaining = 0
+                            for option in activeProgram!.data.options {
+                                if option.key == "BSH.Common.Option.RemainingProgramTime" {
+                                    timeRemaining = Int(round(Double(option.value.intValue / 60)))
+                                } else if option.key == "BSH.Common.Option.ElapsedProgramTime" {
+                                   timeRunning = option.value.intValue
+                                } else {
+                                    if option.value.intValue == 1 {
+                                        options.append(option.name)
+                                    }
+                                }
                             }
+
+                            let currentDate = Date()
+                            let finishTime = Calendar.current.date(byAdding: .minute, value: timeRemaining, to: currentDate) ?? currentDate
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "h:mm a"
+                            let formatedTime = formatter.string(from: finishTime)
+                            self.appliances.removeAll()
+                            self.appliances.append(Appliance(
+                                name: name,
+                                timeRunning: timeRunning,
+                                timeRemaining: timeRemaining,
+                                timeFinish: formatedTime,
+                                step: step,
+                                programName: options.joined(separator: ", "),
+                                inUse: true
+                            ))
                         }
-
-                        let currentDate = Date()
-                        let finishTime = Calendar.current.date(byAdding: .second, value: timeRemaining, to: currentDate) ?? currentDate
-                        let formatter = DateFormatter()
-                        formatter.dateFormat = "h:mm a"
-                        let formatedTime = formatter.string(from: finishTime)
-
-                        self.appliance = Appliance(
-                            name: name,
-                            timeRunning: timeRunning,
-                            timeRemaining: timeRemaining,
-                            timeFinish: formatedTime,
-                            step: program,
-                            programName: "",
-                            inUse: true
-                        )
                     }
                 }
             }

@@ -56,6 +56,11 @@ struct FluxHausApp: App {
                         }
                     Weather()
                     HomeKitView()
+                    HStack {
+                        Text("Appliances")
+                            .padding(.leading)
+                        Spacer()
+                    }
                     Appliances()
                     Spacer()
                 }
