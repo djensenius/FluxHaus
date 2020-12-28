@@ -17,11 +17,26 @@ struct OpenWeather: Codable {
     let timezoneOffset: Int
     let current: Current?
     let lon: Double
+    var alerts: [Alert]?
 
     enum CodingKeys: String, CodingKey {
         case lat, timezone, daily
         case timezoneOffset = "timezone_offset"
-        case current, lon
+        case current, lon, alerts
+    }
+}
+
+// MARK: - Alert
+struct Alert: Codable {
+    let end: Int
+    let senderName: String
+    let event: String
+    let description: String
+    let start: Int
+
+    enum CodingKeys: String, CodingKey {
+        case end, event, description, start
+        case senderName = "sender_name"
     }
 }
 
@@ -109,7 +124,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     private var location: CLLocation?
 
-    @Published var weather = OpenWeather(lat: 0, timezone: "UTC", daily: [], timezoneOffset: 0, current: nil, lon: 0)
+    @Published var weather = OpenWeather(lat: 0, timezone: "UTC", daily: [], timezoneOffset: 0, current: nil, lon: 0, alerts: [])
 
     func fetchTheWeather() {
         print("Getting Weather")

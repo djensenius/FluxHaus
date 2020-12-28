@@ -9,11 +9,23 @@ import SwiftUI
 
 struct Weather: View {
     @ObservedObject var lm = LocationManager.init()
+    @State private var showModal: Bool = false
 
     var body: some View {
         VStack {
             HStack {
                 Spacer()
+                if lm.weather.alerts?.count ?? 0 > 0 {
+                    Button(action: {
+                        self.showModal = true
+                    }) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.subheadline)
+                    }.sheet(isPresented: self.$showModal) {
+                        // Hi
+                        WeatherAlertView(alerts: lm.weather.alerts!)
+                    }
+                }
                 Text(weatherIcon())
                     .font(.subheadline)
                 Text(makeWeatherReport())
@@ -22,7 +34,12 @@ struct Weather: View {
                         let _ = self.updateTimer
                     })
                     .font(.subheadline)
-                    .padding(.trailing)
+                if ((lm.weather.current) != nil) {
+                    Image(systemName: "wind")
+                    Text("\(Int(round((lm.weather.current!.windSpeed * 18) / 5))) km/h")
+                        .font(.subheadline)
+                        .padding(.trailing)
+                }
             }
             HStack {
                 Spacer()

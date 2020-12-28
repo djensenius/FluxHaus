@@ -38,6 +38,10 @@ let miele = Miele.init()
 
 @main
 struct FluxHausApp: App {
+    #if os(OSX)
+    // @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    #endif
+
     var body: some Scene {
         WindowGroup {
             ZStack {

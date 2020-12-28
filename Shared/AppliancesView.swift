@@ -19,24 +19,26 @@ struct Appliances: View {
         ScrollView {
                 LazyVGrid(columns: gridItemLayout, spacing: 5) {
                     ForEach((0..<3), id: \.self) { i in
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                .fill(Color(UIColor.systemGray6))
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    HStack {
-                                        Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
-                                            .font(.title2)
+                        if (getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index) != "Fetching") {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                    .fill(Color(UIColor.systemGray6))
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        HStack {
+                                            Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                .font(.title2)
+                                                .padding(.leading)
+                                            Spacer()
+                                        }
+                                        Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
+                                            .font(.subheadline)
                                             .padding(.leading)
-                                        Spacer()
                                     }
-                                    Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
-                                        .font(.subheadline)
-                                        .padding(.leading)
+                                    Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
+                                        .font(.title)
+                                        .padding()
                                 }
-                                Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
-                                    .font(.title)
-                                    .padding()
                             }
                         }
                     }.padding(.horizontal)
@@ -74,7 +76,7 @@ struct Appliances: View {
 
         if (tAppliance.count > index) {
             if (tAppliance[index].inUse == false) {
-                return "Off"
+                return ""
             }
             if (tAppliance.count > index && tAppliance[index].programName != "") {
                 return "\(tAppliance[index].step) (\(tAppliance[index].programName))"
@@ -101,7 +103,7 @@ struct Appliances: View {
             }
             return "\(tAppliance[index].timeRemaining)m"
         }
-        return "Off"
+        return ""
     }
 
     var updateTimer: Timer {
