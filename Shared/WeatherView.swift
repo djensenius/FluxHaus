@@ -15,17 +15,6 @@ struct Weather: View {
         VStack {
             HStack {
                 Spacer()
-                if lm.weather.alerts?.count ?? 0 > 0 {
-                    Button(action: {
-                        self.showModal = true
-                    }) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.subheadline)
-                    }.sheet(isPresented: self.$showModal) {
-                        // Hi
-                        WeatherAlertView(alerts: lm.weather.alerts!)
-                    }
-                }
                 Text(weatherIcon())
                     .font(.subheadline)
                 Text(makeWeatherReport())
@@ -50,6 +39,19 @@ struct Weather: View {
             }
             HStack {
                 Spacer()
+                if lm.weather.alerts?.count ?? 0 > 0 {
+                    Button(action: {
+                        self.showModal = true
+                    }) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.subheadline)
+                        Text("OMG ALERT")
+                            .font(.subheadline)
+                    }.sheet(isPresented: self.$showModal) {
+                        // Hi
+                        WeatherAlertView(alerts: lm.weather.alerts!)
+                    }
+                }
                 Image(systemName: "arrow.down.to.line.alt")
                     .font(.subheadline)
                 Text(getMin())
