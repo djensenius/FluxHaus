@@ -12,7 +12,7 @@ struct WeatherAlertView: View {
     var alerts: [Alert]
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading) {
+            VStack {
                 Text("Weather Alerts")
                     .font(.headline)
                     .padding()
