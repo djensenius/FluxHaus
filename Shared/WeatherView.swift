@@ -81,7 +81,7 @@ struct Weather: View {
         let currentWeather = lm.weather.current!
         switch currentWeather.weather[0].icon {
         case "01d":
-            return Image(systemName: "sun.max.min")
+            return Image(systemName: "sun.max.fill")
         case "02d":
             return Image(systemName: "cloud.sun.fill")
         case "03d":
