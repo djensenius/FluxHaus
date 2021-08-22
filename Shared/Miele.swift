@@ -379,13 +379,17 @@ class Miele: ObservableObject {
                 if let mApps = try? decoder.decode(MieleAppliances.self, from: response.responseData()) {
                     let inUse = (mApps.stateType.status.valueLocalized == "Off" || mApps.stateType.status.valueLocalized == "Not connected") ? false: true
                     let programName = mApps.stateType.programID.valueLocalized
-                    if (appliance == "000125845456") {
-                        print("Blah")
-                    }
+//                    if (appliance == "000125845456") {
+//                        print("Blah")
+//                    }
                     let currentDate = Date()
                     var finishTime: Date
                     if (mApps.stateType.remainingTime.count > 0) {
-                        finishTime = Calendar.current.date(byAdding: .minute, value: mApps.stateType.remainingTime[1], to: currentDate) ?? currentDate
+                        finishTime = Calendar.current.date(
+                            byAdding: .minute,
+                            value: mApps.stateType.remainingTime[1] + (60 * mApps.stateType.remainingTime[0]),
+                            to: currentDate
+                        ) ?? currentDate
                     } else {
                         finishTime = currentDate;
                     }
