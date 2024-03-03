@@ -1,16 +1,14 @@
 {
-  "object": {
-    "pins": [
-      {
-        "package": "OAuth2",
-        "repositoryURL": "https://github.com/p2/OAuth2.git",
-        "state": {
-          "branch": null,
-          "revision": "7acf3fe72c43309c0b6ce84d82290d3912159699",
-          "version": "5.3.1"
-        }
+  "pins" : [
+    {
+      "identity" : "oauth2",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/p2/OAuth2.git",
+      "state" : {
+        "revision" : "7095f837e4fd4f4df341d91bfa128436146f15a3",
+        "version" : "5.3.4"
       }
-    ]
-  },
-  "version": 1
+    }
+  ],
+  "version" : 2
 }
