@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/p2/OAuth2.git",
       "state" : {
-        "revision" : "7095f837e4fd4f4df341d91bfa128436146f15a3",
-        "version" : "5.3.4"
+        "revision" : "3f6a18beb221636581e66d8d0cbec1a3948b4df3",
+        "version" : "5.3.5"
       }
     }
   ],

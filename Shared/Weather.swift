@@ -156,12 +156,19 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.locationManager.delegate = self
         self.locationManager.desiredAccuracy = kCLLocationAccuracyKilometer
         self.locationManager.requestWhenInUseAuthorization()
+        #if os(visionOS)
+        self.locationManager.requestLocation()
+        #endif
+        #if !os(visionOS)
         self.locationManager.startMonitoringSignificantLocationChanges()
+        #endif
     }
 
+    #if !os(visionOS)
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         self.status = status
     }
+    #endif
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
@@ -172,6 +179,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             self.fetchTheWeather()
 
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        //Failed
+        debugPrint(error)
     }
 }
 

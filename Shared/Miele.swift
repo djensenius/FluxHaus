@@ -372,6 +372,8 @@ class Miele: ObservableObject {
 
         var req = oauth2Miele.request(forURL: url)
         req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
+        //oauth2Miele.logger = OAuth2DebugLogger(.trace)
+
 
         loaderMiele.perform(request: req) { response in
             do {

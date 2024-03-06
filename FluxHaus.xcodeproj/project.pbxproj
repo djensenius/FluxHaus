@@ -38,6 +38,24 @@
 		636B9B5C258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
 		636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
 		636B9B63258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD7322B954215006603D0 /* RealityKitContent */; };
+		63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7342B954215006603D0 /* VisionOSApp.swift */; };
+		63DBD7372B954215006603D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7362B954215006603D0 /* ContentView.swift */; };
+		63DBD7392B954216006603D0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63DBD7382B954216006603D0 /* Assets.xcassets */; };
+		63DBD73C2B954216006603D0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63DBD73B2B954216006603D0 /* Preview Assets.xcassets */; };
+		63DBD7472B954216006603D0 /* VisionOSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7462B954216006603D0 /* VisionOSTests.swift */; };
+		63DBD74F2B954334006603D0 /* OAuth2 in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD74E2B954334006603D0 /* OAuth2 */; };
+		63DBD7512B95433C006603D0 /* HomeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63DBD7502B95433C006603D0 /* HomeKit.framework */; };
+		63DBD7532B954343006603D0 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63DBD7522B954343006603D0 /* HealthKit.framework */; };
+		63DBD7542B95447A006603D0 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
+		63DBD7552B95447A006603D0 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
+		63DBD7562B95447A006603D0 /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
+		63DBD7572B95447A006603D0 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
+		63DBD7582B954486006603D0 /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
+		63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		63DBD75A2B954486006603D0 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
+		63DBD75B2B954486006603D0 /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
+		63DBD75C2B954486006603D0 /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +72,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 632CBC32258682C9003E4988;
 			remoteInfo = "FluxHaus (macOS)";
+		};
+		63DBD7432B954216006603D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 63DBD72D2B954215006603D0;
+			remoteInfo = VisionOS;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -98,6 +123,18 @@
 		636B9B4F258E912A00DE97BD /* BackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundView.swift; sourceTree = "<group>"; };
 		636B9B5A258FBB6300DE97BD /* HomeKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitView.swift; sourceTree = "<group>"; };
 		636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitIntegration.swift; sourceTree = "<group>"; };
+		63DBD72E2B954215006603D0 /* VisionOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		63DBD7312B954215006603D0 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
+		63DBD7342B954215006603D0 /* VisionOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOSApp.swift; sourceTree = "<group>"; };
+		63DBD7362B954215006603D0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		63DBD7382B954216006603D0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		63DBD73B2B954216006603D0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		63DBD73D2B954216006603D0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		63DBD7422B954216006603D0 /* VisionOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VisionOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		63DBD7462B954216006603D0 /* VisionOSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOSTests.swift; sourceTree = "<group>"; };
+		63DBD7502B95433C006603D0 /* HomeKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HomeKit.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/HomeKit.framework; sourceTree = DEVELOPER_DIR; };
+		63DBD7522B954343006603D0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/HealthKit.framework; sourceTree = DEVELOPER_DIR; };
+		63DBD75D2B954931006603D0 /* VisionOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VisionOS.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +169,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		63DBD72B2B954215006603D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63DBD7512B95433C006603D0 /* HomeKit.framework in Frameworks */,
+				63DBD7532B954343006603D0 /* HealthKit.framework in Frameworks */,
+				63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */,
+				63DBD74F2B954334006603D0 /* OAuth2 in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		63DBD73F2B954216006603D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -144,6 +199,9 @@
 				632CBC34258682C9003E4988 /* macOS */,
 				632CBC3E258682C9003E4988 /* Tests iOS */,
 				632CBC49258682C9003E4988 /* Tests macOS */,
+				63DBD72F2B954215006603D0 /* VisionOS */,
+				63DBD7302B954215006603D0 /* Packages */,
+				63DBD7452B954216006603D0 /* VisionOSTests */,
 				632CBC2C258682C9003E4988 /* Products */,
 				632CBC6625868365003E4988 /* Frameworks */,
 			);
@@ -176,6 +234,8 @@
 				632CBC33258682C9003E4988 /* FluxHaus.app */,
 				632CBC3B258682C9003E4988 /* Tests iOS.xctest */,
 				632CBC46258682C9003E4988 /* Tests macOS.xctest */,
+				63DBD72E2B954215006603D0 /* VisionOS.app */,
+				63DBD7422B954216006603D0 /* VisionOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -218,10 +278,49 @@
 		632CBC6625868365003E4988 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				63DBD7522B954343006603D0 /* HealthKit.framework */,
+				63DBD7502B95433C006603D0 /* HomeKit.framework */,
 				632CBC6925868381003E4988 /* HealthKit.framework */,
 				632CBC6725868365003E4988 /* HomeKit.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		63DBD72F2B954215006603D0 /* VisionOS */ = {
+			isa = PBXGroup;
+			children = (
+				63DBD75D2B954931006603D0 /* VisionOS.entitlements */,
+				63DBD7342B954215006603D0 /* VisionOSApp.swift */,
+				63DBD7362B954215006603D0 /* ContentView.swift */,
+				63DBD7382B954216006603D0 /* Assets.xcassets */,
+				63DBD73D2B954216006603D0 /* Info.plist */,
+				63DBD73A2B954216006603D0 /* Preview Content */,
+			);
+			path = VisionOS;
+			sourceTree = "<group>";
+		};
+		63DBD7302B954215006603D0 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				63DBD7312B954215006603D0 /* RealityKitContent */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		63DBD73A2B954216006603D0 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				63DBD73B2B954216006603D0 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		63DBD7452B954216006603D0 /* VisionOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				63DBD7462B954216006603D0 /* VisionOSTests.swift */,
+			);
+			path = VisionOSTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -301,6 +400,45 @@
 			productReference = 632CBC46258682C9003E4988 /* Tests macOS.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		63DBD72D2B954215006603D0 /* VisionOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 63DBD74C2B954216006603D0 /* Build configuration list for PBXNativeTarget "VisionOS" */;
+			buildPhases = (
+				63DBD72A2B954215006603D0 /* Sources */,
+				63DBD72B2B954215006603D0 /* Frameworks */,
+				63DBD72C2B954215006603D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VisionOS;
+			packageProductDependencies = (
+				63DBD7322B954215006603D0 /* RealityKitContent */,
+				63DBD74E2B954334006603D0 /* OAuth2 */,
+			);
+			productName = VisionOS;
+			productReference = 63DBD72E2B954215006603D0 /* VisionOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		63DBD7412B954216006603D0 /* VisionOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 63DBD74D2B954216006603D0 /* Build configuration list for PBXNativeTarget "VisionOSTests" */;
+			buildPhases = (
+				63DBD73E2B954216006603D0 /* Sources */,
+				63DBD73F2B954216006603D0 /* Frameworks */,
+				63DBD7402B954216006603D0 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				63DBD7442B954216006603D0 /* PBXTargetDependency */,
+			);
+			name = VisionOSTests;
+			productName = VisionOSTests;
+			productReference = 63DBD7422B954216006603D0 /* VisionOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -325,6 +463,13 @@
 						CreatedOnToolsVersion = 12.2;
 						TestTargetID = 632CBC32258682C9003E4988;
 					};
+					63DBD72D2B954215006603D0 = {
+						CreatedOnToolsVersion = 15.2;
+					};
+					63DBD7412B954216006603D0 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = 63DBD72D2B954215006603D0;
+					};
 				};
 			};
 			buildConfigurationList = 632CBC22258682C8003E4988 /* Build configuration list for PBXProject "FluxHaus" */;
@@ -347,6 +492,8 @@
 				632CBC32258682C9003E4988 /* FluxHaus (macOS) */,
 				632CBC3A258682C9003E4988 /* Tests iOS */,
 				632CBC45258682C9003E4988 /* Tests macOS */,
+				63DBD72D2B954215006603D0 /* VisionOS */,
+				63DBD7412B954216006603D0 /* VisionOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -376,6 +523,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		632CBC44258682C9003E4988 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		63DBD72C2B954215006603D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63DBD73C2B954216006603D0 /* Preview Assets.xcassets in Resources */,
+				63DBD7392B954216006603D0 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		63DBD7402B954216006603D0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -439,6 +602,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		63DBD72A2B954215006603D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63DBD7582B954486006603D0 /* HomeKitView.swift in Sources */,
+				63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */,
+				63DBD75A2B954486006603D0 /* WeatherView.swift in Sources */,
+				63DBD75B2B954486006603D0 /* WeatherAlertView.swift in Sources */,
+				63DBD75C2B954486006603D0 /* AppliancesView.swift in Sources */,
+				63DBD7542B95447A006603D0 /* HomeConnect.swift in Sources */,
+				63DBD7552B95447A006603D0 /* FluxHausConsts.swift in Sources */,
+				63DBD7562B95447A006603D0 /* Weather.swift in Sources */,
+				63DBD7572B95447A006603D0 /* Miele.swift in Sources */,
+				63DBD7372B954215006603D0 /* ContentView.swift in Sources */,
+				63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		63DBD73E2B954216006603D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				63DBD7472B954216006603D0 /* VisionOSTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -451,6 +640,11 @@
 			isa = PBXTargetDependency;
 			target = 632CBC32258682C9003E4988 /* FluxHaus (macOS) */;
 			targetProxy = 632CBC47258682C9003E4988 /* PBXContainerItemProxy */;
+		};
+		63DBD7442B954216006603D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 63DBD72D2B954215006603D0 /* VisionOS */;
+			targetProxy = 63DBD7432B954216006603D0 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -778,6 +972,128 @@
 			};
 			name = Release;
 		};
+		63DBD7482B954216006603D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = VisionOS/VisionOS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"VisionOS/Preview Content\"";
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = xros;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
+		63DBD7492B954216006603D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = VisionOS/VisionOS.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"VisionOS/Preview Content\"";
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = xros;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				VALIDATE_PRODUCT = YES;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
+		63DBD74A2B954216006603D0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = xros;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VisionOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VisionOS";
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
+		};
+		63DBD74B2B954216006603D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = xros;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VisionOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VisionOS";
+				VALIDATE_PRODUCT = YES;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -826,6 +1142,24 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		63DBD74C2B954216006603D0 /* Build configuration list for PBXNativeTarget "VisionOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				63DBD7482B954216006603D0 /* Debug */,
+				63DBD7492B954216006603D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		63DBD74D2B954216006603D0 /* Build configuration list for PBXNativeTarget "VisionOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				63DBD74A2B954216006603D0 /* Debug */,
+				63DBD74B2B954216006603D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -841,6 +1175,15 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		632CBC852587A5AA003E4988 /* OAuth2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 632CBC842587A5AA003E4988 /* XCRemoteSwiftPackageReference "OAuth2" */;
+			productName = OAuth2;
+		};
+		63DBD7322B954215006603D0 /* RealityKitContent */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = RealityKitContent;
+		};
+		63DBD74E2B954334006603D0 /* OAuth2 */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 632CBC842587A5AA003E4988 /* XCRemoteSwiftPackageReference "OAuth2" */;
 			productName = OAuth2;
