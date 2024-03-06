@@ -26,9 +26,11 @@ struct Appliances: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         HStack {
-                                            Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
+                                            Text(getIcon(type: theAppliances[i].name, index: theAppliances[i].index))
                                                 .font(.title2)
                                                 .padding(.leading)
+                                            Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                .font(.title2)
                                             Spacer()
                                         }
                                         Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
@@ -45,6 +47,26 @@ struct Appliances: View {
                 }
         }.onAppear(perform: {let _ = self.updateTimer; fetchAppliances()})
     }
+    
+    func getIcon(type: String, index: Int) -> Image {
+        var tAppliance: [Appliance]
+        if (type == "Miele") {
+            tAppliance = miele.appliances
+        } else {
+            tAppliance = hc.appliances
+        }
+
+        if (tAppliance.count > index) {
+            var emoji = Image(systemName: "dryer")
+            if (tAppliance[index].name == "Washing machine") {
+                emoji = Image(systemName: "washer")
+            } else if (tAppliance[index].name == "Dishwasher") {
+                emoji = Image(systemName: "dishwasher")
+            }
+            return emoji
+        }
+        return Image(systemName: "network")
+    }
 
     func getApplianceName(type: String, index: Int) -> String {
         var tAppliance: [Appliance]
@@ -55,13 +77,8 @@ struct Appliances: View {
         }
 
         if (tAppliance.count > index) {
-            var emoji = "👖"
-            if (tAppliance[index].name == "Washer") {
-                emoji = "👕"
-            } else if (tAppliance[index].name == "Dishwasher") {
-                emoji = "🍽"
-            }
-            return "\(emoji) \(tAppliance[index].name)"
+            let text = "\(tAppliance[index].name)"
+            return text
         }
         return "Fetching"
     }
