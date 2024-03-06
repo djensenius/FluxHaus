@@ -81,7 +81,7 @@ class HomeConnect: ObservableObject {
         print("Authin")
         let base = URL(string: "https://api.home-connect.com")!
         let url = base.appendingPathComponent("api/homeappliances/\(FluxHausConsts.boschAppliance)/programs/active")
-        // oauth2.logger = OAuth2DebugLogger(.trace)
+        //oauth2.logger = OAuth2DebugLogger(.trace)
 
         var req = oauth2.request(forURL: url)
         req.setValue("application/vnd.bsh.sdk.v1+json", forHTTPHeaderField: "Accept")
