@@ -47,7 +47,7 @@ struct FluxHausApp: App {
             ZStack {
                 // BackgroundView()
                 VStack {
-                    ContentView()
+                    DateTimeView()
                         .onOpenURL { (url) in
                             print("Hi David \(url)")// Handle url here
                             if (url.absoluteString.contains("fluxhaus_miele")) {

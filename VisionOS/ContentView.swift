@@ -43,8 +43,8 @@ struct ContentView: View {
     var body: some View {
         VStack {
             VStack {
+                DateTimeView()
                 Weather()
-                HomeKitView()
                 HStack {
                     Text("Appliances")
                         .padding(.leading)
@@ -60,7 +60,6 @@ struct ContentView: View {
                         oauth2.handleRedirectURL(url)
                     }
                 }
-                Spacer()
             }
         }
         .padding()

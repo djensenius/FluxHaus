@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-struct ContentView: View {
+struct DateTimeView: View {
     @State var date = Date()
     var body: some View {
         VStack(alignment: .trailing) {
@@ -58,8 +58,8 @@ struct ContentView: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct DateTimeView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        DateTimeView()
     }
 }
