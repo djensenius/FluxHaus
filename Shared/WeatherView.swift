@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Weather: View {
+struct WeatherView: View {
     @ObservedObject var lm = LocationManager.init()
     @State private var showModal: Bool = false
 
@@ -18,14 +18,15 @@ struct Weather: View {
                 Text(weatherIcon())
                     .font(.subheadline)
                 Text(makeWeatherReport())
-                    .onAppear(perform: {
-                        lm.startMonitoring()
+                    .task {
+                        await lm.startMonitoring()
+                        await lm.fetchTheWeather()
                         let _ = self.updateTimer
-                    })
+                    }
                     .font(.subheadline)
-                if ((lm.weather.current) != nil) {
+                if ((lm.weather) != nil) {
                     Image(systemName: "wind")
-                    Text("\(Int(round((lm.weather.current!.windSpeed * 18) / 5))) km/h")
+                    Text("\(Int(round((lm.weather!.currentWeather.wind.speed * 18) / 5))) km/h")
                         .font(.subheadline)
                         .padding(.trailing)
                 }
@@ -66,19 +67,20 @@ struct Weather: View {
     }
 
     var updateTimer: Timer {
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true,
-                             block: {_ in
-                                lm.fetchTheWeather()
-                             })
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) {_ in
+            Task {
+                await lm.fetchTheWeather()
+            }
+        }
     }
 
     func weatherIcon() -> Image {
-        if (lm.weather.current == nil) {
+        if (lm.weather == nil) {
             return Image(systemName: "thermometer")
 
         }
 
-        let currentWeather = lm.weather.current!
+        let currentWeather = lm.weather!.currentWeather
         switch currentWeather.weather[0].icon {
         case "01d":
             return Image(systemName: "sun.max.fill")
@@ -122,20 +124,20 @@ struct Weather: View {
     }
 
     func makeWeatherReport() -> String {
-        if (lm.weather.current == nil) {
+        if (lm.weather == nil) {
             return "Loading"
         }
-        let currentWeather = lm.weather.current!
+        let currentWeather = lm.weather!.currentWeather
         let currentTemp = Int(round(currentWeather.temp - 273.15))
         let weatherDescription = currentWeather.weather[0].weatherDescription
         return "\(currentTemp)°, \(weatherDescription.capitalized)"
     }
 
     func getFeels() -> String {
-        if (lm.weather.current == nil) {
+        if (lm.weather == nil) {
             return "Loading"
         }
-        let currentWeather = lm.weather.current!
+        let currentWeather = lm.weather!.currentWeather
         let humidity = currentWeather.humidity
         let feelsLike = Int(round(currentWeather.feelsLike - 273.15))
         return "Feels Like \(feelsLike)°, \(humidity)% Humidity"
@@ -143,7 +145,7 @@ struct Weather: View {
     }
 
     func getMin() -> String {
-        if (lm.weather.current == nil) {
+        if (lm.weather == nil) {
             return "Loading"
         }
         let min = Int(round(lm.weather.daily[0].temp.min - 273.15))
@@ -162,6 +164,6 @@ struct Weather: View {
 
 struct Weather_Previews: PreviewProvider {
     static var previews: some View {
-        Weather()
+        WeatherView()
     }
 }
