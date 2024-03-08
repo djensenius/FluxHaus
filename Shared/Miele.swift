@@ -366,7 +366,6 @@ class Miele: ObservableObject {
     }
 
     func fetchAppliance(appliance: String) {
-        print("Fetch Miele");
         let base = URL(string: "https://api.mcs3.miele.com")!
         let url = base.appendingPathComponent("v1/devices/\(appliance)?language=en")
 

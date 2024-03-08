@@ -58,7 +58,7 @@ struct FluxHausApp: App {
                                 oauth2.handleRedirectURL(url)
                             }
                         }
-                    Weather()
+                    WeatherView()
                     HomeKitView()
                     HStack {
                         Text("Appliances")

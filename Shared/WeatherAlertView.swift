@@ -6,21 +6,28 @@
 //
 
 import SwiftUI
+import WeatherKit
 
 struct WeatherAlertView: View {
     @Environment(\.presentationMode) var presentationMode
-    var alerts: [Alert]
+    var alerts: [WeatherAlert]
     var body: some View {
         ScrollView {
             VStack {
                 Text("Weather Alerts")
                     .font(.headline)
                     .padding()
-                ForEach(alerts, id: \.description) { alert in
+                ForEach(alerts, id: \.summary) { alert in
                     VStack(alignment: .leading) {
-                        Text("Start: \(getTime(time: alert.start))")
-                        Text("End:   \(getTime(time: alert.end))")
-                        Text(alert.description)
+                        if (alert.region != nil) {
+                            Text("\(alert.severity.description.capitalized) alert for \(alert.region!)")
+                        } else {
+                            Text("\(alert.severity.description.capitalized)")
+                        }
+                        Text(alert.summary)
+                        Link(destination: alert.detailsURL, label: {
+                            Text(alert.source)
+                        })
                     }
                     .padding()
 
@@ -33,13 +40,5 @@ struct WeatherAlertView: View {
                 }
             }
         }
-    }
-
-    func getTime(time: Int) -> String {
-        let date = Date(timeIntervalSince1970: Double(time))
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, h:mm a" //Set date style
-        let localDate = formatter.string(from: date)
-        return localDate
     }
 }

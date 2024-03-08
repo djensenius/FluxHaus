@@ -78,7 +78,6 @@ class HomeConnect: ObservableObject {
     }
 
     func authorize() {
-        print("Authin")
         let base = URL(string: "https://api.home-connect.com")!
         let url = base.appendingPathComponent("api/homeappliances/\(FluxHausConsts.boschAppliance)/programs/active")
         //oauth2.logger = OAuth2DebugLogger(.trace)
