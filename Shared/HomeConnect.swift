@@ -75,6 +75,15 @@ class HomeConnect: ObservableObject {
     init() {
         appliances = []
         self.authorize()
+        oauth2.authConfig.authorizeEmbedded = true
+        oauth2.authConfig.ui.useAuthenticationSession = true
+        let scene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+
+        let rootViewController = scene?
+            .windows.first(where: { $0.isKeyWindow })?
+            .rootViewController
+        oauth2.authConfig.authorizeContext = rootViewController
     }
 
     func authorize() {
