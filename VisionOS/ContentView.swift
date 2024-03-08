@@ -44,7 +44,7 @@ struct ContentView: View {
         VStack {
             VStack {
                 DateTimeView()
-                Weather()
+                WeatherView()
                 HStack {
                     Text("Appliances")
                         .padding(.leading)

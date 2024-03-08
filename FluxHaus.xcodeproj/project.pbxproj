@@ -9,36 +9,22 @@
 /* Begin PBXBuildFile section */
 		63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC3F258682C9003E4988 /* Tests_iOS.swift */; };
-		632CBC4B258682C9003E4988 /* Tests_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC4A258682C9003E4988 /* Tests_macOS.swift */; };
 		632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC24258682C8003E4988 /* FluxHausApp.swift */; };
-		632CBC4E258682C9003E4988 /* FluxHausApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC24258682C8003E4988 /* FluxHausApp.swift */; };
 		632CBC4F258682C9003E4988 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
-		632CBC50258682C9003E4988 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		632CBC51258682C9003E4988 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
-		632CBC52258682C9003E4988 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		632CBC6825868365003E4988 /* HomeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 632CBC6725868365003E4988 /* HomeKit.framework */; };
 		632CBC6A25868381003E4988 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 632CBC6925868381003E4988 /* HealthKit.framework */; };
 		632CBC702586C79E003E4988 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
-		632CBC712586C79E003E4988 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		632CBC7725870B75003E4988 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
-		632CBC7825870B75003E4988 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
 		632CBC7E25870CBB003E4988 /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
-		632CBC7F25870CBB003E4988 /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
 		632CBC862587A5AA003E4988 /* OAuth2 in Frameworks */ = {isa = PBXBuildFile; productRef = 632CBC852587A5AA003E4988 /* OAuth2 */; };
 		632CBC902587B4AD003E4988 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
-		632CBC912587B4AD003E4988 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		6369A139259984E400888E5D /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
-		6369A13A259984E400888E5D /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
 		636B9B3A258E57D400DE97BD /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
-		636B9B3B258E57D400DE97BD /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
 		636B9B45258E5C3600DE97BD /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
-		636B9B46258E5C3600DE97BD /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
 		636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
-		636B9B51258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
-		636B9B5C258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
 		636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
-		636B9B63258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
 		63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD7322B954215006603D0 /* RealityKitContent */; };
 		63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7342B954215006603D0 /* VisionOSApp.swift */; };
 		63DBD7372B954215006603D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7362B954215006603D0 /* ContentView.swift */; };
@@ -67,13 +53,6 @@
 			remoteGlobalIDString = 632CBC2A258682C9003E4988;
 			remoteInfo = "FluxHaus (iOS)";
 		};
-		632CBC47258682C9003E4988 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 632CBC32258682C9003E4988;
-			remoteInfo = "FluxHaus (macOS)";
-		};
 		63DBD7432B954216006603D0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
@@ -83,32 +62,17 @@
 		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		637496282597E7E900F3BED3 /* Embed PlugIns */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-			);
-			name = "Embed PlugIns";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
 		632CBC25258682C8003E4988 /* DateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimeView.swift; sourceTree = "<group>"; };
 		632CBC26258682C9003E4988 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		632CBC2B258682C9003E4988 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		632CBC2E258682C9003E4988 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		632CBC33258682C9003E4988 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		632CBC35258682C9003E4988 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		632CBC36258682C9003E4988 /* macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macOS.entitlements; sourceTree = "<group>"; };
 		632CBC3B258682C9003E4988 /* Tests iOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tests iOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		632CBC3F258682C9003E4988 /* Tests_iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_iOS.swift; sourceTree = "<group>"; };
 		632CBC41258682C9003E4988 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		632CBC46258682C9003E4988 /* Tests macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tests macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		632CBC4A258682C9003E4988 /* Tests_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS.swift; sourceTree = "<group>"; };
 		632CBC4C258682C9003E4988 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		632CBC6525868365003E4988 /* FluxHaus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxHaus.entitlements; sourceTree = "<group>"; };
@@ -149,21 +113,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		632CBC30258682C9003E4988 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		632CBC38258682C9003E4988 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		632CBC43258682C9003E4988 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -232,9 +182,7 @@
 			isa = PBXGroup;
 			children = (
 				632CBC2B258682C9003E4988 /* FluxHaus.app */,
-				632CBC33258682C9003E4988 /* FluxHaus.app */,
 				632CBC3B258682C9003E4988 /* Tests iOS.xctest */,
-				632CBC46258682C9003E4988 /* Tests macOS.xctest */,
 				63DBD72E2B954215006603D0 /* VisionOS.app */,
 				63DBD7422B954216006603D0 /* VisionOSTests.xctest */,
 			);
@@ -347,24 +295,6 @@
 			productReference = 632CBC2B258682C9003E4988 /* FluxHaus.app */;
 			productType = "com.apple.product-type.application";
 		};
-		632CBC32258682C9003E4988 /* FluxHaus (macOS) */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 632CBC58258682C9003E4988 /* Build configuration list for PBXNativeTarget "FluxHaus (macOS)" */;
-			buildPhases = (
-				632CBC2F258682C9003E4988 /* Sources */,
-				632CBC30258682C9003E4988 /* Frameworks */,
-				632CBC31258682C9003E4988 /* Resources */,
-				637496282597E7E900F3BED3 /* Embed PlugIns */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "FluxHaus (macOS)";
-			productName = "FluxHaus (macOS)";
-			productReference = 632CBC33258682C9003E4988 /* FluxHaus.app */;
-			productType = "com.apple.product-type.application";
-		};
 		632CBC3A258682C9003E4988 /* Tests iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 632CBC5B258682C9003E4988 /* Build configuration list for PBXNativeTarget "Tests iOS" */;
@@ -381,24 +311,6 @@
 			name = "Tests iOS";
 			productName = "Tests iOS";
 			productReference = 632CBC3B258682C9003E4988 /* Tests iOS.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
-		};
-		632CBC45258682C9003E4988 /* Tests macOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 632CBC5E258682C9003E4988 /* Build configuration list for PBXNativeTarget "Tests macOS" */;
-			buildPhases = (
-				632CBC42258682C9003E4988 /* Sources */,
-				632CBC43258682C9003E4988 /* Frameworks */,
-				632CBC44258682C9003E4988 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				632CBC48258682C9003E4988 /* PBXTargetDependency */,
-			);
-			name = "Tests macOS";
-			productName = "Tests macOS";
-			productReference = 632CBC46258682C9003E4988 /* Tests macOS.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		63DBD72D2B954215006603D0 /* VisionOS */ = {
@@ -453,16 +365,9 @@
 					632CBC2A258682C9003E4988 = {
 						CreatedOnToolsVersion = 12.2;
 					};
-					632CBC32258682C9003E4988 = {
-						CreatedOnToolsVersion = 12.2;
-					};
 					632CBC3A258682C9003E4988 = {
 						CreatedOnToolsVersion = 12.2;
 						TestTargetID = 632CBC2A258682C9003E4988;
-					};
-					632CBC45258682C9003E4988 = {
-						CreatedOnToolsVersion = 12.2;
-						TestTargetID = 632CBC32258682C9003E4988;
 					};
 					63DBD72D2B954215006603D0 = {
 						CreatedOnToolsVersion = 15.2;
@@ -490,9 +395,7 @@
 			projectRoot = "";
 			targets = (
 				632CBC2A258682C9003E4988 /* FluxHaus (iOS) */,
-				632CBC32258682C9003E4988 /* FluxHaus (macOS) */,
 				632CBC3A258682C9003E4988 /* Tests iOS */,
-				632CBC45258682C9003E4988 /* Tests macOS */,
 				63DBD72D2B954215006603D0 /* VisionOS */,
 				63DBD7412B954216006603D0 /* VisionOSTests */,
 			);
@@ -508,22 +411,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		632CBC31258682C9003E4988 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				632CBC52258682C9003E4988 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		632CBC39258682C9003E4988 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		632CBC44258682C9003E4988 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -568,38 +456,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		632CBC2F258682C9003E4988 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				636B9B5C258FBB6300DE97BD /* HomeKitView.swift in Sources */,
-				636B9B51258E912A00DE97BD /* BackgroundView.swift in Sources */,
-				636B9B46258E5C3600DE97BD /* Weather.swift in Sources */,
-				636B9B63258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */,
-				6369A13A259984E400888E5D /* WeatherAlertView.swift in Sources */,
-				632CBC7F25870CBB003E4988 /* AppliancesView.swift in Sources */,
-				632CBC912587B4AD003E4988 /* HomeConnect.swift in Sources */,
-				632CBC50258682C9003E4988 /* DateTimeView.swift in Sources */,
-				632CBC7825870B75003E4988 /* FluxHausConsts.swift in Sources */,
-				632CBC712586C79E003E4988 /* Miele.swift in Sources */,
-				632CBC4E258682C9003E4988 /* FluxHausApp.swift in Sources */,
-				636B9B3B258E57D400DE97BD /* WeatherView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		632CBC37258682C9003E4988 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		632CBC42258682C9003E4988 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				632CBC4B258682C9003E4988 /* Tests_macOS.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -637,11 +498,6 @@
 			isa = PBXTargetDependency;
 			target = 632CBC2A258682C9003E4988 /* FluxHaus (iOS) */;
 			targetProxy = 632CBC3C258682C9003E4988 /* PBXContainerItemProxy */;
-		};
-		632CBC48258682C9003E4988 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 632CBC32258682C9003E4988 /* FluxHaus (macOS) */;
-			targetProxy = 632CBC47258682C9003E4988 /* PBXContainerItemProxy */;
 		};
 		63DBD7442B954216006603D0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -704,8 +560,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -761,8 +617,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
-				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				MACOSX_DEPLOYMENT_TARGET = 14.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -777,7 +633,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FluxHaus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
@@ -805,7 +661,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FluxHaus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
@@ -824,62 +680,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		632CBC59258682C9003E4988 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 9JALHNGRBQ;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = macOS/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 1.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
-				PRODUCT_NAME = FluxHaus;
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		632CBC5A258682C9003E4988 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 9JALHNGRBQ;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = macOS/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				MARKETING_VERSION = 1.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
-				PRODUCT_NAME = FluxHaus;
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -928,52 +728,6 @@
 			};
 			name = Release;
 		};
-		632CBC5F258682C9003E4988 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 9JALHNGRBQ;
-				INFOPLIST_FILE = "Tests macOS/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-macOS";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "FluxHaus (macOS)";
-			};
-			name = Debug;
-		};
-		632CBC60258682C9003E4988 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = 9JALHNGRBQ;
-				INFOPLIST_FILE = "Tests macOS/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-macOS";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "FluxHaus (macOS)";
-			};
-			name = Release;
-		};
 		63DBD7482B954216006603D0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -983,7 +737,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = VisionOS/VisionOS.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"VisionOS/Preview Content\"";
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
 				ENABLE_PREVIEWS = YES;
@@ -1018,7 +772,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = VisionOS/VisionOS.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"VisionOS/Preview Content\"";
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
 				ENABLE_PREVIEWS = YES;
@@ -1119,29 +873,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		632CBC58258682C9003E4988 /* Build configuration list for PBXNativeTarget "FluxHaus (macOS)" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				632CBC59258682C9003E4988 /* Debug */,
-				632CBC5A258682C9003E4988 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		632CBC5B258682C9003E4988 /* Build configuration list for PBXNativeTarget "Tests iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				632CBC5C258682C9003E4988 /* Debug */,
 				632CBC5D258682C9003E4988 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		632CBC5E258682C9003E4988 /* Build configuration list for PBXNativeTarget "Tests macOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				632CBC5F258682C9003E4988 /* Debug */,
-				632CBC60258682C9003E4988 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
