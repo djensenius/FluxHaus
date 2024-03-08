@@ -28,5 +28,7 @@
 	<string>For the weather!!!</string>
 	<key>NSHomeKitUsageDescription</key>
 	<string>For the shortcuts to see our home!!!</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 </dict>
 </plist>

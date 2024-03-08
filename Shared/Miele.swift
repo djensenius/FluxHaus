@@ -363,6 +363,15 @@ class Miele: ObservableObject {
     init() {
         print("Hi Miele");
         appliances = []
+        oauth2Miele.authConfig.authorizeEmbedded = true
+        oauth2Miele.authConfig.ui.useAuthenticationSession = true
+        let scene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+
+        let rootViewController = scene?
+            .windows.first(where: { $0.isKeyWindow })?
+            .rootViewController
+        oauth2Miele.authConfig.authorizeContext = rootViewController
     }
 
     func fetchAppliance(appliance: String) {
