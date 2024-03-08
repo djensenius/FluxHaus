@@ -21,13 +21,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var weather: Weather?
     
     func fetchTheWeather() async {
-        print("Getting Weather")
-        let location = self.location ?? CLLocation(latitude: 43.27, longitude: 80.27)
-
+        let location = self.location ?? CLLocation(latitude: 43.44, longitude: -80.49)
         let weatherService = WeatherService()
         let weather = try! await weatherService.weather(for: location)
-        print(weather)
-        self.weather = weather
+        DispatchQueue.main.async {
+            self.weather = weather
+        }
     }
 
     func startMonitoring() async {
@@ -55,13 +54,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         guard let location = locations.last else { return }
         if (self.location?.coordinate.longitude != location.coordinate.longitude ||
                 self.location?.coordinate.latitude != location.coordinate.latitude) {
-
             self.location = location
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
-        //Failed
         debugPrint(error)
     }
 }
