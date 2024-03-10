@@ -8,10 +8,14 @@
 import SwiftUI
 
 struct Appliances: View {
-    @ObservedObject var hc = HomeConnect.init()
-    @ObservedObject var miele = Miele.init()
+    var fluxHausConsts: FluxHausConsts
+    var hc: HomeConnect
+    var miele: Miele
+    
+    // @ObservedObject var hc = HomeConnect.init()
+    // @ObservedObject var miele = Miele.init()
 
-    private var gridItemLayout = [GridItem(.flexible())]
+    private let gridItemLayout = [GridItem(.flexible())]
 
     private let theAppliances = [ (name: "HomeConnect", index: 0), (name: "Miele", index: 0), (name: "Miele", index: 1) ]
 
@@ -132,16 +136,17 @@ struct Appliances: View {
 
     func fetchAppliances() -> Void {
         hc.authorize()
-        FluxHausConsts.mieleAppliances.forEach { (appliance) in
+        fluxHausConsts.mieleAppliances.forEach { (appliance) in
             miele.fetchAppliance(appliance: appliance)
         }
     }
 }
 
 
-
+/*
 struct Appliances_Previews: PreviewProvider {
     static var previews: some View {
         Appliances()
     }
 }
+*/

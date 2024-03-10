@@ -74,28 +74,28 @@ class HomeConnect: ObservableObject {
 
     init() {
         appliances = []
-        self.authorize()
-        oauth2.authConfig.authorizeEmbedded = true
-        oauth2.authConfig.ui.useAuthenticationSession = true
+        oauth2!.authConfig.authorizeEmbedded = true
+        oauth2!.authConfig.ui.useAuthenticationSession = true
         let scene = UIApplication.shared.connectedScenes
             .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
 
         let rootViewController = scene?
             .windows.first(where: { $0.isKeyWindow })?
             .rootViewController
-        oauth2.authConfig.authorizeContext = rootViewController
+        oauth2!.authConfig.authorizeContext = rootViewController
+        self.authorize()
     }
-
+    
     func authorize() {
         let base = URL(string: "https://api.home-connect.com")!
         let url = base.appendingPathComponent("api/homeappliances/\(FluxHausConsts.boschAppliance)/programs/active")
         //oauth2.logger = OAuth2DebugLogger(.trace)
 
-        var req = oauth2.request(forURL: url)
+        var req = oauth2!.request(forURL: url)
         req.setValue("application/vnd.bsh.sdk.v1+json", forHTTPHeaderField: "Accept")
 
 
-        loader.perform(request: req) { response in
+        loader!.perform(request: req) { response in
             do {
                 DispatchQueue.main.async {
                     let decoder = JSONDecoder()

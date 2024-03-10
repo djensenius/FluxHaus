@@ -363,26 +363,28 @@ class Miele: ObservableObject {
     init() {
         print("Hi Miele");
         appliances = []
-        oauth2Miele.authConfig.authorizeEmbedded = true
-        oauth2Miele.authConfig.ui.useAuthenticationSession = true
-        let scene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+        DispatchQueue.main.async {
+            oauth2Miele!.authConfig.authorizeEmbedded = true
+            oauth2Miele!.authConfig.ui.useAuthenticationSession = true
+            let scene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
 
-        let rootViewController = scene?
-            .windows.first(where: { $0.isKeyWindow })?
-            .rootViewController
-        oauth2Miele.authConfig.authorizeContext = rootViewController
+            let rootViewController = scene?
+                .windows.first(where: { $0.isKeyWindow })?
+                .rootViewController
+            oauth2Miele!.authConfig.authorizeContext = rootViewController
+        }
     }
 
     func fetchAppliance(appliance: String) {
         let base = URL(string: "https://api.mcs3.miele.com")!
         let url = base.appendingPathComponent("v1/devices/\(appliance)?language=en")
 
-        var req = oauth2Miele.request(forURL: url)
+        var req = oauth2Miele!.request(forURL: url)
         req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
        // oauth2Miele.logger = OAuth2DebugLogger(.trace)
 
-        loaderMiele.perform(request: req) { response in
+        loaderMiele!.perform(request: req) { response in
             do {
                 let decoder = JSONDecoder()
                 if let mApps = try? decoder.decode(MieleAppliances.self, from: response.responseData()) {
@@ -439,6 +441,11 @@ class Miele: ObservableObject {
                         if found == false {
                             self.appliances.append(appliance)
                         }
+                        NotificationCenter.default.post(
+                            name: Notification.Name.loginsUpdated,
+                            object: nil,
+                            userInfo: ["mieleComplete": true]
+                        )
                     }
                 }
             }
