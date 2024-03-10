@@ -22,6 +22,7 @@ struct Appliances: View {
     @ObservedObject var hc: HomeConnect
     @ObservedObject var miele: Miele
     var robots: Robots
+    var battery: Battery
     
     private let gridItemLayout = [GridItem(.flexible())]
 
@@ -30,13 +31,14 @@ struct Appliances: View {
         (name: "Miele", index: 0),
         (name: "Miele", index: 1),
         (name: "BroomBot", index: 0),
-        (name: "MopBot", index: 0)
+        (name: "MopBot", index: 0),
+        (name: "Battery", index: 0)
     ]
 
     var body: some View {
         ScrollView {
                 LazyVGrid(columns: gridItemLayout, spacing: 5) {
-                    ForEach((0..<5), id: \.self) { i in
+                    ForEach((0..<6), id: \.self) { i in
                         if (getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index) != "Fetching") {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 15, style: .continuous)
@@ -74,6 +76,16 @@ struct Appliances: View {
             return Image(systemName: "humidifier.and.droplets")
         } else if type == "BroomBot" {
             return Image(systemName: "fan")
+        } else if type == "Battery" {
+            if battery.model == .iPad {
+                return Image(systemName: "iPad")
+            } else if battery.model == .mac {
+                return Image(systemName: "macbook")
+            } else if battery.model == .visionPro {
+                return Image(systemName: "visionpro")
+            } else {
+                return Image(systemName: "iphone")
+            }
         } else {
             tAppliance = hc.appliances
         }
@@ -98,6 +110,16 @@ struct Appliances: View {
             return "MopBot"
         } else if type == "BroomBot" {
             return "BroomBot"
+        } else if type == "Battery" {
+            if battery.model == .iPad {
+                return "iPad"
+            } else if battery.model == .mac {
+                return "Computer"
+            } else if battery.model == .visionPro {
+                return "Vision Pro"
+            } else {
+                return "Phone"
+            }
         } else {
             tAppliance = hc.appliances
         }
@@ -125,6 +147,13 @@ struct Appliances: View {
             } else {
                 return ""
             }
+        } else if type == "Battery" {
+            if battery.state == .charging {
+                return "Charging"
+            } else if battery.state == .unknown {
+                return "Unknown"
+            }
+            return ""
         } else {
             tAppliance = hc.appliances
         }
@@ -162,6 +191,8 @@ struct Appliances: View {
             } else {
                 return "Lost"
             }
+        } else if type == "Battery" {
+            return "\(battery.percent)%"
         } else {
             tAppliance = hc.appliances
         }
