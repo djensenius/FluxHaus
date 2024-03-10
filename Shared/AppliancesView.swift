@@ -135,7 +135,7 @@ struct Appliances: View {
     }
 
     func fetchAppliances() -> Void {
-        hc.authorize()
+        hc.authorize(boschAppliance: fluxHausConsts.boschAppliance)
         fluxHausConsts.mieleAppliances.forEach { (appliance) in
             miele.fetchAppliance(appliance: appliance)
         }

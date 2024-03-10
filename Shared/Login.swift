@@ -33,6 +33,12 @@ struct LoginResponse: Decodable {
     let mopbot: Robot
 }
 
+struct FluxObject {
+    let name: String
+    let object: LoginResponse
+    let userInfo: [String: Bool]
+}
+
 class LoginViewModel: ObservableObject {
     @Published var password: String = ""
 
@@ -41,9 +47,16 @@ class LoginViewModel: ObservableObject {
             parameters: LoginRequest(
                 password: password
             )
-        ).call() { _ in
+        ).call() { response in
             // Login successful, navigate to the Home screen
             // Send data back via notification
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: response,
+                    userInfo: ["keysComplete": true]
+                )
+            }
         }
     }
 }

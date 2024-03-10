@@ -12,8 +12,9 @@ struct LoadingView: View {
     @ObservedObject var viewModel: LoginViewModel = LoginViewModel()
     
     @State var error: String? = nil
+    @State var loggedIn: Bool = false
     var body: some View {
-        if needLoginView {
+        if needLoginView && !loggedIn {
             Text("FluxHaus Login")
                 .font(.title)
                 .padding(30)
@@ -50,6 +51,11 @@ struct LoadingView: View {
                 if (object.userInfo?["loginError"]) != nil {
                     DispatchQueue.main.async {
                         self.error = object.userInfo!["loginError"] as? String
+                    }
+                }
+                if (object.userInfo?["keysComplete"]) != nil {
+                    DispatchQueue.main.async {
+                        self.loggedIn = true
                     }
                 }
             }

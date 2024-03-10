@@ -8,18 +8,33 @@
 import Foundation
 import OAuth2
 
+struct FluxHausConfig {
+    let mieleClientId: String
+    let mieleSecretId: String
+    let mieleAppliances: [String]
+    let boschClientId: String
+    let boschSecretId: String
+    let boschAppliance: String
+    let favouriteHomeKit: [String]
+}
+
 class FluxHausConsts: ObservableObject {
-    @Published var fluxhausUrl = "http://fluxhaus.io:8080"
-    @Published var mieleClientId = ProcessInfo.processInfo.environment["mieleClientId"]!
-    @Published var mieleSecretId = ProcessInfo.processInfo.environment["mieleSecretId"]!
-    @Published var mieleAppliances = try! JSONSerialization.jsonObject(with: Data(ProcessInfo.processInfo.environment["mieleAppliances"]!.utf8)) as! [String]
-    @Published var boschClientId = ProcessInfo.processInfo.environment["boschClientId"]!
-    @Published var boschSecretId = ProcessInfo.processInfo.environment["boschSecretId"]!
-    static let boschAppliance = ProcessInfo.processInfo.environment["boschAppliance"]!
-    static let favouriteHomeKit = try! JSONSerialization.jsonObject(with: Data(ProcessInfo.processInfo.environment["favouriteHomeKit"]!.utf8)) as! [String]
+    @Published var mieleClientId = ""
+    @Published var mieleSecretId = ""
+    @Published var mieleAppliances: [String] = []
+    @Published var boschClientId = ""
+    @Published var boschSecretId = ""
+    @Published var boschAppliance = ""
+    @Published var favouriteHomeKit: [String] = []
     
-    func setConfig() {
-        self.mieleClientId = "BEEP BOOP"
+    func setConfig(config: FluxHausConfig) {
+        self.mieleClientId = config.mieleClientId
+        self.mieleSecretId = config.mieleSecretId
+        self.mieleAppliances = config.mieleAppliances
+        self.boschClientId = config.boschClientId
+        self.boschSecretId = config.boschSecretId
+        self.boschAppliance = config.boschAppliance
+        self.favouriteHomeKit = config.favouriteHomeKit
         
         oauth2 = OAuth2CodeGrant(settings: [
             "client_id": self.boschClientId,

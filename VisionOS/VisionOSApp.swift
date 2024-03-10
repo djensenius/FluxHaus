@@ -59,9 +59,21 @@ struct VisionOSApp: App {
                         loadKeys()
                     }
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.loginsUpdated)) { object in
-                        // newTask = object as? String
                         if ((object.userInfo?["keysComplete"]) != nil) == true {
-                            loadMiele()
+                            if (object.object != nil) {
+                                let configResponse = object.object! as! LoginResponse
+                                let config = FluxHausConfig(
+                                    mieleClientId: configResponse.mieleClientId,
+                                    mieleSecretId: configResponse.mieleSecretId,
+                                    mieleAppliances: configResponse.mieleAppliances,
+                                    boschClientId: configResponse.boschSecretId,
+                                    boschSecretId: configResponse.boschSecretId,
+                                    boschAppliance: configResponse.boschAppliance,
+                                    favouriteHomeKit: configResponse.favouriteHomeKit
+                                )
+                                fluxHausConsts.setConfig(config: config)
+                                loadMiele()
+                            }
                         }
                         
                         if ((object.userInfo?["mieleComplete"]) != nil) == true {
@@ -106,7 +118,7 @@ struct VisionOSApp: App {
     }
     
     func loadHomeConnect() {
-        hc = HomeConnect.init()
+        hc = HomeConnect.init(boschAppliance: fluxHausConsts.boschAppliance)
     }
 }
 

@@ -72,23 +72,27 @@ enum Value: Codable {
 class HomeConnect: ObservableObject {
     @Published var appliances: [Appliance] = []
 
-    init() {
+    init(boschAppliance: String) {
         appliances = []
-        oauth2!.authConfig.authorizeEmbedded = true
-        oauth2!.authConfig.ui.useAuthenticationSession = true
-        let scene = UIApplication.shared.connectedScenes
-            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-
-        let rootViewController = scene?
-            .windows.first(where: { $0.isKeyWindow })?
-            .rootViewController
-        oauth2!.authConfig.authorizeContext = rootViewController
-        self.authorize()
+        DispatchQueue.main.async {
+            oauth2!.authConfig.authorizeEmbedded = true
+            oauth2!.authConfig.ui.useAuthenticationSession = true
+            let scene = UIApplication.shared.connectedScenes
+                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+            
+            let rootViewController = scene?
+                .windows.first(where: { $0.isKeyWindow })?
+                .rootViewController
+            oauth2!.authConfig.authorizeContext = rootViewController
+        }
+        self.authorize(boschAppliance: boschAppliance)
     }
     
-    func authorize() {
+    func authorize(boschAppliance: String) {
+        let path = "api/homeappliances/\(boschAppliance)/programs/active"
+
         let base = URL(string: "https://api.home-connect.com")!
-        let url = base.appendingPathComponent("api/homeappliances/\(FluxHausConsts.boschAppliance)/programs/active")
+        let url = base.appendingPathComponent(path)
         //oauth2.logger = OAuth2DebugLogger(.trace)
 
         var req = oauth2!.request(forURL: url)
@@ -102,8 +106,18 @@ class HomeConnect: ObservableObject {
                     let activeProgram = try? decoder.decode(HomeConnectStruct.self, from: response.responseData())
                     if activeProgram == nil {
                         self.appliances.append(Appliance(name: "Dishwasher", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", programName: "", inUse: false))
+                        NotificationCenter.default.post(
+                            name: Notification.Name.loginsUpdated,
+                            object: nil,
+                            userInfo: ["homeConnectComplete": true]
+                        )
                     } else {
                         DispatchQueue.main.async {
+                            NotificationCenter.default.post(
+                                name: Notification.Name.loginsUpdated,
+                                object: nil,
+                                userInfo: ["homeConnectComplete": true]
+                            )
                             var options: [String] = []
                             let name = "Dishwasher"
                             let step = activeProgram!.data.name
