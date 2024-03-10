@@ -93,19 +93,19 @@ struct WhereWeAre {
     var hasKeyChainPassword = false
     var loading = true
     
-    let query: [String: Any] = [
-        kSecClass as String: kSecClassInternetPassword,
-        kSecAttrAccount as String: "admin",
-        kSecAttrServer as String: "api.fluxhaus.io",
-        kSecMatchLimit as String: kSecMatchLimitOne,
-        kSecReturnAttributes as String: true,
-        kSecReturnData as String: true,
-    ]
-    
-    var item: CFTypeRef?
-    
     // Check if user exists in the keychain
     init() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassInternetPassword,
+            kSecAttrAccount as String: "admin",
+            kSecAttrServer as String: "api.fluxhaus.io",
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnAttributes as String: true,
+            kSecReturnData as String: true,
+        ]
+        
+        var item: CFTypeRef?
+        
         if SecItemCopyMatching(query as CFDictionary, &item) == noErr {
             // Extract result
             if let existingItem = item as? [String: Any],
@@ -147,24 +147,15 @@ struct WhereWeAre {
     
     mutating func deleteKeyChainPasword() {
         let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
+            kSecClass as String: kSecClassInternetPassword,
+            kSecAttrServer as String: "api.fluxhaus.io",
             kSecAttrAccount as String: "admin",
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecReturnAttributes as String: true,
-            kSecReturnData as String: true,
         ]
-        var item: CFTypeRef?
-        // Check if user exists in the keychain
-        if SecItemCopyMatching(query as CFDictionary, &item) == noErr {
-            // Extract result
-            if let existingItem = item as? [String: Any],
-               let username = existingItem[kSecAttrAccount as String] as? String,
-               let passwordData = existingItem[kSecValueData as String] as? Data,
-               let password = String(data: passwordData, encoding: .utf8)
-            {
-                print(username)
-                print(password)
-            }
+        // Find user and delete
+        if SecItemDelete(query as CFDictionary) == noErr {
+            print("User removed successfully from the keychain")
+        } else {
+            print("Something went wrong trying to remove the user from the keychain")
         }
         hasKeychainPassword(has: false)
     }
