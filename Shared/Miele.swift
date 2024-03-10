@@ -436,6 +436,14 @@ class Miele: ObservableObject {
                             userInfo: ["mieleComplete": true]
                         )
                     }
+                } else {
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(
+                            name: Notification.Name.loginsUpdated,
+                            object: nil,
+                            userInfo: ["mieleComplete": true]
+                        )
+                    }
                 }
             }
         }
