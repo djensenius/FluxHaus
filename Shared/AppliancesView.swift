@@ -9,12 +9,9 @@ import SwiftUI
 
 struct Appliances: View {
     var fluxHausConsts: FluxHausConsts
-    var hc: HomeConnect
-    var miele: Miele
+    @ObservedObject var hc: HomeConnect
+    @ObservedObject var miele: Miele
     
-    // @ObservedObject var hc = HomeConnect.init()
-    // @ObservedObject var miele = Miele.init()
-
     private let gridItemLayout = [GridItem(.flexible())]
 
     private let theAppliances = [ (name: "HomeConnect", index: 0), (name: "Miele", index: 0), (name: "Miele", index: 1) ]

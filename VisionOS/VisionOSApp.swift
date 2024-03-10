@@ -15,33 +15,6 @@ var oauth2Miele: OAuth2CodeGrant? = nil
 var loader: OAuth2DataLoader? = nil
 var loaderMiele: OAuth2DataLoader? = nil
 
-/*
-let oauth2 = OAuth2CodeGrant(settings: [
-    "client_id": FluxHausConsts.boschClientId,
-    "client_secret": FluxHausConsts.boschSecretId,
-    "authorize_uri": "https://api.home-connect.com/security/oauth/authorize",
-    "token_uri": "https://api.home-connect.com/security/oauth/token",
-    "redirect_uris": ["fluxhaus://oauth/callback"],
-    "scope": "IdentifyAppliance Monitor",
-    "keychain": true,
-] as OAuth2JSON)
-
-let oauth2Miele = OAuth2CodeGrant(settings: [
-    "client_id": FluxHausConsts.mieleClientId,
-    "client_secret": FluxHausConsts.mieleSecretId,
-    "authorize_uri": "https://api.mcs3.miele.com/thirdparty/login",
-    "token_uri": "https://api.mcs3.miele.com/thirdparty/token",
-    "redirect_uris": ["fluxhaus://oauth/callback/fluxhaus_miele"],
-    "parameters": ["vg": "en-CA"],
-    "secret_in_body": true,
-    "keychain": true,
-] as OAuth2JSON)
-
-
-let loader = OAuth2DataLoader(oauth2: oauth2)
-let loaderMiele = OAuth2DataLoader(oauth2: oauth2Miele)
-*/
-
 var hc: HomeConnect? = nil
 var miele: Miele? = nil
 
@@ -55,9 +28,6 @@ struct VisionOSApp: App {
         WindowGroup {
             if whereWeAre.loading == true {
                 LoadingView(needLoginView: !whereWeAre.hasKeyChainPassword)
-                    .task {
-                        loadKeys()
-                    }
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.loginsUpdated)) { object in
                         if ((object.userInfo?["keysComplete"]) != nil) == true {
                             if (object.object != nil) {
@@ -66,7 +36,7 @@ struct VisionOSApp: App {
                                     mieleClientId: configResponse.mieleClientId,
                                     mieleSecretId: configResponse.mieleSecretId,
                                     mieleAppliances: configResponse.mieleAppliances,
-                                    boschClientId: configResponse.boschSecretId,
+                                    boschClientId: configResponse.boschClientId,
                                     boschSecretId: configResponse.boschSecretId,
                                     boschAppliance: configResponse.boschAppliance,
                                     favouriteHomeKit: configResponse.favouriteHomeKit
@@ -84,17 +54,18 @@ struct VisionOSApp: App {
                             whereWeAre.finishedLoading()
                         }
                         
+                        if (object.userInfo?["updateKeychain"]) != nil {
+                            whereWeAre.setPassword(password: object.userInfo!["updateKeychain"] as! String)
+                        }
+                        
                         if ((object.userInfo?["keysFailed"]) != nil) == true {
                             whereWeAre.deleteKeyChainPasword()
                         }
                     }
                     .onOpenURL { (url) in
-                        print("Hi David \(url)")// Handle url here
                         if (url.absoluteString.contains("fluxhaus_miele")) {
-                            print("Handle Miele")
                             oauth2Miele!.handleRedirectURL(url)
                         } else {
-                            print("Handle HomeConnect")
                             oauth2!.handleRedirectURL(url)
                         }
                     }
@@ -102,10 +73,6 @@ struct VisionOSApp: App {
                 ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!)
             }
         }
-    }
-    
-    func loadKeys() {
-        // Check access, assign robot and assign consts
     }
     
     func loadMiele() {
@@ -127,8 +94,9 @@ struct WhereWeAre {
     var loading = true
     
     let query: [String: Any] = [
-        kSecClass as String: kSecClassGenericPassword,
+        kSecClass as String: kSecClassInternetPassword,
         kSecAttrAccount as String: "admin",
+        kSecAttrServer as String: "api.fluxhaus.io",
         kSecMatchLimit as String: kSecMatchLimitOne,
         kSecReturnAttributes as String: true,
         kSecReturnData as String: true,
@@ -138,20 +106,35 @@ struct WhereWeAre {
     
     // Check if user exists in the keychain
     init() {
-        print("Initting")
         if SecItemCopyMatching(query as CFDictionary, &item) == noErr {
             // Extract result
             if let existingItem = item as? [String: Any],
                let passwordData = existingItem[kSecValueData as String] as? Data,
                let password = String(data: passwordData, encoding: .utf8)
             {
-                print(password)
+                queryFlux(password: password)
                 hasKeychainPassword(has: true)
             }
         } else {
-            print("Can't find it")
             hasKeychainPassword(has: false)
         }
+    }
+    
+    mutating func setPassword(password: String) {
+        // Set attributes
+        let attributes: [String: Any] = [
+            kSecClass as String: kSecClassInternetPassword,
+            kSecAttrServer as String: "api.fluxhaus.io",
+            kSecAttrAccount as String: "admin",
+            kSecValueData as String: password.data(using: String.Encoding.utf8)!,
+        ]
+        // Add user
+        let status = SecItemAdd(attributes as CFDictionary, nil)
+
+        if status == noErr {
+            print("User saved successfully in the keychain")
+        }
+        hasKeychainPassword(has: true)
     }
     
     mutating func hasKeychainPassword(has: Bool) {
@@ -163,7 +146,26 @@ struct WhereWeAre {
     }
     
     mutating func deleteKeyChainPasword() {
-        print("Going to delete password")
-        hasKeyChainPassword = false
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: "admin",
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnAttributes as String: true,
+            kSecReturnData as String: true,
+        ]
+        var item: CFTypeRef?
+        // Check if user exists in the keychain
+        if SecItemCopyMatching(query as CFDictionary, &item) == noErr {
+            // Extract result
+            if let existingItem = item as? [String: Any],
+               let username = existingItem[kSecAttrAccount as String] as? String,
+               let passwordData = existingItem[kSecValueData as String] as? Data,
+               let password = String(data: passwordData, encoding: .utf8)
+            {
+                print(username)
+                print(password)
+            }
+        }
+        hasKeychainPassword(has: false)
     }
 }

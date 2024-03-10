@@ -361,7 +361,6 @@ class Miele: ObservableObject {
     @Published var appliances: [Appliance] = []
 
     init() {
-        print("Hi Miele");
         appliances = []
         DispatchQueue.main.async {
             oauth2Miele!.authConfig.authorizeEmbedded = true
