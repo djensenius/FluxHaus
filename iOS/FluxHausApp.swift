@@ -8,67 +8,85 @@
 import SwiftUI
 import OAuth2
 
-let oauth2 = OAuth2CodeGrant(settings: [
-    "client_id": FluxHausConsts.boschClientId,
-    "client_secret": FluxHausConsts.boschSecretId,
-    "authorize_uri": "https://api.home-connect.com/security/oauth/authorize",
-    "token_uri": "https://api.home-connect.com/security/oauth/token",
-    "redirect_uris": ["fluxhaus://oauth/callback"],
-    "scope": "IdentifyAppliance Monitor",
-    "keychain": true,
-] as OAuth2JSON)
+var oauth2: OAuth2CodeGrant? = nil
+var oauth2Miele: OAuth2CodeGrant? = nil
+var loader: OAuth2DataLoader? = nil
+var loaderMiele: OAuth2DataLoader? = nil
 
-let oauth2Miele = OAuth2CodeGrant(settings: [
-    "client_id": FluxHausConsts.mieleClientId,
-    "client_secret": FluxHausConsts.mieleSecretId,
-    "authorize_uri": "https://api.mcs3.miele.com/thirdparty/login",
-    "token_uri": "https://api.mcs3.miele.com/thirdparty/token",
-    "redirect_uris": ["fluxhaus://oauth/callback/fluxhaus_miele"],
-    "parameters": ["vg": "en-CA"],
-    "secret_in_body": true,
-    "keychain": true,
-] as OAuth2JSON)
-
-
-let loader = OAuth2DataLoader(oauth2: oauth2)
-let loaderMiele = OAuth2DataLoader(oauth2: oauth2Miele)
-
-let hc = HomeConnect.init()
-let miele = Miele.init()
+var hc: HomeConnect? = nil
+var miele: Miele? = nil
+var robots: Robots? = nil
 
 @main
 struct FluxHausApp: App {
-    #if os(OSX)
-    // @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    #endif
-
+    @State private var whereWeAre = WhereWeAre()
+    @State var fluxHausConsts = FluxHausConsts()
+    
     var body: some Scene {
         WindowGroup {
-            ZStack {
-                // BackgroundView()
-                VStack {
-                    DateTimeView()
-                        .onOpenURL { (url) in
-                            print("Hi David \(url)")// Handle url here
-                            if (url.absoluteString.contains("fluxhaus_miele")) {
-                                print("Handle Miele")
-                                oauth2Miele.handleRedirectURL(url)
-                            } else {
-                                print("Handle HomeConnect")
-                                oauth2.handleRedirectURL(url)
+            if whereWeAre.loading == true {
+                LoadingView(needLoginView: !whereWeAre.hasKeyChainPassword)
+                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name.loginsUpdated)) { object in
+                        if ((object.userInfo?["keysComplete"]) != nil) == true {
+                            if (object.object != nil) {
+                                let configResponse = object.object! as! LoginResponse
+                                let config = FluxHausConfig(
+                                    mieleClientId: configResponse.mieleClientId,
+                                    mieleSecretId: configResponse.mieleSecretId,
+                                    mieleAppliances: configResponse.mieleAppliances,
+                                    boschClientId: configResponse.boschClientId,
+                                    boschSecretId: configResponse.boschSecretId,
+                                    boschAppliance: configResponse.boschAppliance,
+                                    favouriteHomeKit: configResponse.favouriteHomeKit
+                                )
+                                fluxHausConsts.setConfig(config: config)
+                                loadMiele()
+                                loadRobots()
                             }
                         }
-                    WeatherView()
-                    HomeKitView()
-                    HStack {
-                        Text("Appliances")
-                            .padding(.leading)
-                        Spacer()
+                        
+                        if ((object.userInfo?["mieleComplete"]) != nil) == true {
+                            loadHomeConnect()
+                        }
+                        
+                        if ((object.userInfo?["homeConnectComplete"]) != nil) == true {
+                            whereWeAre.finishedLoading()
+                        }
+                        
+                        if (object.userInfo?["updateKeychain"]) != nil {
+                            whereWeAre.setPassword(password: object.userInfo!["updateKeychain"] as! String)
+                        }
+                        
+                        if ((object.userInfo?["keysFailed"]) != nil) == true {
+                            whereWeAre.deleteKeyChainPasword()
+                        }
                     }
-                    Appliances()
-                    Spacer()
-                }
+                    .onOpenURL { (url) in
+                        if (url.absoluteString.contains("fluxhaus_miele")) {
+                            oauth2Miele!.handleRedirectURL(url)
+                        } else {
+                            oauth2!.handleRedirectURL(url)
+                        }
+                    }
+            } else {
+                ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!, robots: robots!)
             }
         }
+    }
+    func loadMiele() {
+        miele = Miele.init()
+        fluxHausConsts.mieleAppliances.forEach { (appliance) in
+            if miele != nil {
+                miele?.fetchAppliance(appliance: appliance)
+            }
+        }
+    }
+    
+    func loadHomeConnect() {
+        hc = HomeConnect.init(boschAppliance: fluxHausConsts.boschAppliance)
+    }
+    
+    func loadRobots() {
+        robots = Robots()
     }
 }

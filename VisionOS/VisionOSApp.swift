@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 import OAuth2
-import Security
 
 var oauth2: OAuth2CodeGrant? = nil
 var oauth2Miele: OAuth2CodeGrant? = nil

@@ -115,13 +115,13 @@ struct Appliances: View {
             tAppliance = miele.appliances
         } else if type == "MopBot" {
             if robots.mopBot.batteryLevel != nil && robots.mopBot.batteryLevel! < 100 {
-                return robots.mopBot.charging! ? "Charging (\(robots.mopBot.batteryLevel!)%" : "Battery (\(robots.mopBot.batteryLevel!)%"
+                return robots.mopBot.charging! ? "Charging (\(robots.mopBot.batteryLevel!)%)" : "Battery (\(robots.mopBot.batteryLevel!)%)"
             } else {
                 return ""
             }
         } else if type == "BroomBot" {
             if robots.broomBot.batteryLevel != nil && robots.broomBot.batteryLevel! < 100 {
-                return robots.broomBot.charging! ? "Charging (\(robots.broomBot.batteryLevel!)%" : "Battery (\(robots.broomBot.batteryLevel!)%"
+                return robots.broomBot.charging! ? "Charging (\(robots.broomBot.batteryLevel!)%)" : "Battery (\(robots.broomBot.batteryLevel!)%)"
             } else {
                 return ""
             }
@@ -134,7 +134,7 @@ struct Appliances: View {
                 return ""
             }
             if tAppliance.count > index && tAppliance[index].programName != "" {
-                return "\(tAppliance[index].step) (\(tAppliance[index].programName))"
+                return "\(tAppliance[index].step) (\(tAppliance[index].programName.trimmingCharacters(in: NSCharacterSet.whitespaces)))"
             } else if tAppliance.count > index  {
                 return "\(tAppliance[index].step)"
             }

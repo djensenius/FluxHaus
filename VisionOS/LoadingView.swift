@@ -33,14 +33,9 @@ struct LoadingView: View {
                 }
                 Spacer()
                 Button(
-                    action: viewModel.login,
-                    label: {
-                        Text("Login")
-                            .font(.system(size: 24, weight: .bold, design: .default))
-                            .frame(maxWidth: .infinity, maxHeight: 60)
-                            .foregroundColor(Color.white)
-                            .cornerRadius(10)
-                    }
+                    "Login",
+                    systemImage: "arrow.up",
+                    action: viewModel.login
                 )
             }
             .padding(30)

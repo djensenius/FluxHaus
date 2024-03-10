@@ -60,13 +60,14 @@ struct Robot: Decodable {
 
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-
+        print("Going to update robots")
         let task = URLSession.shared.dataTask(with: request) { data, _, error in
             if let data = data {
                 let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
                 
                 if let response = response {
                     DispatchQueue.main.async {
+                        print("Robots updated")
                         self.mopBot = response.mopbot
                         self.broomBot = response.broombot
                     }
