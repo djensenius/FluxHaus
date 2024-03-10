@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct HomeKitView: View {
+    var favouriteHomeKit: [String]
+    
     @ObservedObject var home = HomeKitIntegration()
-    private var gridItemLayout = [GridItem(.flexible()), GridItem(.flexible())]
+    private let gridItemLayout = [GridItem(.flexible()), GridItem(.flexible())]
     var body: some View {
         ScrollView(.horizontal) {
             LazyHGrid(rows: gridItemLayout, spacing: 1) {
                 ForEach(0..<home.favourites.count, id: \.self) { i in
-                    if (FluxHausConsts.favouriteHomeKit.contains(home.favourites[i].name)) {
+                    if (favouriteHomeKit.contains(home.favourites[i].name)) {
                         Button(action: {
                             home.primaryHome?.executeActionSet(home.favourites[i].hkSet, completionHandler: { (_) in
                                 print("Executed")
@@ -65,8 +67,10 @@ struct HomeKitView: View {
     }
 }
 
+/*
 struct HomeKitView_Previews: PreviewProvider {
     static var previews: some View {
         HomeKitView()
     }
 }
+*/

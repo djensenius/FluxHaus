@@ -1,11 +1,10 @@
 //
-//  VisionOSApp.swift
-//  VisionOS
+//  FluxHausApp.swift
+//  Shared
 //
-//  Created by David Jensenius on 2024-03-03.
+//  Created by David Jensenius on 2020-12-13.
 //
 
-import Foundation
 import SwiftUI
 import OAuth2
 
@@ -19,8 +18,7 @@ var miele: Miele? = nil
 var robots: Robots? = nil
 
 @main
-struct VisionOSApp: App {
-    
+struct FluxHausApp: App {
     @State private var whereWeAre = WhereWeAre()
     @State var fluxHausConsts = FluxHausConsts()
     
@@ -75,7 +73,6 @@ struct VisionOSApp: App {
             }
         }
     }
-    
     func loadMiele() {
         miele = Miele.init()
         fluxHausConsts.mieleAppliances.forEach { (appliance) in
