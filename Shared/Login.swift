@@ -11,16 +11,6 @@ struct LoginRequest: Encodable {
     let password: String
 }
 
-struct Robot: Decodable {
-    let timestamp: Int
-    let batteryLevel: Int?
-    let binFull: Bool?
-    let running: Bool?
-    let charging: Bool?
-    let docking: Bool?
-    let paused: Bool?
-}
-
 struct LoginResponse: Decodable {
     let mieleClientId: String
     let mieleSecretId: String

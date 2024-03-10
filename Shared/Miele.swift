@@ -9,16 +9,6 @@ import Foundation
 import OAuth2
 import UIKit
 
-struct Appliance {
-    let name: String
-    let timeRunning: Int
-    let timeRemaining: Int
-    let timeFinish: String
-    let step: String
-    let programName: String
-    let inUse: Bool
-}
-
 // MARK: - MieleAppliances
 struct MieleAppliances: Codable {
     let ident: Ident
