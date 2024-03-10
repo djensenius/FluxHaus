@@ -17,6 +17,7 @@ var loaderMiele: OAuth2DataLoader? = nil
 var hc: HomeConnect? = nil
 var miele: Miele? = nil
 var robots: Robots? = nil
+var battery: Battery? = nil
 
 @main
 struct VisionOSApp: App {
@@ -44,6 +45,7 @@ struct VisionOSApp: App {
                                 fluxHausConsts.setConfig(config: config)
                                 loadMiele()
                                 loadRobots()
+                                loadBattery()
                             }
                         }
                         
@@ -71,7 +73,13 @@ struct VisionOSApp: App {
                         }
                     }
             } else {
-                ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!, robots: robots!)
+                ContentView(
+                    fluxHausConsts: fluxHausConsts,
+                    hc: hc!,
+                    miele: miele!,
+                    robots: robots!,
+                    battery: battery!
+                )
             }
         }
     }
@@ -91,5 +99,9 @@ struct VisionOSApp: App {
     
     func loadRobots() {
         robots = Robots()
+    }
+    
+    func loadBattery() {
+        battery = Battery()
     }
 }

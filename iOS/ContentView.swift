@@ -12,6 +12,7 @@ struct ContentView: View {
     var hc: HomeConnect
     var miele: Miele
     var robots: Robots
+    var battery: Battery
     
     var body: some View {
         VStack {
@@ -23,7 +24,13 @@ struct ContentView: View {
                     .padding(.leading)
                 Spacer()
             }
-            Appliances(fluxHausConsts: fluxHausConsts, hc: hc, miele: miele, robots: robots)
+            Appliances(
+                fluxHausConsts: fluxHausConsts,
+                hc: hc,
+                miele: miele,
+                robots: robots,
+                battery: battery
+            )
             Spacer()
         }
     }

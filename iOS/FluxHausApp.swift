@@ -16,6 +16,7 @@ var loaderMiele: OAuth2DataLoader? = nil
 var hc: HomeConnect? = nil
 var miele: Miele? = nil
 var robots: Robots? = nil
+var battery: Battery? = nil
 
 @main
 struct FluxHausApp: App {
@@ -42,6 +43,7 @@ struct FluxHausApp: App {
                                 fluxHausConsts.setConfig(config: config)
                                 loadMiele()
                                 loadRobots()
+                                loadBattery()
                             }
                         }
                         
@@ -69,7 +71,7 @@ struct FluxHausApp: App {
                         }
                     }
             } else {
-                ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!, robots: robots!)
+                ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!, robots: robots!, battery: battery!)
             }
         }
     }
@@ -88,5 +90,9 @@ struct FluxHausApp: App {
     
     func loadRobots() {
         robots = Robots()
+    }
+    
+    func loadBattery() {
+        battery = Battery()
     }
 }
