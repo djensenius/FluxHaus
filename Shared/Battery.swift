@@ -23,13 +23,15 @@ enum Model {
         DispatchQueue.main.async {
             UIDevice.current.isBatteryMonitoringEnabled = true
             print(UIDevice.current.isBatteryMonitoringEnabled)
+            print(UIDevice.current.batteryLevel)
             self.percent = Int(UIDevice.current.batteryLevel * 100)
+            self.state = UIDevice.current.batteryState
         }
         
         if UIDevice.current.model == "iPhone" {
             self.model = Model.iPhone
         } else if UIDevice.current.model == "iPad" {
-            if ProcessInfo.processInfo.isiOSAppOnMac {
+            if ProcessInfo.processInfo.isMacCatalystApp || ProcessInfo.processInfo.isiOSAppOnMac {
                 self.model = Model.mac
             } else {
                 self.model = Model.iPad
