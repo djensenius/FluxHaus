@@ -42,8 +42,6 @@ struct Appliances: View {
                         if !(theAppliances[i].name == "Battery" && battery.model == .mac) {
                             if (getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index) != "Fetching") {
                                 ZStack {
-                                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                        .fill(Color(UIColor.systemGray6))
                                     HStack {
                                         VStack(alignment: .leading) {
                                             HStack {
@@ -55,13 +53,16 @@ struct Appliances: View {
                                                 Spacer()
                                             }
                                             Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
-                                                .font(.subheadline)
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
                                                 .padding(.leading)
                                         }
                                         Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
                                             .font(.title)
                                             .padding()
                                     }
+                                    .background(.regularMaterial, in: .rect(cornerRadius: 12))
+                                    .hoverEffect()
                                 }
                             }
                         }

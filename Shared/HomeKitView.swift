@@ -28,12 +28,13 @@ struct HomeKitView: View {
                                     .font(.subheadline)
                                     .frame(width: 100)
                             }
-                            .padding()
-                            .foregroundColor(getButtonForegroundColor(favourite: home.favourites[i]))
-                            .background(getButtonBackgroundColor(favourite: home.favourites[i]))
-                            .cornerRadius(20)
-                            .frame(width: 150, height: 70, alignment: .center)
-                        }.frame(minWidth: 150, idealWidth: 150, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
+                            .frame(width: 120, height: 50, alignment: .center)
+                        }
+                        .background(
+                            getButtonBackgroundColor(favourite: home.favourites[i]),
+                            in: .rect(cornerRadius: 12)
+                        )
+                        .padding(.leading)
                     }
                 }
             }.onAppear(perform: {
@@ -49,20 +50,12 @@ struct HomeKitView: View {
                                 home.startHome()
                              })
     }
-    
-    func getButtonForegroundColor(favourite: HomeKitFavourite) -> Color {
-        if (!favourite.isActive) {
-            return Color(UIColor.systemGray)
-        } else {
-            return Color(UIColor.systemGray6)
-        }
-    }
 
-    func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Color {
+    func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Material {
         if (!favourite.isActive) {
-            return Color(UIColor.systemFill)
+            return .bar
         } else {
-            return Color(UIColor.systemGray2)
+            return .regularMaterial
         }
     }
 }
