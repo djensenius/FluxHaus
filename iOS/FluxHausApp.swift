@@ -7,6 +7,7 @@
 
 import SwiftUI
 import OAuth2
+import UIKit
 
 var oauth2: OAuth2CodeGrant? = nil
 var oauth2Miele: OAuth2CodeGrant? = nil
@@ -22,7 +23,8 @@ var battery: Battery? = nil
 struct FluxHausApp: App {
     @State private var whereWeAre = WhereWeAre()
     @State var fluxHausConsts = FluxHausConsts()
-    
+    @State private var battery = Battery()
+        
     var body: some Scene {
         WindowGroup {
             if whereWeAre.loading == true {
@@ -71,7 +73,7 @@ struct FluxHausApp: App {
                         }
                     }
             } else {
-                ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!, robots: robots!, battery: battery!)
+                ContentView(fluxHausConsts: fluxHausConsts, hc: hc!, miele: miele!, robots: robots!, battery: battery)
             }
         }
     }
@@ -93,6 +95,6 @@ struct FluxHausApp: App {
     }
     
     func loadBattery() {
-        battery = Battery()
+        UIDevice.current.isBatteryMonitoringEnabled = true
     }
 }
