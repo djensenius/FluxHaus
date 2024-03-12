@@ -1,7 +1,5 @@
 # FluxHaus
-Login and query Miele and Bosch home appliances and integrate some HomeKit scenes. 
+Login and query Miele and Bosch home appliances and integrate HomeKit scenes and a local status of Roombas.
 
-Written in SwiftUI. This queries OpenWeather API, HomeConnect (for Bosch), and Miele APIs to quickly get data.
-
-Quickly written for personal use, might update occasionally. Happy to take PRs to make things a bit less specific.
+Written for personal use on Mac, iOS, and Vision OS. Happy to take PRs to make things a bit less specific.
 
