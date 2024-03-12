@@ -39,30 +39,34 @@ struct Appliances: View {
         ScrollView {
                 LazyVGrid(columns: gridItemLayout, spacing: 5) {
                     ForEach((0..<6), id: \.self) { i in
-                        if (getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index) != "Fetching") {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                    .fill(Color(UIColor.systemGray6))
-                                HStack {
-                                    VStack(alignment: .leading) {
-                                        HStack {
-                                            Text(getIcon(type: theAppliances[i].name, index: theAppliances[i].index))
-                                                .font(.title2)
+                        if !(theAppliances[i].name == "Battery" && battery.model == .mac) {
+                            if (getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index) != "Fetching") {
+                                ZStack {
+                                    HStack {
+                                        VStack(alignment: .leading) {
+                                            HStack {
+                                                Text(getIcon(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                    .font(.title2)
+                                                    .padding(.leading)
+                                                Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                    .font(.title2)
+                                                Spacer()
+                                            }
+                                            Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
                                                 .padding(.leading)
-                                            Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
-                                                .font(.title2)
-                                            Spacer()
                                         }
-                                        Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
-                                            .font(.subheadline)
-                                            .padding(.leading)
+                                        Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
+                                            .font(.title)
+                                            .padding()
                                     }
-                                    Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
-                                        .font(.title)
-                                        .padding()
+                                    .background(.regularMaterial, in: .rect(cornerRadius: 12))
+                                    .hoverEffect()
                                 }
                             }
                         }
+                        
                     }.padding(.horizontal)
                 }
         }.onAppear(perform: {let _ = self.updateTimer; fetchAppliances()})
