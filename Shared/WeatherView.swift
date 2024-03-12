@@ -63,6 +63,12 @@ struct WeatherView: View {
                     .font(.subheadline)
                     .padding(.trailing)
             }
+            HStack {
+                Spacer()
+                Link("Details", destination: URL(string: "weather://")!)
+                    .padding(.trailing)
+                    .font(.subheadline)
+            }
         }
     }
 

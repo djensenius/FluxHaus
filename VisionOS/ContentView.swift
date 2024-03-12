@@ -31,6 +31,10 @@ struct ContentView: View {
             }
         }
         .padding()
+        Link(
+            "Weather provided by  Weather",
+            destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+        ).font(.footnote)
     }
 }
 

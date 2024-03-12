@@ -36,9 +36,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSHomeKitUsageDescription</key>
-	<string>For the shortcuts to see our home!!!</string>
+	<string>We need access to HomeKit for access to some quick shortcuts.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>For the weather!!!</string>
+	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
