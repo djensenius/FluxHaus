@@ -23,8 +23,8 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>NSHomeKitUsageDescription</key>
-	<string>For shortcuts</string>
+	<string>We need access to HomeKit for access to some quick shortcuts.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>For weather!</string>
+	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 </dict>
 </plist>
