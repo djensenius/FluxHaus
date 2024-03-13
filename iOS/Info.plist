@@ -37,6 +37,8 @@
 	<true/>
 	<key>NSHomeKitUsageDescription</key>
 	<string>We need access to HomeKit for access to some quick shortcuts.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>UIApplicationSceneManifest</key>
