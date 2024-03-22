@@ -15,8 +15,9 @@ struct WeatherView: View {
         VStack {
             HStack {
                 Spacer()
-                Text(weatherIcon())
+                Image(systemName: weatherIcon())
                     .font(.subheadline)
+                    .symbolRenderingMode(.multicolor)
                 Text(makeWeatherReport())
                     .task {
                         await lm.startMonitoring()
@@ -40,19 +41,6 @@ struct WeatherView: View {
             }
             HStack {
                 Spacer()
-                if lm.weather?.weatherAlerts?.count ?? 0 > 0 {
-                    Button(action: {
-                        self.showModal = true
-                    }) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.subheadline)
-                        Text("OMG ALERT")
-                            .font(.subheadline)
-                    }.sheet(isPresented: self.$showModal) {
-                        // Hi
-                        WeatherAlertView(alerts: lm.weather!.weatherAlerts!)
-                    }
-                }
                 Image(systemName: "arrow.down.to.line.alt")
                     .font(.subheadline)
                 Text(getMin())
@@ -63,8 +51,33 @@ struct WeatherView: View {
                     .font(.subheadline)
                     .padding(.trailing)
             }
+            if (lm.forecast != nil) {
+                HStack {
+                    Spacer()
+                    Image(systemName: forecastIcon())
+                        .symbolRenderingMode(.multicolor)
+                    Text(buildForecast())
+                        .padding(.trailing)
+                        .font(.subheadline)
+                }
+            }
             HStack {
                 Spacer()
+                if lm.weather?.weatherAlerts?.count ?? 0 > 0 {
+                    Button(action: {
+                        self.showModal = true
+                    }) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.subheadline)
+                            .symbolRenderingMode(.multicolor)
+                        Text("OMG ALERT")
+                            .font(.subheadline)
+                    }.sheet(isPresented: self.$showModal) {
+                        WeatherAlertView(alerts: lm.weather!.weatherAlerts!)
+                    }
+                    .padding(.trailing)
+                    .font(.subheadline)
+                }
                 Link("Details", destination: URL(string: "weather://")!)
                     .padding(.trailing)
                     .font(.subheadline)
@@ -80,13 +93,13 @@ struct WeatherView: View {
         }
     }
 
-    func weatherIcon() -> Image {
+    func weatherIcon() -> String {
         if (lm.weather == nil) {
-            return Image(systemName: "thermometer")
+            return "thermometer"
 
         }
         let currentWeather = lm.weather!.currentWeather
-        return Image(systemName: currentWeather.symbolName)
+        return currentWeather.symbolName
     }
 
     func makeWeatherReport() -> String {
@@ -124,6 +137,48 @@ struct WeatherView: View {
         }
         let max = lm.weather!.dailyForecast[0].highTemperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(max)")
+    }
+    
+    func forecastIcon() -> String {
+        if (lm.forecast == nil) {
+            return "thermometer"
+
+        }
+        return lm.forecast!.symbolName
+    }
+    
+    func getTime(time: Int, type: TimeType) -> String {
+        if (time > 1) {
+            switch type {
+            case .day:
+                return "\(time) days"
+            case .hour:
+                return "\(time) hours"
+            case .minute:
+                return "\(time) minutes"
+            }
+        }
+        switch type {
+        case .day:
+            return "\(time) day"
+        case .hour:
+            return "\(time) hour"
+        case .minute:
+            return "\(time) minute"
+        }
+    }
+    
+    func buildForecast() -> String {
+        let forecast = lm.forecast!
+        let percent = "\(forecast.chance * 100)%"
+        let type = forecast.type
+        var theWhen = ""
+        if (forecast.endingNumber != nil) {
+            theWhen = "ending in  \(getTime(time: forecast.endingNumber!, type: forecast.endingType!))"
+        } else {
+            theWhen = "starting in \(getTime(time: forecast.startingNumber!, type: forecast.startingType!))"
+        }
+        return "\(percent) chance of \(type) \(theWhen)"
     }
 }
 
