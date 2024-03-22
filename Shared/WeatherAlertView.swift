@@ -36,8 +36,7 @@ struct WeatherAlertView: View {
                     self.presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Dismiss")
-                        .padding()
-                }
+                }.padding()
             }
         }
     }

@@ -75,7 +75,6 @@ struct WeatherView: View {
                     }.sheet(isPresented: self.$showModal) {
                         WeatherAlertView(alerts: lm.weather!.weatherAlerts!)
                     }
-                    .padding(.trailing)
                     .font(.subheadline)
                 }
                 Link("Details", destination: URL(string: "weather://")!)
