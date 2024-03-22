@@ -19,6 +19,7 @@ enum TimeType {
 struct ForecastInfo {
     let type: Precipitation
     let chance: Double
+    let symbolName: String
     let endingNumber: Int?
     let endingType: TimeType?
     let startingNumber: Int?
@@ -59,6 +60,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                         forecast = ForecastInfo(
                             type: weather.minuteForecast![0].precipitation,
                             chance: weather.minuteForecast![0].precipitationChance,
+                            symbolName: weather.hourlyForecast[0].symbolName,
                             endingNumber: index,
                             endingType: .minute,
                             startingNumber: nil,
@@ -77,6 +79,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                             forecast = ForecastInfo(
                                 type: weather.minuteForecast![0].precipitation,
                                 chance: weather.minuteForecast![0].precipitationChance,
+                                symbolName: weather.hourlyForecast[0].symbolName,
                                 endingNumber: index,
                                 endingType: .hour,
                                 startingNumber: nil,
@@ -92,10 +95,60 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             }
             
             if forecast == nil {
-                if ((self.weather?.dailyForecast[1].precipitationChance)! > 0.1) {
-                    // TODAY IT WILL HAPPEN
+                // Check today
+                if ((self.weather?.dailyForecast[0].precipitationChance)! > 0.1) {
+                    for index in 1...59 {
+                        let minuteForecast = weather.minuteForecast?[index]
+                        if minuteForecast?.precipitation != Precipitation.none {
+                            forecast = ForecastInfo(
+                                type: weather.minuteForecast![index].precipitation,
+                                chance: weather.minuteForecast![index].precipitationChance,
+                                symbolName: weather.hourlyForecast[0].symbolName,
+                                endingNumber: nil,
+                                endingType: nil,
+                                startingNumber: index,
+                                startingType: .minute
+                            )
+                            DispatchQueue.main.async {
+                                self.forecast = forecast
+                            }
+                            break
+                        }
+                    }
+                    if forecast == nil {
+                        for index in 1...59 {
+                            let hourlyForecast = weather.hourlyForecast[index]
+                            if hourlyForecast.precipitation != Precipitation.none {
+                                forecast = ForecastInfo(
+                                    type: weather.hourlyForecast[index].precipitation,
+                                    chance: weather.hourlyForecast[index].precipitationChance,
+                                    symbolName: weather.hourlyForecast[index].symbolName,
+                                    endingNumber: nil,
+                                    endingType: nil,
+                                    startingNumber: index,
+                                    startingType: .hour
+                                )
+                                DispatchQueue.main.async {
+                                    self.forecast = forecast
+                                }
+                                break
+                            }
+                        }
+                    }
                 } else if ((self.weather?.dailyForecast[1].precipitationChance)! > 0.1) {
                     // TOMORROW IT WILL HAPPEN
+                    forecast = ForecastInfo(
+                        type: weather.dailyForecast[1].precipitation,
+                        chance: weather.dailyForecast[1].precipitationChance,
+                        symbolName: weather.dailyForecast[1].symbolName,
+                        endingNumber: nil,
+                        endingType: nil,
+                        startingNumber: 1,
+                        startingType: .day
+                    )
+                    DispatchQueue.main.async {
+                        self.forecast = forecast
+                    }
                 }
             }
         }
