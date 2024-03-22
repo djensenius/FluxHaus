@@ -83,7 +83,7 @@ struct StateType: Codable {
     let elapsedTime, startTime, remainingTime: [Int]
     let signalInfo: Bool?
     let programPhase: TypeClass
-    let temperature: [TypeClass]
+    let temperature: [TempTypeClass]
     let remoteEnable: RemoteEnable?
 
     enum CodingKeys: String, CodingKey {
