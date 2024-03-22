@@ -47,6 +47,23 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
     }
     
+    func precipitationSymbol(type: Precipitation) -> String {
+        switch type {
+        case .hail:
+            return "cloud.hail.fill"
+        case .mixed:
+            return "cloud.sleet.fill"
+        case .rain:
+            return "rain.fill"
+        case .sleet:
+            return "cloud.sleet.fill"
+        case .snow:
+            return "cloud.snow.fill"
+        default:
+            return "thermostat"
+        }
+    }
+
     func getPrecipitationSummary() {
         if self.weather != nil {
             let weather = self.weather!
@@ -60,7 +77,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                         forecast = ForecastInfo(
                             type: weather.minuteForecast![0].precipitation,
                             chance: weather.minuteForecast![0].precipitationChance,
-                            symbolName: weather.hourlyForecast[0].symbolName,
+                            symbolName: precipitationSymbol(type: weather.minuteForecast![0].precipitation),
                             endingNumber: index,
                             endingType: .minute,
                             startingNumber: nil,
@@ -79,7 +96,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                             forecast = ForecastInfo(
                                 type: weather.minuteForecast![0].precipitation,
                                 chance: weather.minuteForecast![0].precipitationChance,
-                                symbolName: weather.hourlyForecast[0].symbolName,
+                                symbolName: precipitationSymbol(type: weather.minuteForecast![0].precipitation),
                                 endingNumber: index,
                                 endingType: .hour,
                                 startingNumber: nil,
@@ -103,7 +120,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                             forecast = ForecastInfo(
                                 type: weather.minuteForecast![index].precipitation,
                                 chance: weather.minuteForecast![index].precipitationChance,
-                                symbolName: weather.hourlyForecast[0].symbolName,
+                                symbolName: precipitationSymbol(type: weather.minuteForecast![index].precipitation),
                                 endingNumber: nil,
                                 endingType: nil,
                                 startingNumber: index,
@@ -122,7 +139,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                                 forecast = ForecastInfo(
                                     type: weather.hourlyForecast[index].precipitation,
                                     chance: weather.hourlyForecast[index].precipitationChance,
-                                    symbolName: weather.hourlyForecast[index].symbolName,
+                                    symbolName: precipitationSymbol(type: weather.hourlyForecast[index].precipitation),
                                     endingNumber: nil,
                                     endingType: nil,
                                     startingNumber: index,
@@ -140,7 +157,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                     forecast = ForecastInfo(
                         type: weather.dailyForecast[1].precipitation,
                         chance: weather.dailyForecast[1].precipitationChance,
-                        symbolName: weather.dailyForecast[1].symbolName,
+                        symbolName: precipitationSymbol(type: weather.dailyForecast[1].precipitation),
                         endingNumber: nil,
                         endingType: nil,
                         startingNumber: 1,
