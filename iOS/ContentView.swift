@@ -9,11 +9,11 @@ import SwiftUI
 
 struct ContentView: View {
     var fluxHausConsts: FluxHausConsts
-    var hc: HomeConnect
+    var hconn: HomeConnect
     var miele: Miele
     var robots: Robots
     var battery: Battery
-    
+
     var body: some View {
         VStack {
             DateTimeView()
@@ -26,7 +26,7 @@ struct ContentView: View {
             }
             Appliances(
                 fluxHausConsts: fluxHausConsts,
-                hc: hc,
+                hconn: hconn,
                 miele: miele,
                 robots: robots,
                 battery: battery

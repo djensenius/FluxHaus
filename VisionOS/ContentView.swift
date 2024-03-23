@@ -12,11 +12,11 @@ import OAuth2
 
 struct ContentView: View {
     var fluxHausConsts: FluxHausConsts
-    var hc: HomeConnect
+    var hconn: HomeConnect
     var miele: Miele
     var robots: Robots
     var battery: Battery
-    
+
     var body: some View {
         VStack {
             VStack {
@@ -27,7 +27,7 @@ struct ContentView: View {
                         .padding(.leading)
                     Spacer()
                 }
-                Appliances(fluxHausConsts: fluxHausConsts, hc: hc, miele: miele, robots: robots, battery: battery)
+                Appliances(fluxHausConsts: fluxHausConsts, hconn: hconn, miele: miele, robots: robots, battery: battery)
             }
         }
         .padding()

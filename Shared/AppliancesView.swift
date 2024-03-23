@@ -19,11 +19,11 @@ struct Appliance {
 
 struct Appliances: View {
     var fluxHausConsts: FluxHausConsts
-    @ObservedObject var hc: HomeConnect
+    @ObservedObject var hconn: HomeConnect
     @ObservedObject var miele: Miele
     var robots: Robots
     var battery: Battery
-    
+
     private let gridItemLayout = [GridItem(.flexible())]
 
     private let theAppliances = [
@@ -38,26 +38,49 @@ struct Appliances: View {
     var body: some View {
         ScrollView {
                 LazyVGrid(columns: gridItemLayout, spacing: 5) {
-                    ForEach((0..<6), id: \.self) { i in
-                        if !(theAppliances[i].name == "Battery" && battery.model == .mac) {
-                            if (getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index) != "Fetching") {
+                    ForEach((0..<6), id: \.self) { app in
+                        if !(theAppliances[app].name == "Battery" && battery.model == .mac) {
+                            if getApplianceName(
+                                type: theAppliances[app].name,
+                                index: theAppliances[app].index
+                            ) != "Fetching" {
                                 ZStack {
                                     HStack {
                                         VStack(alignment: .leading) {
                                             HStack {
-                                                Text(getIcon(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                Text(
+                                                    getIcon(
+                                                        type: theAppliances[app].name,
+                                                        index: theAppliances[app].index
+                                                    )
+                                                )
                                                     .font(.title2)
                                                     .padding(.leading)
-                                                Text(getApplianceName(type: theAppliances[i].name, index: theAppliances[i].index))
+                                                Text(
+                                                    getApplianceName(
+                                                        type: theAppliances[app].name,
+                                                        index: theAppliances[app].index
+                                                    )
+                                                )
                                                     .font(.title2)
                                                 Spacer()
                                             }
-                                            Text(getProgram(type: theAppliances[i].name, index: theAppliances[i].index))
+                                            Text(
+                                                getProgram(
+                                                    type: theAppliances[app].name,
+                                                    index: theAppliances[app].index
+                                                )
+                                            )
                                                 .font(.caption)
                                                 .foregroundStyle(.secondary)
                                                 .padding(.leading)
                                         }
-                                        Text(getTimeRemaining(type: theAppliances[i].name, index: theAppliances[i].index))
+                                        Text(
+                                            getTimeRemaining(
+                                                type: theAppliances[app].name,
+                                                index: theAppliances[app].index
+                                            )
+                                        )
                                             .font(.title)
                                             .padding()
                                     }
@@ -66,15 +89,14 @@ struct Appliances: View {
                                 }
                             }
                         }
-                        
                     }.padding(.horizontal)
                 }
-        }.onAppear(perform: {let _ = self.updateTimer; fetchAppliances()})
+        }.onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
     }
-    
+
     func getIcon(type: String, index: Int) -> Image {
         var tAppliance: [Appliance]
-        if (type == "Miele") {
+        if type == "Miele" {
             tAppliance = miele.appliances
         } else if type == "MopBot" {
             return Image(systemName: "humidifier.and.droplets")
@@ -91,7 +113,7 @@ struct Appliances: View {
                 return Image(systemName: "iphone")
             }
         } else {
-            tAppliance = hc.appliances
+            tAppliance = hconn.appliances
         }
 
         if tAppliance.count > index {
@@ -125,9 +147,9 @@ struct Appliances: View {
                 return "Phone"
             }
         } else {
-            tAppliance = hc.appliances
+            tAppliance = hconn.appliances
         }
-        
+
         if tAppliance.count > index {
             let text = "\(tAppliance[index].name)"
             return text
@@ -159,7 +181,7 @@ struct Appliances: View {
             }
             return ""
         } else {
-            tAppliance = hc.appliances
+            tAppliance = hconn.appliances
         }
 
         if tAppliance.count > index {
@@ -168,7 +190,7 @@ struct Appliances: View {
             }
             if tAppliance.count > index && tAppliance[index].programName != "" {
                 return "\(tAppliance[index].step) (\(tAppliance[index].programName.trimmingCharacters(in: NSCharacterSet.whitespaces)))"
-            } else if tAppliance.count > index  {
+            } else if tAppliance.count > index {
                 return "\(tAppliance[index].step)"
             }
         }
@@ -198,9 +220,9 @@ struct Appliances: View {
         } else if type == "Battery" {
             return "\(battery.percent)%"
         } else {
-            tAppliance = hc.appliances
+            tAppliance = hconn.appliances
         }
-        
+
         if tAppliance.count > index {
             if tAppliance[index].inUse == false {
                 return "Off"
@@ -220,15 +242,14 @@ struct Appliances: View {
                              })
     }
 
-    func fetchAppliances() -> Void {
+    func fetchAppliances() {
         robots.fetchRobots()
-        hc.authorize(boschAppliance: fluxHausConsts.boschAppliance)
+        hconn.authorize(boschAppliance: fluxHausConsts.boschAppliance)
         fluxHausConsts.mieleAppliances.forEach { (appliance) in
             miele.fetchAppliance(appliance: appliance)
         }
     }
 }
-
 
 /*
 struct Appliances_Previews: PreviewProvider {

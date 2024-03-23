@@ -89,7 +89,15 @@ struct StateType: Codable {
     enum CodingKeys: String, CodingKey {
         case dryingStep, status, programType, ventilationStep, light, signalDoor, batteryLevel, signalFailure, plateStep
         case programID = "ProgramID"
-        case spinningSpeed, targetTemperature, elapsedTime, startTime, remainingTime, signalInfo, programPhase, temperature, remoteEnable
+        case spinningSpeed,
+             targetTemperature,
+             elapsedTime,
+             startTime,
+             remainingTime,
+             signalInfo,
+             programPhase,
+             temperature,
+             remoteEnable
     }
 }
 
@@ -119,7 +127,10 @@ class JSONNull: Codable, Hashable {
     public required init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if !container.decodeNil() {
-            throw DecodingError.typeMismatch(JSONNull.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for JSONNull"))
+            throw DecodingError.typeMismatch(
+                JSONNull.self,
+                DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for JSONNull")
+            )
         }
     }
 
@@ -209,7 +220,10 @@ class JSONAny: Codable {
         throw decodingError(forCodingPath: container.codingPath)
     }
 
-    static func decode(from container: inout KeyedDecodingContainer<JSONCodingKey>, forKey key: JSONCodingKey) throws -> Any {
+    static func decode(
+        from container: inout KeyedDecodingContainer<JSONCodingKey>,
+        forKey key: JSONCodingKey
+    ) throws -> Any {
         if let value = try? container.decode(Bool.self, forKey: key) {
             return value
         }
@@ -344,7 +358,6 @@ class JSONAny: Codable {
     }
 }
 
-
 // MARK: - Miele
 
 class Miele: ObservableObject {
@@ -377,37 +390,40 @@ class Miele: ObservableObject {
             do {
                 let decoder = JSONDecoder()
                 if let mApps = try? decoder.decode(MieleAppliances.self, from: response.responseData()) {
-                    let inUse = (mApps.stateType.status.valueLocalized == "Off" || mApps.stateType.status.valueLocalized == "Not connected") ? false: true
+                    let inUse = (
+                        mApps.stateType.status.valueLocalized == "Off" ||
+                        mApps.stateType.status.valueLocalized == "Not connected"
+                    ) ? false: true
                     let programName = mApps.stateType.programID.valueLocalized
                     let currentDate = Date()
                     var finishTime: Date
-                    if (mApps.stateType.remainingTime.count > 0) {
+                    if mApps.stateType.remainingTime.count > 0 {
                         finishTime = Calendar.current.date(
                             byAdding: .minute,
                             value: mApps.stateType.remainingTime[1] + (60 * mApps.stateType.remainingTime[0]),
                             to: currentDate
                         ) ?? currentDate
                     } else {
-                        finishTime = currentDate;
+                        finishTime = currentDate
                     }
                     let formatter = DateFormatter()
                     formatter.dateFormat = "h:mm a"
                     let formatedTime = formatter.string(from: finishTime)
                     var name = mApps.ident.type.valueLocalized ?? ""
-                    if (mApps.ident.type.valueLocalized == "Washing Machine") {
+                    if mApps.ident.type.valueLocalized == "Washing Machine" {
                         name = "Washer"
-                    } else if (mApps.ident.type.valueLocalized == "Clothes Dryer") {
+                    } else if mApps.ident.type.valueLocalized == "Clothes Dryer" {
                         name = "Dryer"
                     }
                     var timeRemaining0 = 0
                     var timeRemaining1 = 0
-                    if (mApps.stateType.remainingTime.count > 1) {
+                    if mApps.stateType.remainingTime.count > 1 {
                         timeRemaining0 = mApps.stateType.remainingTime[0]
                         timeRemaining1 = mApps.stateType.remainingTime[1]
                     }
 
                     var elapsedTime = 0
-                    if (mApps.stateType.elapsedTime.count > 1) {
+                    if mApps.stateType.elapsedTime.count > 1 {
                         elapsedTime = mApps.stateType.elapsedTime[1]
                     }
                     let appliance = Appliance(

@@ -18,7 +18,7 @@ enum Model {
     var percent = 0
     var state = UIDevice.BatteryState.unknown
     var model = Model.iPhone
-    
+
     init() {
         DispatchQueue.main.async {
             UIDevice.current.isBatteryMonitoringEnabled = true
@@ -27,7 +27,7 @@ enum Model {
             self.percent = Int(UIDevice.current.batteryLevel * 100)
             self.state = UIDevice.current.batteryState
         }
-        
+
         if UIDevice.current.model == "iPhone" {
             self.model = Model.iPhone
         } else if UIDevice.current.model == "iPad" {
@@ -39,13 +39,21 @@ enum Model {
         } else {
             self.model = Model.visionPro
         }
-        NotificationCenter.default.addObserver(self, selector: #selector(batteryLevelDidChange), name: UIDevice.batteryLevelDidChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(batteryStateDidChange), name: UIDevice.batteryStateDidChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(batteryLevelDidChange),
+            name: UIDevice.batteryLevelDidChangeNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(batteryStateDidChange),
+            name: UIDevice.batteryStateDidChangeNotification,
+            object: nil
+        )
     }
     @objc func batteryLevelDidChange(notification: Notification) {
          percent = Int(UIDevice.current.batteryLevel * 100)
      }
-     
+
      @objc func batteryStateDidChange(notification: Notification) {
          state = UIDevice.current.batteryState
      }

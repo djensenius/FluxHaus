@@ -21,7 +21,7 @@ class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate {
 
     func startHome() {
         DispatchQueue.main.async {
-                for home in self.homeManager.homes {
+            for home in self.homeManager.homes {
                 if home.isPrimary {
                     self.primaryHome = home
                     self.refreshHome()
@@ -32,18 +32,18 @@ class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate {
 
     func refreshHome() {
         var hkaction: [HomeKitFavourite] = []
-        if (self.primaryHome != nil) {
+        if self.primaryHome != nil {
             for set: HMActionSet in primaryHome!.actionSets {
-                    //var active == false
                 var setOn = true
                 for action in set.actions {
                     let acc = action as? HMCharacteristicWriteAction<NSCopying>
                     acc?.characteristic.readValue(completionHandler: { (err) in
+                        print("Got \(String(describing: err))")
                         return
                     })
                     let value1 = acc?.characteristic.value as? Bool
                     let value2 = acc?.targetValue as? Bool
-                    if (value1 != value2) {
+                    if value1 != value2 {
                         setOn = false
                     }
                 }

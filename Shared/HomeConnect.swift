@@ -35,33 +35,36 @@ enum Value: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let x = try? container.decode(Bool.self) {
-            self = .bool(x)
+        if let decoded = try? container.decode(Bool.self) {
+            self = .bool(decoded)
             return
         }
-        if let x = try? container.decode(Int.self) {
-            self = .integer(x)
+        if let decoded = try? container.decode(Int.self) {
+            self = .integer(decoded)
             return
         }
-        throw DecodingError.typeMismatch(Value.self, DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for Value"))
+        throw DecodingError.typeMismatch(
+            Value.self,
+            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for Value")
+        )
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
-        case .bool(let x):
-            try container.encode(x)
-        case .integer(let x):
-            try container.encode(x)
+        case .bool(let decoded):
+            try container.encode(decoded)
+        case .integer(let decoded):
+            try container.encode(decoded)
         }
     }
 
     var intValue: Int {
         switch self {
-        case .integer(let s):
-            return s
-        case .bool(let s):
-            if s == true {
+        case .integer(let thes):
+            return thes
+        case .bool(let thes):
+            if thes == true {
                 return 1
             }
             return 0
@@ -79,7 +82,7 @@ class HomeConnect: ObservableObject {
             oauth2!.authConfig.ui.useAuthenticationSession = true
             let scene = UIApplication.shared.connectedScenes
                 .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-            
+
             let rootViewController = scene?
                 .windows.first(where: { $0.isKeyWindow })?
                 .rootViewController
@@ -87,7 +90,7 @@ class HomeConnect: ObservableObject {
         }
         self.authorize(boschAppliance: boschAppliance)
     }
-    
+
     func authorize(boschAppliance: String) {
         let path = "api/homeappliances/\(boschAppliance)/programs/active"
 
@@ -97,14 +100,23 @@ class HomeConnect: ObservableObject {
         var req = oauth2!.request(forURL: url)
         req.setValue("application/vnd.bsh.sdk.v1+json", forHTTPHeaderField: "Accept")
 
-
         loader!.perform(request: req) { response in
             do {
                 DispatchQueue.main.async {
                     let decoder = JSONDecoder()
                     let activeProgram = try? decoder.decode(HomeConnectStruct.self, from: response.responseData())
                     if activeProgram == nil {
-                        self.appliances.append(Appliance(name: "Dishwasher", timeRunning: 0, timeRemaining: 0, timeFinish: "", step: "", programName: "", inUse: false))
+                        self.appliances.append(
+                            Appliance(
+                                name: "Dishwasher",
+                                timeRunning: 0,
+                                timeRemaining: 0,
+                                timeFinish: "",
+                                step: "",
+                                programName: "",
+                                inUse: false
+                            )
+                        )
                         NotificationCenter.default.post(
                             name: Notification.Name.loginsUpdated,
                             object: nil,
@@ -129,7 +141,11 @@ class HomeConnect: ObservableObject {
                         }
 
                         let currentDate = Date()
-                        let finishTime = Calendar.current.date(byAdding: .minute, value: timeRemaining, to: currentDate) ?? currentDate
+                        let finishTime = Calendar.current.date(
+                            byAdding: .minute,
+                            value: timeRemaining,
+                            to: currentDate
+                        ) ?? currentDate
                         let formatter = DateFormatter()
                         formatter.dateFormat = "h:mm a"
                         let formatedTime = formatter.string(from: finishTime)
