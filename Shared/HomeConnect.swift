@@ -91,6 +91,69 @@ class HomeConnect: ObservableObject {
         self.authorize(boschAppliance: boschAppliance)
     }
 
+    func nilProgram() {
+        self.appliances.append(
+            Appliance(
+                name: "Dishwasher",
+                timeRunning: 0,
+                timeRemaining: 0,
+                timeFinish: "",
+                step: "",
+                programName: "",
+                inUse: false
+            )
+        )
+        NotificationCenter.default.post(
+            name: Notification.Name.loginsUpdated,
+            object: nil,
+            userInfo: ["homeConnectComplete": true]
+        )
+    }
+
+    func setProgram(program: DataClass) {
+        var options: [String] = []
+        let name = "Dishwasher"
+        let step = program.name
+        var timeRunning = 0
+        var timeRemaining = 0
+        for option in program.options {
+            if option.key == "BSH.Common.Option.RemainingProgramTime" {
+                timeRemaining = Int(round(Double(option.value.intValue / 60)))
+            } else if option.key == "BSH.Common.Option.ElapsedProgramTime" {
+                timeRunning = option.value.intValue
+            } else {
+                if option.value.intValue == 1 {
+                    options.append(option.name)
+                }
+            }
+        }
+
+        let currentDate = Date()
+        let finishTime = Calendar.current.date(
+            byAdding: .minute,
+            value: timeRemaining,
+            to: currentDate
+        ) ?? currentDate
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        let formatedTime = formatter.string(from: finishTime)
+        self.appliances.removeAll()
+        self.appliances.append(Appliance(
+            name: name,
+            timeRunning: timeRunning,
+            timeRemaining: timeRemaining,
+            timeFinish: formatedTime,
+            step: step,
+            programName: options.joined(separator: ", "),
+            inUse: true
+        ))
+        NotificationCenter.default.post(
+            name: Notification.Name.loginsUpdated,
+            object: nil,
+            userInfo: ["homeConnectComplete": true]
+        )
+    }
+
     func authorize(boschAppliance: String) {
         let path = "api/homeappliances/\(boschAppliance)/programs/active"
 
@@ -104,66 +167,11 @@ class HomeConnect: ObservableObject {
             do {
                 DispatchQueue.main.async {
                     let decoder = JSONDecoder()
-                    let activeProgram = try? decoder.decode(HomeConnectStruct.self, from: response.responseData())
-                    if activeProgram == nil {
-                        self.appliances.append(
-                            Appliance(
-                                name: "Dishwasher",
-                                timeRunning: 0,
-                                timeRemaining: 0,
-                                timeFinish: "",
-                                step: "",
-                                programName: "",
-                                inUse: false
-                            )
-                        )
-                        NotificationCenter.default.post(
-                            name: Notification.Name.loginsUpdated,
-                            object: nil,
-                            userInfo: ["homeConnectComplete": true]
-                        )
-                    } else {
-                        var options: [String] = []
-                        let name = "Dishwasher"
-                        let step = activeProgram!.data.name
-                        var timeRunning = 0
-                        var timeRemaining = 0
-                        for option in activeProgram!.data.options {
-                            if option.key == "BSH.Common.Option.RemainingProgramTime" {
-                                timeRemaining = Int(round(Double(option.value.intValue / 60)))
-                            } else if option.key == "BSH.Common.Option.ElapsedProgramTime" {
-                                timeRunning = option.value.intValue
-                            } else {
-                                if option.value.intValue == 1 {
-                                    options.append(option.name)
-                                }
-                            }
-                        }
-
-                        let currentDate = Date()
-                        let finishTime = Calendar.current.date(
-                            byAdding: .minute,
-                            value: timeRemaining,
-                            to: currentDate
-                        ) ?? currentDate
-                        let formatter = DateFormatter()
-                        formatter.dateFormat = "h:mm a"
-                        let formatedTime = formatter.string(from: finishTime)
-                        self.appliances.removeAll()
-                        self.appliances.append(Appliance(
-                            name: name,
-                            timeRunning: timeRunning,
-                            timeRemaining: timeRemaining,
-                            timeFinish: formatedTime,
-                            step: step,
-                            programName: options.joined(separator: ", "),
-                            inUse: true
-                        ))
-                        NotificationCenter.default.post(
-                            name: Notification.Name.loginsUpdated,
-                            object: nil,
-                            userInfo: ["homeConnectComplete": true]
-                        )
+                    do {
+                        let activeProgram = try decoder.decode(HomeConnectStruct.self, from: response.responseData())
+                        self.setProgram(program: activeProgram.data)
+                    } catch {
+                        self.nilProgram()
                     }
                 }
             }

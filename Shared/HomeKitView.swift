@@ -22,14 +22,14 @@ struct HomeKitView: View {
                                 print("Executed")
                             })
                             print("Tapped \(home.favourites[fav].name)")
-                        }) {
+                        }, label: {
                             HStack {
                                 Text(home.favourites[fav].name)
                                     .font(.subheadline)
                                     .frame(width: 100)
                             }
                             .frame(width: 120, height: 50, alignment: .center)
-                        }
+                        })
                         .background(
                             getButtonBackgroundColor(favourite: home.favourites[fav]),
                             in: .rect(cornerRadius: 12)

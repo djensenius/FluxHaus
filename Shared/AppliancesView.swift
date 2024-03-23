@@ -157,19 +157,35 @@ struct Appliances: View {
         return "Fetching"
     }
 
+    func tApplianceValue(tAppliance: [Appliance], index: Int) -> String {
+        if tAppliance[index].inUse == false {
+            return ""
+        }
+        if tAppliance.count > index && tAppliance[index].programName != "" {
+            let step = tAppliance[index].step
+            let programName = tAppliance[index].programName.trimmingCharacters(in: NSCharacterSet.whitespaces)
+            return "\(step) (\(programName))"
+        } else if tAppliance.count > index {
+            return "\(tAppliance[index].step)"
+        }
+        return ""
+    }
+
     func getProgram(type: String, index: Int) -> String {
         var tAppliance: [Appliance]
         if type == "Miele" {
             tAppliance = miele.appliances
         } else if type == "MopBot" {
             if robots.mopBot.batteryLevel != nil && robots.mopBot.batteryLevel! < 100 {
-                return robots.mopBot.charging! ? "Charging (\(robots.mopBot.batteryLevel!)%)" : "Battery (\(robots.mopBot.batteryLevel!)%)"
+                return robots.mopBot.charging! ?
+                    "Charging (\(robots.mopBot.batteryLevel!)%)" : "Battery (\(robots.mopBot.batteryLevel!)%)"
             } else {
                 return ""
             }
         } else if type == "BroomBot" {
             if robots.broomBot.batteryLevel != nil && robots.broomBot.batteryLevel! < 100 {
-                return robots.broomBot.charging! ? "Charging (\(robots.broomBot.batteryLevel!)%)" : "Battery (\(robots.broomBot.batteryLevel!)%)"
+                return robots.broomBot.charging! ?
+                    "Charging (\(robots.broomBot.batteryLevel!)%)" : "Battery (\(robots.broomBot.batteryLevel!)%)"
             } else {
                 return ""
             }
@@ -185,16 +201,19 @@ struct Appliances: View {
         }
 
         if tAppliance.count > index {
-            if tAppliance[index].inUse == false {
-                return ""
-            }
-            if tAppliance.count > index && tAppliance[index].programName != "" {
-                return "\(tAppliance[index].step) (\(tAppliance[index].programName.trimmingCharacters(in: NSCharacterSet.whitespaces)))"
-            } else if tAppliance.count > index {
-                return "\(tAppliance[index].step)"
-            }
+            return tApplianceValue(tAppliance: tAppliance, index: index)
         }
         return ""
+    }
+
+    func tApplianceTimeRemaining(tAppliance: [Appliance], index: Int) -> String {
+        if tAppliance[index].inUse == false {
+            return "Off"
+        }
+        if tAppliance[index].timeRemaining > 60 {
+            return tAppliance[index].timeFinish
+        }
+        return "\(tAppliance[index].timeRemaining)m"
     }
 
     func getTimeRemaining(type: String, index: Int) -> String {
@@ -224,13 +243,7 @@ struct Appliances: View {
         }
 
         if tAppliance.count > index {
-            if tAppliance[index].inUse == false {
-                return "Off"
-            }
-            if tAppliance[index].timeRemaining > 60 {
-                return tAppliance[index].timeFinish
-            }
-            return "\(tAppliance[index].timeRemaining)m"
+            return tApplianceTimeRemaining(tAppliance: tAppliance, index: index)
         }
         return ""
     }

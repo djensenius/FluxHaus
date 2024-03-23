@@ -21,11 +21,9 @@ class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate {
 
     func startHome() {
         DispatchQueue.main.async {
-            for home in self.homeManager.homes {
-                if home.isPrimary {
-                    self.primaryHome = home
-                    self.refreshHome()
-                }
+            for home in self.homeManager.homes where home.isPrimary {
+                self.primaryHome = home
+                self.refreshHome()
             }
         }
     }

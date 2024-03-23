@@ -34,9 +34,9 @@ struct WeatherAlertView: View {
                 }
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
-                }) {
+                }, label: {
                     Text("Dismiss")
-                }.padding()
+                }).padding()
             }
         }
     }

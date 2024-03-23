@@ -65,13 +65,13 @@ struct WeatherView: View {
                 if lman.weather?.weatherAlerts?.count ?? 0 > 0 {
                     Button(action: {
                         self.showModal = true
-                    }) {
+                    }, label: {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.subheadline)
                             .symbolRenderingMode(.multicolor)
                         Text("OMG ALERT")
                             .font(.subheadline)
-                    }.sheet(isPresented: self.$showModal) {
+                    }).sheet(isPresented: self.$showModal) {
                         WeatherAlertView(alerts: lman.weather!.weatherAlerts!)
                     }
                     .font(.subheadline)
@@ -105,7 +105,8 @@ struct WeatherView: View {
             return "Loading"
         }
         let currentWeather = lman.weather!.currentWeather
-        let currentTemp = currentWeather.temperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        let currentTemp = currentWeather.temperature
+            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         let weatherDescription = currentWeather.condition.description
         return "\(currentTemp), \(weatherDescription)"
     }
@@ -116,7 +117,8 @@ struct WeatherView: View {
         }
         let currentWeather = lman.weather!.currentWeather
         let humidity = currentWeather.humidity
-        let feelsLike = currentWeather.apparentTemperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        let feelsLike = currentWeather.apparentTemperature
+            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return "Feels Like \(feelsLike), \(humidity)% Humidity"
 
     }
