@@ -180,7 +180,7 @@ struct Appliances: View {
         if type == "Miele" {
             tAppliance = miele.appliances
         } else if type == "MopBot" {
-            if robots.mopBot.running != nil && robots.mopBot.running == true {
+            if robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true) {
                 return "On"
             } else if robots.mopBot.running != nil && robots.mopBot.running == false {
                 return "Off"
@@ -188,7 +188,7 @@ struct Appliances: View {
                 return "Lost"
             }
         } else if type == "BroomBot" {
-            if robots.broomBot.running != nil && robots.broomBot.running == true {
+            if robots.broomBot.running != nil && (robots.broomBot.running == true || robots.broomBot.paused == true) {
                 return "On"
             } else if robots.broomBot.running != nil && robots.broomBot.running == false {
                 return "Off"
