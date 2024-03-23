@@ -9,29 +9,29 @@ import SwiftUI
 
 struct HomeKitView: View {
     var favouriteHomeKit: [String]
-    
+
     @ObservedObject var home = HomeKitIntegration()
     private let gridItemLayout = [GridItem(.flexible()), GridItem(.flexible())]
     var body: some View {
         ScrollView(.horizontal) {
             LazyHGrid(rows: gridItemLayout, spacing: 1) {
-                ForEach(0..<home.favourites.count, id: \.self) { i in
-                    if (favouriteHomeKit.contains(home.favourites[i].name)) {
+                ForEach(0..<home.favourites.count, id: \.self) { fav in
+                    if favouriteHomeKit.contains(home.favourites[fav].name) {
                         Button(action: {
-                            home.primaryHome?.executeActionSet(home.favourites[i].hkSet, completionHandler: { (_) in
+                            home.primaryHome?.executeActionSet(home.favourites[fav].hkSet, completionHandler: { (_) in
                                 print("Executed")
                             })
-                            print("Tapped \(home.favourites[i].name)")
-                        }) {
+                            print("Tapped \(home.favourites[fav].name)")
+                        }, label: {
                             HStack {
-                                Text(home.favourites[i].name)
+                                Text(home.favourites[fav].name)
                                     .font(.subheadline)
                                     .frame(width: 100)
                             }
                             .frame(width: 120, height: 50, alignment: .center)
-                        }
+                        })
                         .background(
-                            getButtonBackgroundColor(favourite: home.favourites[i]),
+                            getButtonBackgroundColor(favourite: home.favourites[fav]),
                             in: .rect(cornerRadius: 12)
                         )
                         .padding(.leading)
@@ -39,7 +39,7 @@ struct HomeKitView: View {
                 }
             }.onAppear(perform: {
                 home.startHome()
-                let _ = self.updateTimer
+                _ = self.updateTimer
             })
         }
     }
@@ -52,7 +52,7 @@ struct HomeKitView: View {
     }
 
     func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Material {
-        if (!favourite.isActive) {
+        if !favourite.isActive {
             return .bar
         } else {
             return .regularMaterial

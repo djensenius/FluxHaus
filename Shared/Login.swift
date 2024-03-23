@@ -42,9 +42,8 @@ class LoginViewModel: ObservableObject {
 }
 
 struct LoginAction {
-    
     var parameters: LoginRequest
-    
+
     func call() {
         queryFlux(password: parameters.password)
     }

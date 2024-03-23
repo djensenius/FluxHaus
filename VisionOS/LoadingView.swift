@@ -10,8 +10,8 @@ import SwiftUI
 struct LoadingView: View {
     var needLoginView: Bool
     @ObservedObject var viewModel: LoginViewModel = LoginViewModel()
-    
-    @State var error: String? = nil
+
+    @State var error: String?
     @State var loggedIn: Bool = false
     var body: some View {
         if needLoginView && !loggedIn {
@@ -58,14 +58,11 @@ struct LoadingView: View {
             Text("Loading")
         }
     }
-    
+
     func checkLogin() {
-        
     }
 }
-
 
  #Preview {
  LoadingView(needLoginView: false)
  }
- 

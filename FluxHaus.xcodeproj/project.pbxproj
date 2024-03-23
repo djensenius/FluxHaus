@@ -29,6 +29,10 @@
 		635BD6732B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
 		635BD6752B9E030E009CEEA9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD6742B9E030E009CEEA9 /* ContentView.swift */; };
 		635BD6762B9E030E009CEEA9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD6742B9E030E009CEEA9 /* ContentView.swift */; };
+		635F9D062BAF836C000700FD /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
+		635F9D072BAF836C000700FD /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
+		635F9D082BAF836C000700FD /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
+		635F9D092BAF836C000700FD /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		6369A139259984E400888E5D /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
 		636A05992B9E6EE800D42C0D /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
 		636A059A2B9E6EE800D42C0D /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
@@ -115,6 +119,7 @@
 		635BD66A2B9DF8A6009CEEA9 /* Robots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Robots.swift; sourceTree = "<group>"; };
 		635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAre.swift; sourceTree = "<group>"; };
 		635BD6742B9E030E009CEEA9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		635F9D052BAF836C000700FD /* MieleAppliance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MieleAppliance.swift; sourceTree = "<group>"; };
 		6369A138259984E400888E5D /* WeatherAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAlertView.swift; sourceTree = "<group>"; };
 		636A05982B9E6EE800D42C0D /* Battery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Battery.swift; sourceTree = "<group>"; };
 		636B9B39258E57D400DE97BD /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
@@ -210,6 +215,7 @@
 				6399EA262B9CA534000C8CA4 /* LoadingView.swift */,
 				6399EA302B9D3671000C8CA4 /* Login.swift */,
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
+				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
 				635BD66A2B9DF8A6009CEEA9 /* Robots.swift */,
 				6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */,
@@ -328,6 +334,7 @@
 				632CBC27258682C9003E4988 /* Sources */,
 				632CBC28258682C9003E4988 /* Frameworks */,
 				632CBC29258682C9003E4988 /* Resources */,
+				635F9D042BAF6F15000700FD /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -366,6 +373,7 @@
 				63DBD72A2B954215006603D0 /* Sources */,
 				63DBD72B2B954215006603D0 /* Frameworks */,
 				63DBD72C2B954215006603D0 /* Resources */,
+				636969F92BAF8E7800BEAE27 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -482,12 +490,52 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		635F9D042BAF6F15000700FD /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint\nfi\n";
+		};
+		636969F92BAF8E7800BEAE27 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n# Type a script or drag a script file from your workspace to insert its path.\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		632CBC27258682C9003E4988 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				6399EA272B9CA534000C8CA4 /* LoadingView.swift in Sources */,
+				635F9D062BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				635BD6702B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
 				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
@@ -514,6 +562,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				635F9D072BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				636A059A2B9E6EE800D42C0D /* Battery.swift in Sources */,
 				635BD66C2B9DF8A6009CEEA9 /* Robots.swift in Sources */,
 				6399EA282B9CA534000C8CA4 /* LoadingView.swift in Sources */,
@@ -530,6 +579,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				635F9D082BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				6399EA292B9CA534000C8CA4 /* LoadingView.swift in Sources */,
 				63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */,
 				635BD6722B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
@@ -563,6 +613,7 @@
 				63DBD7472B954216006603D0 /* VisionOSTests.swift in Sources */,
 				6399EA2F2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
 				6399EA342B9D3671000C8CA4 /* Login.swift in Sources */,
+				635F9D092BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				635BD6732B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -621,7 +672,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -684,7 +735,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -719,7 +770,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.3;
+				MARKETING_VERSION = 1.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -749,7 +800,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.3;
+				MARKETING_VERSION = 1.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -832,7 +883,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.1.3;
+				MARKETING_VERSION = 1.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -869,7 +920,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.1.3;
+				MARKETING_VERSION = 1.1.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WeatherView: View {
-    @ObservedObject var lm = LocationManager.init()
+    @ObservedObject var lman = LocationManager.init()
     @State private var showModal: Bool = false
 
     var body: some View {
@@ -20,14 +20,14 @@ struct WeatherView: View {
                     .symbolRenderingMode(.multicolor)
                 Text(makeWeatherReport())
                     .task {
-                        await lm.startMonitoring()
-                        await lm.fetchTheWeather()
-                        let _ = self.updateTimer
+                        await lman.startMonitoring()
+                        await lman.fetchTheWeather()
+                        _ = self.updateTimer
                     }
                     .font(.subheadline)
-                if ((lm.weather) != nil) {
+                if (lman.weather) != nil {
                     Image(systemName: "wind")
-                    Text((lm.weather!.currentWeather.wind.speed.description))
+                    Text((lman.weather!.currentWeather.wind.speed.description))
                         .font(.subheadline)
                         .padding(.trailing)
                 }
@@ -37,7 +37,6 @@ struct WeatherView: View {
                 Text(getFeels())
                     .font(.subheadline)
                     .padding(.horizontal)
-                
             }
             HStack {
                 Spacer()
@@ -51,7 +50,7 @@ struct WeatherView: View {
                     .font(.subheadline)
                     .padding(.trailing)
             }
-            if (lm.forecast != nil) {
+            if lman.forecast != nil {
                 HStack {
                     Spacer()
                     Image(systemName: forecastIcon())
@@ -63,17 +62,17 @@ struct WeatherView: View {
             }
             HStack {
                 Spacer()
-                if lm.weather?.weatherAlerts?.count ?? 0 > 0 {
+                if lman.weather?.weatherAlerts?.count ?? 0 > 0 {
                     Button(action: {
                         self.showModal = true
-                    }) {
+                    }, label: {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.subheadline)
                             .symbolRenderingMode(.multicolor)
                         Text("OMG ALERT")
                             .font(.subheadline)
-                    }.sheet(isPresented: self.$showModal) {
-                        WeatherAlertView(alerts: lm.weather!.weatherAlerts!)
+                    }).sheet(isPresented: self.$showModal) {
+                        WeatherAlertView(alerts: lman.weather!.weatherAlerts!)
                     }
                     .font(.subheadline)
                 }
@@ -87,67 +86,71 @@ struct WeatherView: View {
     var updateTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 60, repeats: true) {_ in
             Task {
-                await lm.fetchTheWeather()
+                await lman.fetchTheWeather()
             }
         }
     }
 
     func weatherIcon() -> String {
-        if (lm.weather == nil) {
+        if lman.weather == nil {
             return "thermometer"
 
         }
-        let currentWeather = lm.weather!.currentWeather
+        let currentWeather = lman.weather!.currentWeather
         return currentWeather.symbolName
     }
 
     func makeWeatherReport() -> String {
-        if (lm.weather == nil) {
+        if lman.weather == nil {
             return "Loading"
         }
-        let currentWeather = lm.weather!.currentWeather
-        let currentTemp = currentWeather.temperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        let currentWeather = lman.weather!.currentWeather
+        let currentTemp = currentWeather.temperature
+            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         let weatherDescription = currentWeather.condition.description
         return "\(currentTemp), \(weatherDescription)"
     }
 
     func getFeels() -> String {
-        if (lm.weather == nil) {
+        if lman.weather == nil {
             return "Loading"
         }
-        let currentWeather = lm.weather!.currentWeather
+        let currentWeather = lman.weather!.currentWeather
         let humidity = currentWeather.humidity
-        let feelsLike = currentWeather.apparentTemperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        let feelsLike = currentWeather.apparentTemperature
+            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return "Feels Like \(feelsLike), \(humidity)% Humidity"
 
     }
 
     func getMin() -> String {
-        if (lm.weather == nil) {
+        if lman.weather == nil {
             return "Loading"
         }
-        let min = lm.weather!.dailyForecast[0].lowTemperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        let min = lman.weather!.dailyForecast[0].lowTemperature
+            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(min)")
     }
 
     func getMax() -> String {
-        if (lm.weather == nil) {
+        if lman.weather == nil {
             return "Loading"
         }
-        let max = lm.weather!.dailyForecast[0].highTemperature.formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+        let max = lman.weather!.dailyForecast[0].highTemperature
+            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(max)")
     }
-    
+
     func forecastIcon() -> String {
-        if (lm.forecast == nil) {
+        if lman.forecast == nil {
             return "thermometer"
 
         }
-        return lm.forecast!.symbolName
+        return lman.forecast!.symbolName
     }
-    
+
     func getTime(time: Int, type: TimeType) -> String {
-        if (time > 1) {
+        if time > 1 {
             switch type {
             case .day:
                 return "\(time) days"
@@ -166,13 +169,13 @@ struct WeatherView: View {
             return "\(time) minute"
         }
     }
-    
+
     func buildForecast() -> String {
-        let forecast = lm.forecast!
+        let forecast = lman.forecast!
         let percent = "\(forecast.chance * 100)%"
         let type = forecast.type
         var theWhen = ""
-        if (forecast.endingNumber != nil) {
+        if forecast.endingNumber != nil {
             theWhen = "ending in  \(getTime(time: forecast.endingNumber!, type: forecast.endingType!))"
         } else {
             theWhen = "starting in \(getTime(time: forecast.startingNumber!, type: forecast.startingType!))"

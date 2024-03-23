@@ -27,7 +27,7 @@ struct Robot: Decodable {
         docking: nil,
         paused: nil
     )
-    
+
     var broomBot = Robot(
         timestamp: 0,
         batteryLevel: nil,
@@ -37,7 +37,7 @@ struct Robot: Decodable {
         docking: nil,
         paused: nil
     )
-    
+
     func fetchRobots() {
         let password = WhereWeAre.getPassword()
         let scheme: String = "https"
@@ -61,10 +61,10 @@ struct Robot: Decodable {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         print("Going to update robots")
-        let task = URLSession.shared.dataTask(with: request) { data, _, error in
+        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
             if let data = data {
                 let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
-                
+
                 if let response = response {
                     DispatchQueue.main.async {
                         print("Robots updated")

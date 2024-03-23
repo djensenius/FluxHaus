@@ -19,7 +19,7 @@ struct WeatherAlertView: View {
                     .padding()
                 ForEach(alerts, id: \.summary) { alert in
                     VStack(alignment: .leading) {
-                        if (alert.region != nil) {
+                        if alert.region != nil {
                             Text("\(alert.severity.description.capitalized) alert for \(alert.region!)")
                         } else {
                             Text("\(alert.severity.description.capitalized)")
@@ -34,9 +34,9 @@ struct WeatherAlertView: View {
                 }
                 Button(action: {
                     self.presentationMode.wrappedValue.dismiss()
-                }) {
+                }, label: {
                     Text("Dismiss")
-                }.padding()
+                }).padding()
             }
         }
     }

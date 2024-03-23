@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct DateTimeView: View {
     @State var date = Date()
     var body: some View {
@@ -15,7 +14,7 @@ struct DateTimeView: View {
             HStack {
                 Spacer()
                 Text("\(dateString(date: date))")
-                    .onAppear(perform: {let _ = self.updateTimer;})
+                    .onAppear(perform: {_ = self.updateTimer;})
                     .font(.title)
                     .padding(.horizontal)
             }
