@@ -12,9 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: GitHub Action for SwiftLint
-        uses: norio-nomura/action-swiftlint@3.2.1
-      - name: GitHub Action for SwiftLint with --strict
-        uses: norio-nomura/action-swiftlint@3.2.1
+      - uses: sinoru/actions-setup-swift@v2
         with:
-          args: --strict
+          swift-version: '5.10'
+      - name: GitHub Actions for SwiftLint
+        uses: sinoru/actions-swiftlint@v6
+      - name: GitHub Actions for SwiftLint with --strict
+        uses: sinoru/actions-swiftlint@v6
+        with:
+          swiftlint-args: --strict
