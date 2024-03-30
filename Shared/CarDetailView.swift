@@ -66,6 +66,9 @@ struct CarDetailView: View {
                 Button("Resync data", action: { performAction(action: "rsync") })
                     .disabled(self.buttonsDisabled)
             }
+            if self.buttonsDisabled {
+                ProgressView()
+            }
             Spacer()
             Button(action: {
                 self.presentationMode.wrappedValue.dismiss()
@@ -81,10 +84,17 @@ struct CarDetailView: View {
         car.performAction(action: action)
 
         Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) {_ in
+            if action != "resync" {
+                car.performAction(action: "resync")
+            }
             car.fetchCarDetails()
         }
 
-        Timer.scheduledTimer(withTimeInterval: 15.0, repeats: false) {_ in
+        Timer.scheduledTimer(withTimeInterval: 20.0, repeats: false) {_ in
+            if action != "resync" {
+                car.performAction(action: "resync")
+            }
+            car.fetchCarDetails()
             self.buttonsDisabled = false
         }
     }
@@ -94,6 +104,7 @@ struct CarDetailView: View {
         if !unixTimestamp {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyyMMddHHmmss"
+            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
             date = dateFormatter.date(from: String(timestamp))!.timeIntervalSince1970
         } else {
             date = Double(timestamp)

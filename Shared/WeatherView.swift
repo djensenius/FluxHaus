@@ -10,6 +10,7 @@ import SwiftUI
 struct WeatherView: View {
     @ObservedObject var lman = LocationManager.init()
     @State private var showModal: Bool = false
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack {
@@ -54,10 +55,12 @@ struct WeatherView: View {
                 HStack {
                     Spacer()
                     Image(systemName: forecastIcon())
-                        .symbolRenderingMode(.multicolor)
-                    Text(buildForecast())
-                        .padding(.trailing)
+                        .symbolRenderingMode(getRenderMode())
                         .font(.subheadline)
+                    Text(buildForecast())
+                        .font(.subheadline)
+                        .padding(.trailing)
+
                 }
             }
             HStack {
@@ -96,7 +99,6 @@ struct WeatherView: View {
     func weatherIcon() -> String {
         if lman.weather == nil {
             return "thermometer"
-
         }
         let currentWeather = lman.weather!.currentWeather
         return currentWeather.symbolName
@@ -108,6 +110,7 @@ struct WeatherView: View {
         }
         let currentWeather = lman.weather!.currentWeather
         let currentTemp = currentWeather.temperature
+            .converted(to: .celsius)
             .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         let weatherDescription = currentWeather.condition.description
         return "\(currentTemp), \(weatherDescription)"
@@ -120,6 +123,7 @@ struct WeatherView: View {
         let currentWeather = lman.weather!.currentWeather
         let humidity = String(format: "%.0f", round(currentWeather.humidity * 100))
         let feelsLike = currentWeather.apparentTemperature
+            .converted(to: .celsius)
             .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return "Feels Like \(feelsLike), \(humidity)% Humidity"
 
@@ -130,6 +134,7 @@ struct WeatherView: View {
             return "Loading"
         }
         let min = lman.weather!.dailyForecast[0].lowTemperature
+            .converted(to: .celsius)
             .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(min)")
     }
@@ -139,6 +144,7 @@ struct WeatherView: View {
             return "Loading"
         }
         let max = lman.weather!.dailyForecast[0].highTemperature
+            .converted(to: .celsius)
             .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(max)")
     }
@@ -148,7 +154,20 @@ struct WeatherView: View {
             return "thermometer"
 
         }
+        if lman.forecast!.symbolName == "rain.fill" {
+            return "cloud.rain.fill"
+        }
         return lman.forecast!.symbolName
+    }
+
+    func getRenderMode() -> SymbolRenderingMode {
+        var renderingMode: SymbolRenderingMode = .multicolor
+        #if !os(visionOS)
+        if colorScheme == .light {
+            renderingMode = .monochrome
+        }
+        #endif
+        return renderingMode
     }
 
     func getTime(time: Int, type: TimeType) -> String {
