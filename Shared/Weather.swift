@@ -162,7 +162,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 precipitationNow(weather: weather)
             }
 
-            if forecast == nil {
+            if self.forecast == nil {
                 // Check today
                 if (self.weather?.dailyForecast[0].precipitationChance)! > 0.1 {
                     precipitationToday(weather: weather)

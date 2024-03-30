@@ -115,8 +115,6 @@ struct CarDetails: Decodable {
 
                 if let response = response {
                     DispatchQueue.main.async {
-                        // self.mopBot = response.mopbot
-                        //
                         self.vehicle = CarDetails(
                             timestamp: Int(response.car.lastStatusDate)!,
                             evStatusTimestamp: response.carEvStatus.timestamp,

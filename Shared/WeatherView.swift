@@ -36,7 +36,7 @@ struct WeatherView: View {
                 Spacer()
                 Text(getFeels())
                     .font(.subheadline)
-                    .padding(.horizontal)
+                    .padding(.trailing)
             }
             HStack {
                 Spacer()
@@ -76,9 +76,11 @@ struct WeatherView: View {
                     }
                     .font(.subheadline)
                 }
+                #if !os(visionOS)
                 Link("Details", destination: URL(string: "weather://")!)
                     .padding(.trailing)
                     .font(.subheadline)
+                #endif
             }
         }
     }
@@ -116,7 +118,7 @@ struct WeatherView: View {
             return "Loading"
         }
         let currentWeather = lman.weather!.currentWeather
-        let humidity = currentWeather.humidity
+        let humidity = String(format: "%.0f", round(currentWeather.humidity * 100))
         let feelsLike = currentWeather.apparentTemperature
             .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
         return "Feels Like \(feelsLike), \(humidity)% Humidity"
@@ -172,7 +174,7 @@ struct WeatherView: View {
 
     func buildForecast() -> String {
         let forecast = lman.forecast!
-        let percent = "\(forecast.chance * 100)%"
+        let percent = "\(String(format: "%.0f", forecast.chance * 100))%"
         let type = forecast.type
         var theWhen = ""
         if forecast.endingNumber != nil {
