@@ -18,6 +18,7 @@ var hconn: HomeConnect?
 var miele: Miele?
 var robots: Robots?
 var battery: Battery?
+var car: Car?
 
 @main
 struct VisionOSApp: App {
@@ -46,6 +47,7 @@ struct VisionOSApp: App {
                                 loadMiele()
                                 loadRobots()
                                 loadBattery()
+                                loadCar()
                             }
                         }
 
@@ -78,7 +80,8 @@ struct VisionOSApp: App {
                     hconn: hconn!,
                     miele: miele!,
                     robots: robots!,
-                    battery: battery!
+                    battery: battery!,
+                    car: car!
                 )
             }
         }
@@ -103,5 +106,9 @@ struct VisionOSApp: App {
 
     func loadBattery() {
         battery = Battery()
+    }
+
+    func loadCar() {
+        car = Car()
     }
 }

@@ -23,7 +23,7 @@ struct LoginResponse: Decodable {
     let mopbot: Robot
     let car: FluxCar
     let carEvStatus: EVStatus
-    let carOdometer: Int
+    let carOdometer: Double
 }
 
 struct FluxObject {

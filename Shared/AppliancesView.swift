@@ -249,7 +249,7 @@ struct Appliances: View {
         } else if type == "Battery" {
             return "\(battery.percent)%"
         } else if type == "Car" {
-            return "\(car.vehicle.batteryLevel ?? 0)%"
+            return "\(car.vehicle.batteryLevel)%"
         } else {
             tAppliance = hconn.appliances
         }
@@ -266,7 +266,7 @@ struct Appliances: View {
 
         if car.vehicle.hvac { text += "Climate on | " }
 
-        text += "Range \(car.vehicle.distance ?? 0) km"
+        text += "Range \(car.vehicle.distance) km"
         return text
     }
 
