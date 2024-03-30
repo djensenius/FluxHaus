@@ -50,20 +50,20 @@ struct CarDetailView: View {
 
             HStack {
                 if car.vehicle.hvac {
-                    Button("Turn Climate Off", action: {})
+                    Button("Turn Climate Off", action: { performAction(action: "stop") })
                         .disabled(self.buttonsDisabled)
                 } else {
-                    Button("Turn Climate On", action: {})
+                    Button("Turn Climate On", action: { performAction(action: "start") })
                         .disabled(self.buttonsDisabled)
                 }
                 if car.vehicle.locked {
-                    Button("Unlock", action: {})
+                    Button("Unlock", action: { performAction(action: "unlock") })
                         .disabled(self.buttonsDisabled)
                 } else {
-                    Button("Lock", action: {})
+                    Button("Lock", action: { performAction(action: "lock") })
                         .disabled(self.buttonsDisabled)
                 }
-                Button("Resync data", action: { performAction(action: "rsync")})
+                Button("Resync data", action: { performAction(action: "rsync") })
                     .disabled(self.buttonsDisabled)
             }
             Spacer()
