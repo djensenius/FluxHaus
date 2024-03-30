@@ -23,6 +23,7 @@ struct ContentView: View {
             VStack {
                 DateTimeView()
                 WeatherView()
+                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
                         .padding(.leading)
