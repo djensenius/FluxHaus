@@ -23,6 +23,9 @@ struct Appliances: View {
     @ObservedObject var miele: Miele
     var robots: Robots
     var battery: Battery
+    var car: Car
+
+    @State private var showCarModal: Bool = false
 
     private let gridItemLayout = [GridItem(.flexible())]
 
@@ -32,6 +35,7 @@ struct Appliances: View {
         (name: "Miele", index: 1),
         (name: "BroomBot", index: 0),
         (name: "MopBot", index: 0),
+        (name: "Car", index: 0),
         (name: "Battery", index: 0)
     ]
 
@@ -86,12 +90,20 @@ struct Appliances: View {
                                     }
                                     .background(.regularMaterial, in: .rect(cornerRadius: 12))
                                     .hoverEffect()
+                                }.onTapGesture {
+                                    if theAppliances[app].name == "Car" {
+                                        self.showCarModal = true
+                                    }
                                 }
                             }
                         }
                     }.padding(.horizontal)
                 }
-        }.onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
+        }
+        .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
+        .sheet(isPresented: self.$showCarModal) {
+            CarDetailView(car: car)
+        }
     }
 
     func getIcon(type: String, index: Int) -> Image {
@@ -103,15 +115,9 @@ struct Appliances: View {
         } else if type == "BroomBot" {
             return Image(systemName: "fan")
         } else if type == "Battery" {
-            if battery.model == .iPad {
-                return Image(systemName: "iPad")
-            } else if battery.model == .mac {
-                return Image(systemName: "macbook")
-            } else if battery.model == .visionPro {
-                return Image(systemName: "visionpro")
-            } else {
-                return Image(systemName: "iphone")
-            }
+            return getDeviceIcon(battery: battery)
+        } else if type == "Car" {
+            return Image(systemName: "car")
         } else {
             tAppliance = hconn.appliances
         }
@@ -146,6 +152,8 @@ struct Appliances: View {
             } else {
                 return "Phone"
             }
+        } else if type == "Car" {
+            return "Car"
         } else {
             tAppliance = hconn.appliances
         }
@@ -196,6 +204,8 @@ struct Appliances: View {
                 return "Unknown"
             }
             return ""
+        } else if type == "Car" {
+            return carDetails()
         } else {
             tAppliance = hconn.appliances
         }
@@ -238,6 +248,8 @@ struct Appliances: View {
             }
         } else if type == "Battery" {
             return "\(battery.percent)%"
+        } else if type == "Car" {
+            return "\(car.vehicle.batteryLevel)%"
         } else {
             tAppliance = hconn.appliances
         }
@@ -246,6 +258,16 @@ struct Appliances: View {
             return tApplianceTimeRemaining(tAppliance: tAppliance, index: index)
         }
         return ""
+    }
+
+    func carDetails() -> String {
+        var text = ""
+        if car.vehicle.engine { text += "Car on | " }
+
+        if car.vehicle.hvac { text += "Climate on | " }
+
+        text += "Range \(car.vehicle.distance) km"
+        return text
     }
 
     var updateTimer: Timer {
@@ -257,6 +279,7 @@ struct Appliances: View {
 
     func fetchAppliances() {
         robots.fetchRobots()
+        car.fetchCarDetails()
         hconn.authorize(boschAppliance: fluxHausConsts.boschAppliance)
         fluxHausConsts.mieleAppliances.forEach { (appliance) in
             miele.fetchAppliance(appliance: appliance)

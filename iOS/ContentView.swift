@@ -13,6 +13,7 @@ struct ContentView: View {
     var miele: Miele
     var robots: Robots
     var battery: Battery
+    var car: Car
 
     var body: some View {
         VStack {
@@ -29,7 +30,8 @@ struct ContentView: View {
                 hconn: hconn,
                 miele: miele,
                 robots: robots,
-                battery: battery
+                battery: battery,
+                car: car
             )
             Spacer()
             Link(

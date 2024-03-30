@@ -21,6 +21,9 @@ struct LoginResponse: Decodable {
     let favouriteHomeKit: [String]
     let broombot: Robot
     let mopbot: Robot
+    let car: FluxCar
+    let carEvStatus: EVStatus
+    let carOdometer: Double
 }
 
 struct FluxObject {
