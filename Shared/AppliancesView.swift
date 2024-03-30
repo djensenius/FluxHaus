@@ -42,7 +42,7 @@ struct Appliances: View {
     var body: some View {
         ScrollView {
                 LazyVGrid(columns: gridItemLayout, spacing: 5) {
-                    ForEach((0..<6), id: \.self) { app in
+                    ForEach((0..<7), id: \.self) { app in
                         if !(theAppliances[app].name == "Battery" && battery.model == .mac) {
                             if getApplianceName(
                                 type: theAppliances[app].name,
