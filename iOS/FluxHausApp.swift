@@ -18,6 +18,7 @@ var hconn: HomeConnect?
 var miele: Miele?
 var robots: Robots?
 var battery: Battery?
+var car: Car?
 
 @main
 struct FluxHausApp: App {
@@ -46,6 +47,7 @@ struct FluxHausApp: App {
                                 loadMiele()
                                 loadRobots()
                                 loadBattery()
+                                loadCar()
                             }
                         }
 
@@ -78,7 +80,8 @@ struct FluxHausApp: App {
                     hconn: hconn!,
                     miele: miele!,
                     robots: robots!,
-                    battery: battery
+                    battery: battery,
+                    car: car!
                 )
             }
         }
@@ -102,5 +105,9 @@ struct FluxHausApp: App {
 
     func loadBattery() {
         UIDevice.current.isBatteryMonitoringEnabled = true
+    }
+
+    func loadCar() {
+        car = Car()
     }
 }
