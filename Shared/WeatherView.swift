@@ -111,7 +111,7 @@ struct WeatherView: View {
         let currentWeather = lman.weather!.currentWeather
         let currentTemp = currentWeather.temperature
             .converted(to: .celsius)
-            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+            .formatted(.measurement(usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))))
         let weatherDescription = currentWeather.condition.description
         return "\(currentTemp), \(weatherDescription)"
     }
@@ -124,7 +124,7 @@ struct WeatherView: View {
         let humidity = String(format: "%.0f", round(currentWeather.humidity * 100))
         let feelsLike = currentWeather.apparentTemperature
             .converted(to: .celsius)
-            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+            .formatted(.measurement(usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))))
         return "Feels Like \(feelsLike), \(humidity)% Humidity"
 
     }
@@ -135,7 +135,7 @@ struct WeatherView: View {
         }
         let min = lman.weather!.dailyForecast[0].lowTemperature
             .converted(to: .celsius)
-            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+            .formatted(.measurement(usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(min)")
     }
 
@@ -145,7 +145,7 @@ struct WeatherView: View {
         }
         let max = lman.weather!.dailyForecast[0].highTemperature
             .converted(to: .celsius)
-            .formatted(.measurement(numberFormatStyle: .number.precision(.fractionLength(0))))
+            .formatted(.measurement(usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))))
         return String("\(max)")
     }
 
