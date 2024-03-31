@@ -34,9 +34,13 @@ struct HomeKitView: View {
                             getButtonBackgroundColor(favourite: home.favourites[fav]),
                             in: .rect(cornerRadius: 12)
                         )
+                        #if os(visionOS)
+                        .glassBackgroundEffect()
+                        #endif
                         .padding(.leading)
                     }
                 }
+                #if targetEnvironment(simulator)
                 Button(action: {}, label: {
                     HStack {
                         Text("Active")
@@ -53,7 +57,6 @@ struct HomeKitView: View {
                 .glassBackgroundEffect()
                 #endif
                 .padding(.leading)
-                #if targetEnvironment(simulator)
                 Button(action: {}, label: {
                     HStack {
                         Text("Inactive")
