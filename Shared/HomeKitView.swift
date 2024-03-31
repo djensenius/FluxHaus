@@ -37,6 +37,40 @@ struct HomeKitView: View {
                         .padding(.leading)
                     }
                 }
+                Button(action: {}, label: {
+                    HStack {
+                        Text("Active")
+                            .font(.subheadline)
+                            .frame(width: 100)
+                    }
+                    .frame(width: 120, height: 50, alignment: .center)
+                })
+                .background(
+                    .bar,
+                    in: .rect(cornerRadius: 12)
+                )
+                #if os(visionOS)
+                .glassBackgroundEffect()
+                #endif
+                .padding(.leading)
+                #if targetEnvironment(simulator)
+                Button(action: {}, label: {
+                    HStack {
+                        Text("Inactive")
+                            .font(.subheadline)
+                            .frame(width: 100)
+                    }
+                    .frame(width: 120, height: 50, alignment: .center)
+                })
+                .background(
+                    .regularMaterial,
+                    in: .rect(cornerRadius: 12)
+                )
+                #if os(visionOS)
+                .glassBackgroundEffect()
+                #endif
+                .padding(.leading)
+                #endif
             }.onAppear(perform: {
                 home.startHome()
                 _ = self.updateTimer
