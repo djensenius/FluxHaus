@@ -33,7 +33,7 @@ struct Atc: Codable {
 }
 
 struct EVStatus: Decodable {
-    let timestamp: Int
+    let timestamp: String
     let batteryCharge: Bool
     let batteryStatus: Int
     let batteryPlugin: Int
@@ -41,6 +41,7 @@ struct EVStatus: Decodable {
 }
 
 struct FluxCar: Decodable {
+    let timestamp: String
     let lastStatusDate: String
     let airCtrlOn: Bool
     let doorLock: Bool
@@ -52,8 +53,8 @@ struct FluxCar: Decodable {
 }
 
 struct CarDetails: Decodable {
-    let timestamp: Int
-    let evStatusTimestamp: Int
+    let timestamp: String
+    let evStatusTimestamp: String
     let batteryLevel: Int
     let distance: Int
     let hvac: Bool
@@ -70,8 +71,8 @@ struct CarDetails: Decodable {
 
 @Observable class Car {
     var vehicle = CarDetails(
-        timestamp: 0,
-        evStatusTimestamp: 0,
+        timestamp: "",
+        evStatusTimestamp: "",
         batteryLevel: 0,
         distance: 0,
         hvac: false,
@@ -116,7 +117,7 @@ struct CarDetails: Decodable {
                 if let response = response {
                     DispatchQueue.main.async {
                         self.vehicle = CarDetails(
-                            timestamp: Int(response.car.lastStatusDate)!,
+                            timestamp: response.car.timestamp,
                             evStatusTimestamp: response.carEvStatus.timestamp,
                             batteryLevel: response.carEvStatus.batteryStatus,
                             distance: response.carEvStatus.drvDistance[0].rangeByFuel.evModeRange.value,
