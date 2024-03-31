@@ -279,11 +279,12 @@ struct Appliances: View {
 
     func fetchAppliances() {
         robots.fetchRobots()
-        car.fetchCarDetails()
+        car.performAction(action: "resync")
         hconn.authorize(boschAppliance: fluxHausConsts.boschAppliance)
         fluxHausConsts.mieleAppliances.forEach { (appliance) in
             miele.fetchAppliance(appliance: appliance)
         }
+        car.fetchCarDetails()
     }
 }
 
