@@ -18,7 +18,7 @@ struct CarDetailView: View {
                 .font(.title)
                 .padding([.top, .bottom])
             VStack(alignment: .leading) {
-                Text("EV Data Updated \(getTime(timestamp: car.vehicle.evStatusTimestamp / 1000))")
+                Text("EV Data Updated \(getTime(strDate: car.vehicle.evStatusTimestamp))")
                 Text("Battery: \(car.vehicle.batteryLevel)%, \(car.vehicle.distance) km")
                 HStack {
                     if car.vehicle.pluggedIn {
@@ -32,7 +32,7 @@ struct CarDetailView: View {
                         Text("Not charging")
                     }
                 }.padding(.bottom)
-                Text("Other data updated \(getTime(timestamp: car.vehicle.timestamp, unixTimestamp: false))")
+                Text("Other data updated \(getTime(strDate: car.vehicle.timestamp))")
                 Text("Odometer: \(car.vehicle.odometer, specifier: "%.0f") km")
                 HStack {
                     if car.vehicle.trunkOpen {
@@ -65,7 +65,7 @@ struct CarDetailView: View {
                 }
                 Button("Resync data", action: { performAction(action: "rsync") })
                     .disabled(self.buttonsDisabled)
-            }
+            }.padding()
             if self.buttonsDisabled {
                 ProgressView()
             }
@@ -99,16 +99,10 @@ struct CarDetailView: View {
         }
     }
 
-    func getTime(timestamp: Int = 0, unixTimestamp: Bool = true) -> String {
-        var date: Double = 0
-        if !unixTimestamp {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyyMMddHHmmss"
-            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
-            date = dateFormatter.date(from: String(timestamp))!.timeIntervalSince1970
-        } else {
-            date = Double(timestamp)
-        }
+    func getTime(strDate: String) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        let date = dateFormatter.date(from: String(strDate))!.timeIntervalSince1970
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return formatter.localizedString(
