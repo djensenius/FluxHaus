@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HealthKitUI
 
 struct ContentView: View {
     var fluxHausConsts: FluxHausConsts
@@ -15,10 +16,58 @@ struct ContentView: View {
     var battery: Battery
     var car: Car
 
+    @State var authenticated = false
+    @State var trigger = false
+    var healthStore = HKHealthStore()
+    let allTypes: Set = [
+        HKQuantityType.workoutType(),
+        HKQuantityType(.activeEnergyBurned),
+        HKQuantityType(.distanceWalkingRunning),
+        HKObjectType.activitySummaryType()
+    ]
+
     var body: some View {
         VStack {
-            DateTimeView()
-            WeatherView()
+            HStack {
+                HStack {
+                    // OK to read or write HealthKit data here.
+                    if authenticated {
+                        Text("HealthKit enabled")
+                        RingView(activitySummary: HealthKit.HKActivitySummary())
+                    }
+                }
+                // If HealthKit data is available, request authorization
+                // when this view appears.
+                .onAppear {
+                    // Check that Health data is available on the device.
+                    if HKHealthStore.isHealthDataAvailable() {
+                        // Modifying the trigger initiates the health data
+                        // access request.
+                        trigger.toggle()
+                    }
+                }
+                // Requests access to share and read HealthKit data types
+                // when the trigger changes.
+                /*
+                .healthDataAccessRequest(store: healthStore,
+                                         shareTypes: Set(),
+                                         readTypes: allTypes,
+                                         trigger: trigger) { result in
+                    switch result {
+                    case .success:
+                        authenticated = true
+                    case .failure(let error):
+                        // Handle the error here.
+                        print("FOUND ERROR")
+                        fatalError("*** An error occurred while requesting authentication: \(error) ***")
+                    }
+                }
+                 */
+                VStack {
+                    DateTimeView()
+                    WeatherView()
+                }
+            }
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             HStack {
                 Text("Appliances")

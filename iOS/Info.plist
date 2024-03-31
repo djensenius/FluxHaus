@@ -35,6 +35,8 @@
 	<string>public.app-category.lifestyle</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>We need access to health records for steps and activity to show in your summary</string>
 	<key>NSHomeKitUsageDescription</key>
 	<string>We need access to HomeKit for access to some quick shortcuts.</string>
 	<key>NSLocationUsageDescription</key>

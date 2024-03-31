@@ -71,6 +71,10 @@
 		6399EA372B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		63D424AE2BB8E55F00E5E60E /* RingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D424AD2BB8E55F00E5E60E /* RingView.swift */; };
+		63D424AF2BB8E55F00E5E60E /* RingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D424AD2BB8E55F00E5E60E /* RingView.swift */; };
+		63D424B02BB8E55F00E5E60E /* RingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D424AD2BB8E55F00E5E60E /* RingView.swift */; };
+		63D424B12BB8E55F00E5E60E /* RingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63D424AD2BB8E55F00E5E60E /* RingView.swift */; };
 		63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD7322B954215006603D0 /* RealityKitContent */; };
 		63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7342B954215006603D0 /* VisionOSApp.swift */; };
 		63DBD7372B954215006603D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7362B954215006603D0 /* ContentView.swift */; };
@@ -146,6 +150,7 @@
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
+		63D424AD2BB8E55F00E5E60E /* RingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RingView.swift; sourceTree = "<group>"; };
 		63DBD72E2B954215006603D0 /* VisionOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		63DBD7312B954215006603D0 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		63DBD7342B954215006603D0 /* VisionOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOSApp.swift; sourceTree = "<group>"; };
@@ -235,6 +240,7 @@
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
+				63D424AD2BB8E55F00E5E60E /* RingView.swift */,
 				635BD66A2B9DF8A6009CEEA9 /* Robots.swift */,
 				6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */,
 				636B9B44258E5C3600DE97BD /* Weather.swift */,
@@ -557,6 +563,7 @@
 				636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				635BD6702B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
 				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
+				63D424AE2BB8E55F00E5E60E /* RingView.swift in Sources */,
 				636B9B45258E5C3600DE97BD /* Weather.swift in Sources */,
 				636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */,
 				6399EA2C2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
@@ -583,6 +590,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63D424AF2BB8E55F00E5E60E /* RingView.swift in Sources */,
 				635F9D072BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				636A059A2B9E6EE800D42C0D /* Battery.swift in Sources */,
 				635BD66C2B9DF8A6009CEEA9 /* Robots.swift in Sources */,
@@ -622,6 +630,7 @@
 				63DBD7542B95447A006603D0 /* HomeConnect.swift in Sources */,
 				63DBD7552B95447A006603D0 /* FluxHausConsts.swift in Sources */,
 				63DBD7562B95447A006603D0 /* Weather.swift in Sources */,
+				63D424B02BB8E55F00E5E60E /* RingView.swift in Sources */,
 				63DBD7572B95447A006603D0 /* Miele.swift in Sources */,
 				63DBD7372B954215006603D0 /* ContentView.swift in Sources */,
 				63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */,
@@ -636,6 +645,7 @@
 				63610D312BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
 				635BD66E2B9DF8A6009CEEA9 /* Robots.swift in Sources */,
 				6399EA2A2B9CA534000C8CA4 /* LoadingView.swift in Sources */,
+				63D424B12BB8E55F00E5E60E /* RingView.swift in Sources */,
 				63610D2C2BB86F230048B9FF /* Car.swift in Sources */,
 				6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				636A059C2B9E6EE800D42C0D /* Battery.swift in Sources */,
