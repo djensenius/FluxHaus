@@ -204,7 +204,7 @@ struct Appliances: View {
             if battery.state == .charging {
                 return "Charging"
             } else if battery.state == .unknown {
-                return "Unknown"
+                return "Battery state unknown"
             }
             return ""
         } else if type == "Car" {
