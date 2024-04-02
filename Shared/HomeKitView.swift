@@ -11,7 +11,7 @@ struct HomeKitView: View {
     var favouriteHomeKit: [String]
 
     @ObservedObject var home = HomeKitIntegration()
-    private let gridItemLayout = [GridItem(.flexible()), GridItem(.flexible())]
+    private let gridItemLayout = [GridItem(.flexible())]
     var body: some View {
         ScrollView(.horizontal) {
             LazyHGrid(rows: gridItemLayout, spacing: 1) {

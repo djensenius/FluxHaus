@@ -220,6 +220,7 @@ struct Appliances: View {
     }
 
     func tApplianceTimeRemaining(tAppliance: [Appliance], index: Int) -> String {
+        if tAppliance.count == 0 { return "" }
         if tAppliance[index].inUse == false {
             return "Off"
         }
