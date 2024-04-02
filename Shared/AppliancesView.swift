@@ -29,7 +29,7 @@ struct Appliances: View {
 
     private let gridItemLayout = [GridItem(.flexible())]
 
-    private let theAppliances = [
+    var originalAppliances = [
         (name: "HomeConnect", index: 0),
         (name: "Miele", index: 0),
         (name: "Miele", index: 1),
@@ -39,10 +39,12 @@ struct Appliances: View {
         (name: "Battery", index: 0)
     ]
 
+    @State var theAppliances: [(name: String, index: Int)] = []
+
     var body: some View {
         ScrollView {
                 LazyVGrid(columns: gridItemLayout, spacing: 5) {
-                    ForEach((0..<7), id: \.self) { app in
+                    ForEach((0..<theAppliances.count), id: \.self) { app in
                         if !(theAppliances[app].name == "Battery" && battery.model == .mac) {
                             if getApplianceName(
                                 type: theAppliances[app].name,
@@ -92,6 +94,7 @@ struct Appliances: View {
                                     .hoverEffect()
                                 }.onTapGesture {
                                     if theAppliances[app].name == "Car" {
+                                        self.car.fetchCarDetails()
                                         self.showCarModal = true
                                     }
                                 }
@@ -205,7 +208,6 @@ struct Appliances: View {
             }
             return ""
         } else if type == "Car" {
-            car.fetchCarDetails()
             return carDetails(car: car)
         } else {
             tAppliance = hconn.appliances
@@ -275,7 +277,56 @@ struct Appliances: View {
         fluxHausConsts.mieleAppliances.forEach { (appliance) in
             miele.fetchAppliance(appliance: appliance)
         }
+        print("No here")
         car.fetchCarDetails()
+        self.sortAppliances()
+    }
+
+    func sortAppliances() {
+        let appliances = originalAppliances
+
+        var activeAppliances: [(name: String, index: Int)] = []
+        var inactiveAppliances: [(name: String, index: Int)] = []
+
+        appliances.forEach { appliance in
+            let name = appliance.name
+            let index = appliance.index
+            switch name {
+            case "Car", "Battery":
+                activeAppliances.append(appliance)
+            case "MopBot":
+                if robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true) {
+                    activeAppliances.append(appliance)
+                } else {
+                    inactiveAppliances.append(appliance)
+                }
+            case "BroomBot":
+                if robots.broomBot.running != nil &&
+                    (robots.broomBot.running == true || robots.broomBot.paused == true) {
+                    activeAppliances.append(appliance)
+                } else {
+                    inactiveAppliances.append(appliance)
+                }
+            case "Miele":
+                let tAppliance = miele.appliances
+                if tApplianceTimeRemaining(tAppliance: tAppliance, index: index) == "Off" {
+                    inactiveAppliances.append(appliance)
+                } else {
+                    activeAppliances.append(appliance)
+                }
+            case "HomeConnect":
+                let tAppliance = hconn.appliances
+                if tApplianceTimeRemaining(tAppliance: tAppliance, index: index) == "Off" {
+                    inactiveAppliances.append(appliance)
+                } else {
+                    activeAppliances.append(appliance)
+                }
+            default:
+                break
+            }
+        }
+
+        theAppliances = activeAppliances + inactiveAppliances
     }
 }
 
