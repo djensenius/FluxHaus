@@ -205,7 +205,8 @@ struct Appliances: View {
             }
             return ""
         } else if type == "Car" {
-            return carDetails()
+            car.fetchCarDetails()
+            return carDetails(car: car)
         } else {
             tAppliance = hconn.appliances
         }
@@ -258,16 +259,6 @@ struct Appliances: View {
             return tApplianceTimeRemaining(tAppliance: tAppliance, index: index)
         }
         return ""
-    }
-
-    func carDetails() -> String {
-        var text = ""
-        if car.vehicle.engine { text += "Car on | " }
-
-        if car.vehicle.hvac { text += "Climate on | " }
-
-        text += "Range \(car.vehicle.distance) km"
-        return text
     }
 
     var updateTimer: Timer {

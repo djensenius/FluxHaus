@@ -18,7 +18,7 @@ struct CarDetailView: View {
                 .font(.title)
                 .padding([.top, .bottom])
             VStack(alignment: .leading) {
-                Text("EV Data Updated \(getTime(strDate: car.vehicle.evStatusTimestamp))")
+                Text("EV Data Updated \(getCarTime(strDate: car.vehicle.evStatusTimestamp))")
                 Text("Battery: \(car.vehicle.batteryLevel)%, \(car.vehicle.distance) km")
                 HStack {
                     if car.vehicle.pluggedIn {
@@ -32,7 +32,7 @@ struct CarDetailView: View {
                         Text("Not charging")
                     }
                 }.padding(.bottom)
-                Text("Other data updated \(getTime(strDate: car.vehicle.timestamp))")
+                Text("Other data updated \(getCarTime(strDate: car.vehicle.timestamp))")
                 Text("Odometer: \(car.vehicle.odometer, specifier: "%.0f") km")
                 HStack {
                     if car.vehicle.trunkOpen {
@@ -67,6 +67,8 @@ struct CarDetailView: View {
                     .disabled(self.buttonsDisabled)
             }.padding()
             if self.buttonsDisabled {
+                Text("It takes about 90 seconds for request to finish, feel free to dismiss this view.")
+                    .font(.caption)
                 ProgressView()
             }
             Spacer()
@@ -83,32 +85,20 @@ struct CarDetailView: View {
         self.buttonsDisabled = true
         car.performAction(action: action)
 
-        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) {_ in
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) {_ in
             if action != "resync" {
                 car.performAction(action: "resync")
             }
             car.fetchCarDetails()
         }
 
-        Timer.scheduledTimer(withTimeInterval: 20.0, repeats: false) {_ in
+        Timer.scheduledTimer(withTimeInterval: 90.0, repeats: false) {_ in
             if action != "resync" {
                 car.performAction(action: "resync")
             }
             car.fetchCarDetails()
             self.buttonsDisabled = false
         }
-    }
-
-    func getTime(strDate: String) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-        let date = dateFormatter.date(from: String(strDate))!.timeIntervalSince1970
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(
-            for: Date.init(timeIntervalSince1970: TimeInterval(date)),
-            relativeTo: Date()
-        )
     }
 }
 
