@@ -28,5 +28,7 @@
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
