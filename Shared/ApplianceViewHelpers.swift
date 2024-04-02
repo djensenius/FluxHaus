@@ -10,7 +10,7 @@ import SwiftUI
 
 func getDeviceIcon(battery: Battery) -> Image {
     if battery.model == .iPad {
-        return Image(systemName: "iPad")
+        return Image(systemName: "ipad")
     } else if battery.model == .mac {
         return Image(systemName: "macbook")
     } else if battery.model == .visionPro {
