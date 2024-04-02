@@ -67,8 +67,9 @@ struct CarDetailView: View {
                     .disabled(self.buttonsDisabled)
             }.padding()
             if self.buttonsDisabled {
-                Text("It takes about 90 seconds for request to finish, feel free to dismiss this view.")
+                Text("It takes about 90 seconds for requests to finish, feel free to dismiss this window.")
                     .font(.caption)
+                    .padding()
                 ProgressView()
             }
             Spacer()
