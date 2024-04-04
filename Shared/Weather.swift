@@ -74,9 +74,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             let minuteForecast = weather.minuteForecast?[index]
             if minuteForecast?.precipitation == Precipitation.none {
                 forecast = ForecastInfo(
-                    type: weather.minuteForecast![0].precipitation,
-                    chance: weather.minuteForecast![0].precipitationChance,
-                    symbolName: precipitationSymbol(type: weather.minuteForecast![0].precipitation),
+                    type: weather.minuteForecast?[0].precipitation ?? .none,
+                    chance: weather.minuteForecast?[0].precipitationChance ?? 0,
+                    symbolName: precipitationSymbol(type: weather.minuteForecast?[0].precipitation ?? .rain),
                     endingNumber: index,
                     endingType: .minute,
                     startingNumber: nil,
@@ -93,9 +93,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 let hourlyForecast = weather.hourlyForecast[index]
                 if hourlyForecast.precipitation == Precipitation.none {
                     forecast = ForecastInfo(
-                        type: weather.minuteForecast![0].precipitation,
-                        chance: weather.minuteForecast![0].precipitationChance,
-                        symbolName: precipitationSymbol(type: weather.minuteForecast![0].precipitation),
+                        type: weather.minuteForecast?[0].precipitation ?? .none,
+                        chance: weather.minuteForecast?[0].precipitationChance ?? 0,
+                        symbolName: precipitationSymbol(type: weather.minuteForecast?[0].precipitation ?? .rain),
                         endingNumber: index,
                         endingType: .hour,
                         startingNumber: nil,
@@ -116,9 +116,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             let minuteForecast = weather.minuteForecast?[index]
             if minuteForecast?.precipitation != Precipitation.none {
                 forecast = ForecastInfo(
-                    type: weather.minuteForecast![index].precipitation,
-                    chance: weather.minuteForecast![index].precipitationChance,
-                    symbolName: precipitationSymbol(type: weather.minuteForecast![index].precipitation),
+                    type: weather.minuteForecast?[index].precipitation ?? .none,
+                    chance: weather.minuteForecast?[index].precipitationChance ?? 0,
+                    symbolName: precipitationSymbol(type: weather.minuteForecast?[index].precipitation ?? .rain),
                     endingNumber: nil,
                     endingType: nil,
                     startingNumber: index,
