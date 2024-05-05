@@ -14,9 +14,13 @@ struct CarDetailView: View {
 
     var body: some View {
         VStack {
-            Text("Car")
+            HStack {
+                Image(systemName: "car")
+                Text("Car")
+            }
                 .font(.title)
                 .padding([.top, .bottom])
+
             VStack(alignment: .leading) {
                 Text("EV Data Updated \(getCarTime(strDate: car.vehicle.evStatusTimestamp))")
                 Text("Battery: \(car.vehicle.batteryLevel)%, \(car.vehicle.distance) km")

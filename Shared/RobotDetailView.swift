@@ -15,11 +15,18 @@ struct RobotDetailView: View {
 
     var body: some View {
         VStack {
-            Text(robot.name!)
+            HStack {
+                if robot.name! == "MopBot" {
+                    Image(systemName: "humidifier.and.droplets")
+                } else {
+                    Image(systemName: "fan")
+                }
+                Text(robot.name!)
+            }
                 .font(.title)
                 .padding([.top, .bottom])
+
             VStack(alignment: .leading) {
-                Text("Data Updated \(getCarTime(strDate: robot.timestamp))")
                 Text("Battery: \(robot.batteryLevel ?? 0)%")
                 if robot.charging == true && robot.batteryLevel ?? 0 < 100 {
                     Text("Charging")
@@ -32,6 +39,7 @@ struct RobotDetailView: View {
                 } else {
                     Text("Idle")
                 }
+                Text("Data Updated \(getCarTime(strDate: robot.timestamp))")
             }.padding(.bottom)
 
             VStack {
@@ -41,8 +49,10 @@ struct RobotDetailView: View {
                 } else {
                     Button("Start Cleaning", action: { performAction(action: "start") })
                         .disabled(self.buttonsDisabled).padding(.bottom)
-                    Button("Deep Clean (BroomBot + MopBot)", action: { performAction(action: "deepClean") })
-                        .disabled(self.buttonsDisabled)
+                    if robots.broomBot.running != true && robots.mopBot.running != true {
+                        Button("Deep Clean (BroomBot + MopBot)", action: { performAction(action: "deepClean") })
+                            .disabled(self.buttonsDisabled)
+                    }
                 }
             }.padding()
 

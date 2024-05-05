@@ -28,6 +28,7 @@ struct Appliances: View {
     @State private var showCarModal: Bool = false
     @State private var showBroomBotModal: Bool = false
     @State private var showMopBotModal: Bool = false
+    @State private var showApplianceModal: [String: Bool] = [:]
 
     private let gridItemLayout = [GridItem(.flexible())]
 
@@ -62,15 +63,15 @@ struct Appliances: View {
                                                         index: theAppliances[app].index
                                                     )
                                                 )
-                                                    .font(.title2)
-                                                    .padding(.leading)
+                                                .font(.title2)
+                                                .padding(.leading)
                                                 Text(
                                                     getApplianceName(
                                                         type: theAppliances[app].name,
                                                         index: theAppliances[app].index
                                                     )
                                                 )
-                                                    .font(.title2)
+                                                .font(.title2)
                                                 Spacer()
                                             }
                                             Text(
@@ -79,9 +80,9 @@ struct Appliances: View {
                                                     index: theAppliances[app].index
                                                 )
                                             )
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                                .padding(.leading)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .padding(.leading)
                                         }
                                         Text(
                                             getTimeRemaining(
@@ -89,11 +90,20 @@ struct Appliances: View {
                                                 index: theAppliances[app].index
                                             )
                                         )
-                                            .font(.title)
-                                            .padding()
+                                        .font(.title)
+                                        .padding()
                                     }
                                     .background(.regularMaterial, in: .rect(cornerRadius: 12))
                                     .hoverEffect()
+                                    .sheet(
+                                        isPresented:
+                                            binding(for: "\(theAppliances[app].name)-\(theAppliances[app].index)")
+                                    ) {
+                                        getSheet(
+                                            type: theAppliances[app].name,
+                                            index: theAppliances[app].index
+                                        )
+                                    }
                                 }.onTapGesture {
                                     if theAppliances[app].name == "Car" {
                                         self.car.fetchCarDetails()
@@ -102,6 +112,10 @@ struct Appliances: View {
                                         self.showMopBotModal = true
                                     } else if theAppliances[app].name == "BroomBot" {
                                         self.showBroomBotModal = true
+                                    } else {
+                                        self.showApplianceModal[
+                                            "\(theAppliances[app].name)-\(theAppliances[app].index)"
+                                        ] = true
                                     }
                                 }
                             }
@@ -119,6 +133,23 @@ struct Appliances: View {
         .sheet(isPresented: self.$showMopBotModal) {
             RobotDetailView(robot: robots.mopBot, robots: robots)
         }
+    }
+
+    private func binding(for key: String) -> Binding<Bool> {
+            return Binding(get: {
+                return self.showApplianceModal[key] ?? false
+            }, set: {
+                self.showApplianceModal[key] = $0
+            })
+        }
+
+    func getSheet(type: String, index: Int) -> ApplianceDetailView? {
+        if type == "Miele" {
+            return ApplianceDetailView(appliance: miele.appliances[index])
+        } else if type == "HomeConnect" {
+            return ApplianceDetailView(appliance: hconn.appliances[index])
+        }
+        return nil
     }
 
     func getIcon(type: String, index: Int) -> Image {
