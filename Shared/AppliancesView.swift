@@ -26,6 +26,8 @@ struct Appliances: View {
     var car: Car
 
     @State private var showCarModal: Bool = false
+    @State private var showBroomBotModal: Bool = false
+    @State private var showMopBotModal: Bool = false
 
     private let gridItemLayout = [GridItem(.flexible())]
 
@@ -96,6 +98,10 @@ struct Appliances: View {
                                     if theAppliances[app].name == "Car" {
                                         self.car.fetchCarDetails()
                                         self.showCarModal = true
+                                    } else if theAppliances[app].name == "MopBot" {
+                                        self.showMopBotModal = true
+                                    } else if theAppliances[app].name == "BroomBot" {
+                                        self.showBroomBotModal = true
                                     }
                                 }
                             }
@@ -106,6 +112,12 @@ struct Appliances: View {
         .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
         .sheet(isPresented: self.$showCarModal) {
             CarDetailView(car: car)
+        }
+        .sheet(isPresented: self.$showBroomBotModal) {
+            RobotDetailView(robot: robots.broomBot, robots: robots)
+        }
+        .sheet(isPresented: self.$showMopBotModal) {
+            RobotDetailView(robot: robots.mopBot, robots: robots)
         }
     }
 
