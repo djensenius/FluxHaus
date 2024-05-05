@@ -112,7 +112,7 @@ struct Appliances: View {
                                         self.showMopBotModal = true
                                     } else if theAppliances[app].name == "BroomBot" {
                                         self.showBroomBotModal = true
-                                    } else {
+                                    } else  if theAppliances[app].name != "Battery" {
                                         self.showApplianceModal[
                                             "\(theAppliances[app].name)-\(theAppliances[app].index)"
                                         ] = true
