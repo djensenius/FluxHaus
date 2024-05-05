@@ -15,10 +15,12 @@ struct ApplianceDetailView: View {
     var body: some View {
         VStack {
             HStack {
-                if appliance.name == "MopBot" {
-                    Image(systemName: "humidifier.and.droplets")
+                if appliance.name == "Washing machine" {
+                   Image(systemName: "washer")
+                } else if appliance.name == "Dishwasher" {
+                    Image(systemName: "dishwasher")
                 } else {
-                    Image(systemName: "fan")
+                    Image(systemName: "dryer")
                 }
                 Text(appliance.name)
             }
