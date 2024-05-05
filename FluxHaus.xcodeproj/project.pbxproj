@@ -59,6 +59,10 @@
 		636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
 		636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
+		637CE4C62BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
+		637CE4C72BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
+		637CE4C82BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		6399EA272B9CA534000C8CA4 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA262B9CA534000C8CA4 /* LoadingView.swift */; };
 		6399EA282B9CA534000C8CA4 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA262B9CA534000C8CA4 /* LoadingView.swift */; };
 		6399EA292B9CA534000C8CA4 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA262B9CA534000C8CA4 /* LoadingView.swift */; };
@@ -147,6 +151,7 @@
 		636B9B4F258E912A00DE97BD /* BackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundView.swift; sourceTree = "<group>"; };
 		636B9B5A258FBB6300DE97BD /* HomeKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitView.swift; sourceTree = "<group>"; };
 		636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitIntegration.swift; sourceTree = "<group>"; };
+		637CE4C42BE71FC000258158 /* RobotDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotDetailView.swift; sourceTree = "<group>"; };
 		6399EA262B9CA534000C8CA4 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LoadingView.swift; path = VisionOS/LoadingView.swift; sourceTree = SOURCE_ROOT; };
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
@@ -241,6 +246,7 @@
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
+				637CE4C42BE71FC000258158 /* RobotDetailView.swift */,
 				635BD66A2B9DF8A6009CEEA9 /* Robots.swift */,
 				6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */,
 				636B9B44258E5C3600DE97BD /* Weather.swift */,
@@ -562,6 +568,7 @@
 				635F9D062BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				635BD6702B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
+				637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */,
 				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
 				633F09482BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				636B9B45258E5C3600DE97BD /* Weather.swift in Sources */,
@@ -600,6 +607,7 @@
 				6399EA372B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
 				63610D2A2BB86F230048B9FF /* Car.swift in Sources */,
+				637CE4C62BE71FC000258158 /* RobotDetailView.swift in Sources */,
 				6399EA2D2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
 				63610D342BB8864F0048B9FF /* CarDetailView.swift in Sources */,
 				6399EA322B9D3671000C8CA4 /* Login.swift in Sources */,
@@ -621,6 +629,7 @@
 				63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */,
 				63610D352BB8864F0048B9FF /* CarDetailView.swift in Sources */,
 				63DBD75A2B954486006603D0 /* WeatherView.swift in Sources */,
+				637CE4C72BE71FC000258158 /* RobotDetailView.swift in Sources */,
 				6399EA2E2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
 				635BD66D2B9DF8A6009CEEA9 /* Robots.swift in Sources */,
 				6399EA332B9D3671000C8CA4 /* Login.swift in Sources */,
@@ -646,6 +655,7 @@
 				635BD66E2B9DF8A6009CEEA9 /* Robots.swift in Sources */,
 				6399EA2A2B9CA534000C8CA4 /* LoadingView.swift in Sources */,
 				63610D2C2BB86F230048B9FF /* Car.swift in Sources */,
+				637CE4C82BE71FC000258158 /* RobotDetailView.swift in Sources */,
 				6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				633F094B2BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				636A059C2B9E6EE800D42C0D /* Battery.swift in Sources */,
@@ -810,7 +820,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -840,7 +850,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -923,7 +933,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -960,7 +970,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
