@@ -24,7 +24,7 @@ struct RobotDetailView: View {
                 if robot.charging == true && robot.batteryLevel ?? 0 < 100 {
                     Text("Charging")
                 } else if robot.running == true {
-                    Text("Running since \(getCarTime(strDate: robot.timestamp))")
+                    Text("Cleaning started \(getCarTime(strDate: robot.timestamp))")
                 } else if robot.docking == true {
                     Text("Docking")
                 } else if robot.paused == true {
