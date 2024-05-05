@@ -8,7 +8,7 @@
 import Foundation
 
 struct Robot: Decodable {
-    let name: String
+    let name: String?
     let timestamp: String
     let batteryLevel: Int?
     let binFull: Bool?
@@ -73,9 +73,28 @@ struct Robot: Decodable {
 
                 if let response = response {
                     DispatchQueue.main.async {
-                        print("Robots updated")
-                        self.mopBot = response.mopbot
-                        self.broomBot = response.broombot
+                        self.mopBot = Robot(
+                            name: "MopBot",
+                            timestamp: response.mopbot.timestamp,
+                            batteryLevel: response.mopbot.batteryLevel,
+                            binFull: response.mopbot.binFull,
+                            running: response.mopbot.running,
+                            charging: response.mopbot.charging,
+                            docking: response.mopbot.docking,
+                            paused: response.mopbot.paused,
+                            timeStarted: response.mopbot.timeStarted
+                        )
+                        self.broomBot = Robot(
+                            name: "BroomBot",
+                            timestamp: response.broombot.timestamp,
+                            batteryLevel: response.broombot.batteryLevel,
+                            binFull: response.broombot.binFull,
+                            running: response.broombot.running,
+                            charging: response.broombot.charging,
+                            docking: response.broombot.docking,
+                            paused: response.broombot.paused,
+                            timeStarted: response.broombot.timeStarted
+                        )
                     }
                 }
             }

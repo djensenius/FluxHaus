@@ -15,13 +15,13 @@ struct RobotDetailView: View {
 
     var body: some View {
         VStack {
-            Text(robot.name)
+            Text(robot.name!)
                 .font(.title)
                 .padding([.top, .bottom])
             VStack(alignment: .leading) {
                 Text("Data Updated \(getCarTime(strDate: robot.timestamp))")
-                Text("Battery: \(String(describing: robot.batteryLevel))%")
-                if robot.charging == true {
+                Text("Battery: \(robot.batteryLevel ?? 0)%")
+                if robot.charging == true && robot.batteryLevel ?? 0 < 100 {
                     Text("Charging")
                 } else if robot.running == true {
                     Text("Running since \(getCarTime(strDate: robot.timestamp))")
@@ -34,20 +34,20 @@ struct RobotDetailView: View {
                 }
             }.padding(.bottom)
 
-            HStack {
+            VStack {
                 if robot.running == true {
                     Button("Stop", action: { performAction(action: "stop") })
                         .disabled(self.buttonsDisabled)
                 } else {
-                    Button("Start", action: { performAction(action: "start") })
-                        .disabled(self.buttonsDisabled)
-                    Button("Deep Clean", action: { performAction(action: "deepClean") })
+                    Button("Start Cleaning", action: { performAction(action: "start") })
+                        .disabled(self.buttonsDisabled).padding(.bottom)
+                    Button("Deep Clean (BroomBot + MopBot)", action: { performAction(action: "deepClean") })
                         .disabled(self.buttonsDisabled)
                 }
             }.padding()
 
             if self.buttonsDisabled {
-                Text("It takes about 90 seconds for requests to finish, feel free to dismiss this window.")
+                Text("It takes about 30 seconds for requests to finish, feel free to dismiss this window.")
                     .font(.caption)
                     .padding()
                 ProgressView()
@@ -64,16 +64,11 @@ struct RobotDetailView: View {
     func performAction(action: String) {
         print("Performing \(action)")
         self.buttonsDisabled = true
-        robots.performAction(action: action, robot: robot.name)
+        robots.performAction(action: action, robot: robot.name!)
 
         Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) {_ in
             robots.fetchRobots()
+            self.buttonsDisabled = false
         }
     }
 }
-
-/*
-#Preview {
-    CarDetailView()
-}
-*/
