@@ -97,6 +97,10 @@
 		63DBD75A2B954486006603D0 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
 		63DBD75B2B954486006603D0 /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
 		63DBD75C2B954486006603D0 /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
+		63EB92652BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
+		63EB92662BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
+		63EB92672BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
+		63EB92682BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -168,6 +172,7 @@
 		63DBD7502B95433C006603D0 /* HomeKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HomeKit.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/HomeKit.framework; sourceTree = DEVELOPER_DIR; };
 		63DBD7522B954343006603D0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/HealthKit.framework; sourceTree = DEVELOPER_DIR; };
 		63DBD75D2B954931006603D0 /* VisionOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VisionOS.entitlements; sourceTree = "<group>"; };
+		63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplianceDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,6 +234,7 @@
 		632CBC23258682C8003E4988 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */,
 				632CBC7D25870CBB003E4988 /* AppliancesView.swift */,
 				63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */,
 				636B9B4F258E912A00DE97BD /* BackgroundView.swift */,
@@ -578,6 +584,7 @@
 				635BD6752B9E030E009CEEA9 /* ContentView.swift in Sources */,
 				63610D332BB8864F0048B9FF /* CarDetailView.swift in Sources */,
 				6399EA312B9D3671000C8CA4 /* Login.swift in Sources */,
+				63EB92652BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 				6369A139259984E400888E5D /* WeatherAlertView.swift in Sources */,
 				632CBC7E25870CBB003E4988 /* AppliancesView.swift in Sources */,
 				632CBC902587B4AD003E4988 /* HomeConnect.swift in Sources */,
@@ -612,6 +619,7 @@
 				63610D342BB8864F0048B9FF /* CarDetailView.swift in Sources */,
 				6399EA322B9D3671000C8CA4 /* Login.swift in Sources */,
 				635BD6712B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
+				63EB92662BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,6 +644,7 @@
 				636A059B2B9E6EE800D42C0D /* Battery.swift in Sources */,
 				63DBD75B2B954486006603D0 /* WeatherAlertView.swift in Sources */,
 				63DBD75C2B954486006603D0 /* AppliancesView.swift in Sources */,
+				63EB92672BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 				633F094A2BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				63DBD7542B95447A006603D0 /* HomeConnect.swift in Sources */,
 				63DBD7552B95447A006603D0 /* FluxHausConsts.swift in Sources */,
@@ -656,6 +665,7 @@
 				6399EA2A2B9CA534000C8CA4 /* LoadingView.swift in Sources */,
 				63610D2C2BB86F230048B9FF /* Car.swift in Sources */,
 				637CE4C82BE71FC000258158 /* RobotDetailView.swift in Sources */,
+				63EB92682BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 				6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				633F094B2BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				636A059C2B9E6EE800D42C0D /* Battery.swift in Sources */,
