@@ -35,7 +35,7 @@ class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate {
                 var setOn = true
                 for action in set.actions {
                     let acc = action as? HMCharacteristicWriteAction<NSCopying>
-                    acc?.characteristic.readValue(completionHandler: { (err) in
+                    acc?.characteristic.readValue(completionHandler: { (_) in
                         return
                     })
                     let value1 = acc?.characteristic.value as? Bool
