@@ -103,6 +103,7 @@ class HomeConnect: ObservableObject {
                 inUse: false
             )
         )
+        oauth2!.forgetTokens()
         NotificationCenter.default.post(
             name: Notification.Name.loginsUpdated,
             object: nil,

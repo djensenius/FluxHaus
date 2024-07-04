@@ -109,6 +109,7 @@ class Miele: ObservableObject {
                 if let mApps = try? decoder.decode(MieleAppliances.self, from: response.responseData()) {
                     self.updateAppliance(mApps: mApps)
                 } else {
+                    oauth2Miele!.forgetTokens()
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(
                             name: Notification.Name.loginsUpdated,
