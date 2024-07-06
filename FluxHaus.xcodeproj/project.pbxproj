@@ -936,8 +936,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = FluxHaus;
-				INFOPLIST_KEY_NSHomeKitUsageDescription = "For the shortcuts to see our home!!!";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "For the weather!!!";
+				INFOPLIST_KEY_NSHomeKitUsageDescription = "We need access to HomeKit to allow you to quickly activate some of your favourite scenes.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need access to HomeKit to allow you to quickly activate some of your favourite scenes.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
