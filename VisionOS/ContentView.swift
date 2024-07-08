@@ -18,6 +18,8 @@ struct ContentView: View {
     var battery: Battery
     var car: Car
 
+    @State private var whereWeAre = WhereWeAre()
+
     var body: some View {
         VStack {
             VStack {
@@ -40,12 +42,26 @@ struct ContentView: View {
             }
         }
         .padding()
-        Link(
-            "Weather provided by  Weather",
-            destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
-        )
-        .font(.footnote)
-        .padding(.bottom)
+        HStack {
+            Link(
+                "Weather provided by  Weather",
+                destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+            )
+            .font(.footnote)
+            .padding([.bottom, .leading])
+
+            Spacer()
+
+            Button(action: {
+                oauth2Miele!.forgetTokens()
+                oauth2!.forgetTokens()
+                whereWeAre.deleteKeyChainPasword()
+            }, label: {
+                Text("Logout")
+            })
+            .font(.footnote)
+            .padding([.bottom, .trailing])
+        }
     }
 }
 
