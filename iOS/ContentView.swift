@@ -47,8 +47,6 @@ struct ContentView: View {
                 Spacer()
 
                 Button(action: {
-                    oauth2Miele!.forgetTokens()
-                    oauth2!.forgetTokens()
                     whereWeAre.deleteKeyChainPasword()
                 }, label: {
                     Text("Logout")

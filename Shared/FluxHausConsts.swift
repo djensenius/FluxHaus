@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import OAuth2
 
 struct FluxHausConfig {
     let mieleClientId: String
@@ -35,29 +34,5 @@ class FluxHausConsts: ObservableObject {
         self.boschSecretId = config.boschSecretId
         self.boschAppliance = config.boschAppliance
         self.favouriteHomeKit = config.favouriteHomeKit
-
-        oauth2 = OAuth2CodeGrant(settings: [
-            "client_id": self.boschClientId,
-            "client_secret": self.boschSecretId,
-            "authorize_uri": "https://api.home-connect.com/security/oauth/authorize",
-            "token_uri": "https://api.home-connect.com/security/oauth/token",
-            "redirect_uris": ["fluxhaus://oauth/callback"],
-            "scope": "IdentifyAppliance Monitor",
-            "keychain": true
-        ] as OAuth2JSON)
-
-        oauth2Miele = OAuth2CodeGrant(settings: [
-            "client_id": self.mieleClientId,
-            "client_secret": self.mieleSecretId,
-            "authorize_uri": "https://api.mcs3.miele.com/thirdparty/login",
-            "token_uri": "https://api.mcs3.miele.com/thirdparty/token",
-            "redirect_uris": ["fluxhaus://oauth/callback/fluxhaus_miele"],
-            "parameters": ["vg": "en-CA"],
-            "secret_in_body": true,
-            "keychain": true
-        ] as OAuth2JSON)
-
-        loader = OAuth2DataLoader(oauth2: oauth2!)
-        loaderMiele = OAuth2DataLoader(oauth2: oauth2Miele!)
     }
 }
