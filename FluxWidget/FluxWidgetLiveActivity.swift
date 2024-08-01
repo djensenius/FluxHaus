@@ -5,6 +5,7 @@
 //  Created by David Jensenius on 2024-08-01.
 //
 
+#if canImport(ActivityKit)
 import ActivityKit
 import WidgetKit
 import SwiftUI
@@ -78,3 +79,4 @@ extension FluxWidgetAttributes.ContentState {
     FluxWidgetAttributes.ContentState.smiley
     FluxWidgetAttributes.ContentState.starEyes
 }
+#endif
