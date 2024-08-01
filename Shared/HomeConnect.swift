@@ -6,8 +6,62 @@
 //
 
 import Foundation
-import OAuth2
 import UIKit
+
+// MARK: - New Format
+enum DishWasherProgram: String, Codable {
+    case preRinse = "PreRinse"
+    case auto1 = "Auto1"
+    case auto2 = "Auto2"
+    case auto3 = "Auto3"
+    case eco50 = "Eco50"
+    case quick45 = "Quick45"
+    case intensiv70 = "Intensiv70"
+    case normal65 = "Normal65"
+    case glas40 = "Glas40"
+    case glassCare = "GlassCare"
+    case nightWash = "NightWash"
+    case quick65 = "Quick65"
+    case normal45 = "Normal45"
+    case intensiv45 = "Intensiv45"
+    case autoHalfLoad = "AutoHalfLoad"
+    case intensivPower = "IntensivPower"
+    case magicDaily = "MagicDaily"
+    case super60 = "Super60"
+    case kurz60 = "Kurz60"
+    case expressSparkle65 = "ExpressSparkle65"
+    case machineCare = "MachineCare"
+    case steamFresh = "SteamFresh"
+    case maximumCleaning = "MaximumCleaning"
+    case mixedLoad = "MixedLoad"
+}
+
+enum OperationState: String, Codable {
+    case inactive = "Inactive"
+    case ready = "Ready"
+    case delayedStart = "DelayedStart"
+    case run = "Run"
+    case pause = "Pause"
+    case actionRequired = "ActionRequired"
+    case finished = "Finished"
+    case error = "Error"
+    case aborting = "Aborting"
+}
+
+struct DishWasher: Codable {
+    var status: String?
+    var program: String?
+    var remainingTime: Int?
+    var remainingTimeUnit: String?
+    var remainingTimeEstimate: Bool?
+    var programProgress: Double?
+    var operationState: OperationState
+    var doorState: String
+    var selectedProgram: String?
+    var activeProgram: DishWasherProgram?
+    var startInRelative: Int?
+    var startInRelativeUnit: String?
+}
 
 // MARK: - Welcome
 struct HomeConnectStruct: Codable {
@@ -77,17 +131,6 @@ class HomeConnect: ObservableObject {
 
     init(boschAppliance: String) {
         appliances = []
-        DispatchQueue.main.async {
-            oauth2!.authConfig.authorizeEmbedded = true
-            oauth2!.authConfig.ui.useAuthenticationSession = true
-            let scene = UIApplication.shared.connectedScenes
-                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-
-            let rootViewController = scene?
-                .windows.first(where: { $0.isKeyWindow })?
-                .rootViewController
-            oauth2!.authConfig.authorizeContext = rootViewController
-        }
         self.authorize(boschAppliance: boschAppliance)
     }
 
@@ -110,12 +153,14 @@ class HomeConnect: ObservableObject {
         )
     }
 
-    func setProgram(program: DataClass) {
+    func setProgram(program: DishWasher) {
         var options: [String] = []
         let name = "Dishwasher"
-        let step = program.name
-        var timeRunning = 0
+        let step = program.program ?? ""
+        let timeRunning = 0
         var timeRemaining = 0
+
+        /*
         for option in program.options {
             if option.key == "BSH.Common.Option.RemainingProgramTime" {
                 timeRemaining = Int(round(Double(option.value.intValue / 60)))
@@ -126,6 +171,11 @@ class HomeConnect: ObservableObject {
                     options.append(option.name)
                 }
             }
+        }
+         */
+        timeRemaining = (program.remainingTime ?? 0) / 60
+        if program.activeProgram != nil {
+            options = [program.activeProgram!.rawValue]
         }
 
         let currentDate = Date()
@@ -155,26 +205,42 @@ class HomeConnect: ObservableObject {
     }
 
     func authorize(boschAppliance: String) {
-        let path = "api/homeappliances/\(boschAppliance)/programs/active"
+        let password = WhereWeAre.getPassword()
+        let scheme: String = "https"
+        let host: String = "api.fluxhaus.io"
+        let path = "/"
 
-        let base = URL(string: "https://api.home-connect.com")!
-        let url = base.appendingPathComponent(path)
+        var components = URLComponents()
+        components.scheme = scheme
+        components.host = host
+        components.path = path
+        components.user = "admin"
+        components.password = password
 
-        var req = oauth2!.request(forURL: url)
-        req.setValue("application/vnd.bsh.sdk.v1+json", forHTTPHeaderField: "Accept")
+        guard let url = components.url else {
+            return
+        }
 
-        loader!.perform(request: req) { response in
-            do {
-                DispatchQueue.main.async {
-                    let decoder = JSONDecoder()
-                    do {
-                        let activeProgram = try decoder.decode(HomeConnectStruct.self, from: response.responseData())
-                        self.setProgram(program: activeProgram.data)
-                    } catch {
-                        self.nilProgram()
+        var request = URLRequest(url: url)
+        request.httpMethod = "get"
+
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+
+        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data {
+                let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
+                if let response = response {
+                    DispatchQueue.main.async {
+                        if response.dishwasher.operationState.rawValue != "Inactive" {
+                            self.setProgram(program: response.dishwasher)
+                        } else {
+                            self.nilProgram()
+                        }
                     }
                 }
             }
         }
+        task.resume()
     }
 }

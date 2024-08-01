@@ -7,12 +7,6 @@
 
 import Foundation
 import SwiftUI
-import OAuth2
-
-var oauth2: OAuth2CodeGrant?
-var oauth2Miele: OAuth2CodeGrant?
-var loader: OAuth2DataLoader?
-var loaderMiele: OAuth2DataLoader?
 
 var hconn: HomeConnect?
 var miele: Miele?
@@ -48,11 +42,8 @@ struct VisionOSApp: App {
                                 loadRobots()
                                 loadBattery()
                                 loadCar()
+                                loadHomeConnect()
                             }
-                        }
-
-                        if ((object.userInfo?["mieleComplete"]) != nil) == true {
-                            loadHomeConnect()
                         }
 
                         if ((object.userInfo?["homeConnectComplete"]) != nil) == true {
@@ -65,13 +56,6 @@ struct VisionOSApp: App {
 
                         if ((object.userInfo?["keysFailed"]) != nil) == true {
                             whereWeAre.deleteKeyChainPasword()
-                        }
-                    }
-                    .onOpenURL { (url) in
-                        if url.absoluteString.contains("fluxhaus_miele") {
-                            oauth2Miele!.handleRedirectURL(url)
-                        } else {
-                            oauth2!.handleRedirectURL(url)
                         }
                     }
             } else {

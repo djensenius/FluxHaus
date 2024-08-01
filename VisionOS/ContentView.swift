@@ -8,7 +8,6 @@
 import SwiftUI
 import RealityKit
 import RealityKitContent
-import OAuth2
 
 struct ContentView: View {
     var fluxHausConsts: FluxHausConsts
@@ -53,8 +52,6 @@ struct ContentView: View {
             Spacer()
 
             Button(action: {
-                oauth2Miele!.forgetTokens()
-                oauth2!.forgetTokens()
                 whereWeAre.deleteKeyChainPasword()
             }, label: {
                 Text("Logout")

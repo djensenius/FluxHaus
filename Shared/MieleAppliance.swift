@@ -7,6 +7,18 @@
 
 import Foundation
 
+// MARK: - New format
+struct WasherDryer: Codable {
+    var name: String
+    var timeRunning: Int?
+    var timeRemaining: Int?
+    var step: String?
+    var programName: String?
+    var status: String?
+    var inUse: Bool
+}
+
+// MARK: - Old Miele Stuff
 // MARK: - MieleAppliances
 struct MieleAppliances: Codable {
     let ident: Ident

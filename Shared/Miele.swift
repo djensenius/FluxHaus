@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import OAuth2
 import UIKit
 
 // MARK: - Miele
@@ -16,17 +15,6 @@ class Miele: ObservableObject {
 
     init() {
         appliances = []
-        DispatchQueue.main.async {
-            oauth2Miele!.authConfig.authorizeEmbedded = true
-            oauth2Miele!.authConfig.ui.useAuthenticationSession = true
-            let scene = UIApplication.shared.connectedScenes
-                .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-
-            let rootViewController = scene?
-                .windows.first(where: { $0.isKeyWindow })?
-                .rootViewController
-            oauth2Miele!.authConfig.authorizeContext = rootViewController
-        }
     }
 
     func setAppliance(appliance: Appliance) {
@@ -46,49 +34,31 @@ class Miele: ObservableObject {
             )
         }
     }
-    func updateAppliance(mApps: MieleAppliances) {
-        let inUse = (
-            mApps.stateType.status.valueLocalized == "Off" ||
-            mApps.stateType.status.valueLocalized == "Not connected"
-        ) ? false: true
-        let programName = mApps.stateType.programID.valueLocalized
+
+    func updateAppliance(mApps: WasherDryer) {
+        let inUse = mApps.inUse
+        let programName = mApps.programName?.trimmingCharacters(in: .whitespacesAndNewlines)
         let currentDate = Date()
         var finishTime: Date
-        if mApps.stateType.remainingTime.count > 0 {
-            finishTime = Calendar.current.date(
-                byAdding: .minute,
-                value: mApps.stateType.remainingTime[1] + (60 * mApps.stateType.remainingTime[0]),
-                to: currentDate
-            ) ?? currentDate
-        } else {
-            finishTime = currentDate
-        }
+
+        finishTime = Calendar.current.date(
+            byAdding: .minute,
+            value: mApps.timeRemaining ?? 0,
+            to: currentDate
+        ) ?? currentDate
+
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         let formatedTime = formatter.string(from: finishTime)
-        var name = mApps.ident.type.valueLocalized ?? ""
-        if mApps.ident.type.valueLocalized == "Washing Machine" {
-            name = "Washer"
-        } else if mApps.ident.type.valueLocalized == "Clothes Dryer" {
-            name = "Dryer"
-        }
-        var timeRemaining0 = 0
-        var timeRemaining1 = 0
-        if mApps.stateType.remainingTime.count > 1 {
-            timeRemaining0 = mApps.stateType.remainingTime[0]
-            timeRemaining1 = mApps.stateType.remainingTime[1]
-        }
+        let name = mApps.name
 
-        var elapsedTime = 0
-        if mApps.stateType.elapsedTime.count > 1 {
-            elapsedTime = mApps.stateType.elapsedTime[1]
-        }
+        let elapsedTime = mApps.timeRunning
         let appliance = Appliance(
             name: name,
-            timeRunning: elapsedTime,
-            timeRemaining: (timeRemaining0 * 60) + timeRemaining1,
+            timeRunning: elapsedTime ?? 0,
+            timeRemaining: mApps.timeRemaining ?? 0,
             timeFinish: formatedTime,
-            step: mApps.stateType.programPhase.valueLocalized ?? "",
+            step: mApps.step?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
             programName: programName!,
             inUse: inUse
         )
@@ -96,28 +66,44 @@ class Miele: ObservableObject {
     }
 
     func fetchAppliance(appliance: String) {
-        let base = URL(string: "https://api.mcs3.miele.com")!
-        let url = base.appendingPathComponent("v1/devices/\(appliance)?language=en")
+        let password = WhereWeAre.getPassword()
+        let scheme: String = "https"
+        let host: String = "api.fluxhaus.io"
+        let path = "/"
 
-        var req = oauth2Miele!.request(forURL: url)
-        req.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Accept")
-       // oauth2Miele.logger = OAuth2DebugLogger(.trace)
+        var components = URLComponents()
+        components.scheme = scheme
+        components.host = host
+        components.path = path
+        components.user = "admin"
+        components.password = password
 
-        loaderMiele!.perform(request: req) { response in
-            do {
-                let decoder = JSONDecoder()
-                if let mApps = try? decoder.decode(MieleAppliances.self, from: response.responseData()) {
-                    self.updateAppliance(mApps: mApps)
-                } else {
+        guard let url = components.url else {
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "get"
+
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
+            if let data = data {
+                let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
+                if let response = response {
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(
                             name: Notification.Name.loginsUpdated,
                             object: nil,
                             userInfo: ["mieleComplete": true]
                         )
+                        self.updateAppliance(mApps: response.washer)
+                        self.updateAppliance(mApps: response.dryer)
+                        // self.updateAppliance(mApps: response.miele[appliance]!)
                     }
                 }
             }
         }
+        task.resume()
     }
 }

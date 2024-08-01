@@ -24,6 +24,10 @@ struct LoginResponse: Decodable {
     let car: FluxCar
     let carEvStatus: EVStatus
     let carOdometer: Double
+    let miele: [String: MieleAppliances]
+    let dishwasher: DishWasher
+    let dryer: WasherDryer
+    let washer: WasherDryer
 }
 
 struct FluxObject {
