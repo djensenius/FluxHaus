@@ -1,8 +1,8 @@
 //
-//  LiveActivity.swift
-//  LiveActivity
+//  FluxWidget.swift
+//  FluxWidget
 //
-//  Created by David Jensenius on 2024-07-14.
+//  Created by David Jensenius on 2024-08-01.
 //
 
 import WidgetKit
@@ -37,7 +37,7 @@ struct SimpleEntry: TimelineEntry {
     let configuration: ConfigurationAppIntent
 }
 
-struct LiveActivityEntryView: View {
+struct FluxWidgetEntryView: View {
     var entry: Provider.Entry
 
     var body: some View {
@@ -51,12 +51,12 @@ struct LiveActivityEntryView: View {
     }
 }
 
-struct LiveActivity: Widget {
-    let kind: String = "LiveActivity"
+struct FluxWidget: Widget {
+    let kind: String = "FluxWidget"
 
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-            LiveActivityEntryView(entry: entry)
+            FluxWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
     }
@@ -77,7 +77,7 @@ extension ConfigurationAppIntent {
 }
 
 #Preview(as: .systemSmall) {
-    LiveActivity()
+    FluxWidget()
 } timeline: {
     SimpleEntry(date: .now, configuration: .smiley)
     SimpleEntry(date: .now, configuration: .starEyes)

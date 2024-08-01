@@ -1,8 +1,8 @@
 //
 //  AppIntent.swift
-//  LiveActivity
+//  FluxWidget
 //
-//  Created by David Jensenius on 2024-07-14.
+//  Created by David Jensenius on 2024-08-01.
 //
 
 import WidgetKit

@@ -58,6 +58,14 @@
 		636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
 		636B9B62258FBB7A00DE97BD /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		637BC62A2C5BDA7F00E7884E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB42C44391E00E62C09 /* WidgetKit.framework */; };
+		637BC62B2C5BDA7F00E7884E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB62C44391E00E62C09 /* SwiftUI.framework */; };
+		637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
+		637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
+		637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
+		637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
+		637BC6362C5BDA8000E7884E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
+		637BC63A2C5BDA8000E7884E /* FluxWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		637CE4C62BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		637CE4C72BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
@@ -78,14 +86,6 @@
 		6399EA372B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
-		63A39FB52C44391E00E62C09 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB42C44391E00E62C09 /* WidgetKit.framework */; };
-		63A39FB72C44391E00E62C09 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB62C44391E00E62C09 /* SwiftUI.framework */; };
-		63A39FBA2C44391E00E62C09 /* LiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A39FB92C44391E00E62C09 /* LiveActivityBundle.swift */; };
-		63A39FBC2C44391E00E62C09 /* LiveActivityLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A39FBB2C44391E00E62C09 /* LiveActivityLiveActivity.swift */; };
-		63A39FBE2C44391E00E62C09 /* LiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A39FBD2C44391E00E62C09 /* LiveActivity.swift */; };
-		63A39FC02C44391E00E62C09 /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A39FBF2C44391E00E62C09 /* AppIntent.swift */; };
-		63A39FC22C44391F00E62C09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 63A39FC12C44391F00E62C09 /* Assets.xcassets */; };
-		63A39FC62C44391F00E62C09 /* LiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 63A39FB32C44391E00E62C09 /* LiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD7322B954215006603D0 /* RealityKitContent */; };
 		63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7342B954215006603D0 /* VisionOSApp.swift */; };
 		63DBD7372B954215006603D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7362B954215006603D0 /* ContentView.swift */; };
@@ -117,12 +117,12 @@
 			remoteGlobalIDString = 632CBC2A258682C9003E4988;
 			remoteInfo = "FluxHaus (iOS)";
 		};
-		63A39FC42C44391F00E62C09 /* PBXContainerItemProxy */ = {
+		637BC6382C5BDA8000E7884E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 63A39FB22C44391E00E62C09;
-			remoteInfo = LiveActivityExtension;
+			remoteGlobalIDString = 637BC6282C5BDA7F00E7884E;
+			remoteInfo = FluxWidgetExtension;
 		};
 		63DBD7432B954216006603D0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -140,7 +140,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				63A39FC62C44391F00E62C09 /* LiveActivityExtension.appex in Embed Foundation Extensions */,
+				637BC63A2C5BDA8000E7884E /* FluxWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -182,21 +182,21 @@
 		636B9B4F258E912A00DE97BD /* BackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundView.swift; sourceTree = "<group>"; };
 		636B9B5A258FBB6300DE97BD /* HomeKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitView.swift; sourceTree = "<group>"; };
 		636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeKitIntegration.swift; sourceTree = "<group>"; };
+		637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetBundle.swift; sourceTree = "<group>"; };
+		637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivity.swift; sourceTree = "<group>"; };
+		637BC6312C5BDA8000E7884E /* FluxWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidget.swift; sourceTree = "<group>"; };
+		637BC6332C5BDA8000E7884E /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
+		637BC6352C5BDA8000E7884E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		637BC6372C5BDA8000E7884E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		637BC63B2C5BDA8000E7884E /* FluxWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxWidgetExtension.entitlements; sourceTree = "<group>"; };
 		637CE4C42BE71FC000258158 /* RobotDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RobotDetailView.swift; sourceTree = "<group>"; };
 		6399EA262B9CA534000C8CA4 /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LoadingView.swift; path = VisionOS/LoadingView.swift; sourceTree = SOURCE_ROOT; };
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
-		63A39FB32C44391E00E62C09 /* LiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		63A39FB92C44391E00E62C09 /* LiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityBundle.swift; sourceTree = "<group>"; };
-		63A39FBB2C44391E00E62C09 /* LiveActivityLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityLiveActivity.swift; sourceTree = "<group>"; };
-		63A39FBD2C44391E00E62C09 /* LiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivity.swift; sourceTree = "<group>"; };
-		63A39FBF2C44391E00E62C09 /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
-		63A39FC12C44391F00E62C09 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		63A39FC32C44391F00E62C09 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		63A39FC72C44391F00E62C09 /* LiveActivityExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiveActivityExtension.entitlements; sourceTree = "<group>"; };
 		63DBD72E2B954215006603D0 /* VisionOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		63DBD7312B954215006603D0 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		63DBD7342B954215006603D0 /* VisionOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOSApp.swift; sourceTree = "<group>"; };
@@ -229,12 +229,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		63A39FB02C44391E00E62C09 /* Frameworks */ = {
+		637BC6262C5BDA7F00E7884E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63A39FB72C44391E00E62C09 /* SwiftUI.framework in Frameworks */,
-				63A39FB52C44391E00E62C09 /* WidgetKit.framework in Frameworks */,
+				637BC62B2C5BDA7F00E7884E /* SwiftUI.framework in Frameworks */,
+				637BC62A2C5BDA7F00E7884E /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,7 +261,7 @@
 		632CBC1E258682C8003E4988 = {
 			isa = PBXGroup;
 			children = (
-				63A39FC72C44391F00E62C09 /* LiveActivityExtension.entitlements */,
+				637BC63B2C5BDA8000E7884E /* FluxWidgetExtension.entitlements */,
 				632CBC6525868365003E4988 /* FluxHaus.entitlements */,
 				632CBC23258682C8003E4988 /* Shared */,
 				632CBC2D258682C9003E4988 /* iOS */,
@@ -271,7 +271,7 @@
 				63DBD72F2B954215006603D0 /* VisionOS */,
 				63DBD7302B954215006603D0 /* Packages */,
 				63DBD7452B954216006603D0 /* VisionOSTests */,
-				63A39FB82C44391E00E62C09 /* LiveActivity */,
+				637BC62C2C5BDA8000E7884E /* FluxWidget */,
 				632CBC2C258682C9003E4988 /* Products */,
 				632CBC6625868365003E4988 /* Frameworks */,
 			);
@@ -317,7 +317,7 @@
 				632CBC3B258682C9003E4988 /* Tests iOS.xctest */,
 				63DBD72E2B954215006603D0 /* VisionOS.app */,
 				63DBD7422B954216006603D0 /* VisionOSTests.xctest */,
-				63A39FB32C44391E00E62C09 /* LiveActivityExtension.appex */,
+				637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -372,17 +372,17 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		63A39FB82C44391E00E62C09 /* LiveActivity */ = {
+		637BC62C2C5BDA8000E7884E /* FluxWidget */ = {
 			isa = PBXGroup;
 			children = (
-				63A39FB92C44391E00E62C09 /* LiveActivityBundle.swift */,
-				63A39FBB2C44391E00E62C09 /* LiveActivityLiveActivity.swift */,
-				63A39FBD2C44391E00E62C09 /* LiveActivity.swift */,
-				63A39FBF2C44391E00E62C09 /* AppIntent.swift */,
-				63A39FC12C44391F00E62C09 /* Assets.xcassets */,
-				63A39FC32C44391F00E62C09 /* Info.plist */,
+				637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */,
+				637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */,
+				637BC6312C5BDA8000E7884E /* FluxWidget.swift */,
+				637BC6332C5BDA8000E7884E /* AppIntent.swift */,
+				637BC6352C5BDA8000E7884E /* Assets.xcassets */,
+				637BC6372C5BDA8000E7884E /* Info.plist */,
 			);
-			path = LiveActivity;
+			path = FluxWidget;
 			sourceTree = "<group>";
 		};
 		63DBD72F2B954215006603D0 /* VisionOS */ = {
@@ -438,7 +438,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				63A39FC52C44391F00E62C09 /* PBXTargetDependency */,
+				637BC6392C5BDA8000E7884E /* PBXTargetDependency */,
 			);
 			name = "FluxHaus (iOS)";
 			packageProductDependencies = (
@@ -465,21 +465,21 @@
 			productReference = 632CBC3B258682C9003E4988 /* Tests iOS.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		63A39FB22C44391E00E62C09 /* LiveActivityExtension */ = {
+		637BC6282C5BDA7F00E7884E /* FluxWidgetExtension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 63A39FCB2C44391F00E62C09 /* Build configuration list for PBXNativeTarget "LiveActivityExtension" */;
+			buildConfigurationList = 637BC63E2C5BDA8000E7884E /* Build configuration list for PBXNativeTarget "FluxWidgetExtension" */;
 			buildPhases = (
-				63A39FAF2C44391E00E62C09 /* Sources */,
-				63A39FB02C44391E00E62C09 /* Frameworks */,
-				63A39FB12C44391E00E62C09 /* Resources */,
+				637BC6252C5BDA7F00E7884E /* Sources */,
+				637BC6262C5BDA7F00E7884E /* Frameworks */,
+				637BC6272C5BDA7F00E7884E /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = LiveActivityExtension;
-			productName = LiveActivityExtension;
-			productReference = 63A39FB32C44391E00E62C09 /* LiveActivityExtension.appex */;
+			name = FluxWidgetExtension;
+			productName = FluxWidgetExtension;
+			productReference = 637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 		63DBD72D2B954215006603D0 /* VisionOS */ = {
@@ -538,7 +538,7 @@
 						CreatedOnToolsVersion = 12.2;
 						TestTargetID = 632CBC2A258682C9003E4988;
 					};
-					63A39FB22C44391E00E62C09 = {
+					637BC6282C5BDA7F00E7884E = {
 						CreatedOnToolsVersion = 15.4;
 					};
 					63DBD72D2B954215006603D0 = {
@@ -569,7 +569,7 @@
 				632CBC3A258682C9003E4988 /* Tests iOS */,
 				63DBD72D2B954215006603D0 /* VisionOS */,
 				63DBD7412B954216006603D0 /* VisionOSTests */,
-				63A39FB22C44391E00E62C09 /* LiveActivityExtension */,
+				637BC6282C5BDA7F00E7884E /* FluxWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -590,11 +590,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		63A39FB12C44391E00E62C09 /* Resources */ = {
+		637BC6272C5BDA7F00E7884E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63A39FC22C44391F00E62C09 /* Assets.xcassets in Resources */,
+				637BC6362C5BDA8000E7884E /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -713,14 +713,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		63A39FAF2C44391E00E62C09 /* Sources */ = {
+		637BC6252C5BDA7F00E7884E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				63A39FBA2C44391E00E62C09 /* LiveActivityBundle.swift in Sources */,
-				63A39FC02C44391E00E62C09 /* AppIntent.swift in Sources */,
-				63A39FBE2C44391E00E62C09 /* LiveActivity.swift in Sources */,
-				63A39FBC2C44391E00E62C09 /* LiveActivityLiveActivity.swift in Sources */,
+				637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */,
+				637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */,
+				637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */,
+				637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -787,10 +787,10 @@
 			target = 632CBC2A258682C9003E4988 /* FluxHaus (iOS) */;
 			targetProxy = 632CBC3C258682C9003E4988 /* PBXContainerItemProxy */;
 		};
-		63A39FC52C44391F00E62C09 /* PBXTargetDependency */ = {
+		637BC6392C5BDA8000E7884E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 63A39FB22C44391E00E62C09 /* LiveActivityExtension */;
-			targetProxy = 63A39FC42C44391F00E62C09 /* PBXContainerItemProxy */;
+			target = 637BC6282C5BDA7F00E7884E /* FluxWidgetExtension */;
+			targetProxy = 637BC6382C5BDA8000E7884E /* PBXContainerItemProxy */;
 		};
 		63DBD7442B954216006603D0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -853,7 +853,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MACOSX_DEPLOYMENT_TARGET = 14.4;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -910,7 +910,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				MACOSX_DEPLOYMENT_TARGET = 14.4;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -932,7 +932,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -963,7 +963,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1027,22 +1027,22 @@
 			};
 			name = Release;
 		};
-		63A39FC92C44391F00E62C09 /* Debug */ = {
+		637BC63C2C5BDA8000E7884E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ENTITLEMENTS = LiveActivityExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = FluxWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = LiveActivity/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LiveActivity;
+				INFOPLIST_FILE = FluxWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1052,7 +1052,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.4;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.LiveActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1064,22 +1064,22 @@
 			};
 			name = Debug;
 		};
-		63A39FCA2C44391F00E62C09 /* Release */ = {
+		637BC63D2C5BDA8000E7884E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ENTITLEMENTS = LiveActivityExtension.entitlements;
+				CODE_SIGN_ENTITLEMENTS = FluxWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9JALHNGRBQ;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = LiveActivity/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LiveActivity;
+				INFOPLIST_FILE = FluxWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1089,7 +1089,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.4;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.LiveActivity;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -1259,11 +1259,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		63A39FCB2C44391F00E62C09 /* Build configuration list for PBXNativeTarget "LiveActivityExtension" */ = {
+		637BC63E2C5BDA8000E7884E /* Build configuration list for PBXNativeTarget "FluxWidgetExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				63A39FC92C44391F00E62C09 /* Debug */,
-				63A39FCA2C44391F00E62C09 /* Release */,
+				637BC63C2C5BDA8000E7884E /* Debug */,
+				637BC63D2C5BDA8000E7884E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
