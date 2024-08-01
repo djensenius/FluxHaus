@@ -12,6 +12,8 @@ import SwiftUI
 struct FluxWidgetBundle: WidgetBundle {
     var body: some Widget {
         FluxWidget()
+        #if !targetEnvironment(macCatalyst)
         FluxWidgetLiveActivity()
+        #endif
     }
 }
