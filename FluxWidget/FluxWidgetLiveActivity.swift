@@ -1,31 +1,27 @@
 //
-//  LiveActivityLiveActivity.swift
-//  LiveActivity
+//  FluxWidgetLiveActivity.swift
+//  FluxWidget
 //
-//  Created by David Jensenius on 2024-07-14.
+//  Created by David Jensenius on 2024-08-01.
 //
 
-#if canImport(ActivityKit)
 import ActivityKit
 import WidgetKit
 import SwiftUI
 
-struct LiveActivityAttributes: ActivityAttributes {
+struct FluxWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
         var emoji: String
-        var device: String
-        var timeRemaining: String
-        var extraText: String
     }
 
     // Fixed non-changing properties about your activity go here!
     var name: String
 }
 
-struct LiveActivityLiveActivity: Widget {
+struct FluxWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
-        ActivityConfiguration(for: LiveActivityAttributes.self) { context in
+        ActivityConfiguration(for: FluxWidgetAttributes.self) { context in
             // Lock screen/banner UI goes here
             VStack {
                 Text("Hello \(context.state.emoji)")
@@ -60,36 +56,25 @@ struct LiveActivityLiveActivity: Widget {
     }
 }
 
-extension LiveActivityAttributes {
-    fileprivate static var preview: LiveActivityAttributes {
-        LiveActivityAttributes(name: "World")
+extension FluxWidgetAttributes {
+    fileprivate static var preview: FluxWidgetAttributes {
+        FluxWidgetAttributes(name: "World")
     }
 }
 
-extension LiveActivityAttributes.ContentState {
-    fileprivate static var smiley: LiveActivityAttributes.ContentState {
-        LiveActivityAttributes.ContentState(
-            emoji: "😀",
-            device: "Washing Machine",
-            timeRemaining: "8:45 pm",
-            extraText: "3 other devices active"
-        )
+extension FluxWidgetAttributes.ContentState {
+    fileprivate static var smiley: FluxWidgetAttributes.ContentState {
+        FluxWidgetAttributes.ContentState(emoji: "😀")
      }
 
-     fileprivate static var starEyes: LiveActivityAttributes.ContentState {
-         LiveActivityAttributes.ContentState(
-            emoji: "🤩",
-            device: "MopBot",
-            timeRemaining: "On",
-            extraText: "No other devices running"
-         )
+     fileprivate static var starEyes: FluxWidgetAttributes.ContentState {
+         FluxWidgetAttributes.ContentState(emoji: "🤩")
      }
 }
 
-#Preview("Notification", as: .content, using: LiveActivityAttributes.preview) {
-   LiveActivityLiveActivity()
+#Preview("Notification", as: .content, using: FluxWidgetAttributes.preview) {
+   FluxWidgetLiveActivity()
 } contentStates: {
-    LiveActivityAttributes.ContentState.smiley
-    LiveActivityAttributes.ContentState.starEyes
+    FluxWidgetAttributes.ContentState.smiley
+    FluxWidgetAttributes.ContentState.starEyes
 }
-#endif
