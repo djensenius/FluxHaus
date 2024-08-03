@@ -240,7 +240,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             name: "Car",
             progress: fluxData.car?.batteryLevel ?? 0,
             icon: "car",
-            trailingText: "Range \(fluxData.car!.distance) km",
+            trailingText: "Range \(fluxData.car!.distance) km ⋅ \(fluxData.car?.batteryLevel ?? 0)% ",
             shortText: "\(fluxData.car!.distance) km",
             running: false
         )

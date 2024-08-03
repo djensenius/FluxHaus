@@ -116,14 +116,22 @@ struct DeviceListView: View {
                 let item = items[index-1]
                 if limit == nil || index <= limit! {
                     HStack {
-                        ProgressView(value: Double(item.progress) / 100) {
+                        if item.progress > 0 {
+                            ProgressView(value: Double(item.progress) / 100) {
+                                HStack {
+                                    Image(systemName: item.icon)
+                                    Text(item.name)
+                                }
+                            } currentValueLabel: {
+                                Text(item.trailingText)
+                            }.padding(.bottom)
+                        } else {
                             HStack {
                                 Image(systemName: item.icon)
-                                Text(item.name)
+                                Text("\(item.name) off")
+                                Spacer()
                             }
-                        } currentValueLabel: {
-                            Text(item.trailingText)
-                        }.padding(.bottom)
+                        }
                     }
                 }
             }
