@@ -8,6 +8,16 @@
 import Foundation
 import SwiftUI
 
+struct Appliance {
+    let name: String
+    let timeRunning: Int
+    let timeRemaining: Int
+    let timeFinish: String
+    let step: String
+    let programName: String
+    let inUse: Bool
+}
+
 func getDeviceIcon(battery: Battery) -> Image {
     if battery.model == .iPad {
         return Image(systemName: "ipad")
