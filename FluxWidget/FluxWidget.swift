@@ -109,7 +109,6 @@ struct DeviceListView: View {
     var limit: Int?
     var items: [WidgetDevice]
 
-    let columns = [GridItem(.flexible()), GridItem(.flexible())]
     var body: some View {
         VStack {
             ForEach(1 ... items.count, id: \.self) { index in
@@ -125,12 +124,19 @@ struct DeviceListView: View {
                             } currentValueLabel: {
                                 Text(item.trailingText)
                             }.padding(.bottom)
+                        } else if item.running {
+                            HStack {
+                                Image(systemName: item.icon)
+                                Text(item.trailingText)
+                                Spacer()
+                            }
+                            .padding(.bottom)
                         } else {
                             HStack {
                                 Image(systemName: item.icon)
                                 Text("\(item.name) off")
                                 Spacer()
-                            }
+                            }.padding(.bottom)
                         }
                     }
                 }

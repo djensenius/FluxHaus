@@ -63,15 +63,11 @@
 		636BF1EA2C5D8EC900C1244C /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
 		636BF1EB2C5D8EC900C1244C /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
 		636BF1EC2C5D8EC900C1244C /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
-		636BF1ED2C5D8EC900C1244C /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		636BF1EE2C5D8EC900C1244C /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		636BF1EF2C5D8EC900C1244C /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		636BF1F02C5D8EFB00C1244C /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		636BF1F12C5D8F2600C1244C /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
-		636BF1F22C5D8F4C00C1244C /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
 		636BF1F32C5DBFAA00C1244C /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
-		636BF1F42C5DBFB300C1244C /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
-		636BF1F52C5DBFB900C1244C /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		636BF1F62C5DBFBF00C1244C /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		636BF1F72C5DBFC500C1244C /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		636BF1F82C5DBFCE00C1244C /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
@@ -103,6 +99,11 @@
 		6399EA372B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		63A159282C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		63A159292C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		63A1592B2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD7322B954215006603D0 /* RealityKitContent */; };
 		63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7342B954215006603D0 /* VisionOSApp.swift */; };
 		63DBD7372B954215006603D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7362B954215006603D0 /* ContentView.swift */; };
@@ -212,6 +213,7 @@
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
+		63A159272C5E9763003F3796 /* LoginStucts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStucts.swift; sourceTree = "<group>"; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		63DBD72E2B954215006603D0 /* VisionOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -312,6 +314,7 @@
 				636B9B5A258FBB6300DE97BD /* HomeKitView.swift */,
 				6399EA262B9CA534000C8CA4 /* LoadingView.swift */,
 				6399EA302B9D3671000C8CA4 /* Login.swift */,
+				63A159272C5E9763003F3796 /* LoginStucts.swift */,
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
@@ -700,6 +703,7 @@
 				636A05992B9E6EE800D42C0D /* Battery.swift in Sources */,
 				632CBC702586C79E003E4988 /* Miele.swift in Sources */,
 				63610D292BB86F230048B9FF /* Car.swift in Sources */,
+				63A159282C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */,
 				636B9B3A258E57D400DE97BD /* WeatherView.swift in Sources */,
 				63610D2E2BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
@@ -725,6 +729,7 @@
 				6399EA2D2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
 				63610D342BB8864F0048B9FF /* CarDetailView.swift in Sources */,
 				6399EA322B9D3671000C8CA4 /* Login.swift in Sources */,
+				63A159292C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				635BD6712B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
 				63EB92662BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 			);
@@ -735,18 +740,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				636BF1F82C5DBFCE00C1244C /* CarHelper.swift in Sources */,
+				63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				636BF1F72C5DBFC500C1244C /* ApplianceViewHelpers.swift in Sources */,
 				636BF1F62C5DBFBF00C1244C /* ApplianceDetailView.swift in Sources */,
-				636BF1F52C5DBFB900C1244C /* RobotDetailView.swift in Sources */,
-				636BF1F42C5DBFB300C1244C /* CarDetailView.swift in Sources */,
 				636BF1F32C5DBFAA00C1244C /* FluxHausConsts.swift in Sources */,
-				636BF1F22C5D8F4C00C1244C /* AppliancesView.swift in Sources */,
 				636BF1F12C5D8F2600C1244C /* MieleAppliance.swift in Sources */,
 				636BF1F02C5D8EFB00C1244C /* SystemNotifications.swift in Sources */,
 				636BF1EA2C5D8EC900C1244C /* Battery.swift in Sources */,
 				636BF1EB2C5D8EC900C1244C /* Car.swift in Sources */,
 				636BF1EC2C5D8EC900C1244C /* HomeConnect.swift in Sources */,
-				636BF1ED2C5D8EC900C1244C /* Login.swift in Sources */,
 				636BF1EE2C5D8EC900C1244C /* Miele.swift in Sources */,
 				636BF1EF2C5D8EC900C1244C /* Robots.swift in Sources */,
 				636BF1E82C5D8E1400C1244C /* QueryFlux.swift in Sources */,
@@ -767,6 +769,7 @@
 				6399EA292B9CA534000C8CA4 /* LoadingView.swift in Sources */,
 				63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */,
 				635BD6722B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
+				63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				63DBD7582B954486006603D0 /* HomeKitView.swift in Sources */,
 				63610D2B2BB86F230048B9FF /* Car.swift in Sources */,
 				63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */,
@@ -806,6 +809,7 @@
 				636A059C2B9E6EE800D42C0D /* Battery.swift in Sources */,
 				63DBD7472B954216006603D0 /* VisionOSTests.swift in Sources */,
 				6399EA2F2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
+				63A1592B2C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				6399EA342B9D3671000C8CA4 /* Login.swift in Sources */,
 				635F9D092BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				63610D362BB8864F0048B9FF /* CarDetailView.swift in Sources */,

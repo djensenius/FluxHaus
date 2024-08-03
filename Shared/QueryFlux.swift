@@ -164,14 +164,42 @@ struct WidgetDevice: Codable, Equatable, Hashable {
     var running: Bool
 }
 
+func formatTimeRemaining(timeRemaining: Int) -> String {
+    let minutesRemaining = Int(timeRemaining/60)
+    if minutesRemaining < 60 {
+        return "\(timeRemaining)m"
+    }
+
+    let currentDate = Date()
+    let finishTime = Calendar.current.date(
+        byAdding: .second,
+        value: timeRemaining,
+        to: currentDate
+    ) ?? currentDate
+    let formatter = DateFormatter()
+    formatter.timeStyle = .short
+    formatter.dateFormat = .none
+    let formatedTime = formatter.string(from: finishTime)
+    return formatedTime
+}
+
 // swiftlint:disable:next function_body_length
 func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
+    let dishWasherReminingTime = formatTimeRemaining(timeRemaining: fluxData.dishwasher?.remainingTime ?? 0 )
+    var dishwasherTrailingText = dishWasherReminingTime
+    if fluxData.dishwasher != nil && fluxData.dishwasher?.activeProgram != nil {
+        dishwasherTrailingText = "\(fluxData.dishwasher?.activeProgram?.rawValue ?? "") ⋅ \(dishwasherTrailingText)"
+    }
+    if fluxData.dishwasher != nil && fluxData.dishwasher?.operationState.rawValue != "Run" {
+        dishwasherTrailingText = fluxData.dishwasher!.operationState.rawValue + " ⋅ \(dishwasherTrailingText)"
+    }
+
     var returnValue =  [
         WidgetDevice(
             name: "Dishwasher",
-            progress: Int(fluxData.dishwasher?.programProgress ?? 0 * 100),
+            progress: Int(fluxData.dishwasher?.programProgress ?? 0),
             icon: "dishwasher",
-            trailingText: "\(fluxData.dishwasher?.remainingTime ?? 0)",
+            trailingText: dishwasherTrailingText,
             shortText: "\(fluxData.dishwasher?.remainingTime ?? 0)",
             running: fluxData.dishwasher?.programProgress ?? 0 > 0
         )
@@ -181,7 +209,13 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     let washerTimeRemaining = fluxData.washer?.timeRemaining ?? 0
     var washerProrgress = 0
     if washerTimeRunning > 0 {
-        washerProrgress = Int((washerTimeRunning / washerTimeRemaining) * 100)
+        washerProrgress = Int(Double(washerTimeRunning) / Double(washerTimeRemaining + washerTimeRunning) * 100)
+    }
+
+    let washerReminingTime = formatTimeRemaining(timeRemaining: (fluxData.washer?.timeRemaining ?? 0 * 60))
+    var washerTrailingText = "\(fluxData.washer?.programName ?? "") ⋅ \(washerReminingTime)"
+    if fluxData.washer != nil && fluxData.washer?.status != "In use" {
+        washerTrailingText = fluxData.washer!.status! + " ⋅ \(washerTrailingText)"
     }
 
     returnValue.append(
@@ -189,7 +223,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             name: "Washer",
             progress: washerProrgress,
             icon: "washer",
-            trailingText: "\(fluxData.washer?.timeRemaining ?? 0)",
+            trailingText: washerTrailingText,
             shortText: "\(fluxData.washer?.timeRemaining ?? 0)",
             running: fluxData.washer?.timeRemaining ?? 0 > 0
         )
@@ -199,7 +233,12 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     let dryerTimeRemaining = fluxData.dryer?.timeRemaining ?? 1
     var dryerProgress = 0
     if dryerTimeRunning  > 0 {
-        dryerProgress = Int((dryerTimeRunning / dryerTimeRemaining) * 100)
+        dryerProgress = Int(Double(dryerTimeRunning) / Double(dryerTimeRemaining + dryerTimeRunning) * 100)
+    }
+    let dryerReminingTime = formatTimeRemaining(timeRemaining: (fluxData.dryer?.timeRemaining ?? 0) * 60)
+    var dryerTrailingText = "\(fluxData.dryer?.programName ?? "") ⋅ \(dryerReminingTime)"
+    if fluxData.dryer != nil && fluxData.dryer?.status != "In use" {
+        dryerTrailingText = fluxData.dryer!.status! + " ⋅ \(dryerTrailingText)"
     }
 
     returnValue.append(
@@ -207,7 +246,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             name: "Dryer",
             progress: dryerProgress,
             icon: "dryer",
-            trailingText: "\(fluxData.dryer?.timeRemaining ?? 0)",
+            trailingText: dryerTrailingText,
             shortText: "\(fluxData.dryer?.timeRemaining ?? 0)",
             running: fluxData.dryer?.timeRemaining ?? 0 > 0
         )
