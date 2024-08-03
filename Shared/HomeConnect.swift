@@ -160,19 +160,6 @@ class HomeConnect: ObservableObject {
         let timeRunning = 0
         var timeRemaining = 0
 
-        /*
-        for option in program.options {
-            if option.key == "BSH.Common.Option.RemainingProgramTime" {
-                timeRemaining = Int(round(Double(option.value.intValue / 60)))
-            } else if option.key == "BSH.Common.Option.ElapsedProgramTime" {
-                timeRunning = option.value.intValue
-            } else {
-                if option.value.intValue == 1 {
-                    options.append(option.name)
-                }
-            }
-        }
-         */
         timeRemaining = (program.remainingTime ?? 0) / 60
         if program.activeProgram != nil {
             options = [program.activeProgram!.rawValue]

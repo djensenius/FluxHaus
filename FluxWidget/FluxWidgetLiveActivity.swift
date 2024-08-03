@@ -10,14 +10,6 @@ import ActivityKit
 import WidgetKit
 import SwiftUI
 
-struct WidgetDevice: Codable, Equatable, Hashable {
-    var name: String
-    var progress: Double
-    var icon: String
-    var trailingText: String
-    var shortText: String
-}
-
 struct FluxWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         // Dynamic stateful properties about your activity go here!
@@ -33,7 +25,7 @@ struct FluxWidgetLiveActivity: Widget {
         ActivityConfiguration(for: FluxWidgetAttributes.self) { context in
             // Lock screen/banner UI goes here
             VStack {
-                ProgressView(value: context.state.device.progress) {
+                ProgressView(value: Double(context.state.device.progress / 100)) {
                     HStack {
                         Image(systemName: context.state.device.icon)
                         Text(context.state.device.name)
@@ -56,7 +48,7 @@ struct FluxWidgetLiveActivity: Widget {
                     Text(context.state.device.shortText)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    ProgressView(value: context.state.device.progress) {
+                    ProgressView(value: (Double(context.state.device.progress / 100))) {
                         HStack {
                             Text(context.state.device.name)
                         }
@@ -68,7 +60,7 @@ struct FluxWidgetLiveActivity: Widget {
             } compactLeading: {
                 Image(systemName: context.state.device.icon)
             } compactTrailing: {
-                ProgressView(value: context.state.device.progress)
+                ProgressView(value: Double(context.state.device.progress / 100))
                     .progressViewStyle(.circular)
             } minimal: {
                 Image(systemName: context.state.device.icon)
@@ -91,10 +83,11 @@ extension FluxWidgetAttributes.ContentState {
             device:
                 WidgetDevice(
                     name: "Dishwasher",
-                    progress: 0.5,
+                    progress: 50,
                     icon: "dishwasher",
                     trailingText: "Finished in 59 minutes",
-                    shortText: "59m"
+                    shortText: "59m",
+                    running: true
                 )
         )
      }
@@ -104,10 +97,11 @@ extension FluxWidgetAttributes.ContentState {
             device:
                 WidgetDevice(
                     name: "Dryer",
-                    progress: 0.25,
+                    progress: 25,
                     icon: "dryer",
                     trailingText: "Finished at 3pm",
-                    shortText: "3:00pm"
+                    shortText: "3:00pm",
+                    running: true
                 )
          )
      }
