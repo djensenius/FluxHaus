@@ -53,6 +53,11 @@ struct ContentView: View {
 
             Button(action: {
                 whereWeAre.deleteKeyChainPasword()
+                NotificationCenter.default.post(
+                    name: Notification.Name.logout,
+                    object: nil,
+                    userInfo: ["logout": true]
+                )
             }, label: {
                 Text("Logout")
             })
