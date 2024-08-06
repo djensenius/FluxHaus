@@ -1,5 +1,5 @@
 # FluxHaus
-Login and query Miele and Bosch home appliances and integrate HomeKit scenes and a local status of Roombas.
 
-Written for use with FluxHaus's on Mac, iOS, and Vision OS. Happy to take PRs to make things a bit less specific.
+A home monitor application for my various smart home things. Talks to [FluxHaus Server](https://github.com/djensenius/FluxHaus-Server/).
 
+Available on the [App Store](https://apps.apple.com/ca/app/fluxhaus/id6478994447).
