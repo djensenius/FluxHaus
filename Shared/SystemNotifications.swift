@@ -11,4 +11,5 @@ extension Notification.Name {
     // Send this notification when the LanguageCoordinator content is ready or updates language.
     static let loginsUpdated: Notification.Name = Notification.Name("LoginsUpdated")
     static let logout: Notification.Name = Notification.Name("logout")
+    static let dataUpdated: Notification.Name = Notification.Name("DataUpdated")
 }

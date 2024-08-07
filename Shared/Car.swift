@@ -70,6 +70,7 @@ struct CarDetails: Decodable {
 }
 
 @Observable class Car {
+    var apiResponse: Api?
     var vehicle = CarDetails(
         timestamp: "",
         evStatusTimestamp: "",
@@ -87,60 +88,37 @@ struct CarDetails: Decodable {
         engine: false
     )
 
+    func setApiResponse(apiResponse: Api) {
+        self.apiResponse = apiResponse
+        fetchCarDetails()
+    }
+
     func fetchCarDetails() {
-        let password = WhereWeAre.getPassword()
-        let scheme: String = "https"
-        let host: String = "api.fluxhaus.io"
-        let path = "/"
-
-        var components = URLComponents()
-        components.scheme = scheme
-        components.host = host
-        components.path = path
-        components.user = "admin"
-        components.password = password
-
-        guard let url = components.url else {
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "get"
-
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
-            if let data = data {
-                let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
-
-                if let response = response {
-                    DispatchQueue.main.async {
-                        self.vehicle = CarDetails(
-                            timestamp: response.car.timestamp,
-                            evStatusTimestamp: response.carEvStatus.timestamp,
-                            batteryLevel: response.carEvStatus.batteryStatus,
-                            distance: response.carEvStatus.drvDistance[0].rangeByFuel.evModeRange.value,
-                            hvac: response.car.airCtrlOn,
-                            pluggedIn: response.carEvStatus.batteryPlugin == 0 ? false : true,
-                            batteryCharge: response.carEvStatus.batteryCharge,
-                            locked: response.car.doorLock,
-                            doorsOpen: Doors(
-                                frontRight: response.car.doorOpen.frontRight,
-                                frontLeft: response.car.doorOpen.frontLeft,
-                                backRight: response.car.doorOpen.backRight,
-                                backLeft: response.car.doorOpen.backLeft
-                            ),
-                            trunkOpen: response.car.trunkOpen,
-                            defrost: response.car.defrost,
-                            hoodOpen: response.car.hoodOpen,
-                            odometer: response.carOdometer,
-                            engine: response.car.engine
-                        )
-                    }
-                }
+        if let response = apiResponse?.response {
+            DispatchQueue.main.async {
+                self.vehicle = CarDetails(
+                    timestamp: response.car.timestamp,
+                    evStatusTimestamp: response.carEvStatus.timestamp,
+                    batteryLevel: response.carEvStatus.batteryStatus,
+                    distance: response.carEvStatus.drvDistance[0].rangeByFuel.evModeRange.value,
+                    hvac: response.car.airCtrlOn,
+                    pluggedIn: response.carEvStatus.batteryPlugin == 0 ? false : true,
+                    batteryCharge: response.carEvStatus.batteryCharge,
+                    locked: response.car.doorLock,
+                    doorsOpen: Doors(
+                        frontRight: response.car.doorOpen.frontRight,
+                        frontLeft: response.car.doorOpen.frontLeft,
+                        backRight: response.car.doorOpen.backRight,
+                        backLeft: response.car.doorOpen.backLeft
+                    ),
+                    trunkOpen: response.car.trunkOpen,
+                    defrost: response.car.defrost,
+                    hoodOpen: response.car.hoodOpen,
+                    odometer: response.carOdometer,
+                    engine: response.car.engine
+                )
             }
         }
-        task.resume()
     }
 
     func performAction(action: String) {

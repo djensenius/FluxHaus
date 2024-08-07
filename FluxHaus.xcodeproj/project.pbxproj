@@ -104,6 +104,11 @@
 		63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		63A1592B2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		63BCF7552C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		63BCF7562C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		63BCF7572C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		63BCF7582C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		63BCF7592C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
 		63DBD7332B954215006603D0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 63DBD7322B954215006603D0 /* RealityKitContent */; };
 		63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7342B954215006603D0 /* VisionOSApp.swift */; };
 		63DBD7372B954215006603D0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63DBD7362B954215006603D0 /* ContentView.swift */; };
@@ -216,6 +221,7 @@
 		63A159272C5E9763003F3796 /* LoginStucts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStucts.swift; sourceTree = "<group>"; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		63BCF7542C63FABB001D4375 /* Api.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Api.swift; sourceTree = "<group>"; };
 		63DBD72E2B954215006603D0 /* VisionOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VisionOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		63DBD7312B954215006603D0 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		63DBD7342B954215006603D0 /* VisionOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionOSApp.swift; sourceTree = "<group>"; };
@@ -326,6 +332,7 @@
 				636B9B39258E57D400DE97BD /* WeatherView.swift */,
 				635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */,
 				632CBC26258682C9003E4988 /* Assets.xcassets */,
+				63BCF7542C63FABB001D4375 /* Api.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -685,6 +692,7 @@
 				636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				635BD6702B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
 				637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */,
+				63BCF7552C63FABB001D4375 /* Api.swift in Sources */,
 				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
 				633F09482BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				636B9B45258E5C3600DE97BD /* Weather.swift in Sources */,
@@ -715,6 +723,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63BCF7562C63FABB001D4375 /* Api.swift in Sources */,
 				633F09492BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				635F9D072BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				636A059A2B9E6EE800D42C0D /* Battery.swift in Sources */,
@@ -742,6 +751,7 @@
 				636BF1F82C5DBFCE00C1244C /* CarHelper.swift in Sources */,
 				63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				636BF1F72C5DBFC500C1244C /* ApplianceViewHelpers.swift in Sources */,
+				63BCF7592C63FABB001D4375 /* Api.swift in Sources */,
 				636BF1F62C5DBFBF00C1244C /* ApplianceDetailView.swift in Sources */,
 				636BF1F32C5DBFAA00C1244C /* FluxHausConsts.swift in Sources */,
 				636BF1F12C5D8F2600C1244C /* MieleAppliance.swift in Sources */,
@@ -790,6 +800,7 @@
 				63DBD7572B95447A006603D0 /* Miele.swift in Sources */,
 				63DBD7372B954215006603D0 /* ContentView.swift in Sources */,
 				63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */,
+				63BCF7572C63FABB001D4375 /* Api.swift in Sources */,
 				6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -803,6 +814,7 @@
 				6399EA2A2B9CA534000C8CA4 /* LoadingView.swift in Sources */,
 				63610D2C2BB86F230048B9FF /* Car.swift in Sources */,
 				637CE4C82BE71FC000258158 /* RobotDetailView.swift in Sources */,
+				63BCF7582C63FABB001D4375 /* Api.swift in Sources */,
 				63EB92682BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 				6399EA392B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				633F094B2BBB8F8F0052C088 /* CarHelper.swift in Sources */,
@@ -975,7 +987,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.2;
+				MARKETING_VERSION = 1.4.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1006,7 +1018,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.2;
+				MARKETING_VERSION = 1.4.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1089,7 +1101,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.2;
+				MARKETING_VERSION = 1.4.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1126,7 +1138,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.2;
+				MARKETING_VERSION = 1.4.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1163,7 +1175,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.3;
+				MARKETING_VERSION = 1.4.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -1200,7 +1212,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.4.3;
+				MARKETING_VERSION = 1.4.4;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;

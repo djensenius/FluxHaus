@@ -12,12 +12,7 @@ struct LoginRequest: Encodable {
 }
 
 struct LoginResponse: Decodable {
-    let mieleClientId: String
-    let mieleSecretId: String
-    let mieleAppliances: [String]
-    let boschClientId: String
-    let boschSecretId: String
-    let boschAppliance: String
+    let timestamp: String
     let favouriteHomeKit: [String]
     let broombot: Robot
     let mopbot: Robot

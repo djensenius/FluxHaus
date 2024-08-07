@@ -46,6 +46,11 @@ func queryFlux(password: String) {
                         object: nil,
                         userInfo: ["updateKeychain": password]
                     )
+                    NotificationCenter.default.post(
+                        name: Notification.Name.dataUpdated,
+                        object: nil,
+                        userInfo: ["data": response]
+                    )
                 }
             } else {
                 // Error: Unable to decode response JSON
