@@ -80,8 +80,10 @@ struct FluxHausApp: App {
                 .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                     if let response = object.userInfo?["data"] as? LoginResponse {
                         self.apiResponse.setApiResponse(apiResponse: response)
-                        hconn?.apiResponse = self.apiResponse
-                        hconn?.refresh()
+                        robots?.setApiResponse(apiResponse: self.apiResponse)
+                        hconn?.setApiResponse(apiResponse: self.apiResponse)
+                        miele?.setApiResponse(apiResponse: self.apiResponse)
+                        car?.setApiResponse(apiResponse: self.apiResponse)
                     }
                 }
                 .onReceive(timer) {_ in
