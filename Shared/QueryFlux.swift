@@ -190,6 +190,8 @@ func formatTimeRemaining(timeRemaining: Int) -> String {
 
 // swiftlint:disable:next function_body_length
 func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
+    var returnValue: [WidgetDevice] = []
+
     let dishWasherReminingTime = formatTimeRemaining(timeRemaining: fluxData.dishwasher?.remainingTime ?? 0 )
     var dishwasherTrailingText = dishWasherReminingTime
     if fluxData.dishwasher != nil && fluxData.dishwasher?.activeProgram != nil {
@@ -199,16 +201,29 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         dishwasherTrailingText = fluxData.dishwasher!.operationState.rawValue + " ⋅ \(dishwasherTrailingText)"
     }
 
-    var returnValue =  [
-        WidgetDevice(
-            name: "Dishwasher",
-            progress: Int(fluxData.dishwasher?.programProgress ?? 0),
-            icon: "dishwasher",
-            trailingText: dishwasherTrailingText,
-            shortText: "\(fluxData.dishwasher?.remainingTime ?? 0)",
-            running: fluxData.dishwasher?.programProgress ?? 0 > 0
+    if fluxData.dishwasher?.operationState.rawValue == "Finished" {
+        returnValue.append(
+            WidgetDevice(
+                name: "Dishwasher",
+                progress: 0,
+                icon: "dishwasher",
+                trailingText: "",
+                shortText: "",
+                running: false
+            )
         )
-    ]
+    } else {
+        returnValue.append(
+            WidgetDevice(
+                name: "Dishwasher",
+                progress: Int(fluxData.dishwasher?.programProgress ?? 0),
+                icon: "dishwasher",
+                trailingText: dishwasherTrailingText,
+                shortText: "\(fluxData.dishwasher?.remainingTime ?? 0)",
+                running: fluxData.dishwasher?.programProgress ?? 0 > 0
+            )
+        )
+    }
 
     let washerTimeRunning = fluxData.washer?.timeRunning ?? 0
     let washerTimeRemaining = fluxData.washer?.timeRemaining ?? 0
