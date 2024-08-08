@@ -12,9 +12,17 @@ import UIKit
 
 class Miele: ObservableObject {
     @Published var appliances: [Appliance] = []
+    var apiResponse: Api?
 
-    init() {
+    init(apiResponse: Api) {
         appliances = []
+        self.apiResponse = apiResponse
+        self.refresh()
+    }
+
+    func setApiResponse(apiResponse: Api) {
+        self.apiResponse = apiResponse
+        self.refresh()
     }
 
     func setAppliance(appliance: Appliance) {
@@ -65,45 +73,18 @@ class Miele: ObservableObject {
         setAppliance(appliance: appliance)
     }
 
-    func fetchAppliance(appliance: String) {
-        let password = WhereWeAre.getPassword()
-        let scheme: String = "https"
-        let host: String = "api.fluxhaus.io"
-        let path = "/"
-
-        var components = URLComponents()
-        components.scheme = scheme
-        components.host = host
-        components.path = path
-        components.user = "admin"
-        components.password = password
-
-        guard let url = components.url else {
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "get"
-
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
-            if let data = data {
-                let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
-                if let response = response {
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(
-                            name: Notification.Name.loginsUpdated,
-                            object: nil,
-                            userInfo: ["mieleComplete": true]
-                        )
-                        self.updateAppliance(mApps: response.washer)
-                        self.updateAppliance(mApps: response.dryer)
-                        // self.updateAppliance(mApps: response.miele[appliance]!)
-                    }
-                }
+    func refresh() {
+        if let response = apiResponse?.response {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["mieleComplete": true]
+                )
+                self.updateAppliance(mApps: response.washer)
+                self.updateAppliance(mApps: response.dryer)
+                // self.updateAppliance(mApps: response.miele[appliance]!)
             }
         }
-        task.resume()
     }
 }

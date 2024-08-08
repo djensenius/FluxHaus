@@ -128,10 +128,17 @@ enum Value: Codable {
 
 class HomeConnect: ObservableObject {
     @Published var appliances: [Appliance] = []
+    var apiResponse: Api?
 
-    init(boschAppliance: String) {
+    init(apiResponse: Api) {
         appliances = []
-        self.authorize(boschAppliance: boschAppliance)
+        self.apiResponse = apiResponse
+        self.refresh()
+    }
+
+    func setApiResponse(apiResponse: Api) {
+        self.apiResponse = apiResponse
+        self.refresh()
     }
 
     func nilProgram() {
@@ -191,43 +198,16 @@ class HomeConnect: ObservableObject {
         )
     }
 
-    func authorize(boschAppliance: String) {
-        let password = WhereWeAre.getPassword()
-        let scheme: String = "https"
-        let host: String = "api.fluxhaus.io"
-        let path = "/"
-
-        var components = URLComponents()
-        components.scheme = scheme
-        components.host = host
-        components.path = path
-        components.user = "admin"
-        components.password = password
-
-        guard let url = components.url else {
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "get"
-
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-
-        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
-            if let data = data {
-                let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
-                if let response = response {
-                    DispatchQueue.main.async {
-                        if response.dishwasher.operationState.rawValue != "Inactive" {
-                            self.setProgram(program: response.dishwasher)
-                        } else {
-                            self.nilProgram()
-                        }
-                    }
+    func refresh() {
+        if let response = apiResponse?.response {
+            DispatchQueue.main.async {
+                if response.dishwasher.operationState.rawValue != "Inactive" &&
+                    response.dishwasher.operationState.rawValue != "Finished" {
+                    self.setProgram(program: response.dishwasher)
+                } else {
+                    self.nilProgram()
                 }
             }
         }
-        task.resume()
     }
 }

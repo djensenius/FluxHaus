@@ -19,6 +19,9 @@ struct FluxHausApp: App {
     @State private var whereWeAre = WhereWeAre()
     @State var fluxHausConsts = FluxHausConsts()
     @State private var battery = Battery()
+    @State var apiResponse = Api()
+
+    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     var body: some Scene {
         WindowGroup {
@@ -29,20 +32,9 @@ struct FluxHausApp: App {
                             if object.object != nil {
                                 let configResponse = object.object! as? LoginResponse
                                 let config = FluxHausConfig(
-                                    mieleClientId: configResponse?.mieleClientId ?? "",
-                                    mieleSecretId: configResponse?.mieleSecretId ?? "",
-                                    mieleAppliances: configResponse?.mieleAppliances ?? [],
-                                    boschClientId: configResponse?.boschClientId ?? "",
-                                    boschSecretId: configResponse?.boschSecretId ?? "",
-                                    boschAppliance: configResponse?.boschAppliance ?? "",
                                     favouriteHomeKit: configResponse?.favouriteHomeKit ?? []
                                 )
                                 fluxHausConsts.setConfig(config: config)
-                                loadMiele()
-                                loadRobots()
-                                loadBattery()
-                                loadCar()
-                                loadHomeConnect()
                             }
                         }
 
@@ -58,6 +50,16 @@ struct FluxHausApp: App {
                             whereWeAre.deleteKeyChainPasword()
                         }
                     }
+                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
+                        if let response = object.userInfo?["data"] as? LoginResponse {
+                            self.apiResponse.response = response
+                            loadMiele()
+                            loadRobots()
+                            loadBattery()
+                            loadCar()
+                            loadHomeConnect()
+                        }
+                    }
             } else {
                 ContentView(
                     fluxHausConsts: fluxHausConsts,
@@ -65,33 +67,44 @@ struct FluxHausApp: App {
                     miele: miele!,
                     robots: robots!,
                     battery: battery,
-                    car: car!
-                ).onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
+                    car: car!,
+                    apiResponse: self.apiResponse
+                )
+                .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
                     if (object.userInfo?["logout"]) != nil {
                         DispatchQueue.main.async {
                             self.whereWeAre = WhereWeAre()
                         }
                     }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
+                    if let response = object.userInfo?["data"] as? LoginResponse {
+                        self.apiResponse.setApiResponse(apiResponse: response)
+                        robots?.setApiResponse(apiResponse: self.apiResponse)
+                        hconn?.setApiResponse(apiResponse: self.apiResponse)
+                        miele?.setApiResponse(apiResponse: self.apiResponse)
+                        car?.setApiResponse(apiResponse: self.apiResponse)
+                    }
+                }
+                .onReceive(timer) {_ in
+                    let password = WhereWeAre.getPassword()
+                    queryFlux(password: password!)
+                }
             }
         }
     }
 
     func loadMiele() {
-        miele = Miele.init()
-        fluxHausConsts.mieleAppliances.forEach { (appliance) in
-            if miele != nil {
-                miele?.fetchAppliance(appliance: appliance)
-            }
-        }
+        miele = Miele.init(apiResponse: self.apiResponse)
     }
 
     func loadHomeConnect() {
-        hconn = HomeConnect.init(boschAppliance: fluxHausConsts.boschAppliance)
+        hconn = HomeConnect.init(apiResponse: self.apiResponse)
     }
 
     func loadRobots() {
         robots = Robots()
+        robots?.apiResponse = self.apiResponse
     }
 
     func loadBattery() {
@@ -100,5 +113,6 @@ struct FluxHausApp: App {
 
     func loadCar() {
         car = Car()
+        car?.setApiResponse(apiResponse: self.apiResponse)
     }
 }

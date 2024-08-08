@@ -11,6 +11,8 @@ struct Appliances: View {
     var fluxHausConsts: FluxHausConsts
     @ObservedObject var hconn: HomeConnect
     @ObservedObject var miele: Miele
+    @ObservedObject var apiResponse: Api
+
     var robots: Robots
     var battery: Battery
     var car: Car
@@ -19,6 +21,7 @@ struct Appliances: View {
     @State private var showBroomBotModal: Bool = false
     @State private var showMopBotModal: Bool = false
     @State private var showApplianceModal: [String: Bool] = [:]
+    @State var theAppliances: [(name: String, index: Int)] = []
 
     private let gridItemLayout = [GridItem(.flexible())]
 
@@ -31,8 +34,6 @@ struct Appliances: View {
         (name: "Car", index: 0),
         (name: "Battery", index: 0)
     ]
-
-    @State var theAppliances: [(name: String, index: Int)] = []
 
     var body: some View {
         ScrollView {
@@ -96,6 +97,7 @@ struct Appliances: View {
                                     }
                                 }.onTapGesture {
                                     if theAppliances[app].name == "Car" {
+                                        self.car.apiResponse = self.apiResponse
                                         self.car.fetchCarDetails()
                                         self.showCarModal = true
                                     } else if theAppliances[app].name == "MopBot" {
@@ -312,21 +314,19 @@ struct Appliances: View {
     }
 
     var updateTimer: Timer {
-        Timer.scheduledTimer(withTimeInterval: 25, repeats: true,
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true,
                              block: {_ in
                                 fetchAppliances()
                              })
     }
 
     func fetchAppliances() {
-        robots.fetchRobots()
+        robots.setApiResponse(apiResponse: apiResponse)
         car.performAction(action: "resync")
-        hconn.authorize(boschAppliance: fluxHausConsts.boschAppliance)
-        fluxHausConsts.mieleAppliances.forEach { (appliance) in
-            miele.fetchAppliance(appliance: appliance)
-        }
+        hconn.setApiResponse(apiResponse: self.apiResponse)
+        miele.setApiResponse(apiResponse: self.apiResponse)
+        car.setApiResponse(apiResponse: apiResponse)
         print("No here")
-        car.fetchCarDetails()
         self.sortAppliances()
     }
 

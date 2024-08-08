@@ -14,7 +14,7 @@ struct ContentView: View {
     var robots: Robots
     var battery: Battery
     var car: Car
-
+    var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
 
     var body: some View {
@@ -31,6 +31,7 @@ struct ContentView: View {
                 fluxHausConsts: fluxHausConsts,
                 hconn: hconn,
                 miele: miele,
+                apiResponse: apiResponse,
                 robots: robots,
                 battery: battery,
                 car: car

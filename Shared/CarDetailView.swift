@@ -11,6 +11,7 @@ struct CarDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     var car: Car
     @State private var buttonsDisabled: Bool = false
+    @State var apiResponse: Api?
 
     var body: some View {
         VStack {
@@ -94,6 +95,7 @@ struct CarDetailView: View {
             if action != "resync" {
                 car.performAction(action: "resync")
             }
+            car.apiResponse = apiResponse
             car.fetchCarDetails()
         }
 
@@ -101,6 +103,7 @@ struct CarDetailView: View {
             if action != "resync" {
                 car.performAction(action: "resync")
             }
+            car.apiResponse = apiResponse
             car.fetchCarDetails()
             self.buttonsDisabled = false
         }

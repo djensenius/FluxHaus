@@ -44,62 +44,40 @@ struct Robot: Decodable {
         timeStarted: nil
     )
 
+    var apiResponse: Api?
+
+    func setApiResponse(apiResponse: Api) {
+        self.apiResponse = apiResponse
+        self.fetchRobots()
+    }
+
     func fetchRobots() {
-        let password = WhereWeAre.getPassword()
-        let scheme: String = "https"
-        let host: String = "api.fluxhaus.io"
-        let path = "/"
-
-        var components = URLComponents()
-        components.scheme = scheme
-        components.host = host
-        components.path = path
-        components.user = "admin"
-        components.password = password
-
-        guard let url = components.url else {
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "get"
-
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        print("Going to update robots")
-        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
-            if let data = data {
-                let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
-
-                if let response = response {
-                    DispatchQueue.main.async {
-                        self.mopBot = Robot(
-                            name: "MopBot",
-                            timestamp: response.mopbot.timestamp,
-                            batteryLevel: response.mopbot.batteryLevel,
-                            binFull: response.mopbot.binFull,
-                            running: response.mopbot.running,
-                            charging: response.mopbot.charging,
-                            docking: response.mopbot.docking,
-                            paused: response.mopbot.paused,
-                            timeStarted: response.mopbot.timeStarted
-                        )
-                        self.broomBot = Robot(
-                            name: "BroomBot",
-                            timestamp: response.broombot.timestamp,
-                            batteryLevel: response.broombot.batteryLevel,
-                            binFull: response.broombot.binFull,
-                            running: response.broombot.running,
-                            charging: response.broombot.charging,
-                            docking: response.broombot.docking,
-                            paused: response.broombot.paused,
-                            timeStarted: response.broombot.timeStarted
-                        )
-                    }
-                }
+        if let response = apiResponse?.response {
+            DispatchQueue.main.async {
+                self.mopBot = Robot(
+                    name: "MopBot",
+                    timestamp: response.mopbot.timestamp,
+                    batteryLevel: response.mopbot.batteryLevel,
+                    binFull: response.mopbot.binFull,
+                    running: response.mopbot.running,
+                    charging: response.mopbot.charging,
+                    docking: response.mopbot.docking,
+                    paused: response.mopbot.paused,
+                    timeStarted: response.mopbot.timeStarted
+                )
+                self.broomBot = Robot(
+                    name: "BroomBot",
+                    timestamp: response.broombot.timestamp,
+                    batteryLevel: response.broombot.batteryLevel,
+                    binFull: response.broombot.binFull,
+                    running: response.broombot.running,
+                    charging: response.broombot.charging,
+                    docking: response.broombot.docking,
+                    paused: response.broombot.paused,
+                    timeStarted: response.broombot.timeStarted
+                )
             }
         }
-        task.resume()
     }
 
     func performAction(action: String, robot: String) {
