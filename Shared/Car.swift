@@ -139,6 +139,7 @@ struct CarDetails: Decodable {
         case "resync":
             path = "/resyncCar"
         default:
+            print("Default \(action)")
             path = "/resyncCar"
         }
 
@@ -160,7 +161,7 @@ struct CarDetails: Decodable {
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         let task = URLSession.shared.dataTask(with: request) { data, _, _ in
             if data != nil {
-                print("Got data")
+                print("Got data \(path)")
             }
         }
         task.resume()
