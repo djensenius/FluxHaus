@@ -63,69 +63,6 @@ struct DishWasher: Codable {
     var startInRelativeUnit: String?
 }
 
-// MARK: - Welcome
-struct HomeConnectStruct: Codable {
-    let data: DataClass
-}
-
-// MARK: - DataClass
-struct DataClass: Codable {
-    let key: String
-    let options: [Option]
-    let name: String
-}
-
-// MARK: - Option
-struct Option: Codable {
-    let key: String
-    let value: Value
-    let unit: String?
-    let name: String
-}
-
-enum Value: Codable {
-    case bool(Bool)
-    case integer(Int)
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let decoded = try? container.decode(Bool.self) {
-            self = .bool(decoded)
-            return
-        }
-        if let decoded = try? container.decode(Int.self) {
-            self = .integer(decoded)
-            return
-        }
-        throw DecodingError.typeMismatch(
-            Value.self,
-            DecodingError.Context(codingPath: decoder.codingPath, debugDescription: "Wrong type for Value")
-        )
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        switch self {
-        case .bool(let decoded):
-            try container.encode(decoded)
-        case .integer(let decoded):
-            try container.encode(decoded)
-        }
-    }
-
-    var intValue: Int {
-        switch self {
-        case .integer(let thes):
-            return thes
-        case .bool(let thes):
-            if thes == true {
-                return 1
-            }
-            return 0
-        }
-    }
-}
-
 class HomeConnect: ObservableObject {
     @Published var appliances: [Appliance] = []
     var apiResponse: Api?
