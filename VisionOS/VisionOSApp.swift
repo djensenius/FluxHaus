@@ -88,7 +88,7 @@ struct VisionOSApp: App {
                 }
                 .onReceive(timer) {_ in
                     let password = WhereWeAre.getPassword()
-                    queryFlux(password: password!)
+                    queryFlux(password: password!, user: nil)
                 }
             }
         }

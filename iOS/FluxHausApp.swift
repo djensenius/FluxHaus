@@ -88,7 +88,9 @@ struct FluxHausApp: App {
                 }
                 .onReceive(timer) {_ in
                     let password = WhereWeAre.getPassword()
-                    queryFlux(password: password!)
+                    if password != nil {
+                        queryFlux(password: password!, user: nil)
+                    }
                 }
             }
         }

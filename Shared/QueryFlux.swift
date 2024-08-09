@@ -7,7 +7,7 @@
 
 import Foundation
 
-func queryFlux(password: String) {
+func queryFlux(password: String, user: String?) {
     let scheme: String = "https"
     let host: String = "api.fluxhaus.io"
     let path = "/"
@@ -16,7 +16,7 @@ func queryFlux(password: String) {
     components.scheme = scheme
     components.host = host
     components.path = path
-    components.user = "admin"
+    components.user = user != nil ? user : "admin"
     components.password = password
 
     guard let url = components.url else {
@@ -52,7 +52,9 @@ func queryFlux(password: String) {
                         userInfo: ["data": response]
                     )
                 }
-            } else {
+            } else if user == nil {
+                queryFlux(password: password, user: "demo")
+            } else if user != nil {
                 // Error: Unable to decode response JSON
                 // This also happens if the password is wrong!
                 DispatchQueue.main.async {
@@ -96,7 +98,6 @@ struct FluxData {
     let washer: WasherDryer?
 }
 
-// swiftlint:disable:next function_body_length
 func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
     let mopBot = Robot(
         name: "MopBot",

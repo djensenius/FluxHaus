@@ -321,11 +321,13 @@ struct Appliances: View {
     }
 
     func fetchAppliances() {
-        robots.setApiResponse(apiResponse: apiResponse)
-        hconn.setApiResponse(apiResponse: self.apiResponse)
-        miele.setApiResponse(apiResponse: self.apiResponse)
-        car.setApiResponse(apiResponse: apiResponse)
-        self.sortAppliances()
+        if WhereWeAre.getPassword() != nil {
+            robots.setApiResponse(apiResponse: apiResponse)
+            hconn.setApiResponse(apiResponse: self.apiResponse)
+            miele.setApiResponse(apiResponse: self.apiResponse)
+            car.setApiResponse(apiResponse: apiResponse)
+            self.sortAppliances()
+        }
     }
 
     func sortAppliances() {
