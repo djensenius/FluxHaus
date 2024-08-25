@@ -62,13 +62,54 @@ class FluxWidgetNetwork {
 struct Provider: AppIntentTimelineProvider {
     let staticList = [
         WidgetDevice(
-        name: "Dryer",
-        progress: 25,
-        icon: "dryer",
-        trailingText: "Finished at 3pm",
-        shortText: "3:00pm",
-        running: true
-    )]
+            name: "Dryer",
+            progress: 75,
+            icon: "dryer",
+            trailingText: "Finishes at 3pm",
+            shortText: "3:00pm",
+            running: true
+        ),
+        WidgetDevice(
+            name: "Washer",
+            progress: 45,
+            icon: "washer",
+            trailingText: "Finishes at 4:12pm",
+            shortText: "4:12pm",
+            running: true
+        ),
+        WidgetDevice(
+            name: "Dishwasher",
+            progress: 15,
+            icon: "dishwasher",
+            trailingText: "Finishes at 5:43pm",
+            shortText: "5:43pm",
+            running: true
+        ),
+        WidgetDevice(
+            name: "BroomBot",
+            progress: 85,
+            icon: "fan",
+            trailingText: "85%",
+            shortText: "",
+            running: true
+        ),
+        WidgetDevice(
+            name: "MopBot",
+            progress: 96,
+            icon: "humidifier.and.droplets",
+            trailingText: "96%",
+            shortText: "",
+            running: true
+        ),
+        WidgetDevice(
+            name: "Car",
+            progress: 45,
+            icon: "car",
+            trailingText: "45%",
+            shortText: "",
+            running: true
+        )
+    ]
 
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(
@@ -161,6 +202,22 @@ struct DeviceGridView: View {
     }
 }
 
+struct SmallDeviceGridView: View {
+    var limit: Int?
+    var items: [WidgetDevice]
+
+    let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 0) {
+            ForEach(1 ... items.count, id: \.self) { index in
+                if limit == nil || index <= limit! {
+                    SingleView(item: items[index - 1], showTime: false)
+                }
+            }
+        }
+    }
+}
+
 struct InlineView: View {
     var item: WidgetDevice
     var body: some View {
@@ -173,6 +230,7 @@ struct InlineView: View {
 
 struct SingleView: View {
     var item: WidgetDevice
+    var showTime = true
 
     var body: some View {
         VStack {
@@ -180,20 +238,29 @@ struct SingleView: View {
                 value: Double(item.progress) / 100,
                 label: { Image(systemName: item.icon) },
                 currentValueLabel: { Text("\(item.progress)%") }
-            ).gaugeStyle(.accessoryCircular)
-            Text(item.shortText)
+            )
+            .gaugeStyle(.accessoryCircular)
+            .padding(.bottom)
+            if showTime {
+                Text(item.shortText)
+            }
         }
     }
 }
 
 struct FluxWidgetEntryView: View {
     var entry: Provider.Entry
+    var grid = false
     @Environment(\.widgetFamily) var family
 
     var body: some View {
         switch family {
         case .systemSmall:
-            SingleView(item: entry.widgetDevices[0])
+            if grid {
+                SmallDeviceGridView(limit: 4, items: entry.widgetDevices)
+            } else {
+                SingleView(item: entry.widgetDevices[0])
+            }
         case .systemMedium:
             DeviceListView(limit: 2, items: entry.widgetDevices)
         case .systemLarge:
@@ -232,16 +299,28 @@ struct FluxWidget: Widget {
     }
 }
 
+struct FluxWidgetOtherSmall: Widget {
+    let kind: String = "FluxWidgetSmall"
+
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
+            FluxWidgetEntryView(entry: entry, grid: true)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .supportedFamilies([
+            .systemSmall
+        ])
+    }
+}
+
 extension ConfigurationAppIntent {
     fileprivate static var smiley: ConfigurationAppIntent {
         let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
         return intent
     }
 
     fileprivate static var starEyes: ConfigurationAppIntent {
         let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
         return intent
     }
 }
@@ -299,6 +378,12 @@ let staticList = [
 
 #Preview(as: .systemSmall) {
     FluxWidget()
+} timeline: {
+    SimpleEntry(date: .now, configuration: .smiley, widgetDevices: staticList)
+}
+
+#Preview(as: .systemSmall) {
+    FluxWidgetOtherSmall()
 } timeline: {
     SimpleEntry(date: .now, configuration: .smiley, widgetDevices: staticList)
 }
