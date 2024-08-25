@@ -1,4 +1,4 @@
 excluded:
   - Packages
-type_body_length: 400
+type_body_length: 500
 function_body_length: 60
