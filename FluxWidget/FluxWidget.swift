@@ -90,7 +90,7 @@ struct Provider: AppIntentTimelineProvider {
             progress: 85,
             icon: "fan",
             trailingText: "85%",
-            shortText: "",
+            shortText: "On",
             running: true
         ),
         WidgetDevice(
@@ -98,7 +98,7 @@ struct Provider: AppIntentTimelineProvider {
             progress: 96,
             icon: "humidifier.and.droplets",
             trailingText: "96%",
-            shortText: "",
+            shortText: "Off",
             running: true
         ),
         WidgetDevice(
@@ -106,7 +106,7 @@ struct Provider: AppIntentTimelineProvider {
             progress: 45,
             icon: "car",
             trailingText: "45%",
-            shortText: "",
+            shortText: "200km",
             running: true
         )
     ]
@@ -211,7 +211,7 @@ struct SmallDeviceGridView: View {
         LazyVGrid(columns: columns, spacing: 0) {
             ForEach(1 ... items.count, id: \.self) { index in
                 if limit == nil || index <= limit! {
-                    SingleView(item: items[index - 1], showTime: false)
+                    SingleView(item: items[index - 1], multipleLines: false)
                 }
             }
         }
@@ -230,18 +230,24 @@ struct InlineView: View {
 
 struct SingleView: View {
     var item: WidgetDevice
-    var showTime = true
+    var multipleLines = true
 
     var body: some View {
         VStack {
             Gauge(
                 value: Double(item.progress) / 100,
                 label: { Image(systemName: item.icon) },
-                currentValueLabel: { Text("\(item.progress)%") }
+                currentValueLabel: {
+                    if multipleLines && item.shortText != "" {
+                        Text("\(item.progress)%")
+                    } else {
+                        Text(item.shortText)
+                    }
+                }
             )
             .gaugeStyle(.accessoryCircular)
             .padding(.bottom)
-            if showTime {
+            if multipleLines && item.shortText != "" {
                 Text(item.shortText)
             }
         }
@@ -268,7 +274,7 @@ struct FluxWidgetEntryView: View {
         case .systemExtraLarge:
             DeviceGridView(limit: nil, items: entry.widgetDevices)
         case .accessoryCircular:
-            SingleView(item: entry.widgetDevices[0])
+            SingleView(item: entry.widgetDevices[0], multipleLines: false)
         case .accessoryRectangular:
             DeviceListView(limit: 1, items: entry.widgetDevices)
         case .accessoryInline:
@@ -331,7 +337,7 @@ let staticList = [
         progress: 75,
         icon: "dryer",
         trailingText: "Finishes at 3pm",
-        shortText: "3:00pm",
+        shortText: "25m",
         running: true
     ),
     WidgetDevice(
@@ -355,7 +361,7 @@ let staticList = [
         progress: 85,
         icon: "fan",
         trailingText: "85%",
-        shortText: "",
+        shortText: "Off",
         running: true
     ),
     WidgetDevice(
@@ -363,7 +369,7 @@ let staticList = [
         progress: 96,
         icon: "humidifier.and.droplets",
         trailingText: "96%",
-        shortText: "",
+        shortText: "On",
         running: true
     ),
     WidgetDevice(
@@ -371,7 +377,7 @@ let staticList = [
         progress: 45,
         icon: "car",
         trailingText: "45%",
-        shortText: "",
+        shortText: "200km",
         running: true
     )
 ]
