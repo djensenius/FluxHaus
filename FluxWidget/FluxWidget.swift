@@ -53,7 +53,7 @@ class FluxWidgetNetwork {
 
     static func sortTimedDevices(devices: [WidgetDevice]) -> [WidgetDevice] {
         let sortedDevices = devices.sorted {
-            $0.progress > $1.progress
+            $0.progress < $1.progress
         }
         return sortedDevices
     }
