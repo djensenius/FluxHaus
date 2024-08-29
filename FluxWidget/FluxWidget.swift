@@ -208,7 +208,7 @@ struct SmallDeviceGridView: View {
 
     let columns = [GridItem(.flexible()), GridItem(.flexible())]
     var body: some View {
-        LazyVGrid(columns: columns, spacing: 0) {
+        LazyVGrid(columns: columns, spacing: 15) {
             ForEach(1 ... items.count, id: \.self) { index in
                 if limit == nil || index <= limit! {
                     SingleView(item: items[index - 1], multipleLines: false)
@@ -246,7 +246,6 @@ struct SingleView: View {
                 }
             )
             .gaugeStyle(.accessoryCircular)
-            .padding(.bottom)
             if multipleLines && item.shortText != "" {
                 Text(item.shortText)
             }
