@@ -28,7 +28,7 @@ struct WeatherView: View {
                     .font(.subheadline)
                 if (lman.weather) != nil {
                     Image(systemName: "wind")
-                    Text((lman.weather!.currentWeather.wind.speed.description))
+                    Text(getWind())
                         .font(.subheadline)
                         .padding(.trailing)
                 }
@@ -114,6 +114,17 @@ struct WeatherView: View {
             .formatted(.measurement(usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))))
         let weatherDescription = currentWeather.condition.description
         return "\(currentTemp), \(weatherDescription)"
+    }
+
+    func getWind() -> String {
+        if lman.weather == nil {
+            return "Loading"
+        }
+        let currentWeather = lman.weather!.currentWeather
+        let windSpeed = currentWeather.wind.speed
+        let speedText = windSpeed
+            .formatted()
+        return speedText.description
     }
 
     func getFeels() -> String {
@@ -202,11 +213,5 @@ struct WeatherView: View {
             theWhen = "starting in \(getTime(time: forecast.startingNumber!, type: forecast.startingType!))"
         }
         return "\(percent) chance of \(type) \(theWhen)"
-    }
-}
-
-struct Weather_Previews: PreviewProvider {
-    static var previews: some View {
-        WeatherView()
     }
 }

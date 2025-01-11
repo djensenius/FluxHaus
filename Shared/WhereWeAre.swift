@@ -55,9 +55,7 @@ struct WhereWeAre {
             // Extract result
             if let existingItem = item as? [String: Any],
                let passwordData = existingItem[kSecValueData as String] as? Data,
-               // swiftlint:disable non_optional_string_data_conversion
                let password = String(data: passwordData, encoding: .utf8) {
-                // swiftlint:enable non_optional_string_data_conversion
                 return password
             }
         }
