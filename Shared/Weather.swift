@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 import Combine
-import WeatherKit
+@preconcurrency import WeatherKit
 
 enum TimeType {
     case minute
@@ -27,7 +27,7 @@ struct ForecastInfo {
 }
 
 // MARK: - Location services
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+@preconcurrency class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
     private var status: CLAuthorizationStatus?
