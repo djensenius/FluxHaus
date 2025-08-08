@@ -14,6 +14,7 @@ enum Model {
     case visionPro
     case mac
 }
+@MainActor
 @Observable class Battery {
     var percent = 0
     var state = UIDevice.BatteryState.unknown

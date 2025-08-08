@@ -19,6 +19,7 @@ struct Robot: Decodable {
     let timeStarted: String?
 }
 
+@MainActor
 @Observable class Robots {
     var mopBot = Robot(
         name: "MopBot",

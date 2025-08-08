@@ -69,6 +69,7 @@ struct CarDetails: Decodable {
     let engine: Bool
 }
 
+@MainActor
 @Observable class Car {
     var apiResponse: Api?
     var vehicle = CarDetails(
