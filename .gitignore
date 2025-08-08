@@ -1,2 +1,11 @@
 FluxHaus.xcodeproj/xcshareddata/
 FluxHaus.xcodeproj/project.xcworkspace/xcuserdata/david.xcuserdatad/
+
+# Build artifacts
+.build/
+swiftlint
+swiftlint.zip
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
