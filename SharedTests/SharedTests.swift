@@ -10,7 +10,7 @@ import Foundation
 
 // Test basic data structures from Shared module
 struct SharedModelTests {
-    
+
     @Test("Appliance model can be created with all properties")
     func testApplianceModel() {
         let appliance = Appliance(
@@ -22,7 +22,7 @@ struct SharedModelTests {
             programName: "Quick Wash",
             inUse: true
         )
-        
+
         #expect(appliance.name == "Dishwasher")
         #expect(appliance.timeRunning == 30)
         #expect(appliance.timeRemaining == 60)
@@ -31,7 +31,7 @@ struct SharedModelTests {
         #expect(appliance.programName == "Quick Wash")
         #expect(appliance.inUse == true)
     }
-    
+
     @Test("Robot model can be created with optional properties")
     func testRobotModel() {
         let robot = Robot(
@@ -45,7 +45,7 @@ struct SharedModelTests {
             paused: false,
             timeStarted: "2024-12-01T11:30:00Z"
         )
-        
+
         #expect(robot.name == "TestBot")
         #expect(robot.timestamp == "2024-12-01T12:00:00Z")
         #expect(robot.batteryLevel == 85)
@@ -56,7 +56,7 @@ struct SharedModelTests {
         #expect(robot.paused == false)
         #expect(robot.timeStarted == "2024-12-01T11:30:00Z")
     }
-    
+
     @Test("Robot model handles nil values correctly")
     func testRobotModelWithNilValues() {
         let robot = Robot(
@@ -70,7 +70,7 @@ struct SharedModelTests {
             paused: nil,
             timeStarted: nil
         )
-        
+
         #expect(robot.name == nil)
         #expect(robot.batteryLevel == nil)
         #expect(robot.binFull == nil)
@@ -80,7 +80,7 @@ struct SharedModelTests {
         #expect(robot.paused == nil)
         #expect(robot.timeStarted == nil)
     }
-    
+
     @Test("Doors model can be created")
     func testDoorsModel() {
         let doors = Doors(
@@ -89,13 +89,13 @@ struct SharedModelTests {
             backRight: 0,
             backLeft: 0
         )
-        
+
         #expect(doors.frontRight == 0)
         #expect(doors.frontLeft == 1)
         #expect(doors.backRight == 0)
         #expect(doors.backLeft == 0)
     }
-    
+
     @Test("CarDetails model can be created with all properties")
     func testCarDetailsModel() {
         let carDetails = CarDetails(
@@ -114,7 +114,7 @@ struct SharedModelTests {
             odometer: 15432.5,
             engine: false
         )
-        
+
         #expect(carDetails.timestamp == "2024-12-01T12:00:00Z")
         #expect(carDetails.evStatusTimestamp == "2024-12-01T11:45:00Z")
         #expect(carDetails.batteryLevel == 75)
@@ -133,7 +133,7 @@ struct SharedModelTests {
 
 // Test business logic classes
 struct BusinessLogicTests {
-    
+
     @Test("Api class can be initialized and set response")
     func testApiClass() async {
         await MainActor.run {
@@ -141,12 +141,12 @@ struct BusinessLogicTests {
             #expect(api.response == nil)
         }
     }
-    
+
     @Test("Robots class initializes with default robots")
     func testRobotsInitialization() async {
         await MainActor.run {
             let robots = Robots()
-            
+
             #expect(robots.mopBot.name == "MopBot")
             #expect(robots.broomBot.name == "BroomBot")
             #expect(robots.mopBot.timestamp == "")
@@ -155,28 +155,28 @@ struct BusinessLogicTests {
             #expect(robots.broomBot.batteryLevel == nil)
         }
     }
-    
+
     @Test("Robot action path generation works correctly")
     func testRobotActionPaths() async {
         await MainActor.run {
             let robots = Robots()
-            
+
             // We can't easily test the performAction method without mocking network calls,
             // but we can test the logic indirectly by examining the expected behavior
             // The method should generate correct paths based on action and robot parameters
-            
+
             // This is more of an integration test that would require network mocking
             // For now, we verify the robots object is properly initialized
             #expect(robots.mopBot.name == "MopBot")
             #expect(robots.broomBot.name == "BroomBot")
         }
     }
-    
+
     @Test("Car class initializes with default values")
     func testCarInitialization() async {
         await MainActor.run {
             let car = Car()
-            
+
             #expect(car.vehicle.timestamp == "")
             #expect(car.vehicle.evStatusTimestamp == "")
             #expect(car.vehicle.batteryLevel == 0)
@@ -196,7 +196,7 @@ struct BusinessLogicTests {
 
 // Test utility functions
 struct UtilityFunctionTests {
-    
+
     @Test("getDeviceIcon returns correct icons for different battery models")
     func testGetDeviceIcon() async {
         await MainActor.run {
@@ -205,33 +205,33 @@ struct UtilityFunctionTests {
             let iPadIcon = getDeviceIcon(battery: iPadBattery)
             // Note: We can't easily test Image equality, but we can test the function doesn't crash
             #expect(iPadIcon != nil)
-            
+
             let macBattery = Battery()
             macBattery.model = .mac
             let macIcon = getDeviceIcon(battery: macBattery)
             #expect(macIcon != nil)
-            
+
             let visionProBattery = Battery()
             visionProBattery.model = .visionPro
             let visionIcon = getDeviceIcon(battery: visionProBattery)
             #expect(visionIcon != nil)
-            
+
             let iPhoneBattery = Battery()
             iPhoneBattery.model = .iPhone
             let iPhoneIcon = getDeviceIcon(battery: iPhoneBattery)
             #expect(iPhoneIcon != nil)
         }
     }
-    
+
     @Test("carDetails function generates expected text")
     func testCarDetailsFunction() async {
         await MainActor.run {
             let car = Car()
-            
+
             // Test with default values (all should be false/empty)
             let defaultDetails = carDetails(car: car)
             #expect(defaultDetails == "")
-            
+
             // Test with engine on
             car.vehicle = CarDetails(
                 timestamp: "",
@@ -249,7 +249,7 @@ struct UtilityFunctionTests {
                 odometer: 0,
                 engine: true
             )
-            
+
             let engineOnDetails = carDetails(car: car)
             #expect(engineOnDetails.contains("Car on"))
             #expect(engineOnDetails.contains("Climate on"))

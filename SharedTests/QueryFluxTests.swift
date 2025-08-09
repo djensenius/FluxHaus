@@ -9,7 +9,7 @@ import Testing
 import Foundation
 
 struct QueryFluxTests {
-    
+
     @Test("FluxData model can be created with all properties")
     func testFluxDataModel() {
         let mopBot = Robot(
@@ -23,9 +23,9 @@ struct QueryFluxTests {
             paused: false,
             timeStarted: "2024-12-01T11:30:00Z"
         )
-        
+
         let broomBot = Robot(
-            name: "BroomBot", 
+            name: "BroomBot",
             timestamp: "2024-12-01T12:00:00Z",
             batteryLevel: 92,
             binFull: false,
@@ -35,10 +35,10 @@ struct QueryFluxTests {
             paused: false,
             timeStarted: nil
         )
-        
+
         let car = CarDetails(
             timestamp: "2024-12-01T12:00:00Z",
-            evStatusTimestamp: "2024-12-01T11:45:00Z", 
+            evStatusTimestamp: "2024-12-01T11:45:00Z",
             batteryLevel: 75,
             distance: 250,
             hvac: false,
@@ -52,7 +52,7 @@ struct QueryFluxTests {
             odometer: 15432.5,
             engine: false
         )
-        
+
         let dishwasher = DishWasher(
             status: "Running",
             program: "Quick Wash",
@@ -67,7 +67,7 @@ struct QueryFluxTests {
             startInRelative: nil,
             startInRelativeUnit: nil
         )
-        
+
         let dryer = WasherDryer(
             status: "Inactive",
             program: nil,
@@ -80,7 +80,7 @@ struct QueryFluxTests {
             startInRelative: nil,
             startInRelativeUnit: nil
         )
-        
+
         let washer = WasherDryer(
             status: "Finished",
             program: "Cotton",
@@ -93,7 +93,7 @@ struct QueryFluxTests {
             startInRelative: nil,
             startInRelativeUnit: nil
         )
-        
+
         let fluxData = FluxData(
             mopBot: mopBot,
             broomBot: broomBot,
@@ -102,7 +102,7 @@ struct QueryFluxTests {
             dryer: dryer,
             washer: washer
         )
-        
+
         #expect(fluxData.mopBot.name == "MopBot")
         #expect(fluxData.broomBot.name == "BroomBot")
         #expect(fluxData.car.batteryLevel == 75)
@@ -110,7 +110,7 @@ struct QueryFluxTests {
         #expect(fluxData.dryer.operationState == .inactive)
         #expect(fluxData.washer.operationState == .finished)
     }
-    
+
     @Test("WidgetDevice model can be created and compared")
     func testWidgetDeviceModel() {
         let device1 = WidgetDevice(
@@ -118,32 +118,32 @@ struct QueryFluxTests {
             battery: 85,
             status: "Running"
         )
-        
+
         let device2 = WidgetDevice(
             name: "TestDevice",
             battery: 85,
             status: "Running"
         )
-        
+
         let device3 = WidgetDevice(
             name: "DifferentDevice",
             battery: 70,
             status: "Idle"
         )
-        
+
         #expect(device1.name == "TestDevice")
         #expect(device1.battery == 85)
         #expect(device1.status == "Running")
-        
+
         // Test equality
         #expect(device1 == device2)
         #expect(device1 != device3)
-        
+
         // Test hashability
         let deviceSet = Set([device1, device2, device3])
         #expect(deviceSet.count == 2) // device1 and device2 should be considered the same
     }
-    
+
     @Test("Network request components are formed correctly")
     func testNetworkRequestComponents() {
         // Test URL component formation (without actually making network calls)
@@ -152,14 +152,14 @@ struct QueryFluxTests {
         let path = "/"
         let user = "admin"
         let password = "testPassword"
-        
+
         var components = URLComponents()
         components.scheme = scheme
         components.host = host
         components.path = path
         components.user = user
         components.password = password
-        
+
         let url = components.url
         #expect(url != nil)
         #expect(url?.scheme == "https")
@@ -168,7 +168,7 @@ struct QueryFluxTests {
         #expect(url?.user == "admin")
         #expect(url?.password == "testPassword")
     }
-    
+
     @Test("HTTP request configuration is correct")
     func testHTTPRequestConfiguration() {
         // Test HTTP request setup without making actual network calls
@@ -177,7 +177,7 @@ struct QueryFluxTests {
         request.httpMethod = "get"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
+
         #expect(request.url?.absoluteString == "https://api.fluxhaus.io/")
         #expect(request.httpMethod?.lowercased() == "get")
         #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")

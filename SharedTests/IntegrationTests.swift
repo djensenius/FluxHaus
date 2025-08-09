@@ -9,7 +9,7 @@ import Testing
 import Foundation
 
 struct IntegrationTests {
-    
+
     @Test("Complete data flow from API response to UI works correctly")
     func testCompleteDataFlow() async {
         // Test the complete data flow without making actual network calls
@@ -18,37 +18,37 @@ struct IntegrationTests {
             let robots = Robots()
             let car = Car()
             let homeConnect = HomeConnect(apiResponse: api)
-            
+
             // Initial state validation
             #expect(api.response == nil)
             #expect(robots.mopBot.name == "MopBot")
             #expect(robots.broomBot.name == "BroomBot")
             #expect(car.vehicle.batteryLevel == 0)
             #expect(homeConnect.appliances.count == 0)
-            
+
             // Test that objects can be linked
             robots.setApiResponse(apiResponse: api)
             car.setApiResponse(apiResponse: api)
             homeConnect.setApiResponse(apiResponse: api)
-            
+
             #expect(robots.apiResponse != nil)
             #expect(car.apiResponse != nil)
             #expect(homeConnect.apiResponse != nil)
         }
     }
-    
+
     @Test("Car data structures are correctly formed")
     func testCarDataStructures() {
         // Test EvModeRange
         let evModeRange = EvModeRange(value: 250, unit: 1)
         #expect(evModeRange.value == 250)
         #expect(evModeRange.unit == 1)
-        
+
         // Test Atc
         let atc = Atc(value: 300, unit: 2)
         #expect(atc.value == 300)
         #expect(atc.unit == 2)
-        
+
         // Test RangeByFuel
         let rangeByFuel = RangeByFuel(
             gasModeRange: atc,
@@ -58,7 +58,7 @@ struct IntegrationTests {
         #expect(rangeByFuel.gasModeRange.value == 300)
         #expect(rangeByFuel.evModeRange.value == 300)
         #expect(rangeByFuel.totalAvailableRange.value == 300)
-        
+
         // Test DriveDistance
         let driveDistance = DriveDistance(
             rangeByFuel: rangeByFuel,
@@ -66,7 +66,7 @@ struct IntegrationTests {
         )
         #expect(driveDistance.type == 1)
         #expect(driveDistance.rangeByFuel.evModeRange.value == 300)
-        
+
         // Test EVStatus
         let evStatus = EVStatus(
             timestamp: "2024-12-01T12:00:00Z",
@@ -82,11 +82,11 @@ struct IntegrationTests {
         #expect(evStatus.drvDistance.count == 1)
         #expect(evStatus.drvDistance[0].rangeByFuel.evModeRange.value == 300)
     }
-    
+
     @Test("FluxCar data structure is correctly formed")
     func testFluxCarDataStructure() {
         let doors = Doors(frontRight: 0, frontLeft: 1, backRight: 0, backLeft: 0)
-        
+
         let fluxCar = FluxCar(
             timestamp: "2024-12-01T12:00:00Z",
             lastStatusDate: "2024-12-01T11:55:00Z",
@@ -98,7 +98,7 @@ struct IntegrationTests {
             hoodOpen: false,
             engine: true
         )
-        
+
         #expect(fluxCar.timestamp == "2024-12-01T12:00:00Z")
         #expect(fluxCar.lastStatusDate == "2024-12-01T11:55:00Z")
         #expect(fluxCar.airCtrlOn == true)
@@ -109,22 +109,22 @@ struct IntegrationTests {
         #expect(fluxCar.hoodOpen == false)
         #expect(fluxCar.engine == true)
     }
-    
+
     @Test("Robot action path generation logic is correct")
     func testRobotActionPaths() async {
         await MainActor.run {
             let robots = Robots()
-            
+
             // Test action to path mapping logic (without making actual network calls)
             // This tests the switch statement logic conceptually
-            
+
             let actionToPathMapping = [
                 "start": ["BroomBot": "/turnOnBroombot", "MopBot": "/turnOnMopbot"],
                 "stop": ["BroomBot": "/turnOffBroombot", "MopBot": "/turnOffMopbot"],
                 "deepClean": ["BroomBot": "/turnOnDeepClean", "MopBot": "/turnOnDeepClean"],
                 "default": ["BroomBot": "/", "MopBot": "/"]
             ]
-            
+
             // Verify the mapping logic
             #expect(actionToPathMapping["start"]?["BroomBot"] == "/turnOnBroombot")
             #expect(actionToPathMapping["start"]?["MopBot"] == "/turnOnMopbot")
@@ -134,22 +134,22 @@ struct IntegrationTests {
             #expect(actionToPathMapping["deepClean"]?["MopBot"] == "/turnOnDeepClean")
         }
     }
-    
+
     @Test("Car action path generation logic is correct")
     func testCarActionPaths() async {
         await MainActor.run {
             let car = Car()
-            
+
             // Test car action to path mapping logic
             let actionToPathMapping = [
                 "unlock": "/unlockCar",
-                "lock": "/lockCar", 
+                "lock": "/lockCar",
                 "start": "/startCar",
                 "stop": "/stopCar",
                 "resync": "/resyncCar",
                 "default": "/resyncCar"
             ]
-            
+
             // Verify the mapping logic
             #expect(actionToPathMapping["unlock"] == "/unlockCar")
             #expect(actionToPathMapping["lock"] == "/lockCar")
@@ -159,11 +159,11 @@ struct IntegrationTests {
             #expect(actionToPathMapping["default"] == "/resyncCar")
         }
     }
-    
+
     @Test("Data model JSON compatibility and decoding")
     func testJSONCompatibility() throws {
         // Test that our data models can handle JSON decoding correctly
-        
+
         // Test Robot JSON
         let robotJSON = """
         {
@@ -178,14 +178,14 @@ struct IntegrationTests {
             "timeStarted": "2024-12-01T11:30:00Z"
         }
         """
-        
+
         let robotData = robotJSON.data(using: .utf8)!
         let decodedRobot = try JSONDecoder().decode(Robot.self, from: robotData)
-        
+
         #expect(decodedRobot.name == "TestBot")
         #expect(decodedRobot.batteryLevel == 85)
         #expect(decodedRobot.running == true)
-        
+
         // Test Doors JSON
         let doorsJSON = """
         {
@@ -195,16 +195,16 @@ struct IntegrationTests {
             "backLeft": 0
         }
         """
-        
+
         let doorsData = doorsJSON.data(using: .utf8)!
         let decodedDoors = try JSONDecoder().decode(Doors.self, from: doorsData)
-        
+
         #expect(decodedDoors.frontRight == 0)
         #expect(decodedDoors.frontLeft == 1)
         #expect(decodedDoors.backRight == 0)
         #expect(decodedDoors.backLeft == 0)
     }
-    
+
     @Test("Error handling and nil value scenarios")
     func testErrorHandlingScenarios() async {
         await MainActor.run {
@@ -212,15 +212,15 @@ struct IntegrationTests {
             let api = Api()
             let robots = Robots()
             let car = Car()
-            
+
             robots.setApiResponse(apiResponse: api) // API response is nil
             car.setApiResponse(apiResponse: api) // API response is nil
-            
+
             // Should not crash and maintain default state
             #expect(robots.mopBot.timestamp == "")
             #expect(robots.broomBot.timestamp == "")
             #expect(car.vehicle.batteryLevel == 0)
-            
+
             // Test partial data scenarios
             let robotWithPartialData = Robot(
                 name: "PartialBot",
@@ -233,7 +233,7 @@ struct IntegrationTests {
                 paused: nil,      // Missing paused data
                 timeStarted: nil  // Missing start time
             )
-            
+
             #expect(robotWithPartialData.name == "PartialBot")
             #expect(robotWithPartialData.batteryLevel == nil)
             #expect(robotWithPartialData.running == true)
