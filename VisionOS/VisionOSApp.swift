@@ -8,11 +8,11 @@
 import Foundation
 import SwiftUI
 
-var hconn: HomeConnect?
-var miele: Miele?
-var robots: Robots?
-var battery: Battery?
-var car: Car?
+@MainActor var hconn: HomeConnect?
+@MainActor var miele: Miele?
+@MainActor var robots: Robots?
+@MainActor var battery: Battery?
+@MainActor var car: Car?
 
 @main
 struct VisionOSApp: App {

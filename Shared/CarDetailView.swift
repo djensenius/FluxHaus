@@ -91,7 +91,7 @@ struct CarDetailView: View {
         self.buttonsDisabled = true
         car.performAction(action: action)
 
-        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) {_ in
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { @MainActor _ in
             if action != "resync" {
                 car.performAction(action: "resync")
             }
@@ -99,7 +99,7 @@ struct CarDetailView: View {
             car.fetchCarDetails()
         }
 
-        Timer.scheduledTimer(withTimeInterval: 90.0, repeats: false) {_ in
+        Timer.scheduledTimer(withTimeInterval: 90.0, repeats: false) { @MainActor _ in
             if action != "resync" {
                 car.performAction(action: "resync")
             }
