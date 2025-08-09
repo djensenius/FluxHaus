@@ -51,7 +51,7 @@ struct DateTimeView: View {
 
     var updateTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true,
-                             block: {_ in
+                             block: { @MainActor _ in
                                 self.date = Date()
                              })
     }
