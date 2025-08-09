@@ -10,6 +10,7 @@ import UIKit
 
 // MARK: - Miele
 
+@MainActor
 class Miele: ObservableObject {
     @Published var appliances: [Appliance] = []
     var apiResponse: Api?
