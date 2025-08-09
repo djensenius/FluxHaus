@@ -8,6 +8,7 @@
 
 import Testing
 import XCTest
+@testable import FluxHaus
 
 struct macOSTests {
 

@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+@testable import FluxHaus
 
 // Test basic data structures from Shared module
 struct SharedModelTests {
