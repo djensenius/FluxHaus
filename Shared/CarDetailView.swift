@@ -91,21 +91,25 @@ struct CarDetailView: View {
         self.buttonsDisabled = true
         car.performAction(action: action)
 
-        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) {_ in
-            if action != "resync" {
-                car.performAction(action: "resync")
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            Task { @MainActor in
+                if action != "resync" {
+                    car.performAction(action: "resync")
+                }
+                car.apiResponse = apiResponse
+                car.fetchCarDetails()
             }
-            car.apiResponse = apiResponse
-            car.fetchCarDetails()
         }
 
-        Timer.scheduledTimer(withTimeInterval: 90.0, repeats: false) {_ in
-            if action != "resync" {
-                car.performAction(action: "resync")
+        Timer.scheduledTimer(withTimeInterval: 90.0, repeats: false) { _ in
+            Task { @MainActor in
+                if action != "resync" {
+                    car.performAction(action: "resync")
+                }
+                car.apiResponse = apiResponse
+                car.fetchCarDetails()
+                self.buttonsDisabled = false
             }
-            car.apiResponse = apiResponse
-            car.fetchCarDetails()
-            self.buttonsDisabled = false
         }
     }
 }

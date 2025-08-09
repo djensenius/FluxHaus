@@ -14,6 +14,7 @@ struct HomeKitFavourite {
     let hkSet: HMActionSet
 }
 
+@MainActor
 class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate {
     @Published var homeManager = HMHomeManager()
     @Published var favourites: [HomeKitFavourite] = []

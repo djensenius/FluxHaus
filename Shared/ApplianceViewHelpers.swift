@@ -18,6 +18,7 @@ struct Appliance {
     let inUse: Bool
 }
 
+@MainActor
 func getDeviceIcon(battery: Battery) -> Image {
     if battery.model == .iPad {
         return Image(systemName: "ipad")
@@ -30,6 +31,7 @@ func getDeviceIcon(battery: Battery) -> Image {
     }
 }
 
+@MainActor
 func carDetails(car: Car) -> String {
     var text = ""
     if car.vehicle.engine { text += "Car on | " }

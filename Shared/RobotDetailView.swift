@@ -76,9 +76,11 @@ struct RobotDetailView: View {
         self.buttonsDisabled = true
         robots.performAction(action: action, robot: robot.name!)
 
-        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) {_ in
-            robots.fetchRobots()
-            self.buttonsDisabled = false
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            Task { @MainActor in
+                robots.fetchRobots()
+                self.buttonsDisabled = false
+            }
         }
     }
 }

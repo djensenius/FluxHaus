@@ -69,6 +69,7 @@ struct CarDetails: Decodable {
     let engine: Bool
 }
 
+@MainActor
 @Observable class Car {
     var apiResponse: Api?
     var vehicle = CarDetails(
@@ -159,7 +160,7 @@ struct CarDetails: Decodable {
 
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let task = URLSession.shared.dataTask(with: request) { data, _, _ in
+        let task = URLSession.shared.dataTask(with: request) { [path] data, _, _ in
             if data != nil {
                 print("Got data \(path)")
             }

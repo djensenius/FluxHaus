@@ -63,6 +63,7 @@ struct DishWasher: Codable {
     var startInRelativeUnit: String?
 }
 
+@MainActor
 class HomeConnect: ObservableObject {
     @Published var appliances: [Appliance] = []
     var apiResponse: Api?

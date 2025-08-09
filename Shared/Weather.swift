@@ -69,11 +69,10 @@ struct ForecastInfo {
     }
 
     func precipitationNow(weather: Weather) {
-        var forecast: ForecastInfo?
         for index in 1...59 {
             let minuteForecast = weather.minuteForecast?[index]
             if minuteForecast?.precipitation == Precipitation.none {
-                forecast = ForecastInfo(
+                let forecastInfo = ForecastInfo(
                     type: weather.minuteForecast?[0].precipitation ?? .none,
                     chance: weather.minuteForecast?[0].precipitationChance ?? 0,
                     symbolName: precipitationSymbol(type: weather.minuteForecast?[0].precipitation ?? .rain),
@@ -83,16 +82,16 @@ struct ForecastInfo {
                     startingType: nil
                 )
                 DispatchQueue.main.async {
-                    self.forecast = forecast
+                    self.forecast = forecastInfo
                 }
                 break
             }
         }
-        if forecast == nil {
+        if self.forecast == nil {
             for index in 1...59 {
                 let hourlyForecast = weather.hourlyForecast[index]
                 if hourlyForecast.precipitation == Precipitation.none {
-                    forecast = ForecastInfo(
+                    let forecastInfo = ForecastInfo(
                         type: weather.minuteForecast?[0].precipitation ?? .none,
                         chance: weather.minuteForecast?[0].precipitationChance ?? 0,
                         symbolName: precipitationSymbol(type: weather.minuteForecast?[0].precipitation ?? .rain),
@@ -102,7 +101,7 @@ struct ForecastInfo {
                         startingType: nil
                     )
                     DispatchQueue.main.async {
-                        self.forecast = forecast
+                        self.forecast = forecastInfo
                     }
                     break
                 }
@@ -111,11 +110,10 @@ struct ForecastInfo {
     }
 
     func precipitationToday(weather: Weather) {
-        var forecast: ForecastInfo?
         for index in 1...59 {
             let minuteForecast = weather.minuteForecast?[index]
             if minuteForecast?.precipitation != Precipitation.none {
-                forecast = ForecastInfo(
+                let forecastInfo = ForecastInfo(
                     type: weather.minuteForecast?[index].precipitation ?? .none,
                     chance: weather.minuteForecast?[index].precipitationChance ?? 0,
                     symbolName: precipitationSymbol(type: weather.minuteForecast?[index].precipitation ?? .rain),
@@ -125,16 +123,16 @@ struct ForecastInfo {
                     startingType: .minute
                 )
                 DispatchQueue.main.async {
-                    self.forecast = forecast
+                    self.forecast = forecastInfo
                 }
                 break
             }
         }
-        if forecast == nil {
+        if self.forecast == nil {
             for index in 1...59 {
                 let hourlyForecast = weather.hourlyForecast[index]
                 if hourlyForecast.precipitation != Precipitation.none {
-                    forecast = ForecastInfo(
+                    let forecastInfo = ForecastInfo(
                         type: weather.hourlyForecast[index].precipitation,
                         chance: weather.hourlyForecast[index].precipitationChance,
                         symbolName: precipitationSymbol(type: weather.hourlyForecast[index].precipitation),
@@ -144,7 +142,7 @@ struct ForecastInfo {
                         startingType: .hour
                     )
                     DispatchQueue.main.async {
-                        self.forecast = forecast
+                        self.forecast = forecastInfo
                     }
                     break
                 }
@@ -155,7 +153,6 @@ struct ForecastInfo {
     func getPrecipitationSummary() {
         if self.weather != nil {
             let weather = self.weather!
-            var forecast: ForecastInfo?
 
             // CHECK IF IT IS HAPPENING
             if weather.minuteForecast?[0].precipitation != Precipitation.none {
@@ -168,7 +165,7 @@ struct ForecastInfo {
                     precipitationToday(weather: weather)
                 } else if (self.weather?.dailyForecast[1].precipitationChance)! > 0.1 {
                     // TOMORROW IT WILL HAPPEN
-                    forecast = ForecastInfo(
+                    let forecastInfo = ForecastInfo(
                         type: weather.dailyForecast[1].precipitation,
                         chance: weather.dailyForecast[1].precipitationChance,
                         symbolName: precipitationSymbol(type: weather.dailyForecast[1].precipitation),
@@ -178,7 +175,7 @@ struct ForecastInfo {
                         startingType: .day
                     )
                     DispatchQueue.main.async {
-                        self.forecast = forecast
+                        self.forecast = forecastInfo
                     }
                 }
             }
