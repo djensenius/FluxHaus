@@ -83,8 +83,10 @@ struct HomeKitView: View {
 
     var updateTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true,
-                             block: { @MainActor _ in
-                                home.startHome()
+                             block: { _ in
+                                Task { @MainActor in
+                                    home.startHome()
+                                }
                              })
     }
 

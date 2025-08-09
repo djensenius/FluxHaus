@@ -315,8 +315,10 @@ struct Appliances: View {
 
     var updateTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true,
-                             block: { @MainActor _ in
-                                fetchAppliances()
+                             block: { _ in
+                                Task { @MainActor in
+                                    fetchAppliances()
+                                }
                              })
     }
 
