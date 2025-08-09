@@ -8,60 +8,8 @@
 import Foundation
 import UIKit
 
-// MARK: - New Format
-enum DishWasherProgram: String, Codable {
-    case preRinse = "PreRinse"
-    case auto1 = "Auto1"
-    case auto2 = "Auto2"
-    case auto3 = "Auto3"
-    case eco50 = "Eco50"
-    case quick45 = "Quick45"
-    case intensiv70 = "Intensiv70"
-    case normal65 = "Normal65"
-    case glas40 = "Glas40"
-    case glassCare = "GlassCare"
-    case nightWash = "NightWash"
-    case quick65 = "Quick65"
-    case normal45 = "Normal45"
-    case intensiv45 = "Intensiv45"
-    case autoHalfLoad = "AutoHalfLoad"
-    case intensivPower = "IntensivPower"
-    case magicDaily = "MagicDaily"
-    case super60 = "Super60"
-    case kurz60 = "Kurz60"
-    case expressSparkle65 = "ExpressSparkle65"
-    case machineCare = "MachineCare"
-    case steamFresh = "SteamFresh"
-    case maximumCleaning = "MaximumCleaning"
-    case mixedLoad = "MixedLoad"
-}
-
-enum OperationState: String, Codable {
-    case inactive = "Inactive"
-    case ready = "Ready"
-    case delayedStart = "DelayedStart"
-    case run = "Run"
-    case pause = "Pause"
-    case actionRequired = "ActionRequired"
-    case finished = "Finished"
-    case error = "Error"
-    case aborting = "Aborting"
-}
-
-struct DishWasher: Codable {
-    var status: String?
-    var program: String?
-    var remainingTime: Int?
-    var remainingTimeUnit: String?
-    var remainingTimeEstimate: Bool?
-    var programProgress: Double?
-    var operationState: OperationState
-    var doorState: String
-    var selectedProgram: String?
-    var activeProgram: DishWasherProgram?
-    var startInRelative: Int?
-    var startInRelativeUnit: String?
-}
+// HomeConnect-specific logic and classes
+// Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor
 class HomeConnect: ObservableObject {

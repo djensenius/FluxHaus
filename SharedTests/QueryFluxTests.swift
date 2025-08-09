@@ -70,29 +70,23 @@ struct QueryFluxTests {
         )
 
         let dryer = WasherDryer(
+            name: "Dryer",
+            timeRunning: nil,
+            timeRemaining: nil,
+            step: nil,
+            programName: nil,
             status: "Inactive",
-            program: nil,
-            remainingTime: nil,
-            remainingTimeUnit: nil,
-            operationState: .inactive,
-            doorState: "Closed",
-            selectedProgram: nil,
-            activeProgram: nil,
-            startInRelative: nil,
-            startInRelativeUnit: nil
+            inUse: false
         )
 
         let washer = WasherDryer(
+            name: "Washer",
+            timeRunning: 45,
+            timeRemaining: 0,
+            step: "Finished",
+            programName: "Cotton",
             status: "Finished",
-            program: "Cotton",
-            remainingTime: 0,
-            remainingTimeUnit: "minutes",
-            operationState: .finished,
-            doorState: "Closed",
-            selectedProgram: "Cotton",
-            activeProgram: nil,
-            startInRelative: nil,
-            startInRelativeUnit: nil
+            inUse: false
         )
 
         let fluxData = FluxData(
@@ -108,8 +102,8 @@ struct QueryFluxTests {
         #expect(fluxData.broomBot.name == "BroomBot")
         #expect(fluxData.car.batteryLevel == 75)
         #expect(fluxData.dishwasher.operationState == .run)
-        #expect(fluxData.dryer.operationState == .inactive)
-        #expect(fluxData.washer.operationState == .finished)
+        #expect(fluxData.dryer.inUse == false)
+        #expect(fluxData.washer.inUse == false)
     }
 
     @Test("WidgetDevice model can be created and compared")
@@ -224,16 +218,13 @@ extension DishWasher {
 }
 
 extension WasherDryer {
-    init(status: String?, program: String?, remainingTime: Int?, remainingTimeUnit: String?, operationState: OperationState, doorState: String, selectedProgram: String?, activeProgram: String?, startInRelative: Int?, startInRelativeUnit: String?) {
+    init(name: String, timeRunning: Int?, timeRemaining: Int?, step: String?, programName: String?, status: String?, inUse: Bool) {
+        self.name = name
+        self.timeRunning = timeRunning
+        self.timeRemaining = timeRemaining
+        self.step = step
+        self.programName = programName
         self.status = status
-        self.program = program
-        self.remainingTime = remainingTime
-        self.remainingTimeUnit = remainingTimeUnit
-        self.operationState = operationState
-        self.doorState = doorState
-        self.selectedProgram = selectedProgram
-        self.activeProgram = activeProgram
-        self.startInRelative = startInRelative
-        self.startInRelativeUnit = startInRelativeUnit
+        self.inUse = inUse
     }
 }
