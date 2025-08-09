@@ -7,67 +7,8 @@
 
 import Foundation
 
-struct Doors: Decodable {
-    let frontRight: Int
-    let frontLeft: Int
-    let backRight: Int
-    let backLeft: Int
-}
-
-struct EvModeRange: Decodable {
-    let value: Int
-    let unit: Int
-}
-
-struct DriveDistance: Codable {
-    let rangeByFuel: RangeByFuel
-    let type: Int
-}
-
-struct RangeByFuel: Codable {
-    let gasModeRange, evModeRange, totalAvailableRange: Atc
-}
-
-struct Atc: Codable {
-    let value, unit: Int
-}
-
-struct EVStatus: Decodable {
-    let timestamp: String
-    let batteryCharge: Bool
-    let batteryStatus: Int
-    let batteryPlugin: Int
-    let drvDistance: [DriveDistance]
-}
-
-struct FluxCar: Decodable {
-    let timestamp: String
-    let lastStatusDate: String
-    let airCtrlOn: Bool
-    let doorLock: Bool
-    let doorOpen: Doors
-    let trunkOpen: Bool
-    let defrost: Bool
-    let hoodOpen: Bool
-    let engine: Bool
-}
-
-struct CarDetails: Decodable {
-    let timestamp: String
-    let evStatusTimestamp: String
-    let batteryLevel: Int
-    let distance: Int
-    let hvac: Bool
-    let pluggedIn: Bool
-    let batteryCharge: Bool
-    let locked: Bool
-    let doorsOpen: Doors
-    let trunkOpen: Bool
-    let defrost: Bool
-    let hoodOpen: Bool
-    let odometer: Double
-    let engine: Bool
-}
+// Car-specific logic and classes
+// Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor
 @Observable class Car {

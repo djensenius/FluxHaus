@@ -7,17 +7,8 @@
 
 import Foundation
 
-struct Robot: Decodable {
-    let name: String?
-    let timestamp: String
-    let batteryLevel: Int?
-    let binFull: Bool?
-    let running: Bool?
-    let charging: Bool?
-    let docking: Bool?
-    let paused: Bool?
-    let timeStarted: String?
-}
+// Robot-specific logic and classes
+// Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor
 @Observable class Robots {

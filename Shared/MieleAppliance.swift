@@ -7,13 +7,5 @@
 
 import Foundation
 
-// MARK: - New format
-struct WasherDryer: Codable {
-    var name: String
-    var timeRunning: Int?
-    var timeRemaining: Int?
-    var step: String?
-    var programName: String?
-    var status: String?
-    var inUse: Bool
-}
+// Miele-specific logic and classes
+// Note: Shared types are now defined in LoginStucts.swift
