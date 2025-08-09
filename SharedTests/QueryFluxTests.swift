@@ -63,7 +63,7 @@ struct QueryFluxTests {
             operationState: .run,
             doorState: "Closed",
             selectedProgram: "QuickWash45",
-            activeProgram: .quickwash45,
+            activeProgram: .quick45,
             startInRelative: nil,
             startInRelativeUnit: nil
         )

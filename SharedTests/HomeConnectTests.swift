@@ -14,7 +14,7 @@ struct HomeConnectTests {
     func testDishWasherProgramEnum() {
         // Test that all expected dishwasher programs are available
         let programs: [DishWasherProgram] = [
-            .eco50, .auto45, .quickwash45, .auto65, .eco45, .intensiv70,
+            .eco50, .auto1, .auto2, .auto3, .quick45, .intensiv70,
             .kurz60, .expressSparkle65, .machineCare, .steamFresh,
             .maximumCleaning, .mixedLoad
         ]
@@ -85,7 +85,7 @@ struct HomeConnectTests {
                 operationState: .run,
                 doorState: "Closed",
                 selectedProgram: "QuickWash45",
-                activeProgram: .quickwash45,
+                activeProgram: .quick45,
                 startInRelative: nil,
                 startInRelativeUnit: nil
             )
