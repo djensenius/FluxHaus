@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 class Api: ObservableObject {
     @Published var response: LoginResponse?
 
