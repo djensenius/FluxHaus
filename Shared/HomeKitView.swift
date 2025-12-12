@@ -25,7 +25,8 @@ struct HomeKitView: View {
                         }, label: {
                             HStack {
                                 Text(home.favourites[fav].name)
-                                    .font(.subheadline)
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundColor(Theme.Colors.textPrimary)
                                     .frame(width: 100)
                             }
                             .frame(width: 120, height: 50, alignment: .center)
@@ -90,11 +91,11 @@ struct HomeKitView: View {
                              })
     }
 
-    func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Material {
+    func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Color {
         if !favourite.isActive {
-            return .bar
+            return Theme.Colors.secondaryBackground
         } else {
-            return .regularMaterial
+            return Theme.Colors.accent.opacity(0.3)
         }
     }
 }

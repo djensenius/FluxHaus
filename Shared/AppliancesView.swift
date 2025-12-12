@@ -55,7 +55,10 @@ struct Appliances: View {
                                                     )
                                                 )
                                                 .font(Theme.Fonts.headerLarge())
-                                                .foregroundColor(Theme.Colors.primary)
+                                                .foregroundColor(getIconColor(
+                                                    type: theAppliances[app].name,
+                                                    index: theAppliances[app].index
+                                                ))
                                                 .padding(.leading)
                                                 Text(
                                                     getApplianceName(
@@ -146,6 +149,58 @@ struct Appliances: View {
             return ApplianceDetailView(appliance: hconn.appliances[index])
         }
         return nil
+    }
+
+    func getIconColor(type: String, index: Int) -> Color {
+        var tAppliance: [Appliance]
+        if type == "Miele" {
+            tAppliance = miele.appliances
+        } else if type == "MopBot" {
+            if robots.mopBot.running == true {
+                return Theme.Colors.accent
+            } else if robots.mopBot.charging == true {
+                return Theme.Colors.success
+            } else if robots.mopBot.binFull == true {
+                return Theme.Colors.error
+            }
+            return Theme.Colors.textSecondary
+        } else if type == "BroomBot" {
+            if robots.broomBot.running == true {
+                return Theme.Colors.accent
+            } else if robots.broomBot.charging == true {
+                return Theme.Colors.success
+            } else if robots.broomBot.binFull == true {
+                return Theme.Colors.error
+            }
+            return Theme.Colors.textSecondary
+        } else if type == "Battery" {
+            if battery.state == .charging || battery.state == .full {
+                return Theme.Colors.success
+            } else if battery.percent <= 20 {
+                return Theme.Colors.error
+            }
+            return Theme.Colors.textSecondary
+        } else if type == "Car" {
+            if car.vehicle.pluggedIn || car.vehicle.batteryCharge {
+                return Theme.Colors.success
+            } else if car.vehicle.hvac || car.vehicle.engine {
+                return Theme.Colors.accent
+            }
+            return Theme.Colors.textSecondary
+        } else {
+            tAppliance = hconn.appliances
+        }
+
+        if tAppliance.count > index {
+            if tAppliance[index].inUse {
+                return Theme.Colors.accent
+            } else if tAppliance[index].timeRemaining == 0 && tAppliance[index].programName != "" {
+                // Finished but not yet acknowledged/off?
+                return Theme.Colors.success
+            }
+            return Theme.Colors.textSecondary
+        }
+        return Theme.Colors.textSecondary
     }
 
     func getIcon(type: String, index: Int) -> Image {
