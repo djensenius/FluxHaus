@@ -13,15 +13,7 @@ struct RobotDetailView: View {
     var robots: Robots
     @State private var buttonsDisabled: Bool = false
 
-        private var buttonBackground: AnyShapeStyle {
-        #if os(visionOS)
-        return AnyShapeStyle(.clear)
-        #else
-        return AnyShapeStyle(Theme.Colors.secondaryBackground)
-        #endif
-    }
-
-    var body: some View {
+        var body: some View {
         VStack {
             HStack {
                 if robot.name! == "MopBot" {
@@ -67,34 +59,12 @@ struct RobotDetailView: View {
 
             VStack {
                 if robot.running == true {
-                    Button(action: { performAction(action: "stop") }, label: {
-                        Text("Stop")
-                            .font(Theme.Fonts.bodyMedium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(buttonBackground)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            #if os(visionOS)
-                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                            #else
-                            .cornerRadius(12)
-                            #endif
-                    })
+                    Button("Stop") { performAction(action: "stop") }
+                    .buttonStyle(.fluxPrimary)
                     .disabled(self.buttonsDisabled)
                 } else {
-                    Button(action: { performAction(action: "start") }, label: {
-                        Text("Start Cleaning")
-                            .font(Theme.Fonts.bodyMedium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(buttonBackground)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            #if os(visionOS)
-                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                            #else
-                            .cornerRadius(12)
-                            #endif
-                    })
+                    Button("Start Cleaning") { performAction(action: "start") }
+                    .buttonStyle(.fluxPrimary)
                     .disabled(self.buttonsDisabled)
                     .padding(.bottom)
 

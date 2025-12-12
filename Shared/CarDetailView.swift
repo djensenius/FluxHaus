@@ -13,15 +13,7 @@ struct CarDetailView: View {
     @State private var buttonsDisabled: Bool = false
     @State var apiResponse: Api?
 
-        private var buttonBackground: AnyShapeStyle {
-        #if os(visionOS)
-        return AnyShapeStyle(.clear)
-        #else
-        return AnyShapeStyle(Theme.Colors.secondaryBackground)
-        #endif
-    }
-
-    var body: some View {
+        var body: some View {
         VStack {
             HStack {
                 Image(systemName: "car")
@@ -83,76 +75,25 @@ struct CarDetailView: View {
 
             VStack {
                 if car.vehicle.hvac {
-                    Button(action: { performAction(action: "stop") }, label: {
-                        Text("Turn Climate Off")
-                            .font(Theme.Fonts.bodyMedium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(buttonBackground)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            #if os(visionOS)
-                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                            #else
-                            .cornerRadius(12)
-                            #endif
-                    })
+                    Button("Turn Climate Off") { performAction(action: "stop") }
+                    .buttonStyle(.fluxPrimary)
                     .disabled(self.buttonsDisabled)
                 } else {
-                    Button(action: { performAction(action: "start") }, label: {
-                        Text("Turn Climate On")
-                            .font(Theme.Fonts.bodyMedium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(buttonBackground)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            #if os(visionOS)
-                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                            #else
-                            .cornerRadius(12)
-                            #endif
-                    })
+                    Button("Turn Climate On") { performAction(action: "start") }
+                    .buttonStyle(.fluxPrimary)
                     .disabled(self.buttonsDisabled)
                 }
                 if car.vehicle.locked {
-                    Button(action: { performAction(action: "unlock") }, label: {
-                        Text("Unlock")
-                            .font(Theme.Fonts.bodyMedium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(buttonBackground)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            #if os(visionOS)
-                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                            #else
-                            .cornerRadius(12)
-                            #endif
-                    })
+                    Button("Unlock") { performAction(action: "unlock") }
+                    .buttonStyle(.fluxPrimary)
                     .disabled(self.buttonsDisabled)
                 } else {
-                    Button(action: { performAction(action: "lock") }, label: {
-                        Text("Lock")
-                            .font(Theme.Fonts.bodyMedium)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(buttonBackground)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            #if os(visionOS)
-                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                            #else
-                            .cornerRadius(12)
-                            #endif
-                    })
+                    Button("Lock") { performAction(action: "lock") }
+                    .buttonStyle(.fluxPrimary)
                     .disabled(self.buttonsDisabled)
                 }
-                Button(action: { performAction(action: "rsync") }, label: {
-                    Text("Resync data")
-                        .font(Theme.Fonts.bodyMedium)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Theme.Colors.secondaryBackground)
-                        .foregroundColor(Theme.Colors.textPrimary)
-                        .cornerRadius(12)
-                })
+                Button("Resync data") { performAction(action: "rsync") }
+                .buttonStyle(.fluxPrimary)
                 .disabled(self.buttonsDisabled)
             }.padding()
             if self.buttonsDisabled {

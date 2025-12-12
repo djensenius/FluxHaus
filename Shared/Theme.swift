@@ -178,3 +178,44 @@ extension Color {
         )
     }
 }
+//
+//  FluxButtonStyle.swift
+//  FluxHaus
+//
+//  Created by Copilot on 2025-12-11.
+//
+
+import SwiftUI
+
+struct FluxButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        #if os(visionOS)
+        configuration.label
+            .font(Theme.Fonts.bodyMedium)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(.clear)
+            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+            .hoverEffect()
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+        #else
+        configuration.label
+            .font(Theme.Fonts.bodyMedium)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(Theme.Colors.secondaryBackground)
+            .foregroundColor(Theme.Colors.textPrimary)
+            .cornerRadius(12)
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+        #endif
+    }
+}
+
+extension ButtonStyle where Self == FluxButtonStyle {
+    static var fluxPrimary: FluxButtonStyle {
+        FluxButtonStyle()
+    }
+}
