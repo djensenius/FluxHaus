@@ -13,6 +13,14 @@ struct CarDetailView: View {
     @State private var buttonsDisabled: Bool = false
     @State var apiResponse: Api?
 
+        private var buttonBackground: AnyShapeStyle {
+        #if os(visionOS)
+        return AnyShapeStyle(.clear)
+        #else
+        return AnyShapeStyle(Theme.Colors.secondaryBackground)
+        #endif
+    }
+
     var body: some View {
         VStack {
             HStack {
@@ -80,9 +88,13 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Theme.Colors.secondaryBackground)
+                            .background(buttonBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
+                            #if os(visionOS)
+                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                            #else
                             .cornerRadius(12)
+                            #endif
                     })
                     .disabled(self.buttonsDisabled)
                 } else {
@@ -91,9 +103,13 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Theme.Colors.secondaryBackground)
+                            .background(buttonBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
+                            #if os(visionOS)
+                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                            #else
                             .cornerRadius(12)
+                            #endif
                     })
                     .disabled(self.buttonsDisabled)
                 }
@@ -103,9 +119,13 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Theme.Colors.secondaryBackground)
+                            .background(buttonBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
+                            #if os(visionOS)
+                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                            #else
                             .cornerRadius(12)
+                            #endif
                     })
                     .disabled(self.buttonsDisabled)
                 } else {
@@ -114,9 +134,13 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Theme.Colors.secondaryBackground)
+                            .background(buttonBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
+                            #if os(visionOS)
+                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                            #else
                             .cornerRadius(12)
+                            #endif
                     })
                     .disabled(self.buttonsDisabled)
                 }

@@ -13,6 +13,14 @@ struct RobotDetailView: View {
     var robots: Robots
     @State private var buttonsDisabled: Bool = false
 
+        private var buttonBackground: AnyShapeStyle {
+        #if os(visionOS)
+        return AnyShapeStyle(.clear)
+        #else
+        return AnyShapeStyle(Theme.Colors.secondaryBackground)
+        #endif
+    }
+
     var body: some View {
         VStack {
             HStack {
@@ -64,9 +72,13 @@ struct RobotDetailView: View {
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Theme.Colors.secondaryBackground)
+                            .background(buttonBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
+                            #if os(visionOS)
+                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                            #else
                             .cornerRadius(12)
+                            #endif
                     })
                     .disabled(self.buttonsDisabled)
                 } else {
@@ -75,9 +87,13 @@ struct RobotDetailView: View {
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Theme.Colors.secondaryBackground)
+                            .background(buttonBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
+                            #if os(visionOS)
+                            .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                            #else
                             .cornerRadius(12)
+                            #endif
                     })
                     .disabled(self.buttonsDisabled)
                     .padding(.bottom)
