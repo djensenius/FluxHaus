@@ -90,8 +90,12 @@ struct Appliances: View {
                                         .foregroundColor(Theme.Colors.secondary)
                                         .padding()
                                     }
+                                    #if os(visionOS)
+                                    .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+                                    #else
                                     .background(Theme.Colors.secondaryBackground)
                                     .cornerRadius(12)
+                                    #endif
                                     .hoverEffect()
                                     .sheet(
                                         isPresented:
