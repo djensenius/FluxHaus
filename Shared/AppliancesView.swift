@@ -54,7 +54,8 @@ struct Appliances: View {
                                                         index: theAppliances[app].index
                                                     )
                                                 )
-                                                .font(.title2)
+                                                .font(Theme.Fonts.headerLarge())
+                                                .foregroundColor(Theme.Colors.primary)
                                                 .padding(.leading)
                                                 Text(
                                                     getApplianceName(
@@ -62,7 +63,8 @@ struct Appliances: View {
                                                         index: theAppliances[app].index
                                                     )
                                                 )
-                                                .font(.title2)
+                                                .font(Theme.Fonts.headerLarge())
+                                                .foregroundColor(Theme.Colors.textPrimary)
                                                 Spacer()
                                             }
                                             Text(
@@ -71,8 +73,8 @@ struct Appliances: View {
                                                     index: theAppliances[app].index
                                                 )
                                             )
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .font(Theme.Fonts.caption)
+                                            .foregroundColor(Theme.Colors.textSecondary)
                                             .padding(.leading)
                                         }
                                         Text(
@@ -81,10 +83,12 @@ struct Appliances: View {
                                                 index: theAppliances[app].index
                                             )
                                         )
-                                        .font(.title)
+                                        .font(Theme.Fonts.headerXL())
+                                        .foregroundColor(Theme.Colors.secondary)
                                         .padding()
                                     }
-                                    .background(.regularMaterial, in: .rect(cornerRadius: 12))
+                                    .background(Theme.Colors.secondaryBackground)
+                                    .cornerRadius(12)
                                     .hoverEffect()
                                     .sheet(
                                         isPresented:

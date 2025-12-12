@@ -296,7 +296,22 @@ extension Doors {
 }
 
 extension CarDetails {
-    init(timestamp: String, evStatusTimestamp: String, batteryLevel: Int, distance: Int, hvac: Bool, pluggedIn: Bool, batteryCharge: Bool, locked: Bool, doorsOpen: Doors, trunkOpen: Bool, defrost: Bool, hoodOpen: Bool, odometer: Double, engine: Bool) {
+    init(
+        timestamp: String,
+        evStatusTimestamp: String,
+        batteryLevel: Int,
+        distance: Int,
+        hvac: Bool,
+        pluggedIn: Bool,
+        batteryCharge: Bool,
+        locked: Bool,
+        doorsOpen: Doors,
+        trunkOpen: Bool,
+        defrost: Bool,
+        hoodOpen: Bool,
+        odometer: Double,
+        engine: Bool
+    ) {
         self.timestamp = timestamp
         self.evStatusTimestamp = evStatusTimestamp
         self.batteryLevel = batteryLevel

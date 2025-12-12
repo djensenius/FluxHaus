@@ -201,7 +201,20 @@ extension WidgetDevice {
 }
 
 extension DishWasher {
-    init(status: String?, program: String?, remainingTime: Int?, remainingTimeUnit: String?, remainingTimeEstimate: Bool?, programProgress: Double?, operationState: OperationState, doorState: String, selectedProgram: String?, activeProgram: DishWasherProgram?, startInRelative: Int?, startInRelativeUnit: String?) {
+    init(
+        status: String?,
+        program: String?,
+        remainingTime: Int?,
+        remainingTimeUnit: String?,
+        remainingTimeEstimate: Bool?,
+        programProgress: Double?,
+        operationState: OperationState,
+        doorState: String,
+        selectedProgram: String?,
+        activeProgram: DishWasherProgram?,
+        startInRelative: Int?,
+        startInRelativeUnit: String?
+    ) {
         self.status = status
         self.program = program
         self.remainingTime = remainingTime

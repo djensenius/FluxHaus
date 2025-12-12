@@ -20,6 +20,14 @@
 		632CBC902587B4AD003E4988 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		633F09482BBB8F8F0052C088 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		633F094A2BBB8F8F0052C088 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
+		634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */; };
+		634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
+		634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */; };
+		634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */; };
+		634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D22E47FFC2001F8278 /* SharedTests.swift */; };
+		634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D02E47FFC2001F8278 /* IntegrationTests.swift */; };
+		634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D12E47FFC2001F8278 /* QueryFluxTests.swift */; };
+		634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
 		635BD66B2B9DF8A6009CEEA9 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		635BD66D2B9DF8A6009CEEA9 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		635BD6702B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
@@ -73,8 +81,11 @@
 		6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		63A159282C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		BA938AC82C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		63BCF7552C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
 		63BCF7572C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
 		63BCF7592C63FABB001D4375 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
@@ -158,6 +169,14 @@
 		632CBC7D25870CBB003E4988 /* AppliancesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppliancesView.swift; sourceTree = "<group>"; };
 		632CBC8F2587B4AD003E4988 /* HomeConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConnect.swift; sourceTree = "<group>"; };
 		633F09472BBB8F8F0052C088 /* CarHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarHelper.swift; sourceTree = "<group>"; };
+		634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_iOS_SwiftTesting.swift; sourceTree = "<group>"; };
+		634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryAndWeatherTests.swift; sourceTree = "<group>"; };
+		634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConnectTests.swift; sourceTree = "<group>"; };
+		634056D02E47FFC2001F8278 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
+		634056D12E47FFC2001F8278 /* QueryFluxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFluxTests.swift; sourceTree = "<group>"; };
+		634056D22E47FFC2001F8278 /* SharedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTests.swift; sourceTree = "<group>"; };
+		634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAreTests.swift; sourceTree = "<group>"; };
+		634056D42E47FFC2001F8278 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
 		635BD66A2B9DF8A6009CEEA9 /* Robots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Robots.swift; sourceTree = "<group>"; };
 		635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAre.swift; sourceTree = "<group>"; };
 		635BD6742B9E030E009CEEA9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -186,6 +205,7 @@
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
 		63A159272C5E9763003F3796 /* LoginStucts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStucts.swift; sourceTree = "<group>"; };
+		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		63BCF7542C63FABB001D4375 /* Api.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Api.swift; sourceTree = "<group>"; };
@@ -259,6 +279,7 @@
 				632CBC2D258682C9003E4988 /* iOS */,
 				632CBC34258682C9003E4988 /* macOS */,
 				632CBC3E258682C9003E4988 /* Tests iOS */,
+				634056D52E47FFC2001F8278 /* SharedTests */,
 				632CBC49258682C9003E4988 /* Tests macOS */,
 				63DBD72F2B954215006603D0 /* VisionOS */,
 				63DBD7302B954215006603D0 /* Packages */,
@@ -288,6 +309,7 @@
 				6399EA262B9CA534000C8CA4 /* LoadingView.swift */,
 				6399EA302B9D3671000C8CA4 /* Login.swift */,
 				63A159272C5E9763003F3796 /* LoginStucts.swift */,
+				1287B4482C5E9763003F3796 /* Theme.swift */,
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
@@ -339,6 +361,7 @@
 			isa = PBXGroup;
 			children = (
 				632CBC3F258682C9003E4988 /* Tests_iOS.swift */,
+				634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */,
 				632CBC41258682C9003E4988 /* Info.plist */,
 			);
 			path = "Tests iOS";
@@ -364,6 +387,20 @@
 				63A39FB62C44391E00E62C09 /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		634056D52E47FFC2001F8278 /* SharedTests */ = {
+			isa = PBXGroup;
+			children = (
+				634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */,
+				634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */,
+				634056D02E47FFC2001F8278 /* IntegrationTests.swift */,
+				634056D12E47FFC2001F8278 /* QueryFluxTests.swift */,
+				634056D22E47FFC2001F8278 /* SharedTests.swift */,
+				634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */,
+				634056D42E47FFC2001F8278 /* WidgetTests.swift */,
+			);
+			path = SharedTests;
 			sourceTree = "<group>";
 		};
 		637BC62C2C5BDA8000E7884E /* FluxWidget */ = {
@@ -457,7 +494,7 @@
 			name = "Tests iOS";
 			productName = "Tests iOS";
 			productReference = 632CBC3B258682C9003E4988 /* Tests iOS.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		637BC6282C5BDA7F00E7884E /* FluxWidgetExtension */ = {
 			isa = PBXNativeTarget;
@@ -679,6 +716,7 @@
 				632CBC702586C79E003E4988 /* Miele.swift in Sources */,
 				63610D292BB86F230048B9FF /* Car.swift in Sources */,
 				63A159282C5E9763003F3796 /* LoginStucts.swift in Sources */,
+				0519DE362C5E9763003F3796 /* Theme.swift in Sources */,
 				632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */,
 				636B9B3A258E57D400DE97BD /* WeatherView.swift in Sources */,
 				63610D2E2BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
@@ -690,7 +728,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */,
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
+				634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -700,6 +740,7 @@
 			files = (
 				636BF1F82C5DBFCE00C1244C /* CarHelper.swift in Sources */,
 				63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */,
+				BA938AC82C5E9763003F3796 /* Theme.swift in Sources */,
 				636BF1F72C5DBFC500C1244C /* ApplianceViewHelpers.swift in Sources */,
 				63BCF7592C63FABB001D4375 /* Api.swift in Sources */,
 				636BF1F62C5DBFBF00C1244C /* ApplianceDetailView.swift in Sources */,
@@ -730,6 +771,7 @@
 				63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */,
 				635BD6722B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
 				63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */,
+				208C0E652C5E9763003F3796 /* Theme.swift in Sources */,
 				63DBD7582B954486006603D0 /* HomeKitView.swift in Sources */,
 				63610D2B2BB86F230048B9FF /* Car.swift in Sources */,
 				63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */,
@@ -760,6 +802,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				63DBD7472B954216006603D0 /* VisionOSTests.swift in Sources */,
+				634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */,
+				634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */,
+				634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */,
+				634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */,
+				634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */,
+				634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -838,8 +886,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
-				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -896,8 +944,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
-				MACOSX_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -916,7 +964,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -945,7 +993,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = iOS/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -967,9 +1015,11 @@
 		632CBC5C258682C9003E4988 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = "Tests iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -978,18 +1028,21 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_TESTING_ENABLED = YES;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "FluxHaus (iOS)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FluxHaus.app/FluxHaus";
 			};
 			name = Debug;
 		};
 		632CBC5D258682C9003E4988 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = "Tests iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -998,9 +1051,10 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_TESTING_ENABLED = YES;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "FluxHaus (iOS)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FluxHaus.app/FluxHaus";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1021,7 +1075,7 @@
 				INFOPLIST_FILE = FluxWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1057,7 +1111,7 @@
 				INFOPLIST_FILE = FluxWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1109,7 +1163,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				XROS_DEPLOYMENT_TARGET = 2.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -1145,7 +1199,7 @@
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				VALIDATE_PRODUCT = YES;
-				XROS_DEPLOYMENT_TARGET = 2.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
@@ -1170,7 +1224,7 @@
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VisionOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VisionOS";
-				XROS_DEPLOYMENT_TARGET = 2.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -1195,7 +1249,7 @@
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VisionOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/VisionOS";
 				VALIDATE_PRODUCT = YES;
-				XROS_DEPLOYMENT_TARGET = 2.0;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
