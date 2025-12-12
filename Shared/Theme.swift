@@ -178,14 +178,6 @@ extension Color {
         )
     }
 }
-//
-//  FluxButtonStyle.swift
-//  FluxHaus
-//
-//  Created by Copilot on 2025-12-11.
-//
-
-import SwiftUI
 
 struct FluxButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
