@@ -148,7 +148,11 @@ struct CarDetailView: View {
             }).padding()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #else
         .background(Theme.Colors.background)
+        #endif
     }
 
     func performAction(action: String) {

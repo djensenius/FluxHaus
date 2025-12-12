@@ -104,11 +104,24 @@ public struct Theme {
         )
 
         // Text Colors
-        public static let textPrimary = dynamicColor(light: CatppuccinLatte.text, dark: CatppuccinMocha.text)
-        public static let textSecondary = dynamicColor(
-            light: CatppuccinLatte.subtext0,
-            dark: CatppuccinMocha.subtext0
-        )
+        public static var textPrimary: Color {
+            #if os(visionOS)
+            return .primary
+            #else
+            return dynamicColor(light: CatppuccinLatte.text, dark: CatppuccinMocha.text)
+            #endif
+        }
+
+        public static var textSecondary: Color {
+            #if os(visionOS)
+            return .secondary
+            #else
+            return dynamicColor(
+                light: CatppuccinLatte.subtext0,
+                dark: CatppuccinMocha.subtext0
+            )
+            #endif
+        }
 
         // Alert Colors
         public static let error = dynamicColor(light: CatppuccinLatte.red, dark: CatppuccinMocha.red)
