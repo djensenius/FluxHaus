@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct WhereWeAre {
-    var hasKeyChainPassword = false
-    var loading = true
+public struct WhereWeAre {
+    public var hasKeyChainPassword = false
+    public var loading = true
 
     // Check if user exists in the keychain
-    init() {
+    public init() {
         let password = WhereWeAre.getPassword()
         if password != nil {
             queryFlux(password: password!, user: nil)
@@ -22,7 +22,7 @@ struct WhereWeAre {
         }
     }
 
-    mutating func setPassword(password: String) {
+    public mutating func setPassword(password: String) {
         // Set attributes
         let attributes: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
@@ -39,7 +39,7 @@ struct WhereWeAre {
         hasKeychainPassword(has: true)
     }
 
-    static func getPassword() -> String? {
+    public static func getPassword() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: "admin",
@@ -62,15 +62,15 @@ struct WhereWeAre {
         return nil
     }
 
-    mutating func hasKeychainPassword(has: Bool) {
+    public mutating func hasKeychainPassword(has: Bool) {
         hasKeyChainPassword = has
     }
 
-    mutating func finishedLoading() {
+    public mutating func finishedLoading() {
         loading = false
     }
 
-    mutating func deleteKeyChainPasword() {
+    public mutating func deleteKeyChainPasword() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrServer as String: "api.fluxhaus.io",

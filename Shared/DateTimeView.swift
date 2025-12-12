@@ -15,13 +15,15 @@ struct DateTimeView: View {
                 Spacer()
                 Text("\(dateString(date: date))")
                     .onAppear(perform: {_ = self.updateTimer;})
-                    .font(.title)
+                    .font(Theme.Fonts.headerXL())
+                    .foregroundColor(Theme.Colors.textPrimary)
                     .padding(.horizontal)
             }
             HStack {
                 Spacer()
                 Text("\(timeString(date: date))")
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyLarge)
+                    .foregroundColor(Theme.Colors.textSecondary)
                     .padding(.horizontal)
             }
         }

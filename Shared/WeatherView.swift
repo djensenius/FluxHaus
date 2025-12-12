@@ -17,7 +17,7 @@ struct WeatherView: View {
             HStack {
                 Spacer()
                 Image(systemName: weatherIcon())
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
                     .symbolRenderingMode(.multicolor)
                 Text(makeWeatherReport())
                     .task {
@@ -25,30 +25,38 @@ struct WeatherView: View {
                         await lman.fetchTheWeather()
                         _ = self.updateTimer
                     }
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
                 if (lman.weather) != nil {
                     Image(systemName: "wind")
+                        .foregroundColor(Theme.Colors.textSecondary)
                     Text(getWind())
-                        .font(.subheadline)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
                         .padding(.trailing)
                 }
             }
             HStack {
                 Spacer()
                 Text(getFeels())
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
                     .padding(.trailing)
             }
             HStack {
                 Spacer()
                 Image(systemName: "arrow.down.to.line.alt")
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
                 Text(getMin())
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
                 Image(systemName: "arrow.up.to.line.alt")
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
                 Text(getMax())
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
                     .padding(.trailing)
             }
             if lman.forecast != nil {
@@ -56,9 +64,10 @@ struct WeatherView: View {
                     Spacer()
                     Image(systemName: forecastIcon())
                         .symbolRenderingMode(getRenderMode())
-                        .font(.subheadline)
+                        .font(Theme.Fonts.bodyMedium)
                     Text(buildForecast())
-                        .font(.subheadline)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
                         .padding(.trailing)
 
                 }
@@ -70,19 +79,21 @@ struct WeatherView: View {
                         self.showModal = true
                     }, label: {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.subheadline)
+                            .font(Theme.Fonts.bodyMedium)
                             .symbolRenderingMode(.multicolor)
                         Text("OMG ALERT")
-                            .font(.subheadline)
+                            .font(Theme.Fonts.bodyMedium)
+                            .foregroundColor(Theme.Colors.error)
                     }).sheet(isPresented: self.$showModal) {
                         WeatherAlertView(alerts: lman.weather!.weatherAlerts!)
                     }
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
                 }
                 #if !os(visionOS)
                 Link("Details", destination: URL(string: "weather://")!)
                     .padding(.trailing)
-                    .font(.subheadline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.accent)
                 #endif
             }
         }

@@ -160,22 +160,31 @@ struct DeviceListView: View {
                             ProgressView(value: Double(item.progress) / 100) {
                                 HStack {
                                     Image(systemName: item.icon)
+                                        .foregroundColor(Theme.Colors.textPrimary)
                                     Text(item.name)
+                                        .foregroundColor(Theme.Colors.textPrimary)
                                 }
                             } currentValueLabel: {
                                 Text(item.trailingText)
-                            }.padding(.bottom)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                            }
+                            .tint(Theme.Colors.accent)
+                            .padding(.bottom)
                         } else if item.running {
                             HStack {
                                 Image(systemName: item.icon)
+                                    .foregroundColor(Theme.Colors.textPrimary)
                                 Text(item.trailingText)
+                                    .foregroundColor(Theme.Colors.textPrimary)
                                 Spacer()
                             }
                             .padding(.bottom)
                         } else {
                             HStack {
                                 Image(systemName: item.icon)
+                                    .foregroundColor(Theme.Colors.textSecondary)
                                 Text("\(item.name) off")
+                                    .foregroundColor(Theme.Colors.textSecondary)
                                 Spacer()
                             }.padding(.bottom)
                         }
@@ -236,18 +245,26 @@ struct SingleView: View {
         VStack {
             Gauge(
                 value: Double(item.progress) / 100,
-                label: { Image(systemName: item.icon) },
+                label: {
+                    Image(systemName: item.icon)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                },
                 currentValueLabel: {
                     if multipleLines && item.shortText != "" {
                         Text("\(item.progress)%")
+                            .foregroundColor(Theme.Colors.textPrimary)
                     } else {
                         Text(item.shortText)
+                            .foregroundColor(Theme.Colors.textPrimary)
                     }
                 }
             )
             .gaugeStyle(.accessoryCircular)
+            .tint(Theme.Colors.accent)
             if multipleLines && item.shortText != "" {
                 Text(item.shortText)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(.caption)
             }
         }
     }
@@ -290,7 +307,7 @@ struct FluxWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             FluxWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(Theme.Colors.background, for: .widget)
         }
         .supportedFamilies([
             .systemSmall,
@@ -310,7 +327,7 @@ struct FluxWidgetOtherSmall: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             FluxWidgetEntryView(entry: entry, grid: true)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(Theme.Colors.background, for: .widget)
         }
         .supportedFamilies([
             .systemSmall

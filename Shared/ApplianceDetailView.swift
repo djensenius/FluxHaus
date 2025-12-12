@@ -24,19 +24,30 @@ struct ApplianceDetailView: View {
                 }
                 Text(appliance.name)
             }
-                .font(.title)
+                .font(Theme.Fonts.headerXL())
+                .foregroundColor(Theme.Colors.textPrimary)
                 .padding([.top, .bottom])
 
             VStack(alignment: .leading) {
                 if appliance.timeRunning != 0 {
                     Text("Running for \(appliance.timeRunning) minutes")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
                 }
                 if appliance.inUse == false {
                     Text("Off")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 } else {
                     Text("Finishing in \(appliance.timeRemaining) minutes at \(appliance.timeFinish)")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
                     Text("Program: \(appliance.programName)")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     Text("Step: \(appliance.step)")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 }
             }.padding(.bottom)
 
@@ -45,7 +56,15 @@ struct ApplianceDetailView: View {
                 self.presentationMode.wrappedValue.dismiss()
             }, label: {
                 Text("Dismiss")
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.accent)
             }).padding()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #else
+        .background(Theme.Colors.background)
+        #endif
     }
 }

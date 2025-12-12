@@ -25,7 +25,8 @@ struct HomeKitView: View {
                         }, label: {
                             HStack {
                                 Text(home.favourites[fav].name)
-                                    .font(.subheadline)
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundColor(Theme.Colors.textPrimary)
                                     .frame(width: 100)
                             }
                             .frame(width: 120, height: 50, alignment: .center)
@@ -50,7 +51,7 @@ struct HomeKitView: View {
                     .frame(width: 120, height: 50, alignment: .center)
                 })
                 .background(
-                    .bar,
+                    activeBackground,
                     in: .rect(cornerRadius: 12)
                 )
                 #if os(visionOS)
@@ -66,7 +67,7 @@ struct HomeKitView: View {
                     .frame(width: 120, height: 50, alignment: .center)
                 })
                 .background(
-                    .regularMaterial,
+                    inactiveBackground,
                     in: .rect(cornerRadius: 12)
                 )
                 #if os(visionOS)
@@ -81,6 +82,22 @@ struct HomeKitView: View {
         }
     }
 
+    private var activeBackground: AnyShapeStyle {
+        #if os(visionOS)
+        return AnyShapeStyle(.clear)
+        #else
+        return AnyShapeStyle(.bar)
+        #endif
+    }
+
+    private var inactiveBackground: AnyShapeStyle {
+        #if os(visionOS)
+        return AnyShapeStyle(.clear)
+        #else
+        return AnyShapeStyle(.regularMaterial)
+        #endif
+    }
+
     var updateTimer: Timer {
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true,
                              block: { _ in
@@ -90,12 +107,16 @@ struct HomeKitView: View {
                              })
     }
 
-    func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Material {
+    func getButtonBackgroundColor(favourite: HomeKitFavourite) -> Color {
+        #if os(visionOS)
+        return .clear
+        #else
         if !favourite.isActive {
-            return .bar
+            return Theme.Colors.secondaryBackground
         } else {
-            return .regularMaterial
+            return Theme.Colors.accent.opacity(0.3)
         }
+        #endif
     }
 }
 

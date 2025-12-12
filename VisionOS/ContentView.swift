@@ -28,6 +28,7 @@ struct ContentView: View {
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
+                        .font(.title)
                         .padding(.leading)
                     Spacer()
                 }
@@ -48,7 +49,7 @@ struct ContentView: View {
                 "Weather provided by  Weather",
                 destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
             )
-            .font(.footnote)
+            .font(.caption)
             .padding([.bottom, .leading])
 
             Spacer()
@@ -62,8 +63,8 @@ struct ContentView: View {
                 )
             }, label: {
                 Text("Logout")
+                    .font(.caption)
             })
-            .font(.footnote)
             .padding([.bottom, .trailing])
         }
     }

@@ -32,11 +32,9 @@ struct LoadingView: View {
                     Divider()
                 }
                 Spacer()
-                Button(
-                    "Login",
-                    systemImage: "arrow.up",
-                    action: viewModel.login
-                )
+                Button(action: viewModel.login) {
+                    Label("Login", systemImage: "arrow.up")
+                }
             }
             .padding(30)
             .task {
