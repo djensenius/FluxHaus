@@ -73,7 +73,7 @@ struct CarDetailView: View {
                 .font(Theme.Fonts.bodyMedium)
             }.padding(.bottom)
 
-            HStack {
+            VStack {
                 if car.vehicle.hvac {
                     Button(action: { performAction(action: "stop") }) {
                         Text("Turn Climate Off")
