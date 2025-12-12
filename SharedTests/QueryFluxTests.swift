@@ -98,12 +98,12 @@ struct QueryFluxTests {
             washer: washer
         )
 
-        #expect(fluxData.mopBot.name == "MopBot")
-        #expect(fluxData.broomBot.name == "BroomBot")
-        #expect(fluxData.car.batteryLevel == 75)
-        #expect(fluxData.dishwasher.operationState == .run)
-        #expect(fluxData.dryer.inUse == false)
-        #expect(fluxData.washer.inUse == false)
+        #expect(fluxData.mopBot?.name == "MopBot")
+        #expect(fluxData.broomBot?.name == "BroomBot")
+        #expect(fluxData.car?.batteryLevel == 75)
+        #expect(fluxData.dishwasher?.operationState == .run)
+        #expect(fluxData.dryer?.inUse == false)
+        #expect(fluxData.washer?.inUse == false)
     }
 
     @Test("WidgetDevice model can be created and compared")
@@ -127,8 +127,8 @@ struct QueryFluxTests {
         )
 
         #expect(device1.name == "TestDevice")
-        #expect(device1.battery == 85)
-        #expect(device1.status == "Running")
+        #expect(device1.progress == 85)
+        #expect(device1.trailingText == "Running")
 
         // Test equality
         #expect(device1 == device2)
@@ -181,78 +181,17 @@ struct QueryFluxTests {
 }
 
 // Helper extensions for testing
-extension FluxData {
-    init(
-        mopBot: Robot,
-        broomBot: Robot,
-        car: CarDetails,
-        dishwasher: DishWasher,
-        dryer: WasherDryer,
-        washer: WasherDryer
-    ) {
-        self.mopBot = mopBot
-        self.broomBot = broomBot
-        self.car = car
-        self.dishwasher = dishwasher
-        self.dryer = dryer
-        self.washer = washer
-    }
-}
+// FluxData extension removed as memberwise init should be accessible via @testable import
 
 extension WidgetDevice {
     init(name: String, battery: Int, status: String) {
-        self.name = name
-        self.battery = battery
-        self.status = status
-    }
-}
-
-extension DishWasher {
-    init(
-        status: String?,
-        program: String?,
-        remainingTime: Int?,
-        remainingTimeUnit: String?,
-        remainingTimeEstimate: Bool?,
-        programProgress: Double?,
-        operationState: OperationState,
-        doorState: String,
-        selectedProgram: String?,
-        activeProgram: DishWasherProgram?,
-        startInRelative: Int?,
-        startInRelativeUnit: String?
-    ) {
-        self.status = status
-        self.program = program
-        self.remainingTime = remainingTime
-        self.remainingTimeUnit = remainingTimeUnit
-        self.remainingTimeEstimate = remainingTimeEstimate
-        self.programProgress = programProgress
-        self.operationState = operationState
-        self.doorState = doorState
-        self.selectedProgram = selectedProgram
-        self.activeProgram = activeProgram
-        self.startInRelative = startInRelative
-        self.startInRelativeUnit = startInRelativeUnit
-    }
-}
-
-extension WasherDryer {
-    init(
-        name: String,
-        timeRunning: Int?,
-        timeRemaining: Int?,
-        step: String?,
-        programName: String?,
-        status: String?,
-        inUse: Bool
-    ) {
-        self.name = name
-        self.timeRunning = timeRunning
-        self.timeRemaining = timeRemaining
-        self.step = step
-        self.programName = programName
-        self.status = status
-        self.inUse = inUse
+        self = WidgetDevice(
+            name: name,
+            progress: battery,
+            icon: "circle",
+            trailingText: status,
+            shortText: status,
+            running: false
+        )
     }
 }

@@ -1163,6 +1163,7 @@
 				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_MODULE_NAME = FluxHaus;
 				SDKROOT = xros;
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -1199,6 +1200,7 @@
 				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_MODULE_NAME = FluxHaus;
 				SDKROOT = xros;
 				SUPPORTED_PLATFORMS = "xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;

@@ -219,22 +219,4 @@ struct BatteryAndWeatherTests {
 import CoreLocation
 @preconcurrency import WeatherKit
 
-extension ForecastInfo {
-    init(
-        type: Precipitation,
-        chance: Double,
-        symbolName: String,
-        endingNumber: Int?,
-        endingType: TimeType?,
-        startingNumber: Int?,
-        startingType: TimeType?
-    ) {
-        self.type = type
-        self.chance = chance
-        self.symbolName = symbolName
-        self.endingNumber = endingNumber
-        self.endingType = endingType
-        self.startingNumber = startingNumber
-        self.startingType = startingType
-    }
-}
+// ForecastInfo extension removed as memberwise init should be accessible via @testable import
