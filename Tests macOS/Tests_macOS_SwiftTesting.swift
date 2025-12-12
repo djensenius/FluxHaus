@@ -10,7 +10,7 @@ import Testing
 import XCTest
 @testable import FluxHaus
 
-struct macOSTests {
+struct MacOSTests {
 
     @Test("macOS app can be launched successfully")
     func testAppLaunch() throws {
