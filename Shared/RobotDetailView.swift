@@ -23,42 +23,61 @@ struct RobotDetailView: View {
                 }
                 Text(robot.name!)
             }
-                .font(.title)
+                .font(Theme.Fonts.headerXL())
+                .foregroundColor(Theme.Colors.textPrimary)
                 .padding([.top, .bottom])
 
             VStack(alignment: .leading) {
                 Text("Battery: \(robot.batteryLevel ?? 0)%")
+                    .font(Theme.Fonts.bodyLarge)
+                    .foregroundColor(Theme.Colors.textPrimary)
                 if robot.charging == true && robot.batteryLevel ?? 0 < 100 {
                     Text("Charging")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.success)
                 } else if robot.running == true {
                     Text("Cleaning started \(getCarTime(strDate: robot.timestamp))")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.accent)
                 } else if robot.docking == true {
                     Text("Docking")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 } else if robot.paused == true {
                     Text("Paused")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.warning)
                 } else {
                     Text("Idle")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 }
                 Text("Data Updated \(getCarTime(strDate: robot.timestamp))")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
             }.padding(.bottom)
 
             VStack {
                 if robot.running == true {
                     Button("Stop", action: { performAction(action: "stop") })
                         .disabled(self.buttonsDisabled)
+                        .foregroundColor(Theme.Colors.error)
                 } else {
                     Button("Start Cleaning", action: { performAction(action: "start") })
                         .disabled(self.buttonsDisabled).padding(.bottom)
+                        .foregroundColor(Theme.Colors.success)
                     if robots.broomBot.running != true && robots.mopBot.running != true {
                         Button("Deep Clean (BroomBot + MopBot)", action: { performAction(action: "deepClean") })
                             .disabled(self.buttonsDisabled)
+                            .foregroundColor(Theme.Colors.primary)
                     }
                 }
             }.padding()
 
             if self.buttonsDisabled {
                 Text("It takes about 30 seconds for requests to finish, feel free to dismiss this window.")
-                    .font(.caption)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
                     .padding()
                 ProgressView()
             }
@@ -67,8 +86,11 @@ struct RobotDetailView: View {
                 self.presentationMode.wrappedValue.dismiss()
             }, label: {
                 Text("Dismiss")
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.accent)
             }).padding()
         }
+        .background(Theme.Colors.background)
     }
 
     func performAction(action: String) {
