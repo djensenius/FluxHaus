@@ -59,17 +59,40 @@ struct RobotDetailView: View {
 
             VStack {
                 if robot.running == true {
-                    Button("Stop", action: { performAction(action: "stop") })
-                        .disabled(self.buttonsDisabled)
-                        .foregroundColor(Theme.Colors.error)
+                    Button(action: { performAction(action: "stop") }) {
+                        Text("Stop")
+                            .font(Theme.Fonts.bodyMedium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.Colors.secondaryBackground)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .cornerRadius(12)
+                    }
+                    .disabled(self.buttonsDisabled)
                 } else {
-                    Button("Start Cleaning", action: { performAction(action: "start") })
-                        .disabled(self.buttonsDisabled).padding(.bottom)
-                        .foregroundColor(Theme.Colors.success)
+                    Button(action: { performAction(action: "start") }) {
+                        Text("Start Cleaning")
+                            .font(Theme.Fonts.bodyMedium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.Colors.secondaryBackground)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .cornerRadius(12)
+                    }
+                    .disabled(self.buttonsDisabled)
+                    .padding(.bottom)
+                    
                     if robots.broomBot.running != true && robots.mopBot.running != true {
-                        Button("Deep Clean (BroomBot + MopBot)", action: { performAction(action: "deepClean") })
-                            .disabled(self.buttonsDisabled)
-                            .foregroundColor(Theme.Colors.primary)
+                        Button(action: { performAction(action: "deepClean") }) {
+                            Text("Deep Clean (BroomBot + MopBot)")
+                                .font(Theme.Fonts.bodyMedium)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Theme.Colors.secondaryBackground)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .cornerRadius(12)
+                        }
+                        .disabled(self.buttonsDisabled)
                     }
                 }
             }.padding()

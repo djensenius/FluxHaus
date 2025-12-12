@@ -75,26 +75,61 @@ struct CarDetailView: View {
 
             HStack {
                 if car.vehicle.hvac {
-                    Button("Turn Climate Off", action: { performAction(action: "stop") })
-                        .disabled(self.buttonsDisabled)
-                        .foregroundColor(Theme.Colors.error)
+                    Button(action: { performAction(action: "stop") }) {
+                        Text("Turn Climate Off")
+                            .font(Theme.Fonts.bodyMedium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.Colors.secondaryBackground)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .cornerRadius(12)
+                    }
+                    .disabled(self.buttonsDisabled)
                 } else {
-                    Button("Turn Climate On", action: { performAction(action: "start") })
-                        .disabled(self.buttonsDisabled)
-                        .foregroundColor(Theme.Colors.success)
+                    Button(action: { performAction(action: "start") }) {
+                        Text("Turn Climate On")
+                            .font(Theme.Fonts.bodyMedium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.Colors.secondaryBackground)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .cornerRadius(12)
+                    }
+                    .disabled(self.buttonsDisabled)
                 }
                 if car.vehicle.locked {
-                    Button("Unlock", action: { performAction(action: "unlock") })
-                        .disabled(self.buttonsDisabled)
-                        .foregroundColor(Theme.Colors.accent)
-                } else {
-                    Button("Lock", action: { performAction(action: "lock") })
-                        .disabled(self.buttonsDisabled)
-                        .foregroundColor(Theme.Colors.error)
-                }
-                Button("Resync data", action: { performAction(action: "rsync") })
+                    Button(action: { performAction(action: "unlock") }) {
+                        Text("Unlock")
+                            .font(Theme.Fonts.bodyMedium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.Colors.secondaryBackground)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .cornerRadius(12)
+                    }
                     .disabled(self.buttonsDisabled)
-                    .foregroundColor(Theme.Colors.primary)
+                } else {
+                    Button(action: { performAction(action: "lock") }) {
+                        Text("Lock")
+                            .font(Theme.Fonts.bodyMedium)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Theme.Colors.secondaryBackground)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .cornerRadius(12)
+                    }
+                    .disabled(self.buttonsDisabled)
+                }
+                Button(action: { performAction(action: "rsync") }) {
+                    Text("Resync data")
+                        .font(Theme.Fonts.bodyMedium)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Theme.Colors.secondaryBackground)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                        .cornerRadius(12)
+                }
+                .disabled(self.buttonsDisabled)
             }.padding()
             if self.buttonsDisabled {
                 Text("It takes about 90 seconds for requests to finish, feel free to dismiss this window.")
