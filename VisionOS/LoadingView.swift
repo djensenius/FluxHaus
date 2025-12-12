@@ -16,14 +16,11 @@ struct LoadingView: View {
     var body: some View {
         if needLoginView && !loggedIn {
             Text("FluxHaus Login")
-                .font(Theme.Fonts.headerXL())
-                .foregroundColor(Theme.Colors.textPrimary)
+                .font(.title)
                 .padding(30)
             VStack {
                 if error != nil {
                     Text(error!)
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.error)
                 }
                 Spacer()
                 VStack {
@@ -31,20 +28,15 @@ struct LoadingView: View {
                         "Password",
                         text: $viewModel.password
                     )
-                    .font(Theme.Fonts.bodyLarge)
                     .padding(.top, 20)
                     Divider()
-                        .background(Theme.Colors.textSecondary)
                 }
                 Spacer()
                 Button(action: viewModel.login) {
                     Label("Login", systemImage: "arrow.up")
-                        .font(Theme.Fonts.bodyLarge)
-                        .foregroundColor(Theme.Colors.accent)
                 }
             }
             .padding(30)
-            .background(Theme.Colors.background)
             .task {
                 checkLogin()
             }
@@ -62,8 +54,6 @@ struct LoadingView: View {
             }
         } else {
             Text("Loading")
-                .font(Theme.Fonts.headerLarge())
-                .foregroundColor(Theme.Colors.textPrimary)
         }
     }
 
