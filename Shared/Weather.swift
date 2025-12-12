@@ -27,6 +27,7 @@ struct ForecastInfo {
 }
 
 // MARK: - Location services
+@MainActor
 @preconcurrency class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
 
@@ -198,20 +199,27 @@ struct ForecastInfo {
     }
 
     #if !os(visionOS)
-    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        self.status = status
+    nonisolated func locationManager(
+        _ manager: CLLocationManager,
+        didChangeAuthorization status: CLAuthorizationStatus
+    ) {
+        Task { @MainActor in
+            self.status = status
+        }
     }
     #endif
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last else { return }
-        if self.location?.coordinate.longitude != location.coordinate.longitude ||
-                self.location?.coordinate.latitude != location.coordinate.latitude {
-            self.location = location
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        Task { @MainActor in
+            guard let location = locations.last else { return }
+            if self.location?.coordinate.longitude != location.coordinate.longitude ||
+                    self.location?.coordinate.latitude != location.coordinate.latitude {
+                self.location = location
+            }
         }
     }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
         debugPrint(error)
     }
 }
