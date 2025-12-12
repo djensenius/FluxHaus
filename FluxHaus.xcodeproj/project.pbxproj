@@ -1023,6 +1023,7 @@
 		632CBC5C258682C9003E4988 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Tests iOS/Tests iOS.entitlements";
 				SUPPORTS_MACCATALYST = YES;
 				MARKETING_VERSION = 1.5;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -1048,6 +1049,7 @@
 		632CBC5D258682C9003E4988 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Tests iOS/Tests iOS.entitlements";
 				SUPPORTS_MACCATALYST = YES;
 				MARKETING_VERSION = 1.5;
 				BUNDLE_LOADER = "$(TEST_HOST)";
