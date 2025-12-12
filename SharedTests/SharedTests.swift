@@ -261,7 +261,15 @@ struct UtilityFunctionTests {
 
 // Helper functions and imports for testing
 extension Appliance {
-    init(name: String, timeRunning: Int, timeRemaining: Int, timeFinish: String, step: String, programName: String, inUse: Bool) {
+    init(
+        name: String,
+        timeRunning: Int,
+        timeRemaining: Int,
+        timeFinish: String,
+        step: String,
+        programName: String,
+        inUse: Bool
+    ) {
         self.name = name
         self.timeRunning = timeRunning
         self.timeRemaining = timeRemaining
@@ -273,7 +281,17 @@ extension Appliance {
 }
 
 extension Robot {
-    init(name: String?, timestamp: String, batteryLevel: Int?, binFull: Bool?, running: Bool?, charging: Bool?, docking: Bool?, paused: Bool?, timeStarted: String?) {
+    init(
+        name: String?,
+        timestamp: String,
+        batteryLevel: Int?,
+        binFull: Bool?,
+        running: Bool?,
+        charging: Bool?,
+        docking: Bool?,
+        paused: Bool?,
+        timeStarted: String?
+    ) {
         self.name = name
         self.timestamp = timestamp
         self.batteryLevel = batteryLevel

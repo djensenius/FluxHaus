@@ -57,8 +57,12 @@ struct WidgetTests {
         let constantDevices = devices.filter { $0.name == "Car" || $0.name == "Battery" }
         let runningRobots = devices.filter { ($0.name == "MopBot" || $0.name == "BroomBot") && $0.running }
         let offRobots = devices.filter { ($0.name == "MopBot" || $0.name == "BroomBot") && !$0.running }
-        let runningAppliances = devices.filter { $0.name != "Car" && $0.name != "Battery" && $0.name != "MopBot" && $0.name != "BroomBot" && $0.running }
-        let offAppliances = devices.filter { $0.name != "Car" && $0.name != "Battery" && $0.name != "MopBot" && $0.name != "BroomBot" && !$0.running }
+        let runningAppliances = devices.filter {
+            $0.name != "Car" && $0.name != "Battery" && $0.name != "MopBot" && $0.name != "BroomBot" && $0.running
+        }
+        let offAppliances = devices.filter {
+            $0.name != "Car" && $0.name != "Battery" && $0.name != "MopBot" && $0.name != "BroomBot" && !$0.running
+        }
 
         #expect(constantDevices.count == 2)
         #expect(runningRobots.count == 1)

@@ -220,7 +220,15 @@ import CoreLocation
 @preconcurrency import WeatherKit
 
 extension ForecastInfo {
-    init(type: Precipitation, chance: Double, symbolName: String, endingNumber: Int?, endingType: TimeType?, startingNumber: Int?, startingType: TimeType?) {
+    init(
+        type: Precipitation,
+        chance: Double,
+        symbolName: String,
+        endingNumber: Int?,
+        endingType: TimeType?,
+        startingNumber: Int?,
+        startingType: TimeType?
+    ) {
         self.type = type
         self.chance = chance
         self.symbolName = symbolName

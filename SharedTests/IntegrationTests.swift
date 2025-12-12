@@ -284,7 +284,17 @@ extension EVStatus {
 }
 
 extension FluxCar {
-    init(timestamp: String, lastStatusDate: String, airCtrlOn: Bool, doorLock: Bool, doorOpen: Doors, trunkOpen: Bool, defrost: Bool, hoodOpen: Bool, engine: Bool) {
+    init(
+        timestamp: String,
+        lastStatusDate: String,
+        airCtrlOn: Bool,
+        doorLock: Bool,
+        doorOpen: Doors,
+        trunkOpen: Bool,
+        defrost: Bool,
+        hoodOpen: Bool,
+        engine: Bool
+    ) {
         self.timestamp = timestamp
         self.lastStatusDate = lastStatusDate
         self.airCtrlOn = airCtrlOn

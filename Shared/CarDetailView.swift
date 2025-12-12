@@ -75,7 +75,7 @@ struct CarDetailView: View {
 
             VStack {
                 if car.vehicle.hvac {
-                    Button(action: { performAction(action: "stop") }) {
+                    Button(action: { performAction(action: "stop") }, label: {
                         Text("Turn Climate Off")
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
@@ -83,10 +83,10 @@ struct CarDetailView: View {
                             .background(Theme.Colors.secondaryBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
                             .cornerRadius(12)
-                    }
+                    })
                     .disabled(self.buttonsDisabled)
                 } else {
-                    Button(action: { performAction(action: "start") }) {
+                    Button(action: { performAction(action: "start") }, label: {
                         Text("Turn Climate On")
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
@@ -94,11 +94,11 @@ struct CarDetailView: View {
                             .background(Theme.Colors.secondaryBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
                             .cornerRadius(12)
-                    }
+                    })
                     .disabled(self.buttonsDisabled)
                 }
                 if car.vehicle.locked {
-                    Button(action: { performAction(action: "unlock") }) {
+                    Button(action: { performAction(action: "unlock") }, label: {
                         Text("Unlock")
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
@@ -106,10 +106,10 @@ struct CarDetailView: View {
                             .background(Theme.Colors.secondaryBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
                             .cornerRadius(12)
-                    }
+                    })
                     .disabled(self.buttonsDisabled)
                 } else {
-                    Button(action: { performAction(action: "lock") }) {
+                    Button(action: { performAction(action: "lock") }, label: {
                         Text("Lock")
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
@@ -117,10 +117,10 @@ struct CarDetailView: View {
                             .background(Theme.Colors.secondaryBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
                             .cornerRadius(12)
-                    }
+                    })
                     .disabled(self.buttonsDisabled)
                 }
-                Button(action: { performAction(action: "rsync") }) {
+                Button(action: { performAction(action: "rsync") }, label: {
                     Text("Resync data")
                         .font(Theme.Fonts.bodyMedium)
                         .padding()
@@ -128,7 +128,7 @@ struct CarDetailView: View {
                         .background(Theme.Colors.secondaryBackground)
                         .foregroundColor(Theme.Colors.textPrimary)
                         .cornerRadius(12)
-                }
+                })
                 .disabled(self.buttonsDisabled)
             }.padding()
             if self.buttonsDisabled {

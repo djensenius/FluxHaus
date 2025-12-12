@@ -14,64 +14,62 @@ import AppKit
 
 public struct Theme {
     // Catppuccin Palette
-    private struct Catppuccin {
-        struct Latte {
-            static let rosewater = Color(hex: "dc8a78")
-            static let flamingo = Color(hex: "dd7878")
-            static let pink = Color(hex: "ea76cb")
-            static let mauve = Color(hex: "8839ef")
-            static let red = Color(hex: "d20f39")
-            static let maroon = Color(hex: "e64553")
-            static let peach = Color(hex: "fe640b")
-            static let yellow = Color(hex: "df8e1d")
-            static let green = Color(hex: "40a02b")
-            static let teal = Color(hex: "179299")
-            static let sky = Color(hex: "04a5e5")
-            static let sapphire = Color(hex: "209fb5")
-            static let blue = Color(hex: "1e66f5")
-            static let lavender = Color(hex: "7287fd")
-            static let text = Color(hex: "4c4f69")
-            static let subtext1 = Color(hex: "5c5f77")
-            static let subtext0 = Color(hex: "6c6f85")
-            static let overlay2 = Color(hex: "7c7f93")
-            static let overlay1 = Color(hex: "8c8fa1")
-            static let overlay0 = Color(hex: "9ca0b0")
-            static let surface2 = Color(hex: "acb0be")
-            static let surface1 = Color(hex: "bcc0cc")
-            static let surface0 = Color(hex: "ccd0da")
-            static let base = Color(hex: "eff1f5")
-            static let mantle = Color(hex: "e6e9ef")
-            static let crust = Color(hex: "dce0e8")
-        }
+    private struct CatppuccinLatte {
+        static let rosewater = Color(hex: "dc8a78")
+        static let flamingo = Color(hex: "dd7878")
+        static let pink = Color(hex: "ea76cb")
+        static let mauve = Color(hex: "8839ef")
+        static let red = Color(hex: "d20f39")
+        static let maroon = Color(hex: "e64553")
+        static let peach = Color(hex: "fe640b")
+        static let yellow = Color(hex: "df8e1d")
+        static let green = Color(hex: "40a02b")
+        static let teal = Color(hex: "179299")
+        static let sky = Color(hex: "04a5e5")
+        static let sapphire = Color(hex: "209fb5")
+        static let blue = Color(hex: "1e66f5")
+        static let lavender = Color(hex: "7287fd")
+        static let text = Color(hex: "4c4f69")
+        static let subtext1 = Color(hex: "5c5f77")
+        static let subtext0 = Color(hex: "6c6f85")
+        static let overlay2 = Color(hex: "7c7f93")
+        static let overlay1 = Color(hex: "8c8fa1")
+        static let overlay0 = Color(hex: "9ca0b0")
+        static let surface2 = Color(hex: "acb0be")
+        static let surface1 = Color(hex: "bcc0cc")
+        static let surface0 = Color(hex: "ccd0da")
+        static let base = Color(hex: "eff1f5")
+        static let mantle = Color(hex: "e6e9ef")
+        static let crust = Color(hex: "dce0e8")
+    }
 
-        struct Mocha {
-            static let rosewater = Color(hex: "f5e0dc")
-            static let flamingo = Color(hex: "f2cdcd")
-            static let pink = Color(hex: "f5c2e7")
-            static let mauve = Color(hex: "cba6f7")
-            static let red = Color(hex: "f38ba8")
-            static let maroon = Color(hex: "eba0ac")
-            static let peach = Color(hex: "fab387")
-            static let yellow = Color(hex: "f9e2af")
-            static let green = Color(hex: "a6e3a1")
-            static let teal = Color(hex: "94e2d5")
-            static let sky = Color(hex: "89dceb")
-            static let sapphire = Color(hex: "74c7ec")
-            static let blue = Color(hex: "89b4fa")
-            static let lavender = Color(hex: "b4befe")
-            static let text = Color(hex: "cdd6f4")
-            static let subtext1 = Color(hex: "bac2de")
-            static let subtext0 = Color(hex: "a6adc8")
-            static let overlay2 = Color(hex: "9399b2")
-            static let overlay1 = Color(hex: "7f849c")
-            static let overlay0 = Color(hex: "6c7086")
-            static let surface2 = Color(hex: "585b70")
-            static let surface1 = Color(hex: "45475a")
-            static let surface0 = Color(hex: "313244")
-            static let base = Color(hex: "1e1e2e")
-            static let mantle = Color(hex: "181825")
-            static let crust = Color(hex: "11111b")
-        }
+    private struct CatppuccinMocha {
+        static let rosewater = Color(hex: "f5e0dc")
+        static let flamingo = Color(hex: "f2cdcd")
+        static let pink = Color(hex: "f5c2e7")
+        static let mauve = Color(hex: "cba6f7")
+        static let red = Color(hex: "f38ba8")
+        static let maroon = Color(hex: "eba0ac")
+        static let peach = Color(hex: "fab387")
+        static let yellow = Color(hex: "f9e2af")
+        static let green = Color(hex: "a6e3a1")
+        static let teal = Color(hex: "94e2d5")
+        static let sky = Color(hex: "89dceb")
+        static let sapphire = Color(hex: "74c7ec")
+        static let blue = Color(hex: "89b4fa")
+        static let lavender = Color(hex: "b4befe")
+        static let text = Color(hex: "cdd6f4")
+        static let subtext1 = Color(hex: "bac2de")
+        static let subtext0 = Color(hex: "a6adc8")
+        static let overlay2 = Color(hex: "9399b2")
+        static let overlay1 = Color(hex: "7f849c")
+        static let overlay0 = Color(hex: "6c7086")
+        static let surface2 = Color(hex: "585b70")
+        static let surface1 = Color(hex: "45475a")
+        static let surface0 = Color(hex: "313244")
+        static let base = Color(hex: "1e1e2e")
+        static let mantle = Color(hex: "181825")
+        static let crust = Color(hex: "11111b")
     }
 
     private static func dynamicColor(light: Color, dark: Color) -> Color {
@@ -90,29 +88,35 @@ public struct Theme {
 
     public struct Colors {
         // Accent Color: Peach
-        public static let accent = dynamicColor(light: Catppuccin.Latte.peach, dark: Catppuccin.Mocha.peach)
+        public static let accent = dynamicColor(light: CatppuccinLatte.peach, dark: CatppuccinMocha.peach)
 
         // Primary Color: Mauve
-        public static let primary = dynamicColor(light: Catppuccin.Latte.mauve, dark: Catppuccin.Mocha.mauve)
+        public static let primary = dynamicColor(light: CatppuccinLatte.mauve, dark: CatppuccinMocha.mauve)
 
         // Secondary Color: Teal
-        public static let secondary = dynamicColor(light: Catppuccin.Latte.teal, dark: Catppuccin.Mocha.teal)
+        public static let secondary = dynamicColor(light: CatppuccinLatte.teal, dark: CatppuccinMocha.teal)
 
         // Background Colors
-        public static let background = dynamicColor(light: Catppuccin.Latte.base, dark: Catppuccin.Mocha.base)
-        public static let secondaryBackground = dynamicColor(light: Catppuccin.Latte.mantle, dark: Catppuccin.Mocha.mantle)
+        public static let background = dynamicColor(light: CatppuccinLatte.base, dark: CatppuccinMocha.base)
+        public static let secondaryBackground = dynamicColor(
+            light: CatppuccinLatte.mantle,
+            dark: CatppuccinMocha.mantle
+        )
 
         // Text Colors
-        public static let textPrimary = dynamicColor(light: Catppuccin.Latte.text, dark: Catppuccin.Mocha.text)
-        public static let textSecondary = dynamicColor(light: Catppuccin.Latte.subtext0, dark: Catppuccin.Mocha.subtext0)
+        public static let textPrimary = dynamicColor(light: CatppuccinLatte.text, dark: CatppuccinMocha.text)
+        public static let textSecondary = dynamicColor(
+            light: CatppuccinLatte.subtext0,
+            dark: CatppuccinMocha.subtext0
+        )
 
         // Alert Colors
-        public static let error = dynamicColor(light: Catppuccin.Latte.red, dark: Catppuccin.Mocha.red)
-        public static let warning = dynamicColor(light: Catppuccin.Latte.yellow, dark: Catppuccin.Mocha.yellow)
-        public static let success = dynamicColor(light: Catppuccin.Latte.green, dark: Catppuccin.Mocha.green)
-        public static let info = dynamicColor(light: Catppuccin.Latte.blue, dark: Catppuccin.Mocha.blue)
+        public static let error = dynamicColor(light: CatppuccinLatte.red, dark: CatppuccinMocha.red)
+        public static let warning = dynamicColor(light: CatppuccinLatte.yellow, dark: CatppuccinMocha.yellow)
+        public static let success = dynamicColor(light: CatppuccinLatte.green, dark: CatppuccinMocha.green)
+        public static let info = dynamicColor(light: CatppuccinLatte.blue, dark: CatppuccinMocha.blue)
     }
-    
+
     public struct Fonts {
         // Headers: Serif font (New York on Apple platforms)
         public static func header4XL() -> Font {
@@ -126,7 +130,7 @@ public struct Theme {
         public static func headerLarge() -> Font {
             return .custom("New York", size: 24).weight(.bold)
         }
-        
+
         // Body Text: System default (SF Pro)
         public static let bodyLarge = Font.system(size: 18)
         public static let bodyMedium = Font.system(size: 16)

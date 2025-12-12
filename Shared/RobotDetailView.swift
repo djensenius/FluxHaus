@@ -59,7 +59,7 @@ struct RobotDetailView: View {
 
             VStack {
                 if robot.running == true {
-                    Button(action: { performAction(action: "stop") }) {
+                    Button(action: { performAction(action: "stop") }, label: {
                         Text("Stop")
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
@@ -67,10 +67,10 @@ struct RobotDetailView: View {
                             .background(Theme.Colors.secondaryBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
                             .cornerRadius(12)
-                    }
+                    })
                     .disabled(self.buttonsDisabled)
                 } else {
-                    Button(action: { performAction(action: "start") }) {
+                    Button(action: { performAction(action: "start") }, label: {
                         Text("Start Cleaning")
                             .font(Theme.Fonts.bodyMedium)
                             .padding()
@@ -78,12 +78,12 @@ struct RobotDetailView: View {
                             .background(Theme.Colors.secondaryBackground)
                             .foregroundColor(Theme.Colors.textPrimary)
                             .cornerRadius(12)
-                    }
+                    })
                     .disabled(self.buttonsDisabled)
                     .padding(.bottom)
-                    
+
                     if robots.broomBot.running != true && robots.mopBot.running != true {
-                        Button(action: { performAction(action: "deepClean") }) {
+                        Button(action: { performAction(action: "deepClean") }, label: {
                             Text("Deep Clean (BroomBot + MopBot)")
                                 .font(Theme.Fonts.bodyMedium)
                                 .padding()
@@ -91,7 +91,7 @@ struct RobotDetailView: View {
                                 .background(Theme.Colors.secondaryBackground)
                                 .foregroundColor(Theme.Colors.textPrimary)
                                 .cornerRadius(12)
-                        }
+                        })
                         .disabled(self.buttonsDisabled)
                     }
                 }

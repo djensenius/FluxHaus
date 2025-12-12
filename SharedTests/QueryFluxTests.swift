@@ -182,7 +182,14 @@ struct QueryFluxTests {
 
 // Helper extensions for testing
 extension FluxData {
-    init(mopBot: Robot, broomBot: Robot, car: CarDetails, dishwasher: DishWasher, dryer: WasherDryer, washer: WasherDryer) {
+    init(
+        mopBot: Robot,
+        broomBot: Robot,
+        car: CarDetails,
+        dishwasher: DishWasher,
+        dryer: WasherDryer,
+        washer: WasherDryer
+    ) {
         self.mopBot = mopBot
         self.broomBot = broomBot
         self.car = car
@@ -231,7 +238,15 @@ extension DishWasher {
 }
 
 extension WasherDryer {
-    init(name: String, timeRunning: Int?, timeRemaining: Int?, step: String?, programName: String?, status: String?, inUse: Bool) {
+    init(
+        name: String,
+        timeRunning: Int?,
+        timeRemaining: Int?,
+        step: String?,
+        programName: String?,
+        status: String?,
+        inUse: Bool
+    ) {
         self.name = name
         self.timeRunning = timeRunning
         self.timeRemaining = timeRemaining

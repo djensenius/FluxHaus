@@ -146,11 +146,16 @@ struct FluxWidgetExtensionTests {
     @Test("Widget data prioritization works correctly")
     func testWidgetDataPrioritization() {
         let devices = [
-            WidgetDevice(name: "MopBot", battery: 15, status: "Low Battery", running: false),      // Priority: Low battery
-            WidgetDevice(name: "BroomBot", battery: 85, status: "Cleaning", running: true),       // Priority: Running
-            WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false),             // Priority: Constant
-            WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true),       // Priority: Running timed
-            WidgetDevice(name: "Battery", battery: 95, status: "Charging", running: false)        // Priority: Constant
+            // Priority: Low battery
+            WidgetDevice(name: "MopBot", battery: 15, status: "Low Battery", running: false),
+            // Priority: Running
+            WidgetDevice(name: "BroomBot", battery: 85, status: "Cleaning", running: true),
+            // Priority: Constant
+            WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false),
+            // Priority: Running timed
+            WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true),
+            // Priority: Constant
+            WidgetDevice(name: "Battery", battery: 95, status: "Charging", running: false)
         ]
 
         // Test prioritization logic
