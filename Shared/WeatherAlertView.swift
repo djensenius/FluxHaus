@@ -51,6 +51,7 @@ struct WeatherAlertView: View {
                         .foregroundColor(Theme.Colors.accent)
                 }).padding()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Theme.Colors.background)
         }
         .background(Theme.Colors.background)
