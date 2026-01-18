@@ -226,3 +226,7 @@ struct WeatherView: View {
         return "\(percent) chance of \(type) \(theWhen)"
     }
 }
+
+#Preview {
+    WeatherView()
+}

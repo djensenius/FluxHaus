@@ -8,16 +8,13 @@
 import Foundation
 import CoreLocation
 import Combine
+import SwiftUI
 @preconcurrency import WeatherKit
 
 enum TimeType {
     case minute
     case hour
     case day
-}
-
-#Preview {
-    WeatherView()
 }
 
 struct ForecastInfo {
