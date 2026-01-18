@@ -1,0 +1,113 @@
+[
+  {
+    "typeName": "FluxWidgetExtension.ConfigurationAppIntent",
+    "mangledTypeName": "19FluxWidgetExtension22ConfigurationAppIntentV",
+    "kind": "struct",
+    "file": "/Users/david/Developer/FluxHaus/FluxWidget/AppIntent.swift",
+    "line": 11,
+    "conformances": [
+      "AppIntents.WidgetConfigurationIntent",
+      "AppIntents.AppIntent",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents._SupportsAppDependencies",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "AppIntents.WidgetConfigurationIntent",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.AppIntent",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      },
+      {
+        "protocolName": "AppIntents._SupportsAppDependencies",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "FluxWidgetExtension"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "NeverResult",
+        "substitutedTypeName": "Swift.Never",
+        "substitutedMangledTypeName": "s5NeverO"
+      },
+      {
+        "typeAliasName": "PerformResult",
+        "substitutedTypeName": "Swift.Never",
+        "substitutedMangledTypeName": "s5NeverO"
+      },
+      {
+        "typeAliasName": "SummaryContent",
+        "substitutedTypeName": "some AppIntents.ParameterSummary",
+        "substitutedMangledTypeName": "10AppIntents0A6IntentPAAE16parameterSummaryQrvpZQOy19FluxWidgetExtension013ConfigurationaC0V_Qo_",
+        "opaqueTypeProtocolRequirements": [
+          "AppIntents.ParameterSummary"
+        ],
+        "opaqueTypeSameTypeRequirements": []
+      }
+    ],
+    "properties": [
+      {
+        "label": "title",
+        "type": "Foundation.LocalizedStringResource",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/david/Developer/FluxHaus/FluxWidget/AppIntent.swift",
+        "line": 12,
+        "valueKind": "RawLiteral",
+        "value": "Configuration"
+      },
+      {
+        "label": "description",
+        "type": "AppIntents.IntentDescription",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "false",
+        "file": "/Users/david/Developer/FluxHaus/FluxWidget/AppIntent.swift",
+        "line": 13,
+        "valueKind": "RawLiteral",
+        "value": "This is an example widget."
+      },
+      {
+        "label": "smiley",
+        "type": "FluxWidgetExtension.ConfigurationAppIntent",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "file": "/Users/david/Developer/FluxHaus/FluxWidget/FluxWidget.swift",
+        "line": 339,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "starEyes",
+        "type": "FluxWidgetExtension.ConfigurationAppIntent",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "file": "/Users/david/Developer/FluxHaus/FluxWidget/FluxWidget.swift",
+        "line": 344,
+        "valueKind": "Runtime"
+      }
+    ]
+  }
+]

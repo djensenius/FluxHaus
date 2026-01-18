@@ -17,14 +17,14 @@ struct ContentView: View {
     var battery: Battery
     var car: Car
     var apiResponse: Api
-
     @State private var whereWeAre = WhereWeAre()
+    @StateObject private var locationManager = LocationManager()
 
     var body: some View {
         VStack {
             VStack {
                 DateTimeView()
-                WeatherView()
+                WeatherView(lman: locationManager)
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
@@ -39,7 +39,8 @@ struct ContentView: View {
                     apiResponse: apiResponse,
                     robots: robots,
                     battery: battery,
-                    car: car
+                    car: car,
+                    locationManager: locationManager
                 )
             }
         }

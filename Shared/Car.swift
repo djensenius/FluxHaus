@@ -63,7 +63,16 @@ import Foundation
         }
     }
 
-    func performAction(action: String) {
+    func performAction(
+        action: String,
+        steeringWheel: Bool = false,
+        seatFL: Bool = false,
+        seatFR: Bool = false,
+        seatRL: Bool = false,
+        seatRR: Bool = false,
+        defrost: Bool = false,
+        temperature: Int? = nil
+    ) {
         let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
@@ -91,6 +100,20 @@ import Foundation
         components.path = path
         components.user = "admin"
         components.password = password
+        if action == "start" {
+            var items = [
+                URLQueryItem(name: "heatedFeatures", value: String(steeringWheel)),
+                URLQueryItem(name: "seatFL", value: seatFL ? "1" : "0"),
+                URLQueryItem(name: "seatFR", value: seatFR ? "1" : "0"),
+                URLQueryItem(name: "seatRL", value: seatRL ? "1" : "0"),
+                URLQueryItem(name: "seatRR", value: seatRR ? "1" : "0"),
+                URLQueryItem(name: "defrost", value: String(defrost))
+            ]
+            if let temp = temperature {
+                items.append(URLQueryItem(name: "temp", value: String(temp)))
+            }
+            components.queryItems = items
+        }
 
         guard let url = components.url else {
             return

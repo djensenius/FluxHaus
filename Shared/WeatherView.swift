@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WeatherView: View {
-    @ObservedObject var lman = LocationManager.init()
+    @ObservedObject var lman: LocationManager
     @State private var showModal: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
@@ -228,5 +228,5 @@ struct WeatherView: View {
 }
 
 #Preview {
-    WeatherView()
+    WeatherView(lman: LocationManager())
 }

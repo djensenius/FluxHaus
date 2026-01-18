@@ -1,0 +1,12 @@
+{
+  "/Users/david/Developer/FluxHaus/VisionOS/LoadingView.swift" : {
+    "abi-baseline-json" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus.abi.json",
+    "const-values" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.swiftconstvalues",
+    "dependencies" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.d",
+    "diagnostics" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.dia",
+    "objc-header" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus-Swift.h",
+    "swiftdoc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus.swiftdoc",
+    "swiftmodule" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus.swiftmodule",
+    "swiftsourceinfo" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus.swiftsourceinfo"
+  }
+}

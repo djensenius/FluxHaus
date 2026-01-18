@@ -16,6 +16,7 @@ struct Appliances: View {
     var robots: Robots
     var battery: Battery
     var car: Car
+    var locationManager: LocationManager
 
     @State private var showCarModal: Bool = false
     @State private var showBroomBotModal: Bool = false
@@ -128,7 +129,7 @@ struct Appliances: View {
         }
         .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
         .sheet(isPresented: self.$showCarModal) {
-            CarDetailView(car: car)
+            CarDetailView(car: car, locationManager: locationManager)
         }
         .sheet(isPresented: self.$showBroomBotModal) {
             RobotDetailView(robot: robots.broomBot, robots: robots)
@@ -246,6 +247,7 @@ struct AppliancesPreviewWrapper: View {
     let car = MockData.createCar()
     let battery = MockData.createBattery()
     let apiResponse = MockData.createApi()
+    let locationManager = LocationManager() // Add this
 
     init() {
         // Ensure data is populated for the preview
@@ -267,7 +269,8 @@ struct AppliancesPreviewWrapper: View {
             apiResponse: apiResponse,
             robots: robots,
             battery: battery,
-            car: car
+            car: car,
+            locationManager: locationManager
         )
     }
 }

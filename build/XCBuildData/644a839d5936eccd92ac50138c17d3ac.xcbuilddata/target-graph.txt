@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'FluxHaus (iOS)' in project 'FluxHaus'
+➜ Explicit dependency on target 'FluxWidgetExtension' in project 'FluxHaus'
+Target 'FluxWidgetExtension' in project 'FluxHaus' (no dependencies)
