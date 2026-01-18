@@ -16,6 +16,10 @@ enum TimeType {
     case day
 }
 
+#Preview {
+    WeatherView()
+}
+
 struct ForecastInfo {
     let type: Precipitation
     let chance: Double
@@ -222,8 +226,4 @@ struct ForecastInfo {
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
         debugPrint(error)
     }
-}
-
-#Preview {
-    WeatherView()
 }
