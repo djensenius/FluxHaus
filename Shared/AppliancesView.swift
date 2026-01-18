@@ -224,20 +224,28 @@ struct Appliances: View {
 
 struct Appliances_Previews: PreviewProvider {
     static var previews: some View {
-        let robots = MockData.createRobots()
-        let hconn = MockData.createHomeConnect()
-        let miele = MockData.createMiele()
-        let car = MockData.createCar()
-        let battery = MockData.createBattery()
-        let apiResponse = MockData.createApi()
+        AppliancesPreviewWrapper()
+    }
+}
 
+struct AppliancesPreviewWrapper: View {
+    let robots = MockData.createRobots()
+    let hconn = MockData.createHomeConnect()
+    let miele = MockData.createMiele()
+    let car = MockData.createCar()
+    let battery = MockData.createBattery()
+    let apiResponse = MockData.createApi()
+
+    init() {
         // Ensure data is populated for the preview
         robots.setApiResponse(apiResponse: apiResponse)
         hconn.setApiResponse(apiResponse: apiResponse)
         miele.setApiResponse(apiResponse: apiResponse)
         car.setApiResponse(apiResponse: apiResponse)
+    }
 
-        return Appliances(
+    var body: some View {
+        Appliances(
             fluxHausConsts: {
                 let config = FluxHausConsts()
                 config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
