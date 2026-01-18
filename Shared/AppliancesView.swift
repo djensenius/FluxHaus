@@ -165,6 +165,17 @@ struct Appliances: View {
     }
 
     func fetchAppliances() {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            robots.setApiResponse(apiResponse: apiResponse)
+            hconn.setApiResponse(apiResponse: self.apiResponse)
+            miele.setApiResponse(apiResponse: self.apiResponse)
+            car.setApiResponse(apiResponse: apiResponse)
+            self.sortAppliances()
+            return
+        }
+        #endif
+
         if WhereWeAre.getPassword() != nil {
             robots.setApiResponse(apiResponse: apiResponse)
             hconn.setApiResponse(apiResponse: self.apiResponse)
