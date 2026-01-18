@@ -57,12 +57,3 @@ struct WeatherAlertView: View {
         .background(Theme.Colors.background)
     }
 }
-
-#Preview {
-    WeatherAlertView(alerts: [WeatherAlert(
-        summary: "Heat Warning",
-        severity: .severe,
-        source: "Environment Canada",
-        detailsURL: URL(string: "https://weather.gc.ca")!
-    )])
-}
