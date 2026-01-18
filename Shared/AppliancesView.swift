@@ -234,6 +234,7 @@ struct Appliances: View {
     }
 }
 
+#if DEBUG
 struct Appliances_Previews: PreviewProvider {
     static var previews: some View {
         AppliancesPreviewWrapper()
@@ -274,3 +275,4 @@ struct AppliancesPreviewWrapper: View {
         )
     }
 }
+#endif

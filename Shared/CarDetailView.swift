@@ -300,9 +300,11 @@ struct CarDetailView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     CarDetailView(car: MockData.createCar(), locationManager: LocationManager())
 }
+#endif
 
 struct CarClimateView: View {
     var car: Car
