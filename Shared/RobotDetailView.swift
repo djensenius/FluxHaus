@@ -120,3 +120,7 @@ struct RobotDetailView: View {
         }
     }
 }
+
+#Preview {
+    RobotDetailView(robot: MockData.loginResponse.broombot, robots: MockData.createRobots())
+}

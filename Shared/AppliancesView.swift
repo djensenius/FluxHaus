@@ -222,10 +222,20 @@ struct Appliances: View {
     }
 }
 
-/*
 struct Appliances_Previews: PreviewProvider {
     static var previews: some View {
-        Appliances()
+        Appliances(
+            fluxHausConsts: {
+                let config = FluxHausConsts()
+                config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+                return config
+            }(),
+            hconn: MockData.createHomeConnect(),
+            miele: MockData.createMiele(),
+            apiResponse: MockData.createApi(),
+            robots: MockData.createRobots(),
+            battery: MockData.createBattery(),
+            car: MockData.createCar()
+        )
     }
 }
-*/

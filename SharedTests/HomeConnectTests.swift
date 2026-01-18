@@ -40,9 +40,8 @@ struct HomeConnectTests {
 
     @Test("HomeConnect initializes with empty appliances")
     func testHomeConnectInitialization() async {
-        let mockApi = Api()
-
         await MainActor.run {
+            let mockApi = Api()
             let homeConnect = HomeConnect(apiResponse: mockApi)
             #expect(homeConnect.appliances.count == 0)
             #expect(homeConnect.apiResponse != nil)
@@ -51,9 +50,8 @@ struct HomeConnectTests {
 
     @Test("HomeConnect nilProgram creates inactive appliance")
     func testNilProgram() async {
-        let mockApi = Api()
-
         await MainActor.run {
+            let mockApi = Api()
             let homeConnect = HomeConnect(apiResponse: mockApi)
             homeConnect.nilProgram()
 
@@ -71,9 +69,8 @@ struct HomeConnectTests {
 
     @Test("HomeConnect setProgram creates active appliance")
     func testSetProgram() async {
-        let mockApi = Api()
-
         await MainActor.run {
+            let mockApi = Api()
             let homeConnect = HomeConnect(apiResponse: mockApi)
 
             let mockDishwasher = DishWasher(
@@ -107,9 +104,8 @@ struct HomeConnectTests {
 
     @Test("HomeConnect setProgram handles nil activeProgram")
     func testSetProgramWithNilActiveProgram() async {
-        let mockApi = Api()
-
         await MainActor.run {
+            let mockApi = Api()
             let homeConnect = HomeConnect(apiResponse: mockApi)
 
             let mockDishwasher = DishWasher(
@@ -138,9 +134,8 @@ struct HomeConnectTests {
 
     @Test("HomeConnect time calculation works correctly")
     func testTimeCalculation() async {
-        let mockApi = Api()
-
         await MainActor.run {
+            let mockApi = Api()
             let homeConnect = HomeConnect(apiResponse: mockApi)
 
             // Test with 2.5 hours remaining (9000 seconds)

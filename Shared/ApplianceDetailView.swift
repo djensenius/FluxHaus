@@ -68,3 +68,15 @@ struct ApplianceDetailView: View {
         #endif
     }
 }
+
+#Preview {
+    ApplianceDetailView(appliance: Appliance(
+        name: "Washer",
+        timeRunning: 45,
+        timeRemaining: 15,
+        timeFinish: "12:00 PM",
+        step: "Rinse",
+        programName: "Cotton 60",
+        inUse: true
+    ))
+}

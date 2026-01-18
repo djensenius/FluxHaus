@@ -148,8 +148,6 @@ struct CarDetailView: View {
     }
 }
 
-/*
 #Preview {
-    CarDetailView()
+    CarDetailView(car: MockData.createCar())
 }
-*/

@@ -70,8 +70,18 @@ struct ContentView: View {
     }
 }
 
-/*
 #Preview(windowStyle: .automatic) {
-    ContentView()
+    ContentView(
+        fluxHausConsts: {
+            let config = FluxHausConsts()
+            config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+            return config
+        }(),
+        hconn: MockData.createHomeConnect(),
+        miele: MockData.createMiele(),
+        robots: MockData.createRobots(),
+        battery: MockData.createBattery(),
+        car: MockData.createCar(),
+        apiResponse: MockData.createApi()
+    )
 }
-*/
