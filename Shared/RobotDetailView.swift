@@ -165,6 +165,8 @@ struct RobotDetailView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     RobotDetailView(robot: MockData.loginResponse.broombot, robots: MockData.createRobots())
 }
+#endif

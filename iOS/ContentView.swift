@@ -71,6 +71,7 @@ struct ContentView: View {
     }
 }
 
+#if DEBUG
 #Preview {
     ContentView(
         fluxHausConsts: {
@@ -86,3 +87,4 @@ struct ContentView: View {
         apiResponse: MockData.createApi()
     )
 }
+#endif
