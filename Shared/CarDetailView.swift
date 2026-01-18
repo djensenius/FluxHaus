@@ -355,12 +355,9 @@ struct CarClimateView: View {
         .onAppear {
             if let weather = locationManager.weather {
                 let temp = weather.currentWeather.temperature.converted(to: .celsius).value
-                if temp < 0 {
+                if temp < -5 {
                     steeringWheelHeat = true
                     seatFL = true
-                    seatFR = true
-                    seatRL = true
-                    seatRR = true
                     defrost = true
                 }
 

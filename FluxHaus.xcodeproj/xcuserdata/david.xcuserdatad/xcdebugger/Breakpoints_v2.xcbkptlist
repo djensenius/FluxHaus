@@ -15,7 +15,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "130"
-            endingLineNumber = "130">
+            endingLineNumber = "130"
+            landmarkName = "performAction(action:steeringWheel:seatFL:seatFR:seatRL:seatRR:defrost:temperature:)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
