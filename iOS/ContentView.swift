@@ -16,11 +16,12 @@ struct ContentView: View {
     var car: Car
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
+    @StateObject private var locationManager = LocationManager()
 
     var body: some View {
         VStack {
             DateTimeView()
-            WeatherView()
+            WeatherView(lman: locationManager)
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             HStack {
                 Text("Appliances")
@@ -36,7 +37,8 @@ struct ContentView: View {
                 apiResponse: apiResponse,
                 robots: robots,
                 battery: battery,
-                car: car
+                car: car,
+                locationManager: locationManager
             )
             Spacer()
             HStack {
@@ -69,8 +71,18 @@ struct ContentView: View {
     }
 }
 
-/*
 #Preview {
-    ContentView()
+    ContentView(
+        fluxHausConsts: {
+            let config = FluxHausConsts()
+            config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+            return config
+        }(),
+        hconn: MockData.createHomeConnect(),
+        miele: MockData.createMiele(),
+        robots: MockData.createRobots(),
+        battery: MockData.createBattery(),
+        car: MockData.createCar(),
+        apiResponse: MockData.createApi()
+    )
 }
-*/

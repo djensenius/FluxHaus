@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WeatherView: View {
-    @ObservedObject var lman = LocationManager.init()
+    @ObservedObject var lman: LocationManager
     @State private var showModal: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
@@ -225,4 +225,8 @@ struct WeatherView: View {
         }
         return "\(percent) chance of \(type) \(theWhen)"
     }
+}
+
+#Preview {
+    WeatherView(lman: LocationManager())
 }

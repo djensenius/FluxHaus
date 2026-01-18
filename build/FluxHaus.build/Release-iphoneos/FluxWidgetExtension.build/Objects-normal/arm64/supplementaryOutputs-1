@@ -1,0 +1,12 @@
+{
+  "/Users/david/Developer/FluxHaus/Shared/CarHelper.swift" : {
+    "abi-baseline-json" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension.abi.json",
+    "const-values" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension-primary.swiftconstvalues",
+    "dependencies" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension-primary.d",
+    "diagnostics" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension-primary.dia",
+    "objc-header" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension-Swift.h",
+    "swiftdoc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension.swiftdoc",
+    "swiftmodule" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension.swiftmodule",
+    "swiftsourceinfo" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxWidgetExtension.build/Objects-normal/arm64/FluxWidgetExtension.swiftsourceinfo"
+  }
+}

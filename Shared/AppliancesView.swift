@@ -16,6 +16,7 @@ struct Appliances: View {
     var robots: Robots
     var battery: Battery
     var car: Car
+    var locationManager: LocationManager
 
     @State private var showCarModal: Bool = false
     @State private var showBroomBotModal: Bool = false
@@ -128,7 +129,7 @@ struct Appliances: View {
         }
         .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
         .sheet(isPresented: self.$showCarModal) {
-            CarDetailView(car: car)
+            CarDetailView(car: car, locationManager: locationManager)
         }
         .sheet(isPresented: self.$showBroomBotModal) {
             RobotDetailView(robot: robots.broomBot, robots: robots)
@@ -165,6 +166,17 @@ struct Appliances: View {
     }
 
     func fetchAppliances() {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            robots.setApiResponse(apiResponse: apiResponse)
+            hconn.setApiResponse(apiResponse: self.apiResponse)
+            miele.setApiResponse(apiResponse: self.apiResponse)
+            car.setApiResponse(apiResponse: apiResponse)
+            self.sortAppliances()
+            return
+        }
+        #endif
+
         if WhereWeAre.getPassword() != nil {
             robots.setApiResponse(apiResponse: apiResponse)
             hconn.setApiResponse(apiResponse: self.apiResponse)
@@ -222,10 +234,43 @@ struct Appliances: View {
     }
 }
 
-/*
 struct Appliances_Previews: PreviewProvider {
     static var previews: some View {
-        Appliances()
+        AppliancesPreviewWrapper()
     }
 }
-*/
+
+struct AppliancesPreviewWrapper: View {
+    let robots = MockData.createRobots()
+    let hconn = MockData.createHomeConnect()
+    let miele = MockData.createMiele()
+    let car = MockData.createCar()
+    let battery = MockData.createBattery()
+    let apiResponse = MockData.createApi()
+    let locationManager = LocationManager() // Add this
+
+    init() {
+        // Ensure data is populated for the preview
+        robots.setApiResponse(apiResponse: apiResponse)
+        hconn.setApiResponse(apiResponse: apiResponse)
+        miele.setApiResponse(apiResponse: apiResponse)
+        car.setApiResponse(apiResponse: apiResponse)
+    }
+
+    var body: some View {
+        Appliances(
+            fluxHausConsts: {
+                let config = FluxHausConsts()
+                config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+                return config
+            }(),
+            hconn: hconn,
+            miele: miele,
+            apiResponse: apiResponse,
+            robots: robots,
+            battery: battery,
+            car: car,
+            locationManager: locationManager
+        )
+    }
+}

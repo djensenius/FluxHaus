@@ -120,10 +120,8 @@ struct HomeKitView: View {
     }
 }
 
-/*
 struct HomeKitView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeKitView()
+        HomeKitView(favouriteHomeKit: ["Light 1", "Light 2"])
     }
 }
-*/

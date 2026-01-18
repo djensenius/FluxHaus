@@ -10,11 +10,25 @@ import Foundation
 func getCarTime(strDate: String) -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-    let date = dateFormatter.date(from: String(strDate))!.timeIntervalSince1970
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-    return formatter.localizedString(
-        for: Date.init(timeIntervalSince1970: TimeInterval(date)),
-        relativeTo: Date()
-    )
+
+    if let date = dateFormatter.date(from: strDate) {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(
+            for: date,
+            relativeTo: Date()
+        )
+    }
+
+    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
+    if let date = dateFormatter.date(from: strDate) {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(
+            for: date,
+            relativeTo: Date()
+        )
+    }
+
+    return "Unknown"
 }

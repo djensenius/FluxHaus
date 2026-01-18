@@ -1,0 +1,171 @@
+{
+  "" : {
+    "const-values" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.swiftconstvalues",
+    "dependencies" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.d",
+    "diagnostics" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.dia",
+    "emit-module-dependencies" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary-emit-module.dia",
+    "pch" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHaus (iOS)-primary.swiftdeps"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Api.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Api.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Api.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Api.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/ApplianceDetailView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ApplianceDetailView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ApplianceDetailView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ApplianceDetailView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/ApplianceViewHelpers.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ApplianceViewHelpers.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ApplianceViewHelpers.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ApplianceViewHelpers.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/AppliancesView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/AppliancesView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/AppliancesView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/AppliancesView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/AppliancesViewExtensions.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/AppliancesViewExtensions.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/AppliancesViewExtensions.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/AppliancesViewExtensions.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/BackgroundView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/BackgroundView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/BackgroundView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/BackgroundView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Battery.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Battery.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Battery.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Battery.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Car.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Car.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Car.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Car.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/CarDetailView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/CarDetailView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/CarDetailView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/CarDetailView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/CarHelper.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/CarHelper.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/CarHelper.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/CarHelper.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/DateTimeView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/DateTimeView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/DateTimeView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/DateTimeView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/FluxHausConsts.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHausConsts.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHausConsts.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHausConsts.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/HomeConnect.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeConnect.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeConnect.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeConnect.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/HomeKitIntegration.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeKitIntegration.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeKitIntegration.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeKitIntegration.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/HomeKitView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeKitView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeKitView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/HomeKitView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Login.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Login.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Login.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Login.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/LoginStucts.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/LoginStucts.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/LoginStucts.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/LoginStucts.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Miele.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Miele.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Miele.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Miele.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/MieleAppliance.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/MieleAppliance.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/MieleAppliance.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/MieleAppliance.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/QueryFlux.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/QueryFlux.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/QueryFlux.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/QueryFlux.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/RobotDetailView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/RobotDetailView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/RobotDetailView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/RobotDetailView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Robots.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Robots.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Robots.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Robots.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/SystemNotifications.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/SystemNotifications.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/SystemNotifications.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/SystemNotifications.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Theme.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Theme.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Theme.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Theme.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/Weather.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Weather.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Weather.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/Weather.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/WeatherAlertView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WeatherAlertView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WeatherAlertView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WeatherAlertView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/WeatherView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WeatherView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WeatherView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WeatherView.o"
+  },
+  "/Users/david/Developer/FluxHaus/Shared/WhereWeAre.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WhereWeAre.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WhereWeAre.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/WhereWeAre.o"
+  },
+  "/Users/david/Developer/FluxHaus/VisionOS/LoadingView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/LoadingView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/LoadingView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/LoadingView.o"
+  },
+  "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  },
+  "/Users/david/Developer/FluxHaus/iOS/ContentView.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/ContentView.o"
+  },
+  "/Users/david/Developer/FluxHaus/iOS/FluxHausApp.swift" : {
+    "index-unit-output-path" : "/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHausApp.o",
+    "llvm-bc" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHausApp.bc",
+    "object" : "/Users/david/Developer/FluxHaus/build/FluxHaus.build/Release-iphoneos/FluxHaus (iOS).build/Objects-normal/arm64/FluxHausApp.o"
+  }
+}
