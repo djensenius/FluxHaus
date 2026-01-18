@@ -60,3 +60,7 @@ struct LoadingView: View {
     func checkLogin() {
     }
 }
+
+#Preview {
+    LoadingView(needLoginView: true)
+}

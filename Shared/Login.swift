@@ -26,3 +26,7 @@ struct LoginAction {
         queryFlux(password: parameters.password, user: nil)
     }
 }
+
+#Preview {
+    LoadingView(needLoginView: true)
+}

@@ -223,3 +223,7 @@ struct ForecastInfo {
         debugPrint(error)
     }
 }
+
+#Preview {
+    WeatherView()
+}
