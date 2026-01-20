@@ -97,6 +97,13 @@ struct FluxHausApp: App {
                     }
                 }
             }
+            .onAppear {
+                if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
+                    if let password = WhereWeAre.getPassword() {
+                        queryFlux(password: password, user: nil)
+                    }
+                }
+            }
         }
     }
 

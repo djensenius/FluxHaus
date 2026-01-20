@@ -23,50 +23,52 @@ struct ContentView: View {
     var body: some View {
         VStack {
             VStack {
-                DateTimeView()
-                WeatherView(lman: locationManager)
-                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-                HStack {
-                    Text("Appliances")
-                        .font(.title)
-                        .padding(.leading)
-                    Spacer()
+                VStack {
+                    DateTimeView()
+                    WeatherView(lman: locationManager)
+                    HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                    HStack {
+                        Text("Appliances")
+                            .font(.title)
+                            .padding(.leading)
+                        Spacer()
+                    }
+                    Appliances(
+                        fluxHausConsts: fluxHausConsts,
+                        hconn: hconn,
+                        miele: miele,
+                        apiResponse: apiResponse,
+                        robots: robots,
+                        battery: battery,
+                        car: car,
+                        locationManager: locationManager
+                    )
                 }
-                Appliances(
-                    fluxHausConsts: fluxHausConsts,
-                    hconn: hconn,
-                    miele: miele,
-                    apiResponse: apiResponse,
-                    robots: robots,
-                    battery: battery,
-                    car: car,
-                    locationManager: locationManager
-                )
             }
-        }
-        .padding()
-        HStack {
-            Link(
-                "Weather provided by  Weather",
-                destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
-            )
-            .font(.caption)
-            .padding([.bottom, .leading])
-
-            Spacer()
-
-            Button(action: {
-                whereWeAre.deleteKeyChainPasword()
-                NotificationCenter.default.post(
-                    name: Notification.Name.logout,
-                    object: nil,
-                    userInfo: ["logout": true]
+            .padding()
+            HStack {
+                Link(
+                    "Weather provided by  Weather",
+                    destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
                 )
-            }, label: {
-                Text("Logout")
-                    .font(.caption)
-            })
-            .padding([.bottom, .trailing])
+                .font(.caption)
+                .padding([.bottom, .leading])
+
+                Spacer()
+
+                Button(action: {
+                    whereWeAre.deleteKeyChainPasword()
+                    NotificationCenter.default.post(
+                        name: Notification.Name.logout,
+                        object: nil,
+                        userInfo: ["logout": true]
+                    )
+                }, label: {
+                    Text("Logout")
+                        .font(.caption)
+                })
+                .padding([.bottom, .trailing])
+            }
         }
     }
 }
