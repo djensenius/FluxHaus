@@ -35,6 +35,13 @@
 	<string>public.app-category.lifestyle</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict/>
+	</dict>
 	<key>NSHomeKitUsageDescription</key>
 	<string>We need access to HomeKit for access to some quick shortcuts.</string>
 	<key>NSLocationUsageDescription</key>

@@ -133,15 +133,15 @@ public struct Theme {
     public struct Fonts {
         // Headers: Serif font (New York on Apple platforms)
         public static func header4XL() -> Font {
-            return .custom("New York", size: 72).weight(.bold)
+            return .system(size: 72, weight: .bold, design: .serif)
         }
 
         public static func headerXL() -> Font {
-            return .custom("New York", size: 36).weight(.bold)
+            return .system(size: 36, weight: .bold, design: .serif)
         }
 
         public static func headerLarge() -> Font {
-            return .custom("New York", size: 24).weight(.bold)
+            return .system(size: 24, weight: .bold, design: .serif)
         }
 
         // Body Text: System default (SF Pro)

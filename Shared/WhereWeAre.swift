@@ -15,7 +15,6 @@ public struct WhereWeAre {
     public init() {
         let password = WhereWeAre.getPassword()
         if password != nil {
-            queryFlux(password: password!, user: nil)
             hasKeychainPassword(has: true)
         } else {
             hasKeychainPassword(has: false)

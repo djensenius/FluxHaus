@@ -15,17 +15,32 @@ struct HomeKitFavourite {
 }
 
 @MainActor
-class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate {
+class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate, HMHomeManagerDelegate {
     @Published var homeManager = HMHomeManager()
     @Published var favourites: [HomeKitFavourite] = []
     @Published var primaryHome: HMHome?
 
+    override init() {
+        super.init()
+        self.homeManager.delegate = self
+    }
+
+    nonisolated func homeManagerDidUpdateHomes(_ manager: HMHomeManager) {
+        Task { @MainActor in
+            self.startHome()
+        }
+    }
+
+    nonisolated func homeManagerDidUpdatePrimaryHome(_ manager: HMHomeManager) {
+        Task { @MainActor in
+            self.startHome()
+        }
+    }
+
     func startHome() {
-        DispatchQueue.main.async {
-            for home in self.homeManager.homes where home.isPrimary {
-                self.primaryHome = home
-                self.refreshHome()
-            }
+        for home in self.homeManager.homes where home.isPrimary {
+            self.primaryHome = home
+            self.refreshHome()
         }
     }
 
