@@ -10,7 +10,7 @@ import SwiftUI
 struct HomeKitView: View {
     var favouriteHomeKit: [String]
 
-    @ObservedObject var home = HomeKitIntegration()
+    @StateObject var home = HomeKitIntegration()
     private let gridItemLayout = [GridItem(.flexible())]
     var body: some View {
         ScrollView(.horizontal) {

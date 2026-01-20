@@ -92,6 +92,7 @@ struct VisionOSApp: App {
                 }
             }
         }
+        .defaultSize(width: 700, height: 1050)
     }
 
     func loadMiele() {
