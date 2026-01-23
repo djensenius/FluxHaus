@@ -7,7 +7,7 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>NSHomeKitUsageDescription</key>
-	<string>We need access to HomeKit to allow you to quickly activate some of your favourite scenes.</string>
+	<string>FluxHaus displays your HomeKit scenes so you can quickly activate them from the app. Your HomeKit data is processed entirely on your device and never leaves it.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

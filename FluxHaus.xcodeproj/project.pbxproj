@@ -1183,7 +1183,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = FluxHaus;
-				INFOPLIST_KEY_NSHomeKitUsageDescription = "We need access to HomeKit to allow you to quickly activate some of your favourite scenes.";
+				INFOPLIST_KEY_NSHomeKitUsageDescription = "FluxHaus displays your HomeKit scenes so you can quickly activate them from the app. Your HomeKit data is processed entirely on your device and never leaves it.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need access to your location to get the local weather, otherwise we will use Kitchener, ON.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1221,7 +1221,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "$(TARGET_NAME)/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = FluxHaus;
-				INFOPLIST_KEY_NSHomeKitUsageDescription = "We need access to HomeKit to allow you to quickly activate some of your favourite scenes.";
+				INFOPLIST_KEY_NSHomeKitUsageDescription = "FluxHaus displays your HomeKit scenes so you can quickly activate them from the app. Your HomeKit data is processed entirely on your device and never leaves it.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need access to your location to get the local weather, otherwise we will use Kitchener, ON.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
