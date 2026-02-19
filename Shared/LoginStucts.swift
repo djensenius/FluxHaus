@@ -330,24 +330,24 @@ public struct LoginResponse: Codable {
     public let favouriteHomeKit: [String]
     public let broombot: Robot
     public let mopbot: Robot
-    public let car: FluxCar
-    public let carEvStatus: EVStatus
-    public let carOdometer: Double
-    public let dishwasher: DishWasher
-    public let dryer: WasherDryer
-    public let washer: WasherDryer
+    public let car: FluxCar?
+    public let carEvStatus: EVStatus?
+    public let carOdometer: Double?
+    public let dishwasher: DishWasher?
+    public let dryer: WasherDryer?
+    public let washer: WasherDryer?
 
     public init(
         timestamp: String,
         favouriteHomeKit: [String],
         broombot: Robot,
         mopbot: Robot,
-        car: FluxCar,
-        carEvStatus: EVStatus,
-        carOdometer: Double,
-        dishwasher: DishWasher,
-        dryer: WasherDryer,
-        washer: WasherDryer
+        car: FluxCar? = nil,
+        carEvStatus: EVStatus? = nil,
+        carOdometer: Double? = nil,
+        dishwasher: DishWasher? = nil,
+        dryer: WasherDryer? = nil,
+        washer: WasherDryer? = nil
     ) {
         self.timestamp = timestamp
         self.favouriteHomeKit = favouriteHomeKit

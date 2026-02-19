@@ -36,28 +36,30 @@ import Foundation
     }
 
     func fetchCarDetails() {
-        if let response = apiResponse?.response {
+        if let response = apiResponse?.response,
+           let fluxCar = response.car,
+           let evStatus = response.carEvStatus {
             DispatchQueue.main.async {
                 self.vehicle = CarDetails(
-                    timestamp: response.car.timestamp,
-                    evStatusTimestamp: response.carEvStatus.timestamp,
-                    batteryLevel: response.carEvStatus.batteryStatus,
-                    distance: response.carEvStatus.drvDistance[0].rangeByFuel.evModeRange.value,
-                    hvac: response.car.airCtrlOn,
-                    pluggedIn: response.carEvStatus.batteryPlugin == 0 ? false : true,
-                    batteryCharge: response.carEvStatus.batteryCharge,
-                    locked: response.car.doorLock,
+                    timestamp: fluxCar.timestamp,
+                    evStatusTimestamp: evStatus.timestamp,
+                    batteryLevel: evStatus.batteryStatus,
+                    distance: evStatus.drvDistance[0].rangeByFuel.evModeRange.value,
+                    hvac: fluxCar.airCtrlOn,
+                    pluggedIn: evStatus.batteryPlugin == 0 ? false : true,
+                    batteryCharge: evStatus.batteryCharge,
+                    locked: fluxCar.doorLock,
                     doorsOpen: Doors(
-                        frontRight: response.car.doorOpen.frontRight,
-                        frontLeft: response.car.doorOpen.frontLeft,
-                        backRight: response.car.doorOpen.backRight,
-                        backLeft: response.car.doorOpen.backLeft
+                        frontRight: fluxCar.doorOpen.frontRight,
+                        frontLeft: fluxCar.doorOpen.frontLeft,
+                        backRight: fluxCar.doorOpen.backRight,
+                        backLeft: fluxCar.doorOpen.backLeft
                     ),
-                    trunkOpen: response.car.trunkOpen,
-                    defrost: response.car.defrost,
-                    hoodOpen: response.car.hoodOpen,
-                    odometer: response.carOdometer,
-                    engine: response.car.engine
+                    trunkOpen: fluxCar.trunkOpen,
+                    defrost: fluxCar.defrost,
+                    hoodOpen: fluxCar.hoodOpen,
+                    odometer: response.carOdometer ?? 0,
+                    engine: fluxCar.engine
                 )
             }
         }
@@ -98,8 +100,6 @@ import Foundation
         components.scheme = scheme
         components.host = host
         components.path = path
-        components.user = "admin"
-        components.password = password
         if action == "start" {
             var items = [
                 URLQueryItem(name: "heatedFeatures", value: String(steeringWheel)),
@@ -124,7 +124,13 @@ import Foundation
 
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let task = URLSession.shared.dataTask(with: request) { [path] data, _, _ in
+        let authPassword = password ?? ""
+        let credentialData = Data("admin:\(authPassword)".utf8)
+        let base64Credential = credentialData.base64EncodedString()
+        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+        let delegate = BasicAuthDelegate(user: "admin", password: authPassword)
+        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
             if data != nil {
                 print("Got data \(path)")
             }

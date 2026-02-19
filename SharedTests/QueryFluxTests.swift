@@ -145,23 +145,22 @@ struct QueryFluxTests {
         let scheme = "https"
         let host = "api.fluxhaus.io"
         let path = "/"
-        let user = "admin"
-        let password = "testPassword"
 
         var components = URLComponents()
         components.scheme = scheme
         components.host = host
         components.path = path
-        components.user = user
-        components.password = password
 
         let url = components.url
         #expect(url != nil)
         #expect(url?.scheme == "https")
         #expect(url?.host == "api.fluxhaus.io")
         #expect(url?.path == "/")
-        #expect(url?.user == "admin")
-        #expect(url?.password == "testPassword")
+
+        // Auth is now handled via URLSession delegate, not URL components
+        let delegate = BasicAuthDelegate(user: "admin", password: "testPassword")
+        #expect(delegate.user == "admin")
+        #expect(delegate.password == "testPassword")
     }
 
     @Test("HTTP request configuration is correct")
