@@ -15,26 +15,28 @@ struct LoadingView: View {
     @State var loggedIn: Bool = false
     var body: some View {
         if needLoginView && !loggedIn {
-            Text("FluxHaus Login")
-                .font(.title)
-                .padding(30)
-            VStack {
-                if error != nil {
-                    Text(error!)
-                }
+            VStack(spacing: 20) {
                 Spacer()
-                VStack {
-                    SecureField(
-                        "Password",
-                        text: $viewModel.password
-                    )
-                    .padding(.top, 20)
-                    Divider()
+                Text("FluxHaus")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                if let error = error {
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .font(.subheadline)
                 }
+                VStack(spacing: 16) {
+                    SecureField("Password", text: $viewModel.password)
+                        .textFieldStyle(.roundedBorder)
+                    Button(action: viewModel.login) {
+                        Label("Login", systemImage: "arrow.up")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                }
+                .frame(maxWidth: 360)
                 Spacer()
-                Button(action: viewModel.login) {
-                    Label("Login", systemImage: "arrow.up")
-                }
             }
             .padding(30)
             .task {
