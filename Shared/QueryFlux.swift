@@ -6,6 +6,34 @@
 //
 
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryFlux")
+
+class BasicAuthDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    let user: String
+    let password: String
+
+    init(user: String, password: String) {
+        self.user = user
+        self.password = password
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didReceive challenge: URLAuthenticationChallenge
+    ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic {
+            if challenge.previousFailureCount == 0 {
+                let credential = URLCredential(user: user, password: password, persistence: .forSession)
+                return (.useCredential, credential)
+            }
+            return (.cancelAuthenticationChallenge, nil)
+        }
+        return (.performDefaultHandling, nil)
+    }
+}
 
 func queryFlux(password: String, user: String?) {
     let scheme: String = "https"
@@ -16,8 +44,6 @@ func queryFlux(password: String, user: String?) {
     components.scheme = scheme
     components.host = host
     components.path = path
-    components.user = user != nil ? user : "admin"
-    components.password = password
 
     guard let url = components.url else {
         return
@@ -29,11 +55,16 @@ func queryFlux(password: String, user: String?) {
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
     request.addValue("application/json", forHTTPHeaderField: "Accept")
 
-    let task = URLSession.shared.dataTask(with: request) { data, _, _ in
+    let authUser = user ?? "admin"
+    let credentialData = Data("\(authUser):\(password)".utf8)
+    let base64Credential = credentialData.base64EncodedString()
+    request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    let delegate = BasicAuthDelegate(user: authUser, password: password)
+    let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    let task = session.dataTask(with: request) { data, _, error in
         if let data = data {
-            let response = try? JSONDecoder().decode(LoginResponse.self, from: data)
-
-            if let response = response {
+            do {
+                let response = try JSONDecoder().decode(LoginResponse.self, from: data)
                 DispatchQueue.main.async {
                     NotificationCenter.default.post(
                         name: Notification.Name.loginsUpdated,
@@ -52,18 +83,32 @@ func queryFlux(password: String, user: String?) {
                         userInfo: ["data": response]
                     )
                 }
-            } else if user == nil {
-                queryFlux(password: password, user: "demo")
-            } else if user != nil {
-                // Error: Unable to decode response JSON
-                // This also happens if the password is wrong!
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: nil,
-                        userInfo: ["loginError": "Incorrect Password"]
-                    )
+            } catch {
+                logger.error("JSON decode failed: \(error)")
+                if let jsonStr = String(data: data, encoding: .utf8) {
+                    logger.error("Response body: \(jsonStr.prefix(500))")
                 }
+                if user == nil {
+                    queryFlux(password: password, user: "demo")
+                } else {
+                    // Error: Unable to decode response JSON
+                    // This also happens if the password is wrong!
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(
+                            name: Notification.Name.loginsUpdated,
+                            object: nil,
+                            userInfo: ["loginError": "Incorrect Password"]
+                        )
+                    }
+                }
+            }
+        } else {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": error?.localizedDescription ?? "Network error"]
+                )
             }
         }
     }
@@ -79,12 +124,17 @@ func getFlux(password: String) async throws -> LoginResponse? {
     components.scheme = scheme
     components.host = host
     components.path = path
-    components.user = "admin"
-    components.password = password
 
-    let url = components.url
+    let url = components.url!
 
-    let (data, _) = try await URLSession.shared.data(from: url!)
+    var request = URLRequest(url: url)
+    let credentialData = Data("admin:\(password)".utf8)
+    let base64Credential = credentialData.base64EncodedString()
+    request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+
+    let delegate = BasicAuthDelegate(user: "admin", password: password)
+    let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    let (data, _) = try await session.data(for: request)
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value
 }
@@ -123,27 +173,30 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         timeStarted: response.broombot.timeStarted
     )
 
-    let car = CarDetails(
-        timestamp: response.car.timestamp,
-        evStatusTimestamp: response.carEvStatus.timestamp,
-        batteryLevel: response.carEvStatus.batteryStatus,
-        distance: response.carEvStatus.drvDistance[0].rangeByFuel.evModeRange.value,
-        hvac: response.car.airCtrlOn,
-        pluggedIn: response.carEvStatus.batteryPlugin == 0 ? false : true,
-        batteryCharge: response.carEvStatus.batteryCharge,
-        locked: response.car.doorLock,
-        doorsOpen: Doors(
-            frontRight: response.car.doorOpen.frontRight,
-            frontLeft: response.car.doorOpen.frontLeft,
-            backRight: response.car.doorOpen.backRight,
-            backLeft: response.car.doorOpen.backLeft
-        ),
-        trunkOpen: response.car.trunkOpen,
-        defrost: response.car.defrost,
-        hoodOpen: response.car.hoodOpen,
-        odometer: response.carOdometer,
-        engine: response.car.engine
-    )
+    var car: CarDetails?
+    if let fluxCar = response.car, let evStatus = response.carEvStatus {
+        car = CarDetails(
+            timestamp: fluxCar.timestamp,
+            evStatusTimestamp: evStatus.timestamp,
+            batteryLevel: evStatus.batteryStatus,
+            distance: evStatus.drvDistance[0].rangeByFuel.evModeRange.value,
+            hvac: fluxCar.airCtrlOn,
+            pluggedIn: evStatus.batteryPlugin == 0 ? false : true,
+            batteryCharge: evStatus.batteryCharge,
+            locked: fluxCar.doorLock,
+            doorsOpen: Doors(
+                frontRight: fluxCar.doorOpen.frontRight,
+                frontLeft: fluxCar.doorOpen.frontLeft,
+                backRight: fluxCar.doorOpen.backRight,
+                backLeft: fluxCar.doorOpen.backLeft
+            ),
+            trunkOpen: fluxCar.trunkOpen,
+            defrost: fluxCar.defrost,
+            hoodOpen: fluxCar.hoodOpen,
+            odometer: response.carOdometer ?? 0,
+            engine: fluxCar.engine
+        )
+    }
 
     let dishwasher = response.dishwasher
 
@@ -295,16 +348,18 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         )
     )
 
-    returnValue.append(
-        WidgetDevice(
-            name: "Car",
-            progress: fluxData.car?.batteryLevel ?? 0,
-            icon: "car",
-            trailingText: "Range \(fluxData.car!.distance) km ⋅ \(fluxData.car?.batteryLevel ?? 0)% ",
-            shortText: "\(fluxData.car!.distance) km",
-            running: false
+    if let car = fluxData.car {
+        returnValue.append(
+            WidgetDevice(
+                name: "Car",
+                progress: car.batteryLevel,
+                icon: "car",
+                trailingText: "Range \(car.distance) km ⋅ \(car.batteryLevel)% ",
+                shortText: "\(car.distance) km",
+                running: false
+            )
         )
-    )
+    }
 
     return returnValue
 }

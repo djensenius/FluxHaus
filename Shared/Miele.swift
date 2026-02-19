@@ -82,8 +82,12 @@ class Miele: ObservableObject {
                     object: nil,
                     userInfo: ["mieleComplete": true]
                 )
-                self.updateAppliance(mApps: response.washer)
-                self.updateAppliance(mApps: response.dryer)
+                if let washer = response.washer {
+                    self.updateAppliance(mApps: washer)
+                }
+                if let dryer = response.dryer {
+                    self.updateAppliance(mApps: dryer)
+                }
                 // self.updateAppliance(mApps: response.miele[appliance]!)
             }
         }

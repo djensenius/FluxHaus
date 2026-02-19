@@ -52,6 +52,10 @@ struct VisionOSApp: App {
                             if ((object.userInfo?["keysFailed"]) != nil) == true {
                                 whereWeAre.deleteKeyChainPasword()
                             }
+
+                            if (object.userInfo?["loginError"]) != nil {
+                                whereWeAre.deleteKeyChainPasword()
+                            }
                         }
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                             if let response = object.userInfo?["data"] as? LoginResponse {
