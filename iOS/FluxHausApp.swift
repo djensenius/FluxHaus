@@ -67,14 +67,14 @@ struct FluxHausApp: App {
                                 loadHomeConnect()
                             }
                         }
-                } else {
+                } else if let hconn, let miele, let robots, let car {
                     ContentView(
                         fluxHausConsts: fluxHausConsts,
-                        hconn: hconn!,
-                        miele: miele!,
-                        robots: robots!,
+                        hconn: hconn,
+                        miele: miele,
+                        robots: robots,
                         battery: battery,
-                        car: car!,
+                        car: car,
                         apiResponse: self.apiResponse
                     )
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
@@ -87,10 +87,10 @@ struct FluxHausApp: App {
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                         if let response = object.userInfo?["data"] as? LoginResponse {
                             self.apiResponse.setApiResponse(apiResponse: response)
-                            robots?.setApiResponse(apiResponse: self.apiResponse)
-                            hconn?.setApiResponse(apiResponse: self.apiResponse)
-                            miele?.setApiResponse(apiResponse: self.apiResponse)
-                            car?.setApiResponse(apiResponse: self.apiResponse)
+                            robots.setApiResponse(apiResponse: self.apiResponse)
+                            hconn.setApiResponse(apiResponse: self.apiResponse)
+                            miele.setApiResponse(apiResponse: self.apiResponse)
+                            car.setApiResponse(apiResponse: self.apiResponse)
                         }
                     }
                     .onReceive(timer) {_ in
