@@ -78,8 +78,8 @@ import Foundation
         let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
-        var path = "/"
 
+        let path: String
         switch action {
         case "unlock":
             path = "/unlockCar"
