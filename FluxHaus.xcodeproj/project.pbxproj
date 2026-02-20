@@ -23,6 +23,7 @@
 		633F09482BBB8F8F0052C088 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		633F094A2BBB8F8F0052C088 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */; };
+		1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC999E976448F6757BA7155 /* MockDataUITests.swift */; };
 		634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
 		634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */; };
 		634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */; };
@@ -174,6 +175,7 @@
 		632CBC8F2587B4AD003E4988 /* HomeConnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConnect.swift; sourceTree = "<group>"; };
 		633F09472BBB8F8F0052C088 /* CarHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarHelper.swift; sourceTree = "<group>"; };
 		634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_iOS_SwiftTesting.swift; sourceTree = "<group>"; };
+		6BC999E976448F6757BA7155 /* MockDataUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataUITests.swift; sourceTree = "<group>"; };
 		634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryAndWeatherTests.swift; sourceTree = "<group>"; };
 		634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeConnectTests.swift; sourceTree = "<group>"; };
 		634056D02E47FFC2001F8278 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
@@ -367,6 +369,7 @@
 			children = (
 				632CBC3F258682C9003E4988 /* Tests_iOS.swift */,
 				634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */,
+				6BC999E976448F6757BA7155 /* MockDataUITests.swift */,
 				632CBC41258682C9003E4988 /* Info.plist */,
 			);
 			path = "Tests iOS";
@@ -738,6 +741,7 @@
 				634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */,
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
 				634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
+				1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
