@@ -59,9 +59,23 @@ func queryFlux(password: String, user: String?) {
     let credentialData = Data("\(authUser):\(password)".utf8)
     let base64Credential = credentialData.base64EncodedString()
     request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
-    let delegate = BasicAuthDelegate(user: authUser, password: password)
-    let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-    let task = session.dataTask(with: request) { data, _, error in
+    let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+    let task = session.dataTask(with: request) { data, response, error in
+        let httpResponse = response as? HTTPURLResponse
+        if httpResponse?.statusCode == 401 {
+            if user == nil {
+                queryFlux(password: password, user: "demo")
+            } else {
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.loginsUpdated,
+                        object: nil,
+                        userInfo: ["loginError": "Incorrect Password"]
+                    )
+                }
+            }
+            return
+        }
         if let data = data {
             do {
                 let response = try JSONDecoder().decode(LoginResponse.self, from: data)
@@ -132,8 +146,7 @@ func getFlux(password: String) async throws -> LoginResponse? {
     let base64Credential = credentialData.base64EncodedString()
     request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
 
-    let delegate = BasicAuthDelegate(user: "admin", password: password)
-    let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+    let session = URLSession(configuration: .default)
     let (data, _) = try await session.data(for: request)
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value

@@ -112,8 +112,7 @@ import Foundation
         let credentialData = Data("admin:\(authPassword)".utf8)
         let base64Credential = credentialData.base64EncodedString()
         request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
-        let delegate = BasicAuthDelegate(user: "admin", password: authPassword)
-        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+        let session = URLSession(configuration: .default)
         let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
             if data != nil {
                 print("Got Robot data \(path)")
