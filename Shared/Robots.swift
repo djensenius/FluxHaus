@@ -76,19 +76,13 @@ import Foundation
         let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
-        var path = "/"
 
+        let path: String
         switch action {
         case "start":
-            path = "/turnOnBroombot"
-            if robot == "MopBot" {
-                path = "/turnOnMopbot"
-            }
+            path = robot == "MopBot" ? "/turnOnMopbot" : "/turnOnBroombot"
         case "stop":
-            path = "/turnOffBroombot"
-            if robot == "MopBot" {
-                path = "/turnOffMopbot"
-            }
+            path = robot == "MopBot" ? "/turnOffMopbot" : "/turnOffBroombot"
         case "deepClean":
             path = "/turnOnDeepClean"
         default:
