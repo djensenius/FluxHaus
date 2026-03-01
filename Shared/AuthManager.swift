@@ -266,7 +266,15 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         let tokens = try await exchangeCode(code, codeVerifier: codeVerifier)
         storeTokens(tokens)
         authState = .signedIn(method: .oidc)
-        logger.info("OIDC sign in successful")
+        if tokens.refreshToken != nil {
+            logger.info("OIDC sign in successful (with refresh token)")
+        } else {
+            logger.error("""
+                OIDC sign in succeeded but NO REFRESH TOKEN was returned! \
+                Token will expire in \(tokens.expiresIn ?? -1)s with no way to renew. \
+                Check Authentik provider: offline_access scope must be enabled.
+                """)
+        }
     }
 
     // MARK: - Demo Sign In
@@ -339,7 +347,8 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             "code=\(code)",
             "redirect_uri=\(Self.redirectURI)",
             "client_id=\(Self.clientID)",
-            "code_verifier=\(codeVerifier)"
+            "code_verifier=\(codeVerifier)",
+            "scope=\(Self.scopes)"
         ].joined(separator: "&")
         request.httpBody = body.data(using: .utf8)
 
