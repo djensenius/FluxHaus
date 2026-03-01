@@ -7,6 +7,9 @@
 
 import SwiftUI
 import UIKit
+import os
+
+private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
 
 @MainActor var hconn: HomeConnect?
 @MainActor var miele: Miele?
@@ -50,13 +53,18 @@ struct FluxHausApp: App {
                             }
 
                             if ((object.userInfo?["keysFailed"]) != nil) == true {
+                                appLogger.warning("keysFailed received, isSignedIn=\(AuthManager.shared.isSignedIn)")
                                 if !AuthManager.shared.isSignedIn {
                                     whereWeAre.deleteKeyChainPasword()
                                 }
                             }
 
                             if (object.userInfo?["loginError"]) != nil {
+                                let errMsg = object.userInfo?["loginError"] as? String ?? "unknown"
+                                let isSignedIn = AuthManager.shared.isSignedIn
+                                appLogger.warning("loginError: \(errMsg), isSignedIn=\(isSignedIn)")
                                 if !AuthManager.shared.isSignedIn {
+                                    appLogger.warning("Clearing keychain due to loginError while signed out")
                                     whereWeAre.deleteKeyChainPasword()
                                 }
                             }
