@@ -12,6 +12,10 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
+#if os(iOS) || os(visionOS)
+import UIKit
+#endif
+
 enum AuthError: Error, LocalizedError {
     case noCode
     case tokenExchangeFailed(String)
@@ -82,6 +86,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     @MainActor @Published var authState: AuthState = .unknown
 
+    // Keep strong reference to prevent deallocation during auth
+    private var currentAuthSession: ASWebAuthenticationSession?
+
     @MainActor var isSignedIn: Bool {
         if case .signedIn = authState { return true }
         return false
@@ -148,7 +155,8 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             let session = ASWebAuthenticationSession(
                 url: authURL,
                 callbackURLScheme: Self.redirectScheme
-            ) { url, error in
+            ) { [weak self] url, error in
+                self?.currentAuthSession = nil
                 if let error = error as? ASWebAuthenticationSessionError,
                    error.code == .canceledLogin {
                     continuation.resume(throwing: AuthError.cancelled)
@@ -161,6 +169,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
                 }
             }
             session.prefersEphemeralWebBrowserSession = false
+            self.currentAuthSession = session
             session.start()
         }
 
