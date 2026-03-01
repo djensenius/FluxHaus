@@ -73,7 +73,6 @@ import Foundation
     }
 
     func performAction(action: String, robot: String) {
-        let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
 

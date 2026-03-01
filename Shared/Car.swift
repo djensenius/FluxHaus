@@ -83,7 +83,6 @@ import Foundation
         defrost: Bool = false,
         temperature: Int? = nil
     ) {
-        let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
         let path = Self.actionPaths[action] ?? "/resyncCar"

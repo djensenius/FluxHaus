@@ -20,21 +20,30 @@ private class AuthSessionAnchorProvider: NSObject, ASWebAuthenticationPresentati
         #if os(iOS) || os(visionOS)
         if let app = (NSClassFromString("UIApplication") as? NSObject.Type)?
             .value(forKeyPath: "sharedApplication") as? NSObject,
-           let scenes = app.value(forKey: "connectedScenes") as? Set<AnyHashable> {
+           let scenes = app.value(forKey: "connectedScenes") as? Set<NSObject> {
             for scene in scenes {
-                if let windowScene = scene as? NSObject,
-                   String(describing: type(of: windowScene)).contains("UIWindowScene"),
-                   let windows = windowScene.value(forKey: "windows") as? [NSObject] {
+                if String(describing: type(of: scene)).contains("UIWindowScene"),
+                   let windows = scene.value(forKey: "windows") as? [NSObject] {
                     for window in windows {
                         if let isKey = window.value(forKey: "isKeyWindow") as? Bool, isKey {
                             return window as! ASPresentationAnchor // swiftlint:disable:this force_cast
                         }
                     }
+                    // No key window found, but we have a scene — return first window
+                    if let firstWindow = windows.first {
+                        return firstWindow as! ASPresentationAnchor // swiftlint:disable:this force_cast
+                    }
                 }
             }
         }
         #endif
-        return ASPresentationAnchor()
+        // Should never reach here when called from a foreground app.
+        if #unavailable(iOS 26, visionOS 26) {
+            return ASPresentationAnchor(frame: .zero)
+        }
+        // iOS 26+ requires UIWindow(windowScene:) — but if we're here,
+        // no scene was found, so the auth session will fail regardless.
+        fatalError("No window scene available for ASWebAuthenticationSession")
     }
 }
 
