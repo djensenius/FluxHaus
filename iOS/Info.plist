@@ -80,5 +80,9 @@
 	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>OIDCIssuerBase</key>
+	<string>https://auth.fluxhaus.io/application/o/fluxhaus-server</string>
+	<key>OIDCClientID</key>
+	<string>ios-fluxhaus</string>
 </dict>
 </plist>

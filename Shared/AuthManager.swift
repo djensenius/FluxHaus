@@ -47,12 +47,24 @@ struct OIDCTokens: Codable {
 class AuthManager: ObservableObject, @unchecked Sendable {
     nonisolated(unsafe) static let shared = AuthManager()
 
-    // OIDC configuration — update client ID after creating a public OIDC client in Authentik
-    static let issuerBase = "https://auth.fluxhaus.io/application/o/fluxhaus-server"
-    static let authorizeURL = "https://auth.fluxhaus.io/application/o/authorize/"
-    static let tokenURL = "https://auth.fluxhaus.io/application/o/token/"
-    static let endSessionURL = "https://auth.fluxhaus.io/application/o/fluxhaus-server/end-session/"
-    static let clientID = "ios-fluxhaus"
+    // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
+    private static let issuerBase: String = {
+        Bundle.main.object(forInfoDictionaryKey: "OIDCIssuerBase") as? String
+            ?? "https://auth.fluxhaus.io/application/o/fluxhaus-server"
+    }()
+    static var authorizeURL: String {
+        guard let base = URL(string: issuerBase) else { return issuerBase }
+        return base.deletingLastPathComponent().appendingPathComponent("authorize").absoluteString + "/"
+    }
+    static var tokenURL: String {
+        guard let base = URL(string: issuerBase) else { return issuerBase }
+        return base.deletingLastPathComponent().appendingPathComponent("token").absoluteString + "/"
+    }
+    static var endSessionURL: String { "\(issuerBase)/end-session/" }
+    static let clientID: String = {
+        Bundle.main.object(forInfoDictionaryKey: "OIDCClientID") as? String
+            ?? "ios-fluxhaus"
+    }()
     static let redirectScheme = "fluxhaus"
     static let redirectURI = "fluxhaus://auth/callback"
     static let scopes = "openid email profile offline_access"
