@@ -7,6 +7,9 @@
 
 import SwiftUI
 import UIKit
+import os
+
+private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
 
 @MainActor var hconn: HomeConnect?
 @MainActor var miele: Miele?
@@ -50,11 +53,20 @@ struct FluxHausApp: App {
                             }
 
                             if ((object.userInfo?["keysFailed"]) != nil) == true {
-                                whereWeAre.deleteKeyChainPasword()
+                                appLogger.warning("keysFailed received, isSignedIn=\(AuthManager.shared.isSignedIn)")
+                                if !AuthManager.shared.isSignedIn {
+                                    whereWeAre.deleteKeyChainPasword()
+                                }
                             }
 
                             if (object.userInfo?["loginError"]) != nil {
-                                whereWeAre.deleteKeyChainPasword()
+                                let errMsg = object.userInfo?["loginError"] as? String ?? "unknown"
+                                let isSignedIn = AuthManager.shared.isSignedIn
+                                appLogger.warning("loginError: \(errMsg), isSignedIn=\(isSignedIn)")
+                                if !AuthManager.shared.isSignedIn {
+                                    appLogger.warning("Clearing keychain due to loginError while signed out")
+                                    whereWeAre.deleteKeyChainPasword()
+                                }
                             }
                         }
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
@@ -94,17 +106,16 @@ struct FluxHausApp: App {
                         }
                     }
                     .onReceive(timer) {_ in
-                        let password = WhereWeAre.getPassword()
-                        if password != nil {
-                            queryFlux(password: password!, user: nil)
+                        if AuthManager.shared.isSignedIn {
+                            queryFlux(password: WhereWeAre.getPassword() ?? "", user: nil)
                         }
                     }
                 }
             }
             .onAppear {
                 if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
-                    if let password = WhereWeAre.getPassword() {
-                        queryFlux(password: password, user: nil)
+                    if AuthManager.shared.isSignedIn {
+                        queryFlux(password: WhereWeAre.getPassword() ?? "", user: nil)
                     }
                 }
             }

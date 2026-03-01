@@ -55,14 +55,86 @@ func queryFlux(password: String, user: String?) {
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
     request.addValue("application/json", forHTTPHeaderField: "Accept")
 
-    let authUser = user ?? "admin"
-    let credentialData = Data("\(authUser):\(password)".utf8)
-    let base64Credential = credentialData.base64EncodedString()
-    request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    if let authHeader = AuthManager.shared.authorizationHeader() {
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+    } else {
+        // Fallback for legacy demo login during transition
+        let authUser = user ?? "admin"
+        let credentialData = Data("\(authUser):\(password)".utf8)
+        let base64Credential = credentialData.base64EncodedString()
+        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    }
     let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
     let task = session.dataTask(with: request) { data, response, error in
         let httpResponse = response as? HTTPURLResponse
         if httpResponse?.statusCode == 401 {
+            handleUnauthorized(password: password, user: user)
+            return
+        }
+        handleQueryFluxResponse(data: data, error: error, password: password, user: user)
+    }
+    task.resume()
+}
+
+private func handleUnauthorized(password: String, user: String?) {
+    if AuthManager.shared.getAccessToken() != nil {
+        logger.info("handleUnauthorized: 401 with OIDC token, requesting refresh (thread=\(Thread.current))")
+        Task { @MainActor in
+            let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+            if refreshed {
+                logger.info("handleUnauthorized: refresh succeeded, retrying queryFlux")
+                queryFlux(password: password, user: user)
+            } else {
+                logger.error("handleUnauthorized: refresh FAILED — signing out")
+                AuthManager.shared.signOut()
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Session expired. Please sign in again."]
+                )
+            }
+        }
+    } else if user == nil {
+        logger.info("handleUnauthorized: no OIDC token, retrying with demo user")
+        queryFlux(password: password, user: "demo")
+    } else {
+        logger.error("handleUnauthorized: demo auth also failed — posting loginError")
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Notification.Name.loginsUpdated,
+                object: nil,
+                userInfo: ["loginError": "Incorrect Password"]
+            )
+        }
+    }
+}
+
+private func handleQueryFluxResponse(data: Data?, error: Error?, password: String, user: String?) {
+    if let data = data {
+        do {
+            let response = try JSONDecoder().decode(LoginResponse.self, from: data)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: response,
+                    userInfo: ["keysComplete": true]
+                )
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["updateKeychain": password]
+                )
+                NotificationCenter.default.post(
+                    name: Notification.Name.dataUpdated,
+                    object: nil,
+                    userInfo: ["data": response]
+                )
+            }
+        } catch {
+            logger.error("JSON decode failed: \(error)")
+            if let jsonStr = String(data: data, encoding: .utf8) {
+                logger.error("Response body: \(jsonStr.prefix(500))")
+            }
             if user == nil {
                 queryFlux(password: password, user: "demo")
             } else {
@@ -74,59 +146,16 @@ func queryFlux(password: String, user: String?) {
                     )
                 }
             }
-            return
         }
-        if let data = data {
-            do {
-                let response = try JSONDecoder().decode(LoginResponse.self, from: data)
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: response,
-                        userInfo: ["keysComplete": true]
-                    )
-
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: nil,
-                        userInfo: ["updateKeychain": password]
-                    )
-                    NotificationCenter.default.post(
-                        name: Notification.Name.dataUpdated,
-                        object: nil,
-                        userInfo: ["data": response]
-                    )
-                }
-            } catch {
-                logger.error("JSON decode failed: \(error)")
-                if let jsonStr = String(data: data, encoding: .utf8) {
-                    logger.error("Response body: \(jsonStr.prefix(500))")
-                }
-                if user == nil {
-                    queryFlux(password: password, user: "demo")
-                } else {
-                    // Error: Unable to decode response JSON
-                    // This also happens if the password is wrong!
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(
-                            name: Notification.Name.loginsUpdated,
-                            object: nil,
-                            userInfo: ["loginError": "Incorrect Password"]
-                        )
-                    }
-                }
-            }
-        } else {
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: nil,
-                    userInfo: ["loginError": error?.localizedDescription ?? "Network error"]
-                )
-            }
+    } else {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Notification.Name.loginsUpdated,
+                object: nil,
+                userInfo: ["loginError": error?.localizedDescription ?? "Network error"]
+            )
         }
     }
-    task.resume()
 }
 
 func getFlux(password: String) async throws -> LoginResponse? {
@@ -142,12 +171,32 @@ func getFlux(password: String) async throws -> LoginResponse? {
     let url = components.url!
 
     var request = URLRequest(url: url)
-    let credentialData = Data("admin:\(password)".utf8)
-    let base64Credential = credentialData.base64EncodedString()
-    request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    if let authHeader = AuthManager.shared.authorizationHeader() {
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+    } else {
+        let credentialData = Data("admin:\(password)".utf8)
+        let base64Credential = credentialData.base64EncodedString()
+        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    }
 
     let session = URLSession(configuration: .default)
-    let (data, _) = try await session.data(for: request)
+    let (data, response) = try await session.data(for: request)
+
+    // If 401 and we have an OIDC token, try refreshing and retry once
+    if let httpResponse = response as? HTTPURLResponse,
+       httpResponse.statusCode == 401,
+       AuthManager.shared.getAccessToken() != nil {
+        let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+        if refreshed {
+            var retryRequest = URLRequest(url: url)
+            if let newAuth = AuthManager.shared.authorizationHeader() {
+                retryRequest.setValue(newAuth, forHTTPHeaderField: "Authorization")
+            }
+            let (retryData, _) = try await session.data(for: retryRequest)
+            return try JSONDecoder().decode(LoginResponse.self, from: retryData)
+        }
+    }
+
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value
 }

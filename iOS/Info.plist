@@ -39,8 +39,6 @@
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<true/>
-		<key>UISceneConfigurations</key>
-		<dict/>
 	</dict>
 	<key>NSHomeKitUsageDescription</key>
 	<string>FluxHaus displays your HomeKit scenes so you can quickly activate them from the app. Your HomeKit data is processed entirely on your device and never leaves it.</string>
@@ -48,11 +46,6 @@
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<true/>
-	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>
@@ -80,5 +73,9 @@
 	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>OIDCIssuerBase</key>
+	<string>https://auth.fluxhaus.io/application/o/flux-haus-mobile</string>
+	<key>OIDCClientID</key>
+	<string>f2COTwjAfHLRPbk8AaTlhph4lpP4dSzXIXxrLGj7</string>
 </dict>
 </plist>

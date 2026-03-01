@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
+		F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		77CDDA9FA1A142A79B3AEB86 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC3F258682C9003E4988 /* Tests_iOS.swift */; };
 		632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC24258682C8003E4988 /* FluxHausApp.swift */; };
@@ -153,6 +156,7 @@
 
 /* Begin PBXFileReference section */
 		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		726CDAE4D264490999414676 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
 		632CBC25258682C8003E4988 /* DateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimeView.swift; sourceTree = "<group>"; };
 		632CBC26258682C9003E4988 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -327,6 +331,7 @@
 				6369A138259984E400888E5D /* WeatherAlertView.swift */,
 				636B9B39258E57D400DE97BD /* WeatherView.swift */,
 				635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */,
+				726CDAE4D264490999414676 /* AuthManager.swift */,
 				632CBC26258682C9003E4988 /* Assets.xcassets */,
 				63BCF7542C63FABB001D4375 /* Api.swift */,
 			);
@@ -704,6 +709,7 @@
 				635F9D062BAF836C000700FD /* MieleAppliance.swift in Sources */,
 				636B9B5B258FBB6300DE97BD /* HomeKitView.swift in Sources */,
 				635BD6702B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
+				F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */,
 				637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */,
 				63BCF7552C63FABB001D4375 /* Api.swift in Sources */,
 				636B9B50258E912A00DE97BD /* BackgroundView.swift in Sources */,
@@ -765,6 +771,7 @@
 				636BF1EF2C5D8EC900C1244C /* Robots.swift in Sources */,
 				636BF1E82C5D8E1400C1244C /* QueryFlux.swift in Sources */,
 				636BF1E72C5D8B8400C1244C /* WhereWeAre.swift in Sources */,
+				77CDDA9FA1A142A79B3AEB86 /* AuthManager.swift in Sources */,
 				637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */,
 				637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */,
 				637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */,
@@ -781,6 +788,7 @@
 				6399EA292B9CA534000C8CA4 /* LoadingView.swift in Sources */,
 				63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */,
 				635BD6722B9DFAE1009CEEA9 /* WhereWeAre.swift in Sources */,
+				C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */,
 				63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				208C0E652C5E9763003F3796 /* Theme.swift in Sources */,
 				63DBD7582B954486006603D0 /* HomeKitView.swift in Sources */,

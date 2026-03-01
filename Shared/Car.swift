@@ -65,6 +65,14 @@ import Foundation
         }
     }
 
+    private static let actionPaths: [String: String] = [
+        "unlock": "/unlockCar",
+        "lock": "/lockCar",
+        "start": "/startCar",
+        "stop": "/stopCar",
+        "resync": "/resyncCar"
+    ]
+
     func performAction(
         action: String,
         steeringWheel: Bool = false,
@@ -75,26 +83,9 @@ import Foundation
         defrost: Bool = false,
         temperature: Int? = nil
     ) {
-        let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
-
-        let path: String
-        switch action {
-        case "unlock":
-            path = "/unlockCar"
-        case "lock":
-            path = "/lockCar"
-        case "start":
-            path = "/startCar"
-        case "stop":
-            path = "/stopCar"
-        case "resync":
-            path = "/resyncCar"
-        default:
-            print("Default \(action)")
-            path = "/resyncCar"
-        }
+        let path = Self.actionPaths[action] ?? "/resyncCar"
 
         var components = URLComponents()
         components.scheme = scheme
@@ -124,10 +115,9 @@ import Foundation
 
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let authPassword = password ?? ""
-        let credentialData = Data("admin:\(authPassword)".utf8)
-        let base64Credential = credentialData.base64EncodedString()
-        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+        if let authHeader = AuthManager.shared.authorizationHeader() {
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        }
         let session = URLSession(configuration: .default)
         let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
             if data != nil {

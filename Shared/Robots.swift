@@ -73,7 +73,6 @@ import Foundation
     }
 
     func performAction(action: String, robot: String) {
-        let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
 
@@ -102,10 +101,9 @@ import Foundation
 
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        let authPassword = password ?? ""
-        let credentialData = Data("admin:\(authPassword)".utf8)
-        let base64Credential = credentialData.base64EncodedString()
-        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+        if let authHeader = AuthManager.shared.authorizationHeader() {
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        }
         let session = URLSession(configuration: .default)
         let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
             if data != nil {
