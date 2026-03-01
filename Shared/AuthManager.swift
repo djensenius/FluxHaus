@@ -178,9 +178,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             let session = ASWebAuthenticationSession(
                 url: authURL,
                 callbackURLScheme: Self.redirectScheme
-            ) { [weak self] url, error in
-                self?.currentAuthSession = nil
-                self?.anchorProvider = nil
+            ) { @Sendable url, error in
                 if let error = error as? ASWebAuthenticationSessionError,
                    error.code == .canceledLogin {
                     continuation.resume(throwing: AuthError.cancelled)
@@ -199,6 +197,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             self.currentAuthSession = session
             session.start()
         }
+        // Clean up references after continuation resumes
+        self.currentAuthSession = nil
+        self.anchorProvider = nil
 
         // Extract code from callback
         let callbackComponents = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
