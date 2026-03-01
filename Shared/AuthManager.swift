@@ -342,15 +342,15 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
-        let body = [
-            "grant_type=authorization_code",
-            "code=\(code)",
-            "redirect_uri=\(Self.redirectURI)",
-            "client_id=\(Self.clientID)",
-            "code_verifier=\(codeVerifier)",
-            "scope=\(Self.scopes)"
-        ].joined(separator: "&")
-        request.httpBody = body.data(using: .utf8)
+        let params: [(String, String)] = [
+            ("grant_type", "authorization_code"),
+            ("code", code),
+            ("redirect_uri", Self.redirectURI),
+            ("client_id", Self.clientID),
+            ("code_verifier", codeVerifier),
+            ("scope", Self.scopes)
+        ]
+        request.httpBody = Self.formEncode(params).data(using: .utf8)
 
         logger.info("exchangeCode: POST \(Self.tokenURL)")
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -376,13 +376,13 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
-        let body = [
-            "grant_type=refresh_token",
-            "refresh_token=\(refreshToken)",
-            "client_id=\(Self.clientID)",
-            "scope=\(Self.scopes)"
-        ].joined(separator: "&")
-        request.httpBody = body.data(using: .utf8)
+        let params: [(String, String)] = [
+            ("grant_type", "refresh_token"),
+            ("refresh_token", refreshToken),
+            ("client_id", Self.clientID),
+            ("scope", Self.scopes)
+        ]
+        request.httpBody = Self.formEncode(params).data(using: .utf8)
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
@@ -446,6 +446,16 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - PKCE Helpers
+
+    /// URL-encode key=value pairs for application/x-www-form-urlencoded bodies
+    private static func formEncode(_ params: [(String, String)]) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
+        return params.map { key, value in
+            let encodedKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
+            let encodedValue = value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+            return "\(encodedKey)=\(encodedValue)"
+        }.joined(separator: "&")
+    }
 
     private func generateCodeVerifier() -> String {
         var buffer = [UInt8](repeating: 0, count: 32)
