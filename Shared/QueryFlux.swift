@@ -175,7 +175,23 @@ func getFlux(password: String) async throws -> LoginResponse? {
     }
 
     let session = URLSession(configuration: .default)
-    let (data, _) = try await session.data(for: request)
+    let (data, response) = try await session.data(for: request)
+
+    // If 401 and we have an OIDC token, try refreshing and retry once
+    if let httpResponse = response as? HTTPURLResponse,
+       httpResponse.statusCode == 401,
+       AuthManager.shared.getAccessToken() != nil {
+        let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+        if refreshed {
+            var retryRequest = URLRequest(url: url)
+            if let newAuth = AuthManager.shared.authorizationHeader() {
+                retryRequest.setValue(newAuth, forHTTPHeaderField: "Authorization")
+            }
+            let (retryData, _) = try await session.data(for: retryRequest)
+            return try JSONDecoder().decode(LoginResponse.self, from: retryData)
+        }
+    }
+
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value
 }

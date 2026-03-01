@@ -302,7 +302,8 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         let body = [
             "grant_type=refresh_token",
             "refresh_token=\(refreshToken)",
-            "client_id=\(Self.clientID)"
+            "client_id=\(Self.clientID)",
+            "scope=\(Self.scopes)"
         ].joined(separator: "&")
         request.httpBody = body.data(using: .utf8)
 
