@@ -84,6 +84,10 @@
 		6399EA332B9D3671000C8CA4 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		B542E55790BD42D08607B227 /* OIDCManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6817D9B37571459289851623 /* OIDCManager.swift */; };
+		93C8EBF155164F3A8F1DB17C /* OIDCManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6817D9B37571459289851623 /* OIDCManager.swift */; };
+		7DDB17FFF13346B9BE7E9F46 /* BearerQueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADA4E4A928940AABE445D31 /* BearerQueryFlux.swift */; };
+		F5A926C249C8425B88CF74EC /* BearerQueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADA4E4A928940AABE445D31 /* BearerQueryFlux.swift */; };
 		63A159282C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		63A1592C2C5E9763003F3796 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
@@ -211,6 +215,8 @@
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
+		6817D9B37571459289851623 /* OIDCManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OIDCManager.swift; sourceTree = "<group>"; };
+		4ADA4E4A928940AABE445D31 /* BearerQueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BearerQueryFlux.swift; sourceTree = "<group>"; };
 		63A159272C5E9763003F3796 /* LoginStucts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStucts.swift; sourceTree = "<group>"; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -320,6 +326,8 @@
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
+				6817D9B37571459289851623 /* OIDCManager.swift */,
+				4ADA4E4A928940AABE445D31 /* BearerQueryFlux.swift */,
 				637CE4C42BE71FC000258158 /* RobotDetailView.swift */,
 				635BD66A2B9DF8A6009CEEA9 /* Robots.swift */,
 				6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */,
@@ -731,6 +739,8 @@
 				636B9B3A258E57D400DE97BD /* WeatherView.swift in Sources */,
 				63610D2E2BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
 				6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
+				B542E55790BD42D08607B227 /* OIDCManager.swift in Sources */,
+				7DDB17FFF13346B9BE7E9F46 /* BearerQueryFlux.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -806,6 +816,8 @@
 				63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */,
 				63BCF7572C63FABB001D4375 /* Api.swift in Sources */,
 				6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
+				93C8EBF155164F3A8F1DB17C /* OIDCManager.swift in Sources */,
+				F5A926C249C8425B88CF74EC /* BearerQueryFlux.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

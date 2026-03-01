@@ -27,7 +27,7 @@ struct VisionOSApp: App {
         WindowGroup {
             ZStack {
                 if whereWeAre.loading == true {
-                    LoadingView(needLoginView: !whereWeAre.hasKeyChainPassword)
+                    LoadingView(needLoginView: whereWeAre.authMode == .none)
                         .onReceive(
                             NotificationCenter.default.publisher(for: Notification.Name.loginsUpdated)
                         ) { object in
@@ -55,6 +55,7 @@ struct VisionOSApp: App {
 
                             if (object.userInfo?["loginError"]) != nil {
                                 whereWeAre.deleteKeyChainPasword()
+                                whereWeAre.deleteOIDCTokens()
                             }
                         }
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
@@ -94,16 +95,33 @@ struct VisionOSApp: App {
                         }
                     }
                     .onReceive(timer) {_ in
-                        let password = WhereWeAre.getPassword()
-                        queryFlux(password: password!, user: nil)
+                        switch whereWeAre.authMode {
+                        case .oidc:
+                            if let token = OIDCManager.shared.getAccessToken() {
+                                queryFluxWithBearer(accessToken: token)
+                            }
+                        case .passcode:
+                            if let password = WhereWeAre.getPassword() {
+                                queryFlux(password: password, user: nil)
+                            }
+                        case .none:
+                            break
+                        }
                     }
                 }
             }
             .onAppear {
-                if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
-                    if let password = WhereWeAre.getPassword() {
+                switch whereWeAre.authMode {
+                case .oidc:
+                    if whereWeAre.loading, let token = OIDCManager.shared.getAccessToken() {
+                        queryFluxWithBearer(accessToken: token)
+                    }
+                case .passcode:
+                    if whereWeAre.loading, let password = WhereWeAre.getPassword() {
                         queryFlux(password: password, user: nil)
                     }
+                case .none:
+                    break
                 }
             }
         }

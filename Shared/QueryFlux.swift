@@ -35,6 +35,8 @@ class BasicAuthDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     }
 }
 
+// MARK: - Passcode Basic Auth
+
 func queryFlux(password: String, user: String?) {
     let scheme: String = "https"
     let host: String = "api.fluxhaus.io"
@@ -150,6 +152,22 @@ func getFlux(password: String) async throws -> LoginResponse? {
     let (data, _) = try await session.data(for: request)
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value
+}
+
+func getFluxWithBearer(accessToken: String) async throws -> LoginResponse? {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/"
+
+    let url = components.url!
+
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+    let session = URLSession(configuration: .default)
+    let (data, _) = try await session.data(for: request)
+    return try JSONDecoder().decode(LoginResponse.self, from: data)
 }
 
 struct FluxData {

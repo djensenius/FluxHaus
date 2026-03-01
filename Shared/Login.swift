@@ -17,6 +17,34 @@ class LoginViewModel: ObservableObject {
             )
         ).call()
     }
+
+    func loginWithOIDC() {
+        Task {
+            do {
+                try await OIDCManager.shared.login()
+                guard let accessToken = OIDCManager.shared.getAccessToken() else {
+                    await postLoginError("Failed to retrieve access token")
+                    return
+                }
+                await MainActor.run {
+                    queryFluxWithBearer(accessToken: accessToken)
+                }
+            } catch OIDCError.userCancelled {
+                // User cancelled — no error message needed
+            } catch {
+                await postLoginError(error.localizedDescription)
+            }
+        }
+    }
+
+    @MainActor
+    private func postLoginError(_ message: String) {
+        NotificationCenter.default.post(
+            name: Notification.Name.loginsUpdated,
+            object: nil,
+            userInfo: ["loginError": message]
+        )
+    }
 }
 
 struct LoginAction {

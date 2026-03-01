@@ -10,11 +10,17 @@ import SwiftUI
 
 class FluxWidgetNetwork {
     static func fetchStatus() async -> [WidgetDevice] {
-        let password = WhereWeAre.getPassword()!
-
-        // Simulate an asynchronous data fetching process.
-        let loginData = try? await getFlux(password: password)
-        let convertedData = convertLoginResponseToAppData(response: loginData!)
+        let loginData: LoginResponse?
+        if let accessToken = WhereWeAre.getOIDCAccessToken() {
+            loginData = try? await getFluxWithBearer(accessToken: accessToken)
+        } else {
+            guard let password = WhereWeAre.getPassword() else {
+                return []
+            }
+            loginData = try? await getFlux(password: password)
+        }
+        guard let loginData else { return [] }
+        let convertedData = convertLoginResponseToAppData(response: loginData)
         let widgetData = convertDataToWidgetDevices(fluxData: convertedData)
         return classifyWidgetData(devices: widgetData)
     }
