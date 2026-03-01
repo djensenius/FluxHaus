@@ -12,6 +12,32 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
+// Provides a presentation anchor for ASWebAuthenticationSession.
+// Uses KVC to access UIApplication.shared, avoiding the compile-time
+// "unavailable in app extensions" error (the widget never calls this).
+private class AuthSessionAnchorProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        #if os(iOS) || os(visionOS)
+        if let app = (NSClassFromString("UIApplication") as? NSObject.Type)?
+            .value(forKeyPath: "sharedApplication") as? NSObject,
+           let scenes = app.value(forKey: "connectedScenes") as? Set<AnyHashable> {
+            for scene in scenes {
+                if let windowScene = scene as? NSObject,
+                   String(describing: type(of: windowScene)).contains("UIWindowScene"),
+                   let windows = windowScene.value(forKey: "windows") as? [NSObject] {
+                    for window in windows {
+                        if let isKey = window.value(forKey: "isKeyWindow") as? Bool, isKey {
+                            return window as! ASPresentationAnchor // swiftlint:disable:this force_cast
+                        }
+                    }
+                }
+            }
+        }
+        #endif
+        return ASPresentationAnchor()
+    }
+}
+
 enum AuthError: Error, LocalizedError {
     case noCode
     case tokenExchangeFailed(String)
@@ -45,7 +71,7 @@ struct OIDCTokens: Codable {
 }
 
 class AuthManager: ObservableObject, @unchecked Sendable {
-    nonisolated(unsafe) static let shared = AuthManager()
+    static let shared = AuthManager()
 
     // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
     private static let issuerBase: String = {
@@ -82,8 +108,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     @Published var authState: AuthState = .unknown
 
-    // Keep strong reference to prevent deallocation during auth
+    // Keep strong references to prevent deallocation during auth
     private var currentAuthSession: ASWebAuthenticationSession?
+    private var anchorProvider: AuthSessionAnchorProvider?
 
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
@@ -153,6 +180,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
                 callbackURLScheme: Self.redirectScheme
             ) { [weak self] url, error in
                 self?.currentAuthSession = nil
+                self?.anchorProvider = nil
                 if let error = error as? ASWebAuthenticationSessionError,
                    error.code == .canceledLogin {
                     continuation.resume(throwing: AuthError.cancelled)
@@ -165,6 +193,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
                 }
             }
             session.prefersEphemeralWebBrowserSession = false
+            let provider = AuthSessionAnchorProvider()
+            session.presentationContextProvider = provider
+            self.anchorProvider = provider
             self.currentAuthSession = session
             session.start()
         }
