@@ -50,11 +50,15 @@ struct VisionOSApp: App {
                             }
 
                             if ((object.userInfo?["keysFailed"]) != nil) == true {
-                                whereWeAre.deleteKeyChainPasword()
+                                if !AuthManager.shared.isSignedIn {
+                                    whereWeAre.deleteKeyChainPasword()
+                                }
                             }
 
                             if (object.userInfo?["loginError"]) != nil {
-                                whereWeAre.deleteKeyChainPasword()
+                                if !AuthManager.shared.isSignedIn {
+                                    whereWeAre.deleteKeyChainPasword()
+                                }
                             }
                         }
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
