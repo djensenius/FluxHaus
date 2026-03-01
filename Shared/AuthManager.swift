@@ -84,7 +84,7 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
         case demo
     }
 
-    @MainActor @Published var authState: AuthState = .unknown
+    @Published var authState: AuthState = .unknown
 
     // Keep strong reference to prevent deallocation during auth
     private var currentAuthSession: ASWebAuthenticationSession?
@@ -92,7 +92,7 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
     private var authPresentationAnchor: UIWindow?
     #endif
 
-    @MainActor var isSignedIn: Bool {
+    var isSignedIn: Bool {
         if case .signedIn = authState { return true }
         return false
     }
@@ -100,11 +100,11 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
     private override init() {
         super.init()
         if getAccessToken() != nil {
-            _authState = Published(initialValue: .signedIn(method: .oidc))
+            authState = .signedIn(method: .oidc)
         } else if WhereWeAre.getPassword() != nil {
-            _authState = Published(initialValue: .signedIn(method: .demo))
+            authState = .signedIn(method: .demo)
         } else {
-            _authState = Published(initialValue: .signedOut)
+            authState = .signedOut
         }
     }
 

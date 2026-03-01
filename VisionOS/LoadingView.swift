@@ -36,13 +36,13 @@ struct LoadingView: View {
                     .controlSize(.large)
                     .disabled(isSigningIn)
 
-                    Button(action: { showDemoLogin.toggle() }) {
+                    Button(action: { showDemoLogin.toggle() }, label: {
                         Label(
                             showDemoLogin ? "Hide Demo Mode" : "Demo Mode",
                             systemImage: "play.circle"
                         )
                         .frame(maxWidth: .infinity)
-                    }
+                    })
                     .buttonStyle(.bordered)
                     .controlSize(.large)
 
@@ -52,10 +52,10 @@ struct LoadingView: View {
                         Button(action: {
                             AuthManager.shared.signInDemo(password: viewModel.password)
                             viewModel.login()
-                        }) {
+                        }, label: {
                             Label("Enter Demo", systemImage: "arrow.right")
                                 .frame(maxWidth: .infinity)
-                        }
+                        })
                         .buttonStyle(.bordered)
                         .controlSize(.large)
                     }
