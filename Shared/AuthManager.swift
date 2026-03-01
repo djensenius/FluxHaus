@@ -48,7 +48,7 @@ struct OIDCTokens: Codable {
     }
 }
 
-class AuthManager: ObservableObject, @unchecked Sendable {
+class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
     nonisolated(unsafe) static let shared = AuthManager()
 
     // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
@@ -88,13 +88,17 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     // Keep strong reference to prevent deallocation during auth
     private var currentAuthSession: ASWebAuthenticationSession?
+    #if os(iOS) || os(visionOS)
+    private var authPresentationAnchor: UIWindow?
+    #endif
 
     @MainActor var isSignedIn: Bool {
         if case .signedIn = authState { return true }
         return false
     }
 
-    private init() {
+    private override init() {
+        super.init()
         if getAccessToken() != nil {
             _authState = Published(initialValue: .signedIn(method: .oidc))
         } else if WhereWeAre.getPassword() != nil {
@@ -169,6 +173,10 @@ class AuthManager: ObservableObject, @unchecked Sendable {
                 }
             }
             session.prefersEphemeralWebBrowserSession = false
+            #if os(iOS) || os(visionOS)
+            self.authPresentationAnchor = UIWindow()
+            session.presentationContextProvider = self
+            #endif
             self.currentAuthSession = session
             session.start()
         }
@@ -353,3 +361,11 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             .replacingOccurrences(of: "=", with: "")
     }
 }
+
+#if os(iOS) || os(visionOS)
+extension AuthManager: ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        authPresentationAnchor ?? ASPresentationAnchor()
+    }
+}
+#endif
