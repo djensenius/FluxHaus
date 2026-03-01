@@ -8,20 +8,16 @@
 import Foundation
 
 func getCarTime(strDate: String) -> String {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    let isoFormatter = ISO8601DateFormatter()
+    isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-    if let date = dateFormatter.date(from: strDate) {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        return formatter.localizedString(
-            for: date,
-            relativeTo: Date()
-        )
+    var date = isoFormatter.date(from: strDate)
+    if date == nil {
+        isoFormatter.formatOptions = [.withInternetDateTime]
+        date = isoFormatter.date(from: strDate)
     }
 
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-    if let date = dateFormatter.date(from: strDate) {
+    if let date {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
         return formatter.localizedString(
