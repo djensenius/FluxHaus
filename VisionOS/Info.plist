@@ -33,8 +33,8 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>OIDCIssuerBase</key>
-	<string>https://auth.fluxhaus.io/application/o/fluxhaus-server</string>
+	<string>https://auth.fluxhaus.io/application/o/flux-haus-mobile</string>
 	<key>OIDCClientID</key>
-	<string>ios-fluxhaus</string>
+	<string>f2COTwjAfHLRPbk8AaTlhph4lpP4dSzXIXxrLGj7</string>
 </dict>
 </plist>
