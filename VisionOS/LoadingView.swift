@@ -25,14 +25,34 @@ struct LoadingView: View {
                         .foregroundStyle(.red)
                         .font(.subheadline)
                 }
+                Button(action: { viewModel.loginWithOIDC() }) {
+                    Label("Sign in with Authentik", systemImage: "person.badge.key")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .frame(maxWidth: 360)
+
+                HStack {
+                    VStack { Divider() }
+                    Text("or")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    VStack { Divider() }
+                }
+                .frame(maxWidth: 360)
+
                 VStack(spacing: 16) {
+                    Text("Guest Access")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
                     SecureField("Password", text: $viewModel.password)
                         .textFieldStyle(.roundedBorder)
                     Button(action: viewModel.login) {
-                        Label("Login", systemImage: "arrow.up")
+                        Label("Enter as Guest", systemImage: "arrow.up")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
                     .controlSize(.large)
                 }
                 .frame(maxWidth: 360)

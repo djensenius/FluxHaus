@@ -58,6 +58,7 @@ struct ContentView: View {
 
                 Button(action: {
                     whereWeAre.deleteKeyChainPasword()
+                    whereWeAre.deleteOIDCTokens()
                     NotificationCenter.default.post(
                         name: Notification.Name.logout,
                         object: nil,
