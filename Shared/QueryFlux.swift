@@ -55,15 +55,35 @@ func queryFlux(password: String, user: String?) {
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
     request.addValue("application/json", forHTTPHeaderField: "Accept")
 
-    let authUser = user ?? "admin"
-    let credentialData = Data("\(authUser):\(password)".utf8)
-    let base64Credential = credentialData.base64EncodedString()
-    request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    if let authHeader = AuthManager.shared.authorizationHeader() {
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+    } else {
+        // Fallback for legacy demo login during transition
+        let authUser = user ?? "admin"
+        let credentialData = Data("\(authUser):\(password)".utf8)
+        let base64Credential = credentialData.base64EncodedString()
+        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    }
     let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
     let task = session.dataTask(with: request) { data, response, error in
         let httpResponse = response as? HTTPURLResponse
         if httpResponse?.statusCode == 401 {
-            if user == nil {
+            // If OIDC token expired, try refreshing
+            if AuthManager.shared.getAccessToken() != nil {
+                Task { @MainActor in
+                    let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+                    if refreshed {
+                        queryFlux(password: password, user: user)
+                    } else {
+                        AuthManager.shared.signOut()
+                        NotificationCenter.default.post(
+                            name: Notification.Name.loginsUpdated,
+                            object: nil,
+                            userInfo: ["loginError": "Session expired. Please sign in again."]
+                        )
+                    }
+                }
+            } else if user == nil {
                 queryFlux(password: password, user: "demo")
             } else {
                 DispatchQueue.main.async {
@@ -105,8 +125,6 @@ func queryFlux(password: String, user: String?) {
                 if user == nil {
                     queryFlux(password: password, user: "demo")
                 } else {
-                    // Error: Unable to decode response JSON
-                    // This also happens if the password is wrong!
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(
                             name: Notification.Name.loginsUpdated,
@@ -142,9 +160,13 @@ func getFlux(password: String) async throws -> LoginResponse? {
     let url = components.url!
 
     var request = URLRequest(url: url)
-    let credentialData = Data("admin:\(password)".utf8)
-    let base64Credential = credentialData.base64EncodedString()
-    request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    if let authHeader = AuthManager.shared.authorizationHeader() {
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+    } else {
+        let credentialData = Data("admin:\(password)".utf8)
+        let base64Credential = credentialData.base64EncodedString()
+        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+    }
 
     let session = URLSession(configuration: .default)
     let (data, _) = try await session.data(for: request)

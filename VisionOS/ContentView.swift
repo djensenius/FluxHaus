@@ -57,7 +57,7 @@ struct ContentView: View {
                 Spacer()
 
                 Button(action: {
-                    whereWeAre.deleteKeyChainPasword()
+                    AuthManager.shared.signOut()
                     NotificationCenter.default.post(
                         name: Notification.Name.logout,
                         object: nil,

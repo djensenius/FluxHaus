@@ -13,6 +13,8 @@ struct LoadingView: View {
 
     @State var error: String?
     @State var loggedIn: Bool = false
+    @State var isSigningIn: Bool = false
+    @State var showDemoLogin: Bool = false
     var body: some View {
         if needLoginView && !loggedIn {
             VStack(spacing: 20) {
@@ -26,14 +28,37 @@ struct LoadingView: View {
                         .font(.subheadline)
                 }
                 VStack(spacing: 16) {
-                    SecureField("Password", text: $viewModel.password)
-                        .textFieldStyle(.roundedBorder)
-                    Button(action: viewModel.login) {
-                        Label("Login", systemImage: "arrow.up")
+                    Button(action: signInWithOIDC) {
+                        Label("Sign In", systemImage: "person.badge.key")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
+                    .disabled(isSigningIn)
+
+                    Button(action: { showDemoLogin.toggle() }) {
+                        Label(
+                            showDemoLogin ? "Hide Demo Mode" : "Demo Mode",
+                            systemImage: "play.circle"
+                        )
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+
+                    if showDemoLogin {
+                        SecureField("Demo Passcode", text: $viewModel.password)
+                            .textFieldStyle(.roundedBorder)
+                        Button(action: {
+                            AuthManager.shared.signInDemo(password: viewModel.password)
+                            viewModel.login()
+                        }) {
+                            Label("Enter Demo", systemImage: "arrow.right")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
                 }
                 .frame(maxWidth: 360)
                 Spacer()
@@ -46,6 +71,7 @@ struct LoadingView: View {
                 if (object.userInfo?["loginError"]) != nil {
                     DispatchQueue.main.async {
                         self.error = object.userInfo!["loginError"] as? String
+                        self.isSigningIn = false
                     }
                 }
                 if (object.userInfo?["keysComplete"]) != nil {
@@ -60,6 +86,22 @@ struct LoadingView: View {
     }
 
     func checkLogin() {
+    }
+
+    func signInWithOIDC() {
+        isSigningIn = true
+        error = nil
+        Task {
+            do {
+                try await AuthManager.shared.signInWithOIDC()
+                queryFlux(password: "", user: nil)
+            } catch AuthError.cancelled {
+                isSigningIn = false
+            } catch {
+                self.error = error.localizedDescription
+                isSigningIn = false
+            }
+        }
     }
 }
 

@@ -94,15 +94,16 @@ struct VisionOSApp: App {
                         }
                     }
                     .onReceive(timer) {_ in
-                        let password = WhereWeAre.getPassword()
-                        queryFlux(password: password!, user: nil)
+                        if AuthManager.shared.isSignedIn {
+                            queryFlux(password: WhereWeAre.getPassword() ?? "", user: nil)
+                        }
                     }
                 }
             }
             .onAppear {
                 if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
-                    if let password = WhereWeAre.getPassword() {
-                        queryFlux(password: password, user: nil)
+                    if AuthManager.shared.isSignedIn {
+                        queryFlux(password: WhereWeAre.getPassword() ?? "", user: nil)
                     }
                 }
             }

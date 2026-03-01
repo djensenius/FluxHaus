@@ -11,13 +11,17 @@ public struct WhereWeAre {
     public var hasKeyChainPassword = false
     public var loading = true
 
-    // Check if user exists in the keychain
+    // Check if user exists in the keychain (OIDC token or demo password)
     public init() {
-        let password = WhereWeAre.getPassword()
-        if password != nil {
+        if AuthManager.hasOIDCToken() {
             hasKeychainPassword(has: true)
         } else {
-            hasKeychainPassword(has: false)
+            let password = WhereWeAre.getPassword()
+            if password != nil {
+                hasKeychainPassword(has: true)
+            } else {
+                hasKeychainPassword(has: false)
+            }
         }
     }
 
