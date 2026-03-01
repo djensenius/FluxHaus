@@ -88,9 +88,6 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
 
     // Keep strong reference to prevent deallocation during auth
     private var currentAuthSession: ASWebAuthenticationSession?
-    #if os(iOS) || os(visionOS)
-    private var authPresentationAnchor: UIWindow?
-    #endif
 
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
@@ -174,7 +171,6 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
             }
             session.prefersEphemeralWebBrowserSession = false
             #if os(iOS) || os(visionOS)
-            self.authPresentationAnchor = UIWindow()
             session.presentationContextProvider = self
             #endif
             self.currentAuthSession = session
@@ -365,7 +361,17 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
 #if os(iOS) || os(visionOS)
 extension AuthManager: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        authPresentationAnchor ?? ASPresentationAnchor()
+        // Dynamic lookup avoids "UIApplication.shared unavailable in extensions" compile error.
+        // The widget extension never calls signInWithOIDC, so this code path is app-only.
+        if let app = UIApplication.value(forKeyPath: "sharedApplication") as? UIApplication {
+            for scene in app.connectedScenes {
+                if let windowScene = scene as? UIWindowScene,
+                   let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                    return window
+                }
+            }
+        }
+        return ASPresentationAnchor()
     }
 }
 #endif
