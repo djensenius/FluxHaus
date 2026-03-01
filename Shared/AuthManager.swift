@@ -158,12 +158,14 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     private init() {
-        if getAccessToken() != nil {
+        let hasAccessToken = getAccessToken() != nil
+        let hasRefreshToken = getKeychainItem(account: "oidc_refresh_token") != nil
+        if hasAccessToken {
             authState = .signedIn(method: .oidc)
-            logger.info("Init: found OIDC token, state=signedIn(oidc)")
+            logger.info("Init: signedIn(oidc) — accessToken=YES, refreshToken=\(hasRefreshToken ? "YES" : "MISSING!")")
         } else if WhereWeAre.getPassword() != nil {
             authState = .signedIn(method: .demo)
-            logger.info("Init: found demo password, state=signedIn(demo)")
+            logger.info("Init: signedIn(demo)")
         } else {
             authState = .signedOut
             logger.info("Init: no credentials found, state=signedOut")
@@ -341,13 +343,23 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         ].joined(separator: "&")
         request.httpBody = body.data(using: .utf8)
 
+        logger.info("exchangeCode: POST \(Self.tokenURL)")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let body = String(data: data, encoding: .utf8) ?? "unknown"
+            logger.error("exchangeCode: HTTP \((response as? HTTPURLResponse)?.statusCode ?? -1) — \(body.prefix(500))")
             throw AuthError.tokenExchangeFailed(body)
         }
 
-        return try JSONDecoder().decode(OIDCTokens.self, from: data)
+        let tokens = try JSONDecoder().decode(OIDCTokens.self, from: data)
+        logger.info("""
+            exchangeCode: SUCCESS — \
+            hasAccessToken=\(tokens.accessToken.isEmpty == false), \
+            hasRefreshToken=\(tokens.refreshToken != nil), \
+            hasIdToken=\(tokens.idToken != nil), \
+            expiresIn=\(tokens.expiresIn ?? -1)
+            """)
+        return tokens
     }
 
     private func refreshAccessToken(_ refreshToken: String) async throws -> OIDCTokens {
