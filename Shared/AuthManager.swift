@@ -79,6 +79,34 @@ struct OIDCTokens: Codable {
     }
 }
 
+/// Thread-safe coordination for token refresh to prevent concurrent refreshes.
+/// When the 5-second polling timer causes multiple 401s simultaneously,
+/// only one refresh executes — others wait for its result.
+private actor RefreshCoordinator {
+    private var isRefreshing = false
+    private var continuations: [CheckedContinuation<Bool, Never>] = []
+
+    /// Returns nil if the caller should perform the refresh.
+    /// Returns a Bool (via suspension) if another refresh is in-flight.
+    func acquireOrWait() async -> Bool? {
+        if isRefreshing {
+            return await withCheckedContinuation { continuation in
+                continuations.append(continuation)
+            }
+        }
+        isRefreshing = true
+        return nil
+    }
+
+    /// Signals all waiters with the result and resets the lock.
+    func complete(success: Bool) {
+        let waiters = continuations
+        continuations.removeAll()
+        isRefreshing = false
+        for waiter in waiters { waiter.resume(returning: success) }
+    }
+}
+
 class AuthManager: ObservableObject, @unchecked Sendable {
     static let shared = AuthManager()
 
@@ -121,6 +149,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     private var currentAuthSession: ASWebAuthenticationSession?
     private var anchorProvider: AuthSessionAnchorProvider?
 
+    // Serializes concurrent refresh attempts via actor isolation
+    private let refreshCoordinator = RefreshCoordinator()
+
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
         return false
@@ -129,10 +160,13 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     private init() {
         if getAccessToken() != nil {
             authState = .signedIn(method: .oidc)
+            logger.info("Init: found OIDC token, state=signedIn(oidc)")
         } else if WhereWeAre.getPassword() != nil {
             authState = .signedIn(method: .demo)
+            logger.info("Init: found demo password, state=signedIn(demo)")
         } else {
             authState = .signedOut
+            logger.info("Init: no credentials found, state=signedOut")
         }
     }
 
@@ -153,11 +187,14 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     /// Returns the Authorization header value for API requests
     func authorizationHeader() -> String? {
         if let token = getAccessToken() {
+            logger.debug("authorizationHeader: using Bearer token (\(token.prefix(8))...)")
             return "Bearer \(token)"
         }
         if let password = WhereWeAre.getPassword() {
+            logger.debug("authorizationHeader: using Basic auth (demo)")
             return "Basic \(Data("demo:\(password)".utf8).base64EncodedString())"
         }
+        logger.warning("authorizationHeader: no credentials available")
         return nil
     }
 
@@ -241,11 +278,13 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     // MARK: - Sign Out
 
     @MainActor func signOut() {
+        logger.warning("signOut() called — clearing all tokens and credentials")
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
+        logger.warning("signOut() complete — state=signedOut")
     }
 
     // MARK: - Token Management
@@ -255,16 +294,33 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     func refreshTokenIfNeeded() async -> Bool {
+        // If another refresh is in-flight, wait for its result (actor-serialized)
+        if let coalescedResult = await refreshCoordinator.acquireOrWait() {
+            logger.info("refreshTokenIfNeeded: coalesced with in-flight refresh, result=\(coalescedResult)")
+            return coalescedResult
+        }
+
         guard let refreshToken = getKeychainItem(account: "oidc_refresh_token") else {
+            logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
+            await refreshCoordinator.complete(success: false)
             return false
         }
+
+        logger.info("refreshTokenIfNeeded: starting token refresh...")
 
         do {
             let tokens = try await refreshAccessToken(refreshToken)
             storeTokens(tokens)
+            logger.info("""
+                refreshTokenIfNeeded: SUCCESS \
+                (expiresIn=\(tokens.expiresIn ?? -1), \
+                hasNewRefreshToken=\(tokens.refreshToken != nil))
+                """)
+            await refreshCoordinator.complete(success: true)
             return true
         } catch {
-            logger.error("Token refresh failed: \(error.localizedDescription)")
+            logger.error("refreshTokenIfNeeded: FAILED — \(error.localizedDescription)")
+            await refreshCoordinator.complete(success: false)
             return false
         }
     }
@@ -320,6 +376,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         setKeychainItem(account: "oidc_access_token", value: tokens.accessToken)
         if let refreshToken = tokens.refreshToken {
             setKeychainItem(account: "oidc_refresh_token", value: refreshToken)
+            logger.info("storeTokens: stored access + refresh tokens")
+        } else {
+            logger.warning("storeTokens: stored access token only (no refresh token returned!)")
         }
     }
 
@@ -333,7 +392,10 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             kSecAttrAccount as String: account,
             kSecValueData as String: value.data(using: .utf8)!
         ]
-        SecItemAdd(attributes as CFDictionary, nil)
+        let status = SecItemAdd(attributes as CFDictionary, nil)
+        if status != noErr {
+            logger.error("Keychain write FAILED for \(account): OSStatus \(status)")
+        }
     }
 
     private func getKeychainItem(account: String) -> String? {

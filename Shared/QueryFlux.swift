@@ -78,11 +78,14 @@ func queryFlux(password: String, user: String?) {
 
 private func handleUnauthorized(password: String, user: String?) {
     if AuthManager.shared.getAccessToken() != nil {
+        logger.info("handleUnauthorized: 401 with OIDC token, requesting refresh (thread=\(Thread.current))")
         Task { @MainActor in
             let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
             if refreshed {
+                logger.info("handleUnauthorized: refresh succeeded, retrying queryFlux")
                 queryFlux(password: password, user: user)
             } else {
+                logger.error("handleUnauthorized: refresh FAILED — signing out")
                 AuthManager.shared.signOut()
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
@@ -92,8 +95,10 @@ private func handleUnauthorized(password: String, user: String?) {
             }
         }
     } else if user == nil {
+        logger.info("handleUnauthorized: no OIDC token, retrying with demo user")
         queryFlux(password: password, user: "demo")
     } else {
+        logger.error("handleUnauthorized: demo auth also failed — posting loginError")
         DispatchQueue.main.async {
             NotificationCenter.default.post(
                 name: Notification.Name.loginsUpdated,
