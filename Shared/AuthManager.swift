@@ -12,10 +12,6 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
-#if os(iOS) || os(visionOS)
-import UIKit
-#endif
-
 enum AuthError: Error, LocalizedError {
     case noCode
     case tokenExchangeFailed(String)
@@ -48,7 +44,7 @@ struct OIDCTokens: Codable {
     }
 }
 
-class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
+class AuthManager: ObservableObject, @unchecked Sendable {
     nonisolated(unsafe) static let shared = AuthManager()
 
     // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
@@ -94,8 +90,7 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
         return false
     }
 
-    private override init() {
-        super.init()
+    private init() {
         if getAccessToken() != nil {
             authState = .signedIn(method: .oidc)
         } else if WhereWeAre.getPassword() != nil {
@@ -170,9 +165,6 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
                 }
             }
             session.prefersEphemeralWebBrowserSession = false
-            #if os(iOS) || os(visionOS)
-            session.presentationContextProvider = self
-            #endif
             self.currentAuthSession = session
             session.start()
         }
@@ -357,21 +349,3 @@ class AuthManager: NSObject, ObservableObject, @unchecked Sendable {
             .replacingOccurrences(of: "=", with: "")
     }
 }
-
-#if os(iOS) || os(visionOS)
-extension AuthManager: ASWebAuthenticationPresentationContextProviding {
-    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        // Dynamic lookup avoids "UIApplication.shared unavailable in extensions" compile error.
-        // The widget extension never calls signInWithOIDC, so this code path is app-only.
-        if let app = UIApplication.value(forKeyPath: "sharedApplication") as? UIApplication {
-            for scene in app.connectedScenes {
-                if let windowScene = scene as? UIWindowScene,
-                   let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
-                    return window
-                }
-            }
-        }
-        return ASPresentationAnchor()
-    }
-}
-#endif
