@@ -65,6 +65,14 @@ import Foundation
         }
     }
 
+    private static let actionPaths: [String: String] = [
+        "unlock": "/unlockCar",
+        "lock": "/lockCar",
+        "start": "/startCar",
+        "stop": "/stopCar",
+        "resync": "/resyncCar"
+    ]
+
     func performAction(
         action: String,
         steeringWheel: Bool = false,
@@ -78,23 +86,7 @@ import Foundation
         let password = WhereWeAre.getPassword()
         let scheme: String = "https"
         let host: String = "api.fluxhaus.io"
-
-        let path: String
-        switch action {
-        case "unlock":
-            path = "/unlockCar"
-        case "lock":
-            path = "/lockCar"
-        case "start":
-            path = "/startCar"
-        case "stop":
-            path = "/stopCar"
-        case "resync":
-            path = "/resyncCar"
-        default:
-            print("Default \(action)")
-            path = "/resyncCar"
-        }
+        let path = Self.actionPaths[action] ?? "/resyncCar"
 
         var components = URLComponents()
         components.scheme = scheme

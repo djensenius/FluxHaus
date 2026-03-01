@@ -68,22 +68,69 @@ func queryFlux(password: String, user: String?) {
     let task = session.dataTask(with: request) { data, response, error in
         let httpResponse = response as? HTTPURLResponse
         if httpResponse?.statusCode == 401 {
-            // If OIDC token expired, try refreshing
-            if AuthManager.shared.getAccessToken() != nil {
-                Task { @MainActor in
-                    let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
-                    if refreshed {
-                        queryFlux(password: password, user: user)
-                    } else {
-                        AuthManager.shared.signOut()
-                        NotificationCenter.default.post(
-                            name: Notification.Name.loginsUpdated,
-                            object: nil,
-                            userInfo: ["loginError": "Session expired. Please sign in again."]
-                        )
-                    }
-                }
-            } else if user == nil {
+            handleUnauthorized(password: password, user: user)
+            return
+        }
+        handleQueryFluxResponse(data: data, error: error, password: password, user: user)
+    }
+    task.resume()
+}
+
+private func handleUnauthorized(password: String, user: String?) {
+    if AuthManager.shared.getAccessToken() != nil {
+        Task { @MainActor in
+            let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+            if refreshed {
+                queryFlux(password: password, user: user)
+            } else {
+                AuthManager.shared.signOut()
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Session expired. Please sign in again."]
+                )
+            }
+        }
+    } else if user == nil {
+        queryFlux(password: password, user: "demo")
+    } else {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Notification.Name.loginsUpdated,
+                object: nil,
+                userInfo: ["loginError": "Incorrect Password"]
+            )
+        }
+    }
+}
+
+private func handleQueryFluxResponse(data: Data?, error: Error?, password: String, user: String?) {
+    if let data = data {
+        do {
+            let response = try JSONDecoder().decode(LoginResponse.self, from: data)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: response,
+                    userInfo: ["keysComplete": true]
+                )
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["updateKeychain": password]
+                )
+                NotificationCenter.default.post(
+                    name: Notification.Name.dataUpdated,
+                    object: nil,
+                    userInfo: ["data": response]
+                )
+            }
+        } catch {
+            logger.error("JSON decode failed: \(error)")
+            if let jsonStr = String(data: data, encoding: .utf8) {
+                logger.error("Response body: \(jsonStr.prefix(500))")
+            }
+            if user == nil {
                 queryFlux(password: password, user: "demo")
             } else {
                 DispatchQueue.main.async {
@@ -94,57 +141,16 @@ func queryFlux(password: String, user: String?) {
                     )
                 }
             }
-            return
         }
-        if let data = data {
-            do {
-                let response = try JSONDecoder().decode(LoginResponse.self, from: data)
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: response,
-                        userInfo: ["keysComplete": true]
-                    )
-
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: nil,
-                        userInfo: ["updateKeychain": password]
-                    )
-                    NotificationCenter.default.post(
-                        name: Notification.Name.dataUpdated,
-                        object: nil,
-                        userInfo: ["data": response]
-                    )
-                }
-            } catch {
-                logger.error("JSON decode failed: \(error)")
-                if let jsonStr = String(data: data, encoding: .utf8) {
-                    logger.error("Response body: \(jsonStr.prefix(500))")
-                }
-                if user == nil {
-                    queryFlux(password: password, user: "demo")
-                } else {
-                    DispatchQueue.main.async {
-                        NotificationCenter.default.post(
-                            name: Notification.Name.loginsUpdated,
-                            object: nil,
-                            userInfo: ["loginError": "Incorrect Password"]
-                        )
-                    }
-                }
-            }
-        } else {
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: nil,
-                    userInfo: ["loginError": error?.localizedDescription ?? "Network error"]
-                )
-            }
+    } else {
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Notification.Name.loginsUpdated,
+                object: nil,
+                userInfo: ["loginError": error?.localizedDescription ?? "Network error"]
+            )
         }
     }
-    task.resume()
 }
 
 func getFlux(password: String) async throws -> LoginResponse? {
