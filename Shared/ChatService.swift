@@ -70,6 +70,7 @@ private func buildAuthRequest(url: URL, method: String = "POST") throws -> URLRe
 private func handleUnauthorizedRetry(
     url: URL,
     body: Data,
+    method: String = "POST",
     session: URLSession
 ) async throws -> (Data, URLResponse) {
     guard AuthManager.shared.getAccessToken() != nil else {
@@ -79,7 +80,7 @@ private func handleUnauthorizedRetry(
     guard refreshed else {
         throw ChatServiceError.unauthorized
     }
-    var retryRequest = try buildAuthRequest(url: url)
+    var retryRequest = try buildAuthRequest(url: url, method: method)
     retryRequest.httpBody = body
     return try await session.data(for: retryRequest)
 }
@@ -199,8 +200,15 @@ func fetchConversations() async throws -> [Conversation] {
 
     if let http = response as? HTTPURLResponse, http.statusCode == 401 {
         (data, response) = try await handleUnauthorizedRetry(
-            url: url, body: Data(), session: session
+            url: url, body: Data(), method: "GET", session: session
         )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to load conversations (\(http.statusCode))")
     }
 
     let result = try JSONDecoder().decode(ConversationsResponse.self, from: data)
@@ -215,15 +223,23 @@ func createConversation() async throws -> Conversation {
     let url = components.url!
 
     var request = try buildAuthRequest(url: url)
-    request.httpBody = try JSONEncoder().encode(["title": "New conversation"])
+    let bodyData = try JSONEncoder().encode(["title": "New conversation"])
+    request.httpBody = bodyData
 
     let session = URLSession(configuration: .default)
     var (data, response) = try await session.data(for: request)
 
     if let http = response as? HTTPURLResponse, http.statusCode == 401 {
         (data, response) = try await handleUnauthorizedRetry(
-            url: url, body: request.httpBody ?? Data(), session: session
+            url: url, body: bodyData, session: session
         )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to create conversation (\(http.statusCode))")
     }
 
     return try JSONDecoder().decode(Conversation.self, from: data)
@@ -243,11 +259,46 @@ func fetchConversation(id: String) async throws -> ConversationDetail {
 
     if let http = response as? HTTPURLResponse, http.statusCode == 401 {
         (data, response) = try await handleUnauthorizedRetry(
-            url: url, body: Data(), session: session
+            url: url, body: Data(), method: "GET", session: session
         )
     }
 
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to load conversation (\(http.statusCode))")
+    }
+
     return try JSONDecoder().decode(ConversationDetail.self, from: data)
+}
+
+func updateConversationTitle(id: String, title: String) async throws {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations/\(id)"
+    let url = components.url!
+
+    var request = try buildAuthRequest(url: url, method: "PATCH")
+    let bodyData = try JSONEncoder().encode(["title": title])
+    request.httpBody = bodyData
+
+    let session = URLSession(configuration: .default)
+    var (data, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (data, response) = try await handleUnauthorizedRetry(
+            url: url, body: bodyData, method: "PATCH", session: session
+        )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to update title (\(http.statusCode))")
+    }
 }
 
 func deleteConversationRequest(id: String) async throws {

@@ -83,6 +83,9 @@ struct ChatView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                if let error = chat.sessionError {
+                    sessionErrorBanner(error)
+                }
                 chatMessages
                 Divider()
                 inputBar
@@ -104,10 +107,12 @@ struct ChatView: View {
                         }, label: {
                             Image(systemName: "plus")
                         })
+                        .keyboardShortcut("n", modifiers: .command)
                         Button(action: { dismiss() }, label: {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundColor(.secondary)
                         })
+                        .keyboardShortcut(.escape, modifiers: [])
                     }
                 }
             }
@@ -122,6 +127,13 @@ struct ChatView: View {
                     await chat.createNewConversation()
                 }
             }
+        }
+        .overlay {
+            Button("") { dismiss() }
+                .keyboardShortcut("c", modifiers: .command)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .accessibilityHidden(true)
         }
     }
 
@@ -173,42 +185,113 @@ struct ChatView: View {
     }
 
     private var inputBar: some View {
-        HStack(spacing: 8) {
-            TextField("Ask anything…", text: $inputText, axis: .vertical)
-                .textFieldStyle(.plain)
-                .lineLimit(1...5)
-                .focused($isInputFocused)
-                .onSubmit {
-                    sendMessage()
+        Group {
+            if chat.isRecording {
+                recordingOverlay
+            } else {
+                HStack(spacing: 8) {
+                    Button(action: {
+                        chat.startRecording()
+                    }, label: {
+                        Image(systemName: "mic.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.accentColor)
+                    })
+                    .disabled(chat.isLoading)
+
+                    TextField("Ask anything…", text: $inputText, axis: .vertical)
+                        .textFieldStyle(.plain)
+                        .lineLimit(1...5)
+                        .focused($isInputFocused)
+                        .submitLabel(.send)
+                        .onSubmit {
+                            sendMessage()
+                        }
+                        .onAppear {
+                            isInputFocused = true
+                        }
+
+                    Button(action: sendMessage) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.title2)
+                    }
+                    .disabled(
+                        inputText.trimmingCharacters(
+                            in: .whitespacesAndNewlines
+                        ).isEmpty || chat.isLoading
+                    )
                 }
+                .padding()
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
+    }
+
+    private var recordingOverlay: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.accentColor.opacity(0.15))
+                    .frame(width: 50, height: 50)
+                    .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.5)
+                Circle()
+                    .fill(Color.accentColor.opacity(0.3))
+                    .frame(width: 36, height: 36)
+                    .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
+                Image(systemName: "mic.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentColor)
+            }
+            .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
+            .onTapGesture {
+                Task { await chat.stopRecordingAndSend() }
+            }
+
+            Text("Listening…")
+                .foregroundColor(.secondary)
+
+            Spacer()
+
+            audioLevelBars
+
+            Spacer()
 
             Button(action: {
-                if chat.isRecording {
-                    Task { await chat.stopRecordingAndSend() }
-                } else {
-                    chat.startRecording()
-                }
+                Task { await chat.stopRecordingAndSend() }
             }, label: {
-                Image(systemName: chat.isRecording
-                    ? "stop.circle.fill" : "mic.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(
-                        chat.isRecording ? .red : .accentColor
-                    )
+                Image(systemName: "stop.circle.fill")
+                    .font(.title)
+                    .foregroundColor(.red)
             })
-            .disabled(chat.isLoading)
-
-            Button(action: sendMessage) {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.title2)
-            }
-            .disabled(
-                inputText.trimmingCharacters(
-                    in: .whitespacesAndNewlines
-                ).isEmpty || chat.isLoading
-            )
         }
         .padding()
+    }
+
+    private var audioLevelBars: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<5, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.accentColor)
+                    .frame(width: 3, height: barHeight(for: index))
+                    .animation(
+                        .easeOut(duration: 0.08),
+                        value: chat.audioLevel
+                    )
+            }
+        }
+        .frame(height: 20)
+    }
+
+    private func barHeight(for index: Int) -> CGFloat {
+        let thresholds: [Float] = [0.05, 0.2, 0.35, 0.5, 0.65]
+        let base: CGFloat = 4
+        let maxH: CGFloat = 20
+        let level = chat.audioLevel
+        if level > thresholds[index] {
+            let fraction = CGFloat((level - thresholds[index]) / (1 - thresholds[index]))
+            return base + (maxH - base) * min(1, fraction * 1.5)
+        }
+        return base
     }
 
     private func sendMessage() {
@@ -217,6 +300,24 @@ struct ChatView: View {
         Task {
             await chat.send(text)
         }
+    }
+
+    private func sessionErrorBanner(_ error: String) -> some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.yellow)
+            Text(error)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Spacer()
+            Button(action: { chat.sessionError = nil }, label: {
+                Image(systemName: "xmark")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            })
+        }
+        .padding(8)
+        .background(Color.yellow.opacity(0.1))
     }
 }
 

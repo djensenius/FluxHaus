@@ -64,24 +64,30 @@ struct Conversation: Identifiable, Codable {
     var messages: [ChatMessage] = []
     var isLoading = false
     var isRecording = false
+    var audioLevel: Float = 0
     var conversationId: String?
     var playingMessageId: UUID?
+    var sessionError: String?
     var conversations: [Conversation] = []
 
     private var audioRecorder: AVAudioRecorder?
     private var audioPlayer: AVAudioPlayer?
     private var recordingURL: URL?
+    private var levelTimer: Timer?
 
     func send(_ text: String) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
+        await ensureConversation()
         messages.append(ChatMessage(role: .user, content: trimmed))
         isLoading = true
 
         do {
             let response = try await sendCommand(trimmed, conversationId: conversationId)
             messages.append(ChatMessage(role: .assistant, content: response))
+            updateMessageCount(by: 2)
+            await updateTitleIfNeeded()
         } catch {
             logger.error("Chat error: \(error.localizedDescription)")
             messages.append(ChatMessage(
@@ -116,8 +122,10 @@ struct Conversation: Identifiable, Codable {
 
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+            audioRecorder?.isMeteringEnabled = true
             audioRecorder?.record()
             isRecording = true
+            startLevelTimer()
         } catch {
             logger.error("Failed to start recording: \(error.localizedDescription)")
         }
@@ -126,6 +134,7 @@ struct Conversation: Identifiable, Codable {
     func stopRecordingAndSend() async {
         audioRecorder?.stop()
         isRecording = false
+        stopLevelTimer()
 
         guard let url = recordingURL,
               let audioData = try? Data(contentsOf: url) else {
@@ -133,6 +142,7 @@ struct Conversation: Identifiable, Codable {
             return
         }
 
+        await ensureConversation()
         messages.append(ChatMessage(
             role: .user,
             content: "🎤 Voice message",
@@ -164,6 +174,8 @@ struct Conversation: Identifiable, Codable {
                 isVoice: true
             ))
 
+            updateMessageCount(by: 2)
+            await updateTitleIfNeeded()
             playAudioResponse(data: response.audioData)
         } catch {
             logger.error("Voice error: \(error.localizedDescription)")
@@ -220,6 +232,9 @@ struct Conversation: Identifiable, Codable {
     func loadConversations() async {
         do {
             conversations = try await fetchConversations()
+            if sessionError == "Chat history unavailable" {
+                sessionError = nil
+            }
         } catch {
             logger.error("Failed to load conversations: \(error.localizedDescription)")
         }
@@ -231,8 +246,10 @@ struct Conversation: Identifiable, Codable {
             conversationId = conv.id
             messages = []
             conversations.insert(conv, at: 0)
+            sessionError = nil
         } catch {
             logger.error("Failed to create conversation: \(error.localizedDescription)")
+            sessionError = "Chat history unavailable"
         }
     }
 
@@ -264,10 +281,48 @@ struct Conversation: Identifiable, Codable {
             if conversationId == conv.id {
                 conversationId = nil
                 messages = []
+                await ensureConversation()
             }
         } catch {
             logger.error("Failed to delete conversation: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: - Conversation helpers
+
+    private func ensureConversation() async {
+        guard conversationId == nil else { return }
+        do {
+            let conv = try await createConversation()
+            conversationId = conv.id
+            conversations.insert(conv, at: 0)
+            sessionError = nil
+        } catch {
+            logger.error("Failed to ensure conversation: \(error.localizedDescription)")
+        }
+    }
+
+    private func updateTitleIfNeeded() async {
+        guard let convId = conversationId else { return }
+        let userMessages = messages.filter { $0.role == .user }
+        let count = userMessages.count
+        guard count == 1 || count % 3 == 0 else { return }
+        guard let latestMessage = userMessages.last?.content else { return }
+        let title = String(latestMessage.prefix(50))
+        do {
+            try await updateConversationTitle(id: convId, title: title)
+            if let index = conversations.firstIndex(where: { $0.id == convId }) {
+                conversations[index].title = title
+            }
+        } catch {
+            logger.error("Failed to update title: \(error.localizedDescription)")
+        }
+    }
+
+    private func updateMessageCount(by count: Int) {
+        guard let convId = conversationId,
+              let index = conversations.firstIndex(where: { $0.id == convId }) else { return }
+        conversations[index].messageCount += count
     }
 
     private func cleanupRecording() {
@@ -275,5 +330,23 @@ struct Conversation: Identifiable, Codable {
             try? FileManager.default.removeItem(at: url)
             recordingURL = nil
         }
+    }
+
+    private func startLevelTimer() {
+        levelTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, let recorder = self.audioRecorder, recorder.isRecording else { return }
+                recorder.updateMeters()
+                let power = recorder.averagePower(forChannel: 0)
+                let normalized = max(0, min(1, (power + 50) / 50))
+                self.audioLevel = normalized
+            }
+        }
+    }
+
+    private func stopLevelTimer() {
+        levelTimer?.invalidate()
+        levelTimer = nil
+        audioLevel = 0
     }
 }
