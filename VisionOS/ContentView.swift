@@ -26,16 +26,6 @@ struct ContentView: View {
         VStack {
             VStack {
                 VStack {
-                    if AuthManager.hasOIDCToken() {
-                        HStack {
-                            Spacer()
-                            Button(action: { showChat = true }, label: {
-                                Image(systemName: "bubble.left.and.bubble.right.fill")
-                                    .font(.title3)
-                            })
-                            .padding(.trailing)
-                        }
-                    }
                     DateTimeView()
                     WeatherView(lman: locationManager)
                     HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
@@ -68,6 +58,14 @@ struct ContentView: View {
 
                 Spacer()
 
+                if AuthManager.hasOIDCToken() {
+                    Button(action: { showChat = true }, label: {
+                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                            .font(.caption)
+                    })
+                    .padding([.bottom, .trailing])
+                }
+
                 Button(action: {
                     AuthManager.shared.signOut()
                     NotificationCenter.default.post(
@@ -82,7 +80,7 @@ struct ContentView: View {
                 .padding([.bottom, .trailing])
             }
         }
-        .sheet(isPresented: $showChat) {
+        .fullScreenCover(isPresented: $showChat) {
             ChatView(chat: chat)
         }
     }

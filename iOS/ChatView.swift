@@ -53,6 +53,7 @@ struct ChatBubble: View {
 
 struct ChatView: View {
     @Bindable var chat: Chat
+    @Environment(\.dismiss) private var dismiss
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
 
@@ -63,6 +64,11 @@ struct ChatView: View {
                     .font(Theme.Fonts.headerLarge())
                     .foregroundColor(Theme.Colors.textPrimary)
                 Spacer()
+                Button(action: { dismiss() }, label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                })
             }
             .padding()
 
@@ -112,6 +118,19 @@ struct ChatView: View {
                     .onSubmit {
                         sendMessage()
                     }
+
+                Button(action: {
+                    if chat.isRecording {
+                        Task { await chat.stopRecordingAndSend() }
+                    } else {
+                        chat.startRecording()
+                    }
+                }, label: {
+                    Image(systemName: chat.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(chat.isRecording ? Theme.Colors.error : Theme.Colors.accent)
+                })
+                .disabled(chat.isLoading)
 
                 Button(action: sendMessage) {
                     Image(systemName: "arrow.up.circle.fill")
