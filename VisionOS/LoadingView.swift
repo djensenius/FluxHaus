@@ -94,7 +94,7 @@ struct LoadingView: View {
         Task {
             do {
                 try await AuthManager.shared.signInWithOIDC()
-                queryFlux(password: "", user: nil)
+                queryFlux(password: "")
             } catch AuthError.cancelled {
                 isSigningIn = false
             } catch {

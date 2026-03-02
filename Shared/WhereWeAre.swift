@@ -30,7 +30,7 @@ public struct WhereWeAre {
         let attributes: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrServer as String: "api.fluxhaus.io",
-            kSecAttrAccount as String: "admin",
+            kSecAttrAccount as String: "demo",
             kSecValueData as String: password.data(using: String.Encoding.utf8)!
         ]
         // Add user
@@ -45,7 +45,7 @@ public struct WhereWeAre {
     public static func getPassword() -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
-            kSecAttrAccount as String: "admin",
+            kSecAttrAccount as String: "demo",
             kSecAttrServer as String: "api.fluxhaus.io",
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnAttributes as String: true,
@@ -77,7 +77,7 @@ public struct WhereWeAre {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrServer as String: "api.fluxhaus.io",
-            kSecAttrAccount as String: "admin"
+            kSecAttrAccount as String: "demo"
         ]
         // Find user and delete
         if SecItemDelete(query as CFDictionary) == noErr {

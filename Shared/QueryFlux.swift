@@ -63,7 +63,7 @@ class BasicAuthDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     }
 }
 
-func queryFlux(password: String, user: String?) {
+func queryFlux(password: String) {
     let scheme: String = "https"
     let host: String = "api.fluxhaus.io"
     let path = "/"
@@ -86,9 +86,8 @@ func queryFlux(password: String, user: String?) {
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
-        // Fallback for legacy demo login during transition
-        let authUser = user ?? "admin"
-        let credentialData = Data("\(authUser):\(password)".utf8)
+        // Fallback for demo login
+        let credentialData = Data("demo:\(password)".utf8)
         let base64Credential = credentialData.base64EncodedString()
         request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
     }
@@ -96,22 +95,22 @@ func queryFlux(password: String, user: String?) {
     let task = session.dataTask(with: request) { data, response, error in
         let httpResponse = response as? HTTPURLResponse
         if httpResponse?.statusCode == 401 {
-            handleUnauthorized(password: password, user: user)
+            handleUnauthorized(password: password)
             return
         }
-        handleQueryFluxResponse(data: data, error: error, password: password, user: user)
+        handleQueryFluxResponse(data: data, error: error, password: password)
     }
     task.resume()
 }
 
-private func handleUnauthorized(password: String, user: String?) {
+private func handleUnauthorized(password: String) {
     if AuthManager.shared.getAccessToken() != nil {
         logger.info("handleUnauthorized: 401 with OIDC token, requesting refresh (thread=\(Thread.current))")
         Task { @MainActor in
             let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
             if refreshed {
                 logger.info("handleUnauthorized: refresh succeeded, retrying queryFlux")
-                queryFlux(password: password, user: user)
+                queryFlux(password: password)
             } else {
                 logger.error("handleUnauthorized: refresh FAILED — signing out")
                 AuthManager.shared.signOut()
@@ -122,11 +121,8 @@ private func handleUnauthorized(password: String, user: String?) {
                 )
             }
         }
-    } else if user == nil {
-        logger.info("handleUnauthorized: no OIDC token, retrying with admin user")
-        queryFlux(password: password, user: "admin")
     } else {
-        logger.error("handleUnauthorized: demo auth also failed — signing out and posting loginError")
+        logger.error("handleUnauthorized: demo auth failed — signing out and posting loginError")
         DispatchQueue.main.async {
             AuthManager.shared.signOut()
             NotificationCenter.default.post(
@@ -138,7 +134,7 @@ private func handleUnauthorized(password: String, user: String?) {
     }
 }
 
-private func handleQueryFluxResponse(data: Data?, error: Error?, password: String, user: String?) {
+private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
@@ -164,16 +160,13 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             if let jsonStr = String(data: data, encoding: .utf8) {
                 logger.error("Response body: \(jsonStr.prefix(500))")
             }
-            if user == nil {
-                queryFlux(password: password, user: "demo")
-            } else {
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: nil,
-                        userInfo: ["loginError": "Incorrect Password"]
-                    )
-                }
+            DispatchQueue.main.async {
+                AuthManager.shared.signOut()
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Incorrect Password"]
+                )
             }
         }
     } else {
@@ -203,7 +196,7 @@ func getFlux(password: String) async throws -> LoginResponse? {
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
-        let credentialData = Data("admin:\(password)".utf8)
+        let credentialData = Data("demo:\(password)".utf8)
         let base64Credential = credentialData.base64EncodedString()
         request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
     }

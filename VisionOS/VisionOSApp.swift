@@ -107,7 +107,7 @@ struct VisionOSApp: App {
                     }
                     .onReceive(timer) {_ in
                         if AuthManager.shared.isSignedIn {
-                            queryFlux(password: WhereWeAre.getPassword() ?? "", user: nil)
+                            queryFlux(password: WhereWeAre.getPassword() ?? "")
                         }
                     }
                 }
@@ -115,7 +115,7 @@ struct VisionOSApp: App {
             .onAppear {
                 if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
                     if AuthManager.shared.isSignedIn {
-                        queryFlux(password: WhereWeAre.getPassword() ?? "", user: nil)
+                        queryFlux(password: WhereWeAre.getPassword() ?? "")
                     }
                 }
             }

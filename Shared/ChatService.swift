@@ -12,6 +12,7 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "ChatSe
 
 struct CommandRequest: Encodable {
     let command: String
+    let conversationId: String?
 }
 
 struct CommandResponse: Decodable {
@@ -22,6 +23,7 @@ struct VoiceRequest: Encodable {
     let audio: String?
     let text: String?
     let filename: String?
+    let conversationId: String?
 }
 
 struct CommandError: Decodable {
@@ -68,6 +70,7 @@ private func buildAuthRequest(url: URL, method: String = "POST") throws -> URLRe
 private func handleUnauthorizedRetry(
     url: URL,
     body: Data,
+    method: String = "POST",
     session: URLSession
 ) async throws -> (Data, URLResponse) {
     guard AuthManager.shared.getAccessToken() != nil else {
@@ -77,12 +80,12 @@ private func handleUnauthorizedRetry(
     guard refreshed else {
         throw ChatServiceError.unauthorized
     }
-    var retryRequest = try buildAuthRequest(url: url)
+    var retryRequest = try buildAuthRequest(url: url, method: method)
     retryRequest.httpBody = body
     return try await session.data(for: retryRequest)
 }
 
-func sendCommand(_ command: String) async throws -> String {
+func sendCommand(_ command: String, conversationId: String? = nil) async throws -> String {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "api.fluxhaus.io"
@@ -90,7 +93,7 @@ func sendCommand(_ command: String) async throws -> String {
     let url = components.url!
 
     var request = try buildAuthRequest(url: url)
-    let body = CommandRequest(command: command)
+    let body = CommandRequest(command: command, conversationId: conversationId)
     let bodyData = try JSONEncoder().encode(body)
     request.httpBody = bodyData
 
@@ -112,7 +115,7 @@ func sendCommand(_ command: String) async throws -> String {
     return result.response
 }
 
-func sendVoice(audioData: Data) async throws -> VoiceResponse {
+func sendVoice(audioData: Data, conversationId: String? = nil) async throws -> VoiceResponse {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "api.fluxhaus.io"
@@ -123,7 +126,8 @@ func sendVoice(audioData: Data) async throws -> VoiceResponse {
     let voiceReq = VoiceRequest(
         audio: audioData.base64EncodedString(),
         text: nil,
-        filename: "audio.m4a"
+        filename: "audio.m4a",
+        conversationId: conversationId
     )
     let bodyData = try JSONEncoder().encode(voiceReq)
     request.httpBody = bodyData
@@ -149,4 +153,168 @@ func sendVoice(audioData: Data) async throws -> VoiceResponse {
         .flatMap { $0.removingPercentEncoding } ?? ""
 
     return VoiceResponse(audioData: data, transcript: transcript, responseText: responseText)
+}
+
+// MARK: - Conversation CRUD
+
+struct ConversationsResponse: Decodable {
+    let conversations: [Conversation]
+}
+
+struct ConversationDetailMessage: Decodable {
+    let id: String
+    let role: String
+    let content: String
+    let isVoice: Bool
+    let createdAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, role, content
+        case isVoice = "is_voice"
+        case createdAt = "created_at"
+    }
+}
+
+struct ConversationDetail: Decodable {
+    let id: String
+    let title: String?
+    let messages: [ConversationDetailMessage]
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, messages
+    }
+}
+
+func fetchConversations() async throws -> [Conversation] {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations"
+    let url = components.url!
+
+    var request = try buildAuthRequest(url: url, method: "GET")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+    let session = URLSession(configuration: .default)
+    var (data, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (data, response) = try await handleUnauthorizedRetry(
+            url: url, body: Data(), method: "GET", session: session
+        )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to load conversations (\(http.statusCode))")
+    }
+
+    let result = try JSONDecoder().decode(ConversationsResponse.self, from: data)
+    return result.conversations
+}
+
+func createConversation() async throws -> Conversation {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations"
+    let url = components.url!
+
+    var request = try buildAuthRequest(url: url)
+    let bodyData = try JSONEncoder().encode(["title": "New conversation"])
+    request.httpBody = bodyData
+
+    let session = URLSession(configuration: .default)
+    var (data, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (data, response) = try await handleUnauthorizedRetry(
+            url: url, body: bodyData, session: session
+        )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to create conversation (\(http.statusCode))")
+    }
+
+    return try JSONDecoder().decode(Conversation.self, from: data)
+}
+
+func fetchConversation(id: String) async throws -> ConversationDetail {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations/\(id)"
+    let url = components.url!
+
+    let request = try buildAuthRequest(url: url, method: "GET")
+
+    let session = URLSession(configuration: .default)
+    var (data, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (data, response) = try await handleUnauthorizedRetry(
+            url: url, body: Data(), method: "GET", session: session
+        )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to load conversation (\(http.statusCode))")
+    }
+
+    return try JSONDecoder().decode(ConversationDetail.self, from: data)
+}
+
+func updateConversationTitle(id: String, title: String) async throws {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations/\(id)"
+    let url = components.url!
+
+    var request = try buildAuthRequest(url: url, method: "PATCH")
+    let bodyData = try JSONEncoder().encode(["title": title])
+    request.httpBody = bodyData
+
+    let session = URLSession(configuration: .default)
+    var (data, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (data, response) = try await handleUnauthorizedRetry(
+            url: url, body: bodyData, method: "PATCH", session: session
+        )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to update title (\(http.statusCode))")
+    }
+}
+
+func deleteConversationRequest(id: String) async throws {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations/\(id)"
+    let url = components.url!
+
+    let request = try buildAuthRequest(url: url, method: "DELETE")
+
+    let session = URLSession(configuration: .default)
+    let (_, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse,
+       http.statusCode != 204 && http.statusCode != 200 {
+        throw ChatServiceError.serverError("Delete failed (\(http.statusCode))")
+    }
 }

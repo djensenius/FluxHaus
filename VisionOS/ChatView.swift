@@ -9,17 +9,36 @@ import SwiftUI
 
 struct ChatBubble: View {
     let message: ChatMessage
+    let isPlaying: Bool
+    let onPlayTapped: () -> Void
 
     var body: some View {
         HStack {
             if message.role == .user {
                 Spacer()
             }
-            Text(message.content)
-                .padding(12)
-                .foregroundColor(foregroundColor)
-                .background(backgroundColor)
-                .cornerRadius(16)
+            VStack(
+                alignment: message.role == .user ? .trailing : .leading,
+                spacing: 4
+            ) {
+                Text(message.content)
+                    .foregroundColor(foregroundColor)
+                if message.isVoice && message.audioData != nil {
+                    Button(action: onPlayTapped, label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: isPlaying
+                                ? "stop.fill" : "play.fill")
+                                .font(.caption)
+                            Text(isPlaying ? "Stop" : "Play")
+                                .font(.caption)
+                        }
+                        .foregroundColor(playButtonColor)
+                    })
+                }
+            }
+            .padding(12)
+            .background(backgroundColor)
+            .cornerRadius(16)
             if message.role != .user {
                 Spacer()
             }
@@ -48,6 +67,10 @@ struct ChatBubble: View {
             return .red
         }
     }
+
+    private var playButtonColor: Color {
+        message.role == .user ? .white.opacity(0.8) : .accentColor
+    }
 }
 
 struct ChatView: View {
@@ -55,90 +78,220 @@ struct ChatView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
+    @State private var showConversations = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Assistant")
-                    .font(.title)
-                Spacer()
-                Button(action: { dismiss() }, label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                })
+        NavigationStack {
+            VStack(spacing: 0) {
+                if let error = chat.sessionError {
+                    sessionErrorBanner(error)
+                }
+                chatMessages
+                Divider()
+                inputBar
             }
-            .padding()
-
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(chat.messages) { message in
-                            ChatBubble(message: message)
-                                .id(message.id)
-                        }
-                        if chat.isLoading {
-                            HStack {
-                                ProgressView()
-                                    .padding(12)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            .id("loading")
-                        }
-                    }
-                    .padding(.vertical, 8)
+            .navigationTitle(
+                chat.conversationId != nil ? "Assistant" : "New Chat"
+            )
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { showConversations = true }, label: {
+                        Image(systemName: "list.bullet")
+                    })
                 }
-                .onChange(of: chat.messages.count) {
-                    withAnimation {
-                        if let lastMessage = chat.messages.last {
-                            proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                        }
-                    }
-                }
-                .onChange(of: chat.isLoading) {
-                    if chat.isLoading {
-                        withAnimation {
-                            proxy.scrollTo("loading", anchor: .bottom)
-                        }
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 12) {
+                        Button(action: {
+                            Task { await chat.createNewConversation() }
+                        }, label: {
+                            Image(systemName: "plus")
+                        })
+                        .keyboardShortcut("n", modifiers: .command)
+                        Button(action: { dismiss() }, label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
+                        })
+                        .keyboardShortcut(.escape, modifiers: [])
                     }
                 }
             }
-
-            Divider()
-
-            HStack(spacing: 8) {
-                TextField("Ask anything…", text: $inputText, axis: .vertical)
-                    .textFieldStyle(.plain)
-                    .lineLimit(1...5)
-                    .focused($isInputFocused)
-                    .onSubmit {
-                        sendMessage()
-                    }
-
-                Button(action: {
-                    if chat.isRecording {
-                        Task { await chat.stopRecordingAndSend() }
-                    } else {
-                        chat.startRecording()
-                    }
-                }, label: {
-                    Image(systemName: chat.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(chat.isRecording ? .red : .accentColor)
-                })
-                .disabled(chat.isLoading)
-
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title2)
-                }
-                .disabled(
-                    inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || chat.isLoading
-                )
+            .sheet(isPresented: $showConversations) {
+                ConversationListView(chat: chat)
             }
-            .padding()
+            .task {
+                if chat.conversations.isEmpty {
+                    await chat.loadConversations()
+                }
+                if chat.conversationId == nil {
+                    await chat.createNewConversation()
+                }
+            }
         }
+        .overlay {
+            Button("") { dismiss() }
+                .keyboardShortcut("c", modifiers: .command)
+                .frame(width: 0, height: 0)
+                .opacity(0)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var chatMessages: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(chat.messages) { message in
+                        ChatBubble(
+                            message: message,
+                            isPlaying: chat.playingMessageId == message.id,
+                            onPlayTapped: {
+                                if chat.playingMessageId == message.id {
+                                    chat.stopPlayback()
+                                } else {
+                                    chat.playAudio(for: message)
+                                }
+                            }
+                        )
+                        .id(message.id)
+                    }
+                    if chat.isLoading {
+                        HStack {
+                            ProgressView()
+                                .padding(12)
+                            Spacer()
+                        }
+                        .padding(.horizontal)
+                        .id("loading")
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+            .onChange(of: chat.messages.count) {
+                withAnimation {
+                    if let last = chat.messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: chat.isLoading) {
+                if chat.isLoading {
+                    withAnimation {
+                        proxy.scrollTo("loading", anchor: .bottom)
+                    }
+                }
+            }
+        }
+    }
+
+    private var inputBar: some View {
+        Group {
+            if chat.isRecording {
+                recordingOverlay
+            } else {
+                HStack(spacing: 8) {
+                    Button(action: {
+                        chat.startRecording()
+                    }, label: {
+                        Image(systemName: "mic.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.accentColor)
+                    })
+                    .disabled(chat.isLoading)
+
+                    TextField("Ask anything…", text: $inputText, axis: .vertical)
+                        .textFieldStyle(.plain)
+                        .lineLimit(1...5)
+                        .focused($isInputFocused)
+                        .submitLabel(.send)
+                        .onSubmit {
+                            sendMessage()
+                        }
+                        .onAppear {
+                            isInputFocused = true
+                        }
+
+                    Button(action: sendMessage) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.title2)
+                    }
+                    .disabled(
+                        inputText.trimmingCharacters(
+                            in: .whitespacesAndNewlines
+                        ).isEmpty || chat.isLoading
+                    )
+                }
+                .padding()
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
+    }
+
+    private var recordingOverlay: some View {
+        HStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.accentColor.opacity(0.15))
+                    .frame(width: 50, height: 50)
+                    .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.5)
+                Circle()
+                    .fill(Color.accentColor.opacity(0.3))
+                    .frame(width: 36, height: 36)
+                    .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
+                Image(systemName: "mic.fill")
+                    .font(.title3)
+                    .foregroundColor(.accentColor)
+            }
+            .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
+            .onTapGesture {
+                Task { await chat.stopRecordingAndSend() }
+            }
+
+            Text("Listening…")
+                .foregroundColor(.secondary)
+
+            Spacer()
+
+            audioLevelBars
+
+            Spacer()
+
+            Button(action: {
+                Task { await chat.stopRecordingAndSend() }
+            }, label: {
+                Image(systemName: "stop.circle.fill")
+                    .font(.title)
+                    .foregroundColor(.red)
+            })
+        }
+        .padding()
+    }
+
+    private var audioLevelBars: some View {
+        HStack(spacing: 3) {
+            ForEach(0..<5, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.accentColor)
+                    .frame(width: 3, height: barHeight(for: index))
+                    .animation(
+                        .easeOut(duration: 0.08),
+                        value: chat.audioLevel
+                    )
+            }
+        }
+        .frame(height: 20)
+    }
+
+    private func barHeight(for index: Int) -> CGFloat {
+        let thresholds: [Float] = [0.05, 0.2, 0.35, 0.5, 0.65]
+        let base: CGFloat = 4
+        let maxH: CGFloat = 20
+        let level = chat.audioLevel
+        if level > thresholds[index] {
+            let fraction = CGFloat((level - thresholds[index]) / (1 - thresholds[index]))
+            return base + (maxH - base) * min(1, fraction * 1.5)
+        }
+        return base
     }
 
     private func sendMessage() {
@@ -146,6 +299,76 @@ struct ChatView: View {
         inputText = ""
         Task {
             await chat.send(text)
+        }
+    }
+
+    private func sessionErrorBanner(_ error: String) -> some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.yellow)
+            Text(error)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Spacer()
+            Button(action: { chat.sessionError = nil }, label: {
+                Image(systemName: "xmark")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            })
+        }
+        .padding(8)
+        .background(Color.yellow.opacity(0.1))
+    }
+}
+
+struct ConversationListView: View {
+    @Bindable var chat: Chat
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(chat.conversations) { conv in
+                    Button(action: {
+                        Task {
+                            await chat.loadConversation(conv)
+                            dismiss()
+                        }
+                    }, label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(conv.title ?? "Untitled")
+                                .lineLimit(1)
+                            Text("\(conv.messageCount) messages")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    })
+                }
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        let conv = chat.conversations[index]
+                        Task {
+                            await chat.deleteConversation(conv)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Conversations")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .overlay {
+                if chat.conversations.isEmpty {
+                    ContentUnavailableView(
+                        "No Conversations",
+                        systemImage: "bubble.left.and.bubble.right",
+                        description: Text("Start a new conversation")
+                    )
+                }
+            }
         }
     }
 }

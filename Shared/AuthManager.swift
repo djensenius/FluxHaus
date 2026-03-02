@@ -193,8 +193,8 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             return "Bearer \(token)"
         }
         if let password = WhereWeAre.getPassword() {
-            logger.debug("authorizationHeader: using Basic auth (admin)")
-            return "Basic \(Data("admin:\(password)".utf8).base64EncodedString())"
+            logger.debug("authorizationHeader: using Basic auth (demo)")
+            return "Basic \(Data("demo:\(password)".utf8).base64EncodedString())"
         }
         logger.warning("authorizationHeader: no credentials available")
         return nil

@@ -96,6 +96,7 @@ struct WeatherView: View {
                     .foregroundColor(Theme.Colors.accent)
                 #endif
             }
+            .padding(.top, 4)
         }
     }
 

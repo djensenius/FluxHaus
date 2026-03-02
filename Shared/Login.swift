@@ -23,6 +23,6 @@ struct LoginAction {
     var parameters: LoginRequest
 
     func call() {
-        queryFlux(password: parameters.password, user: nil)
+        queryFlux(password: parameters.password)
     }
 }
