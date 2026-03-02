@@ -25,26 +25,8 @@ struct DashboardView: View {
             VStack(spacing: 16) {
                 weatherCard
                 carCard
-                robotCard(
-                    title: "BroomBot",
-                    robot: robots.broomBot,
-                    robotName: "broomBot",
-                    icon: "fan"
-                )
-                robotCard(
-                    title: "MopBot",
-                    robot: robots.mopBot,
-                    robotName: "mopBot",
-                    icon: "humidifier.and.droplets"
-                )
-                ForEach(
-                    Array(allAppliances.enumerated()),
-                    id: \.offset
-                ) { _, item in
-                    applianceCard(
-                        appliance: item.appliance,
-                        source: item.source
-                    )
+                ForEach(sortedDeviceCards, id: \.id) { card in
+                    card.view
                 }
                 if !sceneManager.favourites.isEmpty {
                     scenesCard
@@ -61,6 +43,33 @@ struct DashboardView: View {
                 favouriteNames: fluxHausConsts.favouriteHomeKit
             )
         }
+    }
+
+    private struct DeviceCard: Identifiable {
+        let id: String
+        let isActive: Bool
+        let view: AnyView
+    }
+
+    private var sortedDeviceCards: [DeviceCard] {
+        var cards: [DeviceCard] = []
+        let broomActive = robots.broomBot.running == true || robots.broomBot.paused == true
+        cards.append(DeviceCard(
+            id: "broomBot", isActive: broomActive,
+            view: AnyView(robotCard(title: "BroomBot", robot: robots.broomBot, robotName: "broomBot", icon: "fan"))
+        ))
+        let mopActive = robots.mopBot.running == true || robots.mopBot.paused == true
+        let mopView = robotCard(
+            title: "MopBot", robot: robots.mopBot, robotName: "mopBot", icon: "humidifier.and.droplets"
+        )
+        cards.append(DeviceCard(id: "mopBot", isActive: mopActive, view: AnyView(mopView)))
+        for (idx, item) in allAppliances.enumerated() {
+            cards.append(DeviceCard(
+                id: "appliance-\(idx)", isActive: item.appliance.inUse,
+                view: AnyView(applianceCard(appliance: item.appliance, source: item.source))
+            ))
+        }
+        return cards.sorted { $0.isActive && !$1.isActive }
     }
 
     // MARK: - Weather

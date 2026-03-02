@@ -12,14 +12,20 @@ import SwiftUI
     var scenes: [HomeScene] = []
     var favourites: [HomeScene] = []
     var activatingSceneId: String?
+    var loadError: String?
 
     func loadScenes(favouriteNames: [String]) async {
         do {
             scenes = try await fetchScenes()
-            favourites = scenes.filter { scene in
-                favouriteNames.contains(scene.name)
+            loadError = nil
+            if favouriteNames.isEmpty {
+                favourites = scenes
+            } else {
+                let matched = scenes.filter { favouriteNames.contains($0.name) }
+                favourites = matched.isEmpty ? scenes : matched
             }
         } catch {
+            loadError = error.localizedDescription
             scenes = []
             favourites = []
         }
@@ -38,11 +44,75 @@ import SwiftUI
 struct SceneView: View {
     var favouriteHomeKit: [String]
     @State private var sceneManager = SceneManager()
-    private let gridItemLayout = [GridItem(.flexible())]
 
     var body: some View {
+        #if os(macOS)
+        macOSSceneView
+        #else
+        iOSSceneView
+        #endif
+    }
+
+    #if os(macOS)
+    private var macOSSceneView: some View {
+        ScrollView {
+            if let error = sceneManager.loadError {
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundColor(Theme.Colors.warning)
+                    Text("Unable to load scenes")
+                        .font(Theme.Fonts.headerLarge())
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    Text(error)
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
+            } else if sceneManager.favourites.isEmpty {
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .controlSize(.large)
+                    Text("Loading scenes…")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
+            } else {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 140), spacing: 12)],
+                    spacing: 12
+                ) {
+                    ForEach(sceneManager.favourites) { scene in
+                        Button(action: { sceneManager.activate(scene) }, label: {
+                            HStack {
+                                if sceneManager.activatingSceneId == scene.entityId {
+                                    ProgressView().controlSize(.small)
+                                }
+                                Text(scene.name).font(Theme.Fonts.bodyMedium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                        })
+                        .buttonStyle(.bordered)
+                        .disabled(sceneManager.activatingSceneId != nil)
+                    }
+                }
+                .padding()
+            }
+        }
+        .background(Theme.Colors.background)
+        .task {
+            await sceneManager.loadScenes(favouriteNames: favouriteHomeKit)
+        }
+    }
+    #endif
+
+    private var iOSSceneView: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            LazyHGrid(rows: gridItemLayout, spacing: 8) {
+            LazyHGrid(rows: [GridItem(.flexible())], spacing: 8) {
                 ForEach(sceneManager.favourites) { scene in
                     Button(action: {
                         sceneManager.activate(scene)

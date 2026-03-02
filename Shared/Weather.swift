@@ -49,7 +49,7 @@ struct ForecastInfo {
                 self.getPrecipitationSummary()
             }
         } catch {
-            print("Error fetching weather")
+            print("Error fetching weather: \(error)")
         }
     }
 
