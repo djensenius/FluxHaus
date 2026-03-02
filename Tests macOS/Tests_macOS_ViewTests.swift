@@ -8,7 +8,6 @@
 import Testing
 import AppKit
 import SwiftUI
-@testable import FluxHaus
 
 /// Drains pending DispatchQueue.main.async blocks so data population completes.
 @MainActor

@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import FluxHaus
+import SwiftUI
 
 class TestsmacOS: XCTestCase {
 
