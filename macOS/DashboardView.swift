@@ -24,7 +24,6 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 weatherCard
-                carCard
                 ForEach(sortedDeviceCards, id: \.id) { card in
                     card.view
                 }
@@ -69,6 +68,7 @@ struct DashboardView: View {
                 view: AnyView(applianceCard(appliance: item.appliance, source: item.source))
             ))
         }
+        cards.append(DeviceCard(id: "car", isActive: false, view: AnyView(carCard)))
         return cards.sorted { $0.isActive && !$1.isActive }
     }
 
