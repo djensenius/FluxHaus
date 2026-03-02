@@ -25,6 +25,7 @@ struct LoginView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.Colors.background)
         .onReceive(
             NotificationCenter.default.publisher(
                 for: Notification.Name.loginsUpdated
@@ -46,6 +47,7 @@ struct LoginView: View {
             Text("FluxHaus")
                 .font(.largeTitle)
                 .fontWeight(.bold)
+                .foregroundColor(Theme.Colors.textPrimary)
 
             if let error = errorMessage {
                 Text(error)
@@ -89,7 +91,6 @@ struct LoginView: View {
             .frame(width: 280)
         }
         .padding(40)
-        .glassEffect(.regular)
         .frame(width: 380)
     }
 
@@ -102,7 +103,6 @@ struct LoginView: View {
                 .foregroundColor(Theme.Colors.textSecondary)
         }
         .padding(40)
-        .glassEffect(.regular)
     }
 
     private func signInDemo() {
