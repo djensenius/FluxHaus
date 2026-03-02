@@ -24,11 +24,9 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 weatherCard
+                scenesCard
                 ForEach(sortedDeviceCards, id: \.id) { card in
                     card.view
-                }
-                if !sceneManager.favourites.isEmpty {
-                    scenesCard
                 }
             }
             .padding()
@@ -284,19 +282,31 @@ extension DashboardView {
             Text("Scenes")
                 .font(Theme.Fonts.headerLarge())
                 .foregroundColor(Theme.Colors.textPrimary)
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
-                spacing: 8
-            ) {
-                ForEach(sceneManager.favourites) { scene in
-                    Button(action: { sceneManager.activate(scene) }, label: {
-                        Text(scene.name)
-                            .font(Theme.Fonts.bodyMedium)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                    })
-                    .buttonStyle(.bordered)
-                    .disabled(sceneManager.activatingSceneId != nil)
+            if let error = sceneManager.loadError {
+                Label(error, systemImage: "exclamationmark.triangle")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.warning)
+            } else if sceneManager.favourites.isEmpty {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Loading…").font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+            } else {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
+                    spacing: 8
+                ) {
+                    ForEach(sceneManager.favourites) { scene in
+                        Button(action: { sceneManager.activate(scene) }, label: {
+                            Text(scene.name)
+                                .font(Theme.Fonts.bodyMedium)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 6)
+                        })
+                        .buttonStyle(.bordered)
+                        .disabled(sceneManager.activatingSceneId != nil)
+                    }
                 }
             }
         }
