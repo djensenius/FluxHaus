@@ -19,11 +19,23 @@ struct ContentView: View {
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
+    @State private var chat = Chat()
+    @State private var showChat = false
 
     var body: some View {
         VStack {
             VStack {
                 VStack {
+                    if AuthManager.hasOIDCToken() {
+                        HStack {
+                            Spacer()
+                            Button(action: { showChat = true }, label: {
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                    .font(.title3)
+                            })
+                            .padding(.trailing)
+                        }
+                    }
                     DateTimeView()
                     WeatherView(lman: locationManager)
                     HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
@@ -69,6 +81,9 @@ struct ContentView: View {
                 })
                 .padding([.bottom, .trailing])
             }
+        }
+        .sheet(isPresented: $showChat) {
+            ChatView(chat: chat)
         }
     }
 }

@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+AA0002000000000000000001 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+AA0002000000000000000002 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+AA0003000000000000000001 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
+AA0003000000000000000002 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
+AA0004000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000003 /* ChatView.swift */; };
+AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000004 /* ChatView.swift */; };
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC999E976448F6757BA7155 /* MockDataUITests.swift */; };
 		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
@@ -155,6 +161,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+AA0001000000000000000001 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
+AA0001000000000000000002 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
+AA0001000000000000000003 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
 		632CBC25258682C8003E4988 /* DateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimeView.swift; sourceTree = "<group>"; };
@@ -309,6 +319,8 @@
 				63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */,
 				636B9B4F258E912A00DE97BD /* BackgroundView.swift */,
 				636A05982B9E6EE800D42C0D /* Battery.swift */,
+				AA0001000000000000000002 /* Chat.swift */,
+				AA0001000000000000000001 /* ChatService.swift */,
 				63610D282BB86F230048B9FF /* Car.swift */,
 				63610D322BB8864F0048B9FF /* CarDetailView.swift */,
 				633F09472BBB8F8F0052C088 /* CarHelper.swift */,
@@ -354,6 +366,7 @@
 			isa = PBXGroup;
 			children = (
 				632CBC24258682C8003E4988 /* FluxHausApp.swift */,
+				AA0001000000000000000003 /* ChatView.swift */,
 				635BD6742B9E030E009CEEA9 /* ContentView.swift */,
 				632CBC2E258682C9003E4988 /* Info.plist */,
 			);
@@ -435,6 +448,7 @@
 			children = (
 				63DBD75D2B954931006603D0 /* VisionOS.entitlements */,
 				63DBD7342B954215006603D0 /* VisionOSApp.swift */,
+				AA0001000000000000000004 /* ChatView.swift */,
 				63DBD7362B954215006603D0 /* ContentView.swift */,
 				63DBD7382B954216006603D0 /* Assets.xcassets */,
 				63DBD73D2B954216006603D0 /* Info.plist */,
@@ -730,6 +744,9 @@
 				632CBC7725870B75003E4988 /* FluxHausConsts.swift in Sources */,
 				636A05992B9E6EE800D42C0D /* Battery.swift in Sources */,
 				632CBC702586C79E003E4988 /* Miele.swift in Sources */,
+				AA0002000000000000000001 /* ChatService.swift in Sources */,
+				AA0003000000000000000001 /* Chat.swift in Sources */,
+				AA0004000000000000000001 /* ChatView.swift in Sources */,
 				63610D292BB86F230048B9FF /* Car.swift in Sources */,
 				63A159282C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				0519DE362C5E9763003F3796 /* Theme.swift in Sources */,
@@ -792,6 +809,9 @@
 				63A1592A2C5E9763003F3796 /* LoginStucts.swift in Sources */,
 				208C0E652C5E9763003F3796 /* Theme.swift in Sources */,
 				63DBD7582B954486006603D0 /* HomeKitView.swift in Sources */,
+				AA0002000000000000000002 /* ChatService.swift in Sources */,
+				AA0003000000000000000002 /* Chat.swift in Sources */,
+				AA0005000000000000000001 /* ChatView.swift in Sources */,
 				63610D2B2BB86F230048B9FF /* Car.swift in Sources */,
 				63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */,
 				63610D352BB8864F0048B9FF /* CarDetailView.swift in Sources */,
