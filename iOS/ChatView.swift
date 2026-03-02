@@ -79,6 +79,7 @@ struct ChatView: View {
     @FocusState private var isInputFocused: Bool
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showConversations = false
+    @State private var holdRecordStart: Date?
 
     var body: some View {
         Group {
@@ -93,7 +94,11 @@ struct ChatView: View {
                 await chat.loadConversations()
             }
             if chat.conversationId == nil {
-                await chat.createNewConversation()
+                if chat.conversations.isEmpty {
+                    await chat.createNewConversation()
+                } else if let first = chat.conversations.first {
+                    await chat.loadConversation(first)
+                }
             }
         }
     }
@@ -298,14 +303,7 @@ struct ChatView: View {
                 recordingOverlay
             } else {
                 HStack(spacing: 8) {
-                    Button(action: {
-                        chat.startRecording()
-                    }, label: {
-                        Image(systemName: "mic.circle.fill")
-                            .font(.title)
-                            .foregroundColor(Theme.Colors.accent)
-                    })
-                    .disabled(chat.isLoading)
+                    micButton
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyMedium)
@@ -341,6 +339,28 @@ struct ChatView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
+    }
+
+    private var micButton: some View {
+        Image(systemName: "mic.circle.fill")
+            .font(.title)
+            .foregroundColor(chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard holdRecordStart == nil, !chat.isLoading else { return }
+                        holdRecordStart = Date()
+                        chat.startRecording()
+                    }
+                    .onEnded { _ in
+                        guard let start = holdRecordStart else { return }
+                        holdRecordStart = nil
+                        if Date().timeIntervalSince(start) > 0.3 {
+                            Task { await chat.stopRecordingAndSend() }
+                        }
+                    }
+            )
+            .allowsHitTesting(!chat.isLoading)
     }
 
     private var recordingOverlay: some View {

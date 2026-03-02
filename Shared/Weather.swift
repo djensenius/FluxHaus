@@ -7,9 +7,13 @@
 
 import Foundation
 import CoreLocation
-import Combine
 import SwiftUI
+import os
 @preconcurrency import WeatherKit
+
+private let logger = Logger(
+    subsystem: "io.fluxhaus.FluxHaus", category: "Weather"
+)
 
 enum TimeType {
     case minute
@@ -31,42 +35,47 @@ struct ForecastInfo {
 @MainActor
 @preconcurrency class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
-
     private var status: CLAuthorizationStatus?
-
     private var location: CLLocation?
-
     @Published var weather: Weather?
     @Published var forecast: ForecastInfo?
+    @Published var weatherError: String?
+    private var retryCount = 0
+    private static let maxRetries = 3
 
     func fetchTheWeather() async {
-        let location = self.location ?? CLLocation(latitude: 43.44, longitude: -80.49)
+        let loc = self.location ?? CLLocation(
+            latitude: 43.44, longitude: -80.49
+        )
         let weatherService = WeatherService()
         do {
-            let weather = try await weatherService.weather(for: location)
-            DispatchQueue.main.async {
-                self.weather = weather
-                self.getPrecipitationSummary()
-            }
+            let result = try await weatherService.weather(for: loc)
+            self.weather = result
+            self.weatherError = nil
+            self.retryCount = 0
+            getPrecipitationSummary()
         } catch {
-            print("Error fetching weather")
+            logger.error("WeatherKit error: \(error.localizedDescription)")
+            if retryCount < Self.maxRetries {
+                retryCount += 1
+                let delay = UInt64(retryCount * 5)
+                logger.info("Retrying weather fetch (\(self.retryCount)/\(Self.maxRetries)) in \(delay)s")
+                try? await Task.sleep(for: .seconds(delay))
+                await fetchTheWeather()
+            } else {
+                weatherError = error.localizedDescription
+            }
         }
     }
 
     func precipitationSymbol(type: Precipitation) -> String {
         switch type {
-        case .hail:
-            return "cloud.hail.fill"
-        case .mixed:
-            return "cloud.sleet.fill"
-        case .rain:
-            return "rain.fill"
-        case .sleet:
-            return "cloud.sleet.fill"
-        case .snow:
-            return "cloud.snow.fill"
-        default:
-            return "thermostat"
+        case .hail: return "cloud.hail.fill"
+        case .mixed: return "cloud.sleet.fill"
+        case .rain: return "rain.fill"
+        case .sleet: return "cloud.sleet.fill"
+        case .snow: return "cloud.snow.fill"
+        default: return "thermostat"
         }
     }
 
@@ -74,37 +83,31 @@ struct ForecastInfo {
         for index in 1...59 {
             let minuteForecast = weather.minuteForecast?[index]
             if minuteForecast?.precipitation == Precipitation.none {
-                let forecastInfo = ForecastInfo(
+                self.forecast = ForecastInfo(
                     type: weather.minuteForecast?[0].precipitation ?? .none,
                     chance: weather.minuteForecast?[0].precipitationChance ?? 0,
-                    symbolName: precipitationSymbol(type: weather.minuteForecast?[0].precipitation ?? .rain),
-                    endingNumber: index,
-                    endingType: .minute,
-                    startingNumber: nil,
-                    startingType: nil
+                    symbolName: precipitationSymbol(
+                        type: weather.minuteForecast?[0].precipitation ?? .rain
+                    ),
+                    endingNumber: index, endingType: .minute,
+                    startingNumber: nil, startingType: nil
                 )
-                DispatchQueue.main.async {
-                    self.forecast = forecastInfo
-                }
                 break
             }
         }
         if self.forecast == nil {
             for index in 1...59 {
-                let hourlyForecast = weather.hourlyForecast[index]
-                if hourlyForecast.precipitation == Precipitation.none {
-                    let forecastInfo = ForecastInfo(
+                let hourly = weather.hourlyForecast[index]
+                if hourly.precipitation == Precipitation.none {
+                    self.forecast = ForecastInfo(
                         type: weather.minuteForecast?[0].precipitation ?? .none,
                         chance: weather.minuteForecast?[0].precipitationChance ?? 0,
-                        symbolName: precipitationSymbol(type: weather.minuteForecast?[0].precipitation ?? .rain),
-                        endingNumber: index,
-                        endingType: .hour,
-                        startingNumber: nil,
-                        startingType: nil
+                        symbolName: precipitationSymbol(
+                            type: weather.minuteForecast?[0].precipitation ?? .rain
+                        ),
+                        endingNumber: index, endingType: .hour,
+                        startingNumber: nil, startingType: nil
                     )
-                    DispatchQueue.main.async {
-                        self.forecast = forecastInfo
-                    }
                     break
                 }
             }
@@ -115,37 +118,29 @@ struct ForecastInfo {
         for index in 1...59 {
             let minuteForecast = weather.minuteForecast?[index]
             if minuteForecast?.precipitation != Precipitation.none {
-                let forecastInfo = ForecastInfo(
+                self.forecast = ForecastInfo(
                     type: weather.minuteForecast?[index].precipitation ?? .none,
                     chance: weather.minuteForecast?[index].precipitationChance ?? 0,
-                    symbolName: precipitationSymbol(type: weather.minuteForecast?[index].precipitation ?? .rain),
-                    endingNumber: nil,
-                    endingType: nil,
-                    startingNumber: index,
-                    startingType: .minute
+                    symbolName: precipitationSymbol(
+                        type: weather.minuteForecast?[index].precipitation ?? .rain
+                    ),
+                    endingNumber: nil, endingType: nil,
+                    startingNumber: index, startingType: .minute
                 )
-                DispatchQueue.main.async {
-                    self.forecast = forecastInfo
-                }
                 break
             }
         }
         if self.forecast == nil {
             for index in 1...59 {
-                let hourlyForecast = weather.hourlyForecast[index]
-                if hourlyForecast.precipitation != Precipitation.none {
-                    let forecastInfo = ForecastInfo(
-                        type: weather.hourlyForecast[index].precipitation,
-                        chance: weather.hourlyForecast[index].precipitationChance,
-                        symbolName: precipitationSymbol(type: weather.hourlyForecast[index].precipitation),
-                        endingNumber: nil,
-                        endingType: nil,
-                        startingNumber: index,
-                        startingType: .hour
+                let hourly = weather.hourlyForecast[index]
+                if hourly.precipitation != Precipitation.none {
+                    self.forecast = ForecastInfo(
+                        type: hourly.precipitation,
+                        chance: hourly.precipitationChance,
+                        symbolName: precipitationSymbol(type: hourly.precipitation),
+                        endingNumber: nil, endingType: nil,
+                        startingNumber: index, startingType: .hour
                     )
-                    DispatchQueue.main.async {
-                        self.forecast = forecastInfo
-                    }
                     break
                 }
             }
@@ -153,33 +148,27 @@ struct ForecastInfo {
     }
 
     func getPrecipitationSummary() {
-        if self.weather != nil {
-            let weather = self.weather!
+        guard let weather = self.weather else { return }
 
-            // CHECK IF IT IS HAPPENING
-            if weather.minuteForecast?[0].precipitation != Precipitation.none {
-                precipitationNow(weather: weather)
-            }
+        if weather.minuteForecast?[0].precipitation != Precipitation.none {
+            precipitationNow(weather: weather)
+        }
 
-            if self.forecast == nil {
-                // Check today
-                if (self.weather?.dailyForecast[0].precipitationChance)! > 0.1 {
-                    precipitationToday(weather: weather)
-                } else if (self.weather?.dailyForecast[1].precipitationChance)! > 0.1 {
-                    // TOMORROW IT WILL HAPPEN
-                    let forecastInfo = ForecastInfo(
-                        type: weather.dailyForecast[1].precipitation,
-                        chance: weather.dailyForecast[1].precipitationChance,
-                        symbolName: precipitationSymbol(type: weather.dailyForecast[1].precipitation),
-                        endingNumber: nil,
-                        endingType: nil,
-                        startingNumber: 1,
-                        startingType: .day
-                    )
-                    DispatchQueue.main.async {
-                        self.forecast = forecastInfo
-                    }
-                }
+        if self.forecast == nil {
+            let todayChance = weather.dailyForecast[0].precipitationChance
+            let tomorrowChance = weather.dailyForecast[1].precipitationChance
+            if todayChance > 0.1 {
+                precipitationToday(weather: weather)
+            } else if tomorrowChance > 0.1 {
+                self.forecast = ForecastInfo(
+                    type: weather.dailyForecast[1].precipitation,
+                    chance: tomorrowChance,
+                    symbolName: precipitationSymbol(
+                        type: weather.dailyForecast[1].precipitation
+                    ),
+                    endingNumber: nil, endingType: nil,
+                    startingNumber: 1, startingType: .day
+                )
             }
         }
     }
@@ -210,17 +199,23 @@ struct ForecastInfo {
     }
     #endif
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    nonisolated func locationManager(
+        _ manager: CLLocationManager,
+        didUpdateLocations locations: [CLLocation]
+    ) {
         Task { @MainActor in
             guard let location = locations.last else { return }
-            if self.location?.coordinate.longitude != location.coordinate.longitude ||
-                    self.location?.coordinate.latitude != location.coordinate.latitude {
+            if self.location?.coordinate.longitude != location.coordinate.longitude
+                || self.location?.coordinate.latitude != location.coordinate.latitude {
                 self.location = location
             }
         }
     }
 
-    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
-        debugPrint(error)
+    nonisolated func locationManager(
+        _ manager: CLLocationManager,
+        didFailWithError error: any Error
+    ) {
+        logger.error("Location error: \(error.localizedDescription)")
     }
 }

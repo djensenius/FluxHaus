@@ -6,9 +6,6 @@
 //
 
 import Foundation
-import UIKit
-
-// MARK: - Miele
 
 @MainActor
 class Miele: ObservableObject {
@@ -27,21 +24,19 @@ class Miele: ObservableObject {
     }
 
     func setAppliance(appliance: Appliance) {
-        DispatchQueue.main.async {
-            var found = false
-            for (index, app) in self.appliances.enumerated() where app.name == appliance.name {
-                self.appliances[index] = appliance
-                found = true
-            }
-            if found == false {
-                self.appliances.append(appliance)
-            }
-            NotificationCenter.default.post(
-                name: Notification.Name.loginsUpdated,
-                object: nil,
-                userInfo: ["mieleComplete": true]
-            )
+        var found = false
+        for (index, app) in self.appliances.enumerated() where app.name == appliance.name {
+            self.appliances[index] = appliance
+            found = true
         }
+        if found == false {
+            self.appliances.append(appliance)
+        }
+        NotificationCenter.default.post(
+            name: Notification.Name.loginsUpdated,
+            object: nil,
+            userInfo: ["mieleComplete": true]
+        )
     }
 
     func updateAppliance(mApps: WasherDryer) {
@@ -76,19 +71,16 @@ class Miele: ObservableObject {
 
     func refresh() {
         if let response = apiResponse?.response {
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: nil,
-                    userInfo: ["mieleComplete": true]
-                )
-                if let washer = response.washer {
-                    self.updateAppliance(mApps: washer)
-                }
-                if let dryer = response.dryer {
-                    self.updateAppliance(mApps: dryer)
-                }
-                // self.updateAppliance(mApps: response.miele[appliance]!)
+            NotificationCenter.default.post(
+                name: Notification.Name.loginsUpdated,
+                object: nil,
+                userInfo: ["mieleComplete": true]
+            )
+            if let washer = response.washer {
+                self.updateAppliance(mApps: washer)
+            }
+            if let dryer = response.dryer {
+                self.updateAppliance(mApps: dryer)
             }
         }
     }

@@ -97,7 +97,9 @@ struct Appliances: View {
                                     .background(Theme.Colors.secondaryBackground)
                                     .cornerRadius(12)
                                     #endif
+                                    #if !os(macOS)
                                     .hoverEffect()
+                                    #endif
                                     .sheet(
                                         isPresented:
                                             binding(for: "\(theAppliances[app].name)-\(theAppliances[app].index)")
@@ -262,7 +264,7 @@ struct AppliancesPreviewWrapper: View {
         Appliances(
             fluxHausConsts: {
                 let config = FluxHausConsts()
-                config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+                config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"], favouriteScenes: []))
                 return config
             }(),
             hconn: hconn,

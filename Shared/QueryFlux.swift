@@ -105,11 +105,11 @@ func queryFlux(password: String) {
 
 private func handleUnauthorized(password: String) {
     if AuthManager.shared.getAccessToken() != nil {
-        logger.info("handleUnauthorized: 401 with OIDC token, requesting refresh (thread=\(Thread.current))")
+        logger.debug("handleUnauthorized: 401 with OIDC token, requesting refresh")
         Task { @MainActor in
             let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
             if refreshed {
-                logger.info("handleUnauthorized: refresh succeeded, retrying queryFlux")
+                logger.debug("handleUnauthorized: refresh succeeded, retrying queryFlux")
                 queryFlux(password: password)
             } else {
                 logger.error("handleUnauthorized: refresh FAILED — signing out")

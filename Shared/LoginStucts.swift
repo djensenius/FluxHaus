@@ -328,6 +328,7 @@ public struct CarDetails: Codable {
 public struct LoginResponse: Codable {
     public let timestamp: String
     public let favouriteHomeKit: [String]
+    public let favouriteScenes: [String]?
     public let broombot: Robot
     public let mopbot: Robot
     public let car: FluxCar?
@@ -340,6 +341,7 @@ public struct LoginResponse: Codable {
     public init(
         timestamp: String,
         favouriteHomeKit: [String],
+        favouriteScenes: [String]? = nil,
         broombot: Robot,
         mopbot: Robot,
         car: FluxCar? = nil,
@@ -351,6 +353,7 @@ public struct LoginResponse: Codable {
     ) {
         self.timestamp = timestamp
         self.favouriteHomeKit = favouriteHomeKit
+        self.favouriteScenes = favouriteScenes
         self.broombot = broombot
         self.mopbot = mopbot
         self.car = car

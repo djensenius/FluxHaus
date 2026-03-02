@@ -30,5 +30,24 @@
 	<string>We need access to your location to get the local weather, otherwise we will use Kitchener, ON.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>OIDCIssuerBase</key>
+	<string>https://auth.fluxhaus.io/application/o/flux-haus-mobile</string>
+	<key>OIDCClientID</key>
+	<string>f2COTwjAfHLRPbk8AaTlhph4lpP4dSzXIXxrLGj7</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>io.fluxhaus.FluxHaus</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fluxhaus</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FluxHaus uses the microphone for voice commands to the AI assistant.</string>
 </dict>
 </plist>

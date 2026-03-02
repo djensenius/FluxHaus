@@ -17,6 +17,7 @@ struct RobotDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    #if !os(macOS)
                     // Header
                     HStack {
                         if robot.name! == "MopBot" {
@@ -29,6 +30,7 @@ struct RobotDetailView: View {
                     .font(Theme.Fonts.headerXL())
                     .foregroundColor(Theme.Colors.textPrimary)
                     .padding(.top)
+                    #endif
 
                     // Status Card
                     VStack(alignment: .leading, spacing: 12) {
@@ -82,6 +84,30 @@ struct RobotDetailView: View {
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
 
+                        #if os(macOS)
+                        HStack(spacing: 8) {
+                            if robot.running == true {
+                                Button(action: { performAction(action: "stop") }, label: {
+                                    Label("Stop", systemImage: "stop.fill")
+                                })
+                                .tint(Theme.Colors.error)
+                            } else {
+                                Button(action: { performAction(action: "start") }, label: {
+                                    Label("Start", systemImage: "play.fill")
+                                })
+                                .tint(Theme.Colors.accent)
+
+                                if robots.broomBot.running != true
+                                    && robots.mopBot.running != true {
+                                    Button(action: { performAction(action: "deepClean") }, label: {
+                                        Label("Deep Clean", systemImage: "sparkles")
+                                    })
+                                }
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(buttonsDisabled)
+                        #else
                         VStack(spacing: 12) {
                             if robot.running == true {
                                 Button(action: { performAction(action: "stop") }, label: {
@@ -104,9 +130,13 @@ struct RobotDetailView: View {
                                 })
                                 .disabled(self.buttonsDisabled)
 
-                                if robots.broomBot.running != true && robots.mopBot.running != true {
+                                if robots.broomBot.running != true
+                                    && robots.mopBot.running != true {
                                     Button(action: { performAction(action: "deepClean") }, label: {
-                                        Label("Deep Clean (BroomBot + MopBot)", systemImage: "sparkles")
+                                        Label(
+                                            "Deep Clean (BroomBot + MopBot)",
+                                            systemImage: "sparkles"
+                                        )
                                             .frame(maxWidth: .infinity)
                                             .padding()
                                             .background(Theme.Colors.secondaryBackground)
@@ -117,6 +147,7 @@ struct RobotDetailView: View {
                                 }
                             }
                         }
+                        #endif
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -136,6 +167,7 @@ struct RobotDetailView: View {
                 }
                 .padding()
             }
+            #if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Dismiss") {
@@ -143,6 +175,7 @@ struct RobotDetailView: View {
                     }
                 }
             }
+            #endif
         }
         #if os(visionOS)
         .glassBackgroundEffect()

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+#if canImport(HomeKit)
 import HomeKit
 
 struct HomeKitFavourite {
@@ -70,3 +71,4 @@ class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate, HMHomeMana
 
     }
 }
+#endif

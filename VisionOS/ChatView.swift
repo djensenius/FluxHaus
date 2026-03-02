@@ -22,15 +22,16 @@ struct ChatBubble: View {
                 spacing: 4
             ) {
                 Text(message.content)
+                    .font(Theme.Fonts.bodyMedium)
                     .foregroundColor(foregroundColor)
                 if message.isVoice && message.audioData != nil {
                     Button(action: onPlayTapped, label: {
                         HStack(spacing: 4) {
                             Image(systemName: isPlaying
                                 ? "stop.fill" : "play.fill")
-                                .font(.caption)
+                                .font(Theme.Fonts.caption)
                             Text(isPlaying ? "Stop" : "Play")
-                                .font(.caption)
+                                .font(Theme.Fonts.caption)
                         }
                         .foregroundColor(playButtonColor)
                     })
@@ -49,27 +50,29 @@ struct ChatBubble: View {
     private var backgroundColor: Color {
         switch message.role {
         case .user:
-            return .accentColor
+            return Theme.Colors.accent
         case .assistant:
-            return Color(.secondarySystemBackground)
+            return Theme.Colors.secondaryBackground
         case .error:
-            return .red.opacity(0.2)
+            return Theme.Colors.error.opacity(0.2)
         }
     }
 
     private var foregroundColor: Color {
         switch message.role {
         case .user:
-            return .white
+            return Theme.Colors.background
         case .assistant:
-            return .primary
+            return Theme.Colors.textPrimary
         case .error:
-            return .red
+            return Theme.Colors.error
         }
     }
 
     private var playButtonColor: Color {
-        message.role == .user ? .white.opacity(0.8) : .accentColor
+        message.role == .user
+            ? Theme.Colors.background.opacity(0.8)
+            : Theme.Colors.accent
     }
 }
 
@@ -82,22 +85,24 @@ struct ChatView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                if let error = chat.sessionError {
-                    sessionErrorBanner(error)
-                }
-                chatMessages
-                Divider()
-                inputBar
+        VStack(spacing: 0) {
+            if let error = chat.sessionError {
+                sessionErrorBanner(error)
             }
-            .navigationTitle(
-                chat.conversationId != nil ? "Assistant" : "New Chat"
-            )
+            chatMessages
+            Divider()
+            inputBar
+        }
+        .background(Theme.Colors.background)
+        .navigationTitle(
+            chat.conversationId != nil ? "Assistant" : "New Chat"
+        )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: { showConversations = true }, label: {
                         Image(systemName: "list.bullet")
+                            .foregroundColor(Theme.Colors.accent)
                     })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -106,11 +111,12 @@ struct ChatView: View {
                             Task { await chat.createNewConversation() }
                         }, label: {
                             Image(systemName: "plus")
+                                .foregroundColor(Theme.Colors.accent)
                         })
                         .keyboardShortcut("n", modifiers: .command)
                         Button(action: { dismiss() }, label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Theme.Colors.textSecondary)
                         })
                         .keyboardShortcut(.escape, modifiers: [])
                     }
@@ -124,7 +130,11 @@ struct ChatView: View {
                     await chat.loadConversations()
                 }
                 if chat.conversationId == nil {
-                    await chat.createNewConversation()
+                    if chat.conversations.isEmpty {
+                        await chat.createNewConversation()
+                    } else if let first = chat.conversations.first {
+                        await chat.loadConversation(first)
+                    }
                 }
             }
         }
@@ -195,11 +205,12 @@ struct ChatView: View {
                     }, label: {
                         Image(systemName: "mic.circle.fill")
                             .font(.title)
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(Theme.Colors.accent)
                     })
                     .disabled(chat.isLoading)
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
+                        .font(Theme.Fonts.bodyMedium)
                         .textFieldStyle(.plain)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
@@ -231,16 +242,16 @@ struct ChatView: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.15))
+                    .fill(Theme.Colors.accent.opacity(0.15))
                     .frame(width: 50, height: 50)
                     .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.5)
                 Circle()
-                    .fill(Color.accentColor.opacity(0.3))
+                    .fill(Theme.Colors.accent.opacity(0.3))
                     .frame(width: 36, height: 36)
                     .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
                 Image(systemName: "mic.fill")
                     .font(.title3)
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(Theme.Colors.accent)
             }
             .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
             .onTapGesture {
@@ -248,7 +259,8 @@ struct ChatView: View {
             }
 
             Text("Listening…")
-                .foregroundColor(.secondary)
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.textSecondary)
 
             Spacer()
 
@@ -261,7 +273,7 @@ struct ChatView: View {
             }, label: {
                 Image(systemName: "stop.circle.fill")
                     .font(.title)
-                    .foregroundColor(.red)
+                    .foregroundColor(Theme.Colors.error)
             })
         }
         .padding()
@@ -271,7 +283,7 @@ struct ChatView: View {
         HStack(spacing: 3) {
             ForEach(0..<5, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(Color.accentColor)
+                    .fill(Theme.Colors.accent)
                     .frame(width: 3, height: barHeight(for: index))
                     .animation(
                         .easeOut(duration: 0.08),
@@ -305,19 +317,19 @@ struct ChatView: View {
     private func sessionErrorBanner(_ error: String) -> some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundColor(.yellow)
+                .foregroundColor(Theme.Colors.warning)
             Text(error)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(Theme.Fonts.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
             Button(action: { chat.sessionError = nil }, label: {
                 Image(systemName: "xmark")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
             })
         }
         .padding(8)
-        .background(Color.yellow.opacity(0.1))
+        .background(Theme.Colors.warning.opacity(0.1))
     }
 }
 

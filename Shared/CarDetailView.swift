@@ -20,6 +20,7 @@ struct CarDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    #if !os(macOS)
                     // Header
                     HStack {
                         Image(systemName: "car.fill")
@@ -28,6 +29,7 @@ struct CarDetailView: View {
                     .font(Theme.Fonts.headerXL())
                     .foregroundColor(Theme.Colors.textPrimary)
                     .padding(.top)
+                    #endif
 
                     // Status Section
                     VStack(alignment: .leading, spacing: 12) {
@@ -113,6 +115,61 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
 
+                        #if os(macOS)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 8) {
+                                if car.vehicle.hvac {
+                                    Button(action: { performAction(action: "stop") }, label: {
+                                        Label("Climate Off", systemImage: "snowflake.slash")
+                                    })
+                                    .tint(.red)
+                                } else {
+                                    Button(action: { performAction(action: "start") }, label: {
+                                        Label("Start Climate", systemImage: "snowflake")
+                                    })
+                                    .tint(Theme.Colors.accent)
+                                }
+
+                                if car.vehicle.locked {
+                                    Button(action: { performAction(action: "unlock") }, label: {
+                                        Label("Unlock", systemImage: "lock.open.fill")
+                                    })
+                                } else {
+                                    Button(action: { performAction(action: "lock") }, label: {
+                                        Label("Lock", systemImage: "lock.fill")
+                                    })
+                                }
+
+                                Button(action: { performAction(action: "rsync") }, label: {
+                                    Label("Resync", systemImage: "arrow.triangle.2.circlepath")
+                                })
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(buttonsDisabled)
+
+                            if !car.vehicle.hvac {
+                                if let weather = locationManager.weather {
+                                    HStack {
+                                        Image(systemName: "thermometer.snowflake")
+                                        Text(getClimateSummary(weather: weather))
+                                    }
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                                }
+
+                                NavigationLink(
+                                    destination: CarClimateView(
+                                        car: car, locationManager: locationManager
+                                    )
+                                ) {
+                                    Text("Climate Settings →")
+                                        .font(Theme.Fonts.bodyMedium)
+                                        .foregroundColor(Theme.Colors.accent)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        #else
                         VStack(spacing: 12) {
                             if car.vehicle.hvac {
                                 Button(action: { performAction(action: "stop") }, label: {
@@ -135,7 +192,6 @@ struct CarDetailView: View {
                                 })
                                 .disabled(self.buttonsDisabled)
 
-                                // Show what will happen (Auto Logic)
                                 if let weather = locationManager.weather {
                                     HStack {
                                         Image(systemName: "thermometer.snowflake")
@@ -147,7 +203,9 @@ struct CarDetailView: View {
                                 }
 
                                 NavigationLink(
-                                    destination: CarClimateView(car: car, locationManager: locationManager)
+                                    destination: CarClimateView(
+                                        car: car, locationManager: locationManager
+                                    )
                                 ) {
                                     HStack {
                                         Text("Climate Settings")
@@ -195,6 +253,7 @@ struct CarDetailView: View {
                                 .disabled(self.buttonsDisabled)
                             }
                         }
+                        #endif
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -213,6 +272,7 @@ struct CarDetailView: View {
                 }
                 .padding()
             }
+            #if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Dismiss") {
@@ -220,6 +280,7 @@ struct CarDetailView: View {
                     }
                 }
             }
+            #endif
         }
         #if os(visionOS)
         .glassBackgroundEffect()

@@ -132,22 +132,41 @@ public struct Theme {
 
     public struct Fonts {
         // Headers: Serif font (New York on Apple platforms)
+        // Smaller on macOS for proper desktop sizing
         public static func header4XL() -> Font {
+            #if os(macOS)
+            return .system(size: 36, weight: .bold, design: .serif)
+            #else
             return .system(size: 72, weight: .bold, design: .serif)
+            #endif
         }
 
         public static func headerXL() -> Font {
+            #if os(macOS)
+            return .system(size: 22, weight: .bold, design: .serif)
+            #else
             return .system(size: 36, weight: .bold, design: .serif)
+            #endif
         }
 
         public static func headerLarge() -> Font {
+            #if os(macOS)
+            return .system(size: 17, weight: .semibold, design: .serif)
+            #else
             return .system(size: 24, weight: .bold, design: .serif)
+            #endif
         }
 
         // Body Text: System default (SF Pro)
+        #if os(macOS)
+        public static let bodyLarge = Font.system(size: 15)
+        public static let bodyMedium = Font.system(size: 13)
+        public static let bodySmall = Font.system(size: 12)
+        #else
         public static let bodyLarge = Font.system(size: 18)
         public static let bodyMedium = Font.system(size: 16)
         public static let bodySmall = Font.system(size: 14)
+        #endif
         public static let caption = Font.caption
     }
 }

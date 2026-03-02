@@ -6,9 +6,6 @@
 //
 
 import Foundation
-import UIKit
-
-// HomeConnect-specific logic and classes
 // Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor
@@ -28,6 +25,7 @@ class HomeConnect: ObservableObject {
     }
 
     func nilProgram() {
+        self.appliances.removeAll()
         self.appliances.append(
             Appliance(
                 name: "Dishwasher",
@@ -86,14 +84,12 @@ class HomeConnect: ObservableObject {
 
     func refresh() {
         if let response = apiResponse?.response {
-            DispatchQueue.main.async {
-                if let dishwasher = response.dishwasher,
-                   dishwasher.operationState.rawValue != "Inactive" &&
-                    dishwasher.operationState.rawValue != "Finished" {
-                    self.setProgram(program: dishwasher)
-                } else {
-                    self.nilProgram()
-                }
+            if let dishwasher = response.dishwasher,
+               dishwasher.operationState.rawValue != "Inactive" &&
+                dishwasher.operationState.rawValue != "Finished" {
+                self.setProgram(program: dishwasher)
+            } else {
+                self.nilProgram()
             }
         }
     }
