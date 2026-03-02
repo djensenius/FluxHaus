@@ -11,6 +11,7 @@ struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
+    @State private var holdRecordStart: Date?
 
     var body: some View {
         HSplitView {
@@ -178,15 +179,7 @@ struct ChatView: View {
                 recordingOverlay
             } else {
                 HStack(spacing: 8) {
-                    Button(action: {
-                        chat.startRecording()
-                    }, label: {
-                        Image(systemName: "mic.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(Theme.Colors.accent)
-                    })
-                    .buttonStyle(.plain)
-                    .disabled(chat.isLoading)
+                    micButton
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyMedium)
@@ -219,6 +212,38 @@ struct ChatView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
+    }
+
+    private var micButton: some View {
+        Image(systemName: "mic.circle.fill")
+            .font(.title2)
+            .foregroundColor(
+                chat.isLoading
+                ? Theme.Colors.textSecondary
+                : Theme.Colors.accent
+            )
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard holdRecordStart == nil,
+                              !chat.isLoading else { return }
+                        holdRecordStart = Date()
+                        chat.startRecording()
+                    }
+                    .onEnded { _ in
+                        guard let start = holdRecordStart else {
+                            return
+                        }
+                        holdRecordStart = nil
+                        let held = Date().timeIntervalSince(start)
+                        if held > 0.3 {
+                            Task {
+                                await chat.stopRecordingAndSend()
+                            }
+                        }
+                    }
+            )
+            .allowsHitTesting(!chat.isLoading)
     }
 
     private var recordingOverlay: some View {
