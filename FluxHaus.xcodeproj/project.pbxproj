@@ -164,6 +164,7 @@
 		E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		EDBA0282938D145D6381768C /* MacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A02EE588AFF8C715B9DEB /* MacApp.swift */; };
 		F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		F5AFABDDDCCC8EBDB839E1F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
 		FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 /* End PBXBuildFile section */
@@ -739,6 +740,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F5AFABDDDCCC8EBDB839E1F8 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1491,6 +1493,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -1518,6 +1521,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;

@@ -9,8 +9,9 @@ import SwiftUI
 
 struct LoginView: View {
     var needLoginView: Bool
-    @State private var password = ""
-    @State private var isLoading = false
+    @ObservedObject var viewModel: LoginViewModel = LoginViewModel()
+    @State private var isSigningIn = false
+    @State private var showDemoLogin = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -24,7 +25,6 @@ struct LoginView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
         .onReceive(
             NotificationCenter.default.publisher(
                 for: Notification.Name.loginsUpdated
@@ -32,7 +32,7 @@ struct LoginView: View {
         ) { object in
             if let error = object.userInfo?["loginError"] as? String {
                 errorMessage = error
-                isLoading = false
+                isSigningIn = false
             }
         }
     }
@@ -44,44 +44,53 @@ struct LoginView: View {
                 .foregroundColor(Theme.Colors.accent)
 
             Text("FluxHaus")
-                .font(Theme.Fonts.header4XL())
-                .foregroundColor(Theme.Colors.textPrimary)
+                .font(.largeTitle)
+                .fontWeight(.bold)
 
             if let error = errorMessage {
                 Text(error)
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.error)
+                    .foregroundStyle(.red)
+                    .font(.subheadline)
             }
 
-            SecureField("Password", text: $password)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 250)
-                .onSubmit { signIn() }
+            VStack(spacing: 12) {
+                Button(action: signInWithOIDC) {
+                    Label("Sign In", systemImage: "person.badge.key")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isSigningIn)
 
-            Button(action: signIn) {
-                if isLoading {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Text("Sign In")
+                Button(action: { showDemoLogin.toggle() }, label: {
+                    Label(
+                        showDemoLogin ? "Hide Demo Mode" : "Demo Mode",
+                        systemImage: "play.circle"
+                    )
+                    .frame(maxWidth: .infinity)
+                })
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+
+                if showDemoLogin {
+                    SecureField("Demo Passcode", text: $viewModel.password)
+                        .textFieldStyle(.roundedBorder)
+                        .onSubmit { signInDemo() }
+
+                    Button(action: signInDemo, label: {
+                        Label("Enter Demo", systemImage: "arrow.right")
+                            .frame(maxWidth: .infinity)
+                    })
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .disabled(viewModel.password.isEmpty)
                 }
             }
-            .buttonStyle(.glass)
-            .disabled(password.isEmpty || isLoading)
-            .frame(width: 250)
-
-            Divider()
-                .frame(width: 200)
-
-            Button(action: signInWithOIDC, label: {
-                Label("Sign in with SSO", systemImage: "person.badge.key")
-            })
-            .buttonStyle(.glass)
-            .frame(width: 250)
+            .frame(width: 280)
         }
         .padding(40)
         .glassEffect(.regular)
-        .frame(width: 350)
+        .frame(width: 380)
     }
 
     private var loadingCard: some View {
@@ -96,15 +105,15 @@ struct LoginView: View {
         .glassEffect(.regular)
     }
 
-    private func signIn() {
-        isLoading = true
+    private func signInDemo() {
+        isSigningIn = true
         errorMessage = nil
-        AuthManager.shared.signInDemo(password: password)
-        queryFlux(password: password)
+        AuthManager.shared.signInDemo(password: viewModel.password)
+        viewModel.login()
     }
 
     private func signInWithOIDC() {
-        isLoading = true
+        isSigningIn = true
         errorMessage = nil
         Task {
             do {
@@ -112,7 +121,7 @@ struct LoginView: View {
                 queryFlux(password: "")
             } catch {
                 errorMessage = error.localizedDescription
-                isLoading = false
+                isSigningIn = false
             }
         }
     }
