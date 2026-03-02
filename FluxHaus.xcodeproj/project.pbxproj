@@ -1018,7 +1018,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1051,7 +1051,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1146,7 +1146,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1185,7 +1185,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1222,7 +1222,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1260,7 +1260,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.7;
+				MARKETING_VERSION = 1.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
