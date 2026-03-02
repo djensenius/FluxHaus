@@ -45,6 +45,7 @@ struct DashboardView: View {
     private struct DeviceCard: Identifiable {
         let id: String
         let isActive: Bool
+        let priority: Int
         let view: AnyView
     }
 
@@ -52,22 +53,23 @@ struct DashboardView: View {
         var cards: [DeviceCard] = []
         let broomActive = robots.broomBot.running == true || robots.broomBot.paused == true
         cards.append(DeviceCard(
-            id: "broomBot", isActive: broomActive,
+            id: "broomBot", isActive: broomActive, priority: broomActive ? 2 : 0,
             view: AnyView(robotCard(title: "BroomBot", robot: robots.broomBot, robotName: "broomBot", icon: "fan"))
         ))
         let mopActive = robots.mopBot.running == true || robots.mopBot.paused == true
         let mopView = robotCard(
             title: "MopBot", robot: robots.mopBot, robotName: "mopBot", icon: "humidifier.and.droplets"
         )
-        cards.append(DeviceCard(id: "mopBot", isActive: mopActive, view: AnyView(mopView)))
+        cards.append(DeviceCard(id: "mopBot", isActive: mopActive, priority: mopActive ? 2 : 0, view: AnyView(mopView)))
         for (idx, item) in allAppliances.enumerated() {
             cards.append(DeviceCard(
                 id: "appliance-\(idx)", isActive: item.appliance.inUse,
+                priority: item.appliance.inUse ? 2 : 0,
                 view: AnyView(applianceCard(appliance: item.appliance, source: item.source))
             ))
         }
-        cards.append(DeviceCard(id: "car", isActive: false, view: AnyView(carCard)))
-        return cards.sorted { $0.isActive && !$1.isActive }
+        cards.append(DeviceCard(id: "car", isActive: false, priority: 1, view: AnyView(carCard)))
+        return cards.sorted { $0.priority > $1.priority }
     }
 
     // MARK: - Weather
@@ -98,6 +100,17 @@ struct DashboardView: View {
                         }
                     }
                 }
+                HStack(spacing: 16) {
+                    weatherDetail(icon: "thermometer.medium", label: "Feels like", value: feelsLikeString)
+                    weatherDetail(icon: "humidity", label: "Humidity", value: humidityString)
+                    weatherDetail(icon: "sun.max.trianglebadge.exclamationmark", label: "UV", value: uvIndexString)
+                    weatherDetail(icon: "wind", label: "Wind", value: windString)
+                }
+                if let precipText = precipitationText {
+                    Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.accent)
+                }
             } else {
                 HStack {
                     ProgressView().controlSize(.small)
@@ -111,6 +124,21 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.Colors.secondaryBackground)
         .cornerRadius(12)
+    }
+
+    private func weatherDetail(icon: String, label: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
+            Text(value)
+                .font(Theme.Fonts.bodySmall)
+                .foregroundColor(Theme.Colors.textPrimary)
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundColor(Theme.Colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Car
@@ -298,7 +326,7 @@ extension DashboardView {
                     .foregroundColor(Theme.Colors.textSecondary)
             } else {
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
+                    columns: [GridItem(.adaptive(minimum: 140), spacing: 8)],
                     spacing: 8
                 ) {
                     ForEach(sceneManager.favourites) { scene in
@@ -312,9 +340,11 @@ extension DashboardView {
                                     )
                                 Text(scene.name)
                                     .font(Theme.Fonts.bodyMedium)
+                                    .lineLimit(1)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
+                            .padding(.horizontal, 6)
                         })
                         .buttonStyle(.bordered)
                         .tint(scene.isActive == true ? Theme.Colors.accent : nil)
@@ -394,50 +424,49 @@ extension DashboardView {
 
     var temperatureString: String {
         guard let weather = locationManager.weather else { return "" }
-        let measurement = Measurement(
-            value: weather.currentWeather.temperature.value,
-            unit: UnitTemperature.celsius
-        )
-        let fmt = MeasurementFormatter()
-        fmt.numberFormatter.maximumFractionDigits = 0
-        return fmt.string(from: measurement)
+        return WeatherHelpers.formatTemp(weather.currentWeather.temperature.value)
     }
 
     var highTemp: String? {
         guard let weather = locationManager.weather,
               let today = weather.dailyForecast.first else { return nil }
-        let fmt = MeasurementFormatter()
-        fmt.numberFormatter.maximumFractionDigits = 0
-        return fmt.string(from: Measurement(
-            value: today.highTemperature.value, unit: UnitTemperature.celsius
-        ))
+        return WeatherHelpers.formatTemp(today.highTemperature.value)
     }
 
     var lowTemp: String? {
         guard let weather = locationManager.weather,
               let today = weather.dailyForecast.first else { return nil }
-        let fmt = MeasurementFormatter()
-        fmt.numberFormatter.maximumFractionDigits = 0
-        return fmt.string(from: Measurement(
-            value: today.lowTemperature.value, unit: UnitTemperature.celsius
-        ))
+        return WeatherHelpers.formatTemp(today.lowTemperature.value)
     }
 
     var weatherIcon: String {
         guard let weather = locationManager.weather else { return "cloud" }
-        switch weather.currentWeather.condition {
-        case .clear, .mostlyClear: return "sun.max.fill"
-        case .cloudy, .mostlyCloudy: return "cloud.fill"
-        case .partlyCloudy: return "cloud.sun.fill"
-        case .rain, .heavyRain: return "cloud.rain.fill"
-        case .drizzle: return "cloud.drizzle.fill"
-        case .snow, .heavySnow, .flurries: return "cloud.snow.fill"
-        case .sleet, .freezingRain: return "cloud.sleet.fill"
-        case .thunderstorms: return "cloud.bolt.fill"
-        case .foggy, .haze: return "cloud.fog.fill"
-        case .windy, .breezy: return "wind"
-        default: return "cloud"
-        }
+        return WeatherHelpers.icon(for: weather.currentWeather.condition)
+    }
+
+    var feelsLikeString: String {
+        guard let weather = locationManager.weather else { return "" }
+        return WeatherHelpers.formatTemp(weather.currentWeather.apparentTemperature.value)
+    }
+
+    var humidityString: String {
+        guard let weather = locationManager.weather else { return "" }
+        return "\(Int(weather.currentWeather.humidity * 100))%"
+    }
+
+    var uvIndexString: String {
+        guard let weather = locationManager.weather else { return "" }
+        return "\(weather.currentWeather.uvIndex.value)"
+    }
+
+    var windString: String {
+        guard let weather = locationManager.weather else { return "" }
+        return WeatherHelpers.formatSpeed(weather.currentWeather.wind.speed.value)
+    }
+
+    var precipitationText: String? {
+        guard let forecast = locationManager.forecast else { return nil }
+        return WeatherHelpers.precipitationText(from: forecast)
     }
 }
 

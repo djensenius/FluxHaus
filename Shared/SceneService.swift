@@ -86,41 +86,59 @@ func activateScene(entityId: String) async throws {
     components.path = "/scenes/activate"
     let url = components.url!
 
+    let csrfToken = await fetchCsrfToken()
+    logger.info("activateScene: \(entityId) csrf=\(csrfToken != nil ? "YES" : "MISSING")")
+
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
     request.addValue("application/json", forHTTPHeaderField: "Accept")
+    if let csrfToken = csrfToken {
+        request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+    }
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
+        logger.error("activateScene: no auth header")
         throw SceneServiceError.unauthorized
     }
     let body = SceneActivateRequest(entityId: entityId)
     request.httpBody = try JSONEncoder().encode(body)
 
     let session = URLSession(configuration: .default)
-    let (_, response) = try await session.data(for: request)
+    let (data, response) = try await session.data(for: request)
+    let httpResponse = response as? HTTPURLResponse
+    let statusCode = httpResponse?.statusCode ?? -1
+    let responseBody = String(data: data, encoding: .utf8) ?? ""
+    logger.info("activateScene: HTTP \(statusCode) body=\(responseBody.prefix(200))")
 
-    if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 401 {
+    if statusCode == 401 {
         let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
         guard refreshed else { throw SceneServiceError.unauthorized }
+        let retryCsrf = await fetchCsrfToken()
         var retry = URLRequest(url: url)
         retry.httpMethod = "POST"
         retry.addValue("application/json", forHTTPHeaderField: "Content-Type")
         retry.addValue("application/json", forHTTPHeaderField: "Accept")
+        if let retryCsrf = retryCsrf {
+            retry.setValue(retryCsrf, forHTTPHeaderField: "X-CSRF-Token")
+        }
         if let header = AuthManager.shared.authorizationHeader() {
             retry.setValue(header, forHTTPHeaderField: "Authorization")
         }
         retry.httpBody = try JSONEncoder().encode(body)
-        let (_, retryResp) = try await session.data(for: retry)
-        if let retryHttp = retryResp as? HTTPURLResponse, retryHttp.statusCode != 200 {
+        let (retryData, retryResp) = try await session.data(for: retry)
+        let retryStatus = (retryResp as? HTTPURLResponse)?.statusCode ?? -1
+        let retryBody = String(data: retryData, encoding: .utf8) ?? ""
+        logger.info("activateScene retry: HTTP \(retryStatus) body=\(retryBody.prefix(200))")
+        if retryStatus != 200 {
             throw SceneServiceError.serverError("Failed to activate scene")
         }
         return
     }
 
-    if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-        logger.error("Failed to activate scene: HTTP \(httpResponse.statusCode)")
+    if statusCode != 200 {
+        logger.error("activateScene failed: HTTP \(statusCode)")
         throw SceneServiceError.serverError("Failed to activate scene")
     }
 }

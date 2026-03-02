@@ -186,11 +186,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     /// Returns the Authorization header value for API requests
     func authorizationHeader() -> String? {
         if let token = getAccessToken() {
-            logger.debug("authorizationHeader: using Bearer token (\(token.prefix(8))...)")
             return "Bearer \(token)"
         }
         if let password = WhereWeAre.getPassword() {
-            logger.debug("authorizationHeader: using Basic auth (demo)")
             return "Basic \(Data("demo:\(password)".utf8).base64EncodedString())"
         }
         logger.warning("authorizationHeader: no credentials available")
@@ -296,7 +294,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     /// Returns true if the access token is expired or will expire within the given margin.
-    func isTokenExpiringSoon(margin: TimeInterval = 300) -> Bool {
+    func isTokenExpiringSoon(margin: TimeInterval = 60) -> Bool {
         guard getAccessToken() != nil else { return false }
         guard let expiryString = getKeychainItem(account: "oidc_token_expiry"),
               let expiryInterval = TimeInterval(expiryString) else {
@@ -311,7 +309,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     func ensureValidToken() async -> Bool {
         guard getAccessToken() != nil else { return false }
         if isTokenExpiringSoon() {
-            logger.info("ensureValidToken: token expiring soon, refreshing proactively")
+            logger.debug("ensureValidToken: token expiring soon, refreshing proactively")
             return await refreshTokenIfNeeded()
         }
         return true
@@ -320,7 +318,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     func refreshTokenIfNeeded() async -> Bool {
         // If another refresh is in-flight, wait for its result (actor-serialized)
         if let coalescedResult = await refreshCoordinator.acquireOrWait() {
-            logger.info("refreshTokenIfNeeded: coalesced with in-flight refresh, result=\(coalescedResult)")
+            logger.debug("refreshTokenIfNeeded: coalesced with in-flight refresh, result=\(coalescedResult)")
             return coalescedResult
         }
 
@@ -330,12 +328,12 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             return false
         }
 
-        logger.info("refreshTokenIfNeeded: starting token refresh...")
+        logger.debug("refreshTokenIfNeeded: starting token refresh...")
 
         do {
             let tokens = try await refreshAccessToken(refreshToken)
             storeTokens(tokens)
-            logger.info("refreshTokenIfNeeded: OK (expiresIn=\(tokens.expiresIn ?? -1))")
+            logger.info("Token refreshed (expiresIn=\(tokens.expiresIn ?? -1))")
             await refreshCoordinator.complete(success: true)
             return true
         } catch {
@@ -407,9 +405,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             setKeychainItem(
                 account: "oidc_token_expiry",
                 value: String(expiryDate.timeIntervalSince1970)
-            )
-            logger.info(
-                "storeTokens: stored tokens, expires in \(expiresIn)s, refreshToken=\(tokens.refreshToken != nil)"
             )
         } else {
             deleteKeychainItem(account: "oidc_token_expiry")

@@ -103,7 +103,7 @@ struct Conversation: Identifiable, Codable {
         #if canImport(UIKit)
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .default)
+            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothA2DP])
             try audioSession.setActive(true)
         } catch {
             logger.error("Failed to set up audio session: \(error.localizedDescription)")
@@ -192,6 +192,7 @@ struct Conversation: Identifiable, Codable {
     }
 
     private func playAudioResponse(data: Data) {
+        configurePlaybackSession()
         do {
             audioPlayer = try AVAudioPlayer(data: data)
             audioPlayer?.delegate = self
@@ -204,6 +205,7 @@ struct Conversation: Identifiable, Codable {
     func playAudio(for message: ChatMessage) {
         guard let data = message.audioData else { return }
         stopPlayback()
+        configurePlaybackSession()
         do {
             audioPlayer = try AVAudioPlayer(data: data)
             audioPlayer?.delegate = self
@@ -213,6 +215,18 @@ struct Conversation: Identifiable, Codable {
             logger.error("Failed to play audio: \(error.localizedDescription)")
             playingMessageId = nil
         }
+    }
+
+    private func configurePlaybackSession() {
+        #if canImport(UIKit)
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playback, mode: .default, options: [])
+            try audioSession.setActive(true)
+        } catch {
+            logger.error("Failed to configure playback session: \(error.localizedDescription)")
+        }
+        #endif
     }
 
     func stopPlayback() {

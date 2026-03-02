@@ -221,6 +221,16 @@ struct MenuBarView: View {
             }
             .font(Theme.Fonts.caption)
             Spacer()
+            if AuthManager.hasOIDCToken() {
+                Button(action: {
+                    dismiss()
+                    openAppToSection(.assistant)
+                }, label: {
+                    Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                })
+                .font(Theme.Fonts.caption)
+            }
+            Spacer()
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }

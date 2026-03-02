@@ -24,20 +24,17 @@ private let logger = Logger(
         do {
             scenes = try await fetchScenes()
             loadError = nil
-            logger.info("Loaded \(self.scenes.count) scenes from API")
-            for scene in scenes {
-                logger.info("  Scene: '\(scene.name)' (\(scene.entityId)) active=\(String(describing: scene.isActive))")
-            }
-            logger.info("Favourite filter names: \(favouriteNames)")
             if favouriteNames.isEmpty {
-                favourites = scenes
+                favourites = []
             } else {
                 let lowerFavs = favouriteNames.map { $0.lowercased() }
                 favourites = scenes.filter {
                     lowerFavs.contains($0.name.lowercased())
                 }
             }
-            logger.info("Matched \(self.favourites.count) favourites")
+            if !hasLoaded {
+                logger.info("Loaded \(self.scenes.count) scenes, \(self.favourites.count) favourites")
+            }
             hasLoaded = true
         } catch {
             logger.error("Failed to load scenes: \(error.localizedDescription)")
@@ -51,7 +48,12 @@ private let logger = Logger(
     func activate(_ scene: HomeScene, favouriteNames: [String] = []) {
         activatingSceneId = scene.entityId
         Task {
-            try? await activateScene(entityId: scene.entityId)
+            do {
+                try await activateScene(entityId: scene.entityId)
+                logger.info("Scene activated: \(scene.name)")
+            } catch {
+                logger.error("Scene activation failed: \(error.localizedDescription)")
+            }
             try? await Task.sleep(for: .seconds(1))
             await loadScenes(favouriteNames: favouriteNames)
             activatingSceneId = nil
@@ -111,7 +113,7 @@ struct SceneView: View {
                 .padding(.top, 40)
             } else {
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 140), spacing: 12)],
+                    columns: [GridItem(.adaptive(minimum: 180), spacing: 12)],
                     spacing: 12
                 ) {
                     ForEach(sceneManager.scenes) { scene in
@@ -133,9 +135,11 @@ struct SceneView: View {
                                 )
                                 Text(scene.name)
                                     .font(Theme.Fonts.bodyMedium)
+                                    .lineLimit(1)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 8)
                         })
                         .buttonStyle(.bordered)
                         .tint(
