@@ -103,7 +103,10 @@ struct Conversation: Identifiable, Codable {
         #if canImport(UIKit)
         let audioSession = AVAudioSession.sharedInstance()
         do {
-            try audioSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothA2DP])
+            try audioSession.setCategory(
+                .playAndRecord, mode: .default,
+                options: [.defaultToSpeaker, .allowBluetoothA2DP]
+            )
             try audioSession.setActive(true)
         } catch {
             logger.error("Failed to set up audio session: \(error.localizedDescription)")

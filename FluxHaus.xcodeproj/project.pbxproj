@@ -31,6 +31,9 @@
 		5D05B5523942BB577B0175D4 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
 		63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC3F258682C9003E4988 /* Tests_iOS.swift */; };
+		F0C99470023B4D8053698472 /* Tests_macOS_SwiftTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */; };
+		B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */; };
+		99ACB989B61624E98A2D48A8 /* Tests_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC4A258682C9003E4988 /* Tests_macOS.swift */; };
 		632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC24258682C8003E4988 /* FluxHausApp.swift */; };
 		632CBC4F258682C9003E4988 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		632CBC6825868365003E4988 /* HomeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 632CBC6725868365003E4988 /* HomeKit.framework */; };
@@ -212,6 +215,7 @@
 		1B9B78F7F035E29316F494F7 /* ChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		54E080FFA20990ACE9D14FB1 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tests macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CB3B0423E7608E287483D2 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
@@ -225,6 +229,8 @@
 		632CBC3F258682C9003E4988 /* Tests_iOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_iOS.swift; sourceTree = "<group>"; };
 		632CBC41258682C9003E4988 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		632CBC4A258682C9003E4988 /* Tests_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS.swift; sourceTree = "<group>"; };
+		77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_SwiftTesting.swift; sourceTree = "<group>"; };
+		C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_ViewTests.swift; sourceTree = "<group>"; };
 		632CBC4C258682C9003E4988 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		632CBC6525868365003E4988 /* FluxHaus.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxHaus.entitlements; sourceTree = "<group>"; };
 		632CBC6725868365003E4988 /* HomeKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HomeKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.2.sdk/System/Library/Frameworks/HomeKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -355,6 +361,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+64A30DB285A20D7B165694E9 /* Frameworks */ = {
+isa = PBXFrameworksBuildPhase;
+buildActionMask = 2147483647;
+files = (
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -429,6 +442,7 @@
 				63DBD7422B954216006603D0 /* VisionOSTests.xctest */,
 				637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */,
 				54E080FFA20990ACE9D14FB1 /* FluxHaus.app */,
+				A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -476,6 +490,8 @@
 			isa = PBXGroup;
 			children = (
 				632CBC4A258682C9003E4988 /* Tests_macOS.swift */,
+				77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */,
+				C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */,
 				632CBC4C258682C9003E4988 /* Info.plist */,
 			);
 			path = "Tests macOS";
@@ -572,6 +588,18 @@
 		};
 /* End PBXGroup section */
 
+0B86F8AC1882F9ECAA2578F7 /* PBXContainerItemProxy */ = {
+isa = PBXContainerItemProxy;
+containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
+proxyType = 1;
+remoteGlobalIDString = 6D3A6DEFADB0547372080997;
+remoteInfo = "FluxHaus (macOS)";
+};
+ABC5EB87E93F7AAB1F4C626D /* PBXTargetDependency */ = {
+isa = PBXTargetDependency;
+target = 6D3A6DEFADB0547372080997 /* FluxHaus (macOS) */;
+targetProxy = 0B86F8AC1882F9ECAA2578F7 /* PBXContainerItemProxy */;
+};
 /* Begin PBXNativeTarget section */
 		632CBC2A258682C9003E4988 /* FluxHaus (iOS) */ = {
 			isa = PBXNativeTarget;
@@ -684,6 +712,24 @@
 			productReference = 54E080FFA20990ACE9D14FB1 /* FluxHaus.app */;
 			productType = "com.apple.product-type.application";
 		};
+E51DC75308C292121A38AE50 /* Tests macOS */ = {
+isa = PBXNativeTarget;
+buildConfigurationList = E7A46F2E7D1A7E96FF4CDB11 /* Build configuration list for PBXNativeTarget "Tests macOS" */;
+buildPhases = (
+B569E15CCC869485ABE28721 /* Sources */,
+64A30DB285A20D7B165694E9 /* Frameworks */,
+F709AAB9ED5BC2309F52D4E2 /* Resources */,
+);
+buildRules = (
+);
+dependencies = (
+ABC5EB87E93F7AAB1F4C626D /* PBXTargetDependency */,
+);
+name = "Tests macOS";
+productName = "Tests macOS";
+productReference = A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */;
+productType = "com.apple.product-type.bundle.unit-test";
+};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -711,6 +757,10 @@
 						CreatedOnToolsVersion = 15.2;
 						TestTargetID = 63DBD72D2B954215006603D0;
 					};
+					E51DC75308C292121A38AE50 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 6D3A6DEFADB0547372080997;
+					};
 				};
 			};
 			buildConfigurationList = 632CBC22258682C8003E4988 /* Build configuration list for PBXProject "FluxHaus" */;
@@ -732,6 +782,7 @@
 				63DBD7412B954216006603D0 /* VisionOSTests */,
 				637BC6282C5BDA7F00E7884E /* FluxWidgetExtension */,
 				6D3A6DEFADB0547372080997 /* FluxHaus (macOS) */,
+				E51DC75308C292121A38AE50 /* Tests macOS */,
 			);
 		};
 /* End PBXProject section */
@@ -782,6 +833,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+F709AAB9ED5BC2309F52D4E2 /* Resources */ = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -1012,6 +1070,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+B569E15CCC869485ABE28721 /* Sources */ = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (
+99ACB989B61624E98A2D48A8 /* Tests_macOS.swift in Sources */,
+F0C99470023B4D8053698472 /* Tests_macOS_SwiftTesting.swift in Sources */,
+B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */,
+);
+runOnlyForDeploymentPostprocessing = 0;
+};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1566,6 +1634,40 @@
 			};
 			name = Debug;
 		};
+1DF4D0D19B751E6DF17FAAFC /* Debug */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+BUNDLE_LOADER = "$(TEST_HOST)";
+CODE_SIGN_IDENTITY = "Apple Development";
+CODE_SIGN_STYLE = Automatic;
+DEVELOPMENT_TEAM = 9JALHNGRBQ;
+GENERATE_INFOPLIST_FILE = YES;
+INFOPLIST_FILE = "Tests macOS/Info.plist";
+MACOSX_DEPLOYMENT_TARGET = 26.0;
+PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
+PRODUCT_NAME = "$(TARGET_NAME)";
+SWIFT_VERSION = 6.0;
+TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FluxHaus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FluxHaus";
+};
+name = Debug;
+};
+D425078A2368D6EDCF5E3B0A /* Release */ = {
+isa = XCBuildConfiguration;
+buildSettings = {
+BUNDLE_LOADER = "$(TEST_HOST)";
+CODE_SIGN_IDENTITY = "Apple Development";
+CODE_SIGN_STYLE = Automatic;
+DEVELOPMENT_TEAM = 9JALHNGRBQ;
+GENERATE_INFOPLIST_FILE = YES;
+INFOPLIST_FILE = "Tests macOS/Info.plist";
+MACOSX_DEPLOYMENT_TARGET = 26.0;
+PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
+PRODUCT_NAME = "$(TARGET_NAME)";
+SWIFT_VERSION = 6.0;
+TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FluxHaus.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FluxHaus";
+};
+name = Release;
+};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1632,6 +1734,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+E7A46F2E7D1A7E96FF4CDB11 /* Build configuration list for PBXNativeTarget "Tests macOS" */ = {
+isa = XCConfigurationList;
+buildConfigurations = (
+1DF4D0D19B751E6DF17FAAFC /* Debug */,
+D425078A2368D6EDCF5E3B0A /* Release */,
+);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
