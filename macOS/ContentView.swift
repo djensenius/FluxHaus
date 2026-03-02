@@ -101,7 +101,7 @@ struct ContentView: View {
                 onNavigate: { selectedItem = $0 }
             )
         case .scenes:
-            SceneView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+            SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .navigationTitle("Scenes")
         case .appliances:
             AppliancesMacView(hconn: hconn, miele: miele)
@@ -423,7 +423,7 @@ struct RobotsMacView: View {
         fluxHausConsts: {
             let config = FluxHausConsts()
             config.setConfig(
-                config: FluxHausConfig(favouriteHomeKit: ["Light 1"])
+                config: FluxHausConfig(favouriteHomeKit: ["Light 1"], favouriteScenes: [])
             )
             return config
         }(),

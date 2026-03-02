@@ -29,6 +29,7 @@ private func emptyResponse() -> LoginResponse {
     )
     return LoginResponse(
         timestamp: "", favouriteHomeKit: [],
+        favouriteScenes: [],
         broombot: emptyRobot, mopbot: emptyRobot,
         car: nil, carEvStatus: nil, carOdometer: nil,
         dishwasher: nil, dryer: nil, washer: nil
@@ -122,7 +123,7 @@ struct ViewSmokeTests {
     @Test("ContentView renders with mock data without crashing")
     @MainActor func testContentViewWithMockData() async {
         let config = FluxHausConsts()
-        config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1"]))
+        config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1"], favouriteScenes: []))
 
         let hconn = MockData.createHomeConnect()
         let miele = MockData.createMiele()
@@ -148,7 +149,7 @@ struct ViewSmokeTests {
     @Test("Appliances view renders with mock data without crashing")
     @MainActor func testAppliancesViewWithMockData() async {
         let config = FluxHausConsts()
-        config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1"]))
+        config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1"], favouriteScenes: []))
 
         let hconn = MockData.createHomeConnect()
         let miele = MockData.createMiele()
@@ -261,6 +262,7 @@ struct MockDataFlowTests {
         let modified = LoginResponse(
             timestamp: "2024-12-13T13:00:00Z",
             favouriteHomeKit: ["Light 1"],
+            favouriteScenes: [],
             broombot: Robot(
                 name: "BroomBot",
                 timestamp: "2024-12-13T12:00:00Z",

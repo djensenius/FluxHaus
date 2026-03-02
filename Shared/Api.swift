@@ -22,6 +22,7 @@ struct MockData {
     static let loginResponse = LoginResponse(
         timestamp: "2024-12-13T12:00:00Z",
         favouriteHomeKit: ["Light 1", "Light 2"],
+        favouriteScenes: ["Good Morning", "Bedtime"],
         broombot: Robot(
             name: "BroomBot",
             timestamp: "2024-12-13T11:00:00Z",

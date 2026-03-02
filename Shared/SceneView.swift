@@ -60,7 +60,7 @@ private let logger = Logger(
 }
 
 struct SceneView: View {
-    var favouriteHomeKit: [String]
+    var favouriteScenes: [String]
     @State private var sceneManager = SceneManager()
 
     var body: some View {
@@ -116,7 +116,7 @@ struct SceneView: View {
                 ) {
                     ForEach(sceneManager.scenes) { scene in
                         Button(action: {
-                            sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
+                            sceneManager.activate(scene, favouriteNames: favouriteScenes)
                         }, label: {
                             HStack {
                                 if sceneManager.activatingSceneId == scene.entityId {
@@ -150,7 +150,7 @@ struct SceneView: View {
         }
         .background(Theme.Colors.background)
         .task {
-            await sceneManager.loadScenes(favouriteNames: favouriteHomeKit)
+            await sceneManager.loadScenes(favouriteNames: favouriteScenes)
         }
     }
     #endif
@@ -160,7 +160,7 @@ struct SceneView: View {
             LazyHGrid(rows: [GridItem(.flexible())], spacing: 8) {
                 ForEach(sceneManager.favourites) { scene in
                     Button(action: {
-                        sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
+                        sceneManager.activate(scene, favouriteNames: favouriteScenes)
                     }, label: {
                         HStack {
                             if sceneManager.activatingSceneId == scene.entityId {
@@ -184,7 +184,7 @@ struct SceneView: View {
             }
         }
         .task {
-            await sceneManager.loadScenes(favouriteNames: favouriteHomeKit)
+            await sceneManager.loadScenes(favouriteNames: favouriteScenes)
             startRefreshTimer()
         }
     }
@@ -192,7 +192,7 @@ struct SceneView: View {
     private func startRefreshTimer() {
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { _ in
             Task { @MainActor in
-                await sceneManager.loadScenes(favouriteNames: favouriteHomeKit)
+                await sceneManager.loadScenes(favouriteNames: favouriteScenes)
             }
         }
     }
@@ -200,6 +200,6 @@ struct SceneView: View {
 
 #if DEBUG
 #Preview {
-    SceneView(favouriteHomeKit: ["Good Morning", "Bedtime"])
+    SceneView(favouriteScenes: ["Good Morning", "Bedtime"])
 }
 #endif

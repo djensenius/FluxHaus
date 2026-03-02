@@ -102,7 +102,7 @@ struct ContentView: View {
     ContentView(
         fluxHausConsts: {
             let config = FluxHausConsts()
-            config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+            config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"], favouriteScenes: []))
             return config
         }(),
         hconn: MockData.createHomeConnect(),

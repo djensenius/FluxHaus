@@ -264,7 +264,7 @@ struct AppliancesPreviewWrapper: View {
         Appliances(
             fluxHausConsts: {
                 let config = FluxHausConsts()
-                config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"]))
+                config.setConfig(config: FluxHausConfig(favouriteHomeKit: ["Light 1", "Light 2"], favouriteScenes: []))
                 return config
             }(),
             hconn: hconn,

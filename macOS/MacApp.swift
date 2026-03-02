@@ -43,7 +43,7 @@ struct MacApp: App {
                 robots: robots,
                 miele: miele,
                 hconn: hconn,
-                favouriteHomeKit: fluxHausConsts.favouriteHomeKit
+                favouriteScenes: fluxHausConsts.favouriteScenes
             )
         }
         .menuBarExtraStyle(.window)
@@ -121,7 +121,8 @@ struct MacApp: App {
             if object.object != nil {
                 let configResponse = object.object as? LoginResponse
                 let config = FluxHausConfig(
-                    favouriteHomeKit: configResponse?.favouriteHomeKit ?? []
+                    favouriteHomeKit: configResponse?.favouriteHomeKit ?? [],
+                    favouriteScenes: configResponse?.favouriteScenes ?? []
                 )
                 fluxHausConsts.setConfig(config: config)
             }

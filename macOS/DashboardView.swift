@@ -37,7 +37,7 @@ struct DashboardView: View {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
             await sceneManager.loadScenes(
-                favouriteNames: fluxHausConsts.favouriteHomeKit
+                favouriteNames: fluxHausConsts.favouriteScenes
             )
         }
     }
@@ -303,7 +303,7 @@ extension DashboardView {
                 ) {
                     ForEach(sceneManager.favourites) { scene in
                         Button(action: {
-                            sceneManager.activate(scene, favouriteNames: fluxHausConsts.favouriteHomeKit)
+                            sceneManager.activate(scene, favouriteNames: fluxHausConsts.favouriteScenes)
                         }, label: {
                             HStack(spacing: 4) {
                                 Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
@@ -447,7 +447,7 @@ extension DashboardView {
         fluxHausConsts: {
             let config = FluxHausConsts()
             config.setConfig(
-                config: FluxHausConfig(favouriteHomeKit: ["Light 1"])
+                config: FluxHausConfig(favouriteHomeKit: ["Light 1"], favouriteScenes: [])
             )
             return config
         }(),

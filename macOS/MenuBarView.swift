@@ -12,7 +12,7 @@ struct MenuBarView: View {
     var robots: Robots?
     var miele: Miele?
     var hconn: HomeConnect?
-    var favouriteHomeKit: [String]
+    var favouriteScenes: [String]
     @State private var sceneManager = SceneManager()
     @Environment(\.dismiss) private var dismiss
 
@@ -28,7 +28,7 @@ struct MenuBarView: View {
         .padding(10)
         .frame(width: 300)
         .task {
-            await sceneManager.loadScenes(favouriteNames: favouriteHomeKit)
+            await sceneManager.loadScenes(favouriteNames: favouriteScenes)
         }
     }
 
@@ -144,7 +144,7 @@ struct MenuBarView: View {
                 ForEach(sceneManager.favourites) { scene in
                     Button(action: {
                         sceneManager.activate(
-                            scene, favouriteNames: favouriteHomeKit
+                            scene, favouriteNames: favouriteScenes
                         )
                     }, label: {
                         HStack(spacing: 4) {
@@ -420,7 +420,7 @@ struct FlowLayout: Layout {
         robots: MockData.createRobots(),
         miele: MockData.createMiele(),
         hconn: MockData.createHomeConnect(),
-        favouriteHomeKit: ["Good Morning", "Bedtime"]
+        favouriteScenes: ["Good Morning", "Bedtime"]
     )
 }
 #endif
