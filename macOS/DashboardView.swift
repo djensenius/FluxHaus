@@ -18,17 +18,41 @@ struct DashboardView: View {
     @ObservedObject var locationManager: LocationManager
     var onNavigate: (SidebarItem) -> Void
     @State private var sceneManager = SceneManager()
+    @State private var carButtonsDisabled = false
 
     var body: some View {
-        List {
-            overviewSection
-            if !sceneManager.favourites.isEmpty {
-                scenesListSection
+        ScrollView {
+            VStack(spacing: 16) {
+                overviewCard
+                carCard
+                robotCard(
+                    title: "BroomBot",
+                    robot: robots.broomBot,
+                    robotName: "broomBot",
+                    icon: "fan"
+                )
+                robotCard(
+                    title: "MopBot",
+                    robot: robots.mopBot,
+                    robotName: "mopBot",
+                    icon: "humidifier.and.droplets"
+                )
+                ForEach(
+                    Array(allAppliances.enumerated()),
+                    id: \.offset
+                ) { _, item in
+                    applianceCard(
+                        appliance: item.appliance,
+                        source: item.source
+                    )
+                }
+                if !sceneManager.favourites.isEmpty {
+                    scenesCard
+                }
             }
-            devicesSection
-            appliancesSection
+            .padding()
         }
-        .listStyle(.sidebar)
+        .background(Theme.Colors.background)
         .navigationTitle("Dashboard")
         .task {
             await locationManager.startMonitoring()
@@ -40,47 +64,223 @@ struct DashboardView: View {
     }
 
     // MARK: - Overview
-
-    private var overviewSection: some View {
-        Section {
+    private var overviewCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(dateString)
-                        .font(.title3.weight(.semibold))
+                        .font(Theme.Fonts.headerLarge())
                         .foregroundColor(Theme.Colors.textPrimary)
                     Text(timeString)
-                        .font(.subheadline)
+                        .font(Theme.Fonts.bodyMedium)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
                 Spacer()
-                if let weather = locationManager.weather {
-                    HStack(spacing: 6) {
-                        Image(systemName: weatherIcon)
-                            .symbolRenderingMode(.multicolor)
-                            .font(.title3)
+            }
+            if let weather = locationManager.weather {
+                Divider()
+                HStack(spacing: 12) {
+                    Image(systemName: weatherIcon)
+                        .symbolRenderingMode(.multicolor)
+                        .font(.title2)
+                    VStack(alignment: .leading, spacing: 2) {
                         Text(temperatureString)
-                            .font(.title3.weight(.medium))
+                            .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
+                        Text(weather.currentWeather.condition.description)
+                            .font(Theme.Fonts.bodyMedium)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                    Spacer()
+                    if let high = highTemp, let low = lowTemp {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("H: \(high)").font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                            Text("L: \(low)").font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
                     }
                 }
             }
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
     }
 
-    // MARK: - Scenes
+    // MARK: - Car
+    private var carCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Car").font(Theme.Fonts.headerLarge()).foregroundColor(Theme.Colors.textPrimary)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("EV Data Updated \(getCarTime(strDate: car.vehicle.evStatusTimestamp))")
+                    .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
+                Text("Battery: \(car.vehicle.batteryLevel)%, \(car.vehicle.distance) km")
+                    .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
+                HStack(spacing: 16) {
+                    if car.vehicle.pluggedIn {
+                        Label("Plugged in", systemImage: "powerplug.fill").foregroundColor(Theme.Colors.success)
+                    } else {
+                        Label("Unplugged", systemImage: "powerplug").foregroundColor(Theme.Colors.textSecondary)
+                    }
+                    if car.vehicle.batteryCharge {
+                        Label("Charging", systemImage: "bolt.fill").foregroundColor(Theme.Colors.success)
+                    }
+                    if car.vehicle.locked {
+                        Label("Locked", systemImage: "lock.fill").foregroundColor(Theme.Colors.textSecondary)
+                    } else {
+                        Label("Unlocked", systemImage: "lock.open.fill").foregroundColor(Theme.Colors.warning)
+                    }
+                }.font(Theme.Fonts.bodyMedium)
+            }
+            Divider()
+            HStack(spacing: 8) {
+                if car.vehicle.hvac {
+                    Button(action: { performCarAction("stop") }, label: {
+                        Label("Climate Off", systemImage: "snowflake.slash")
+                    }).tint(.red)
+                } else {
+                    Button(action: { performCarAction("start") }, label: {
+                        Label("Start Climate", systemImage: "snowflake")
+                    }).tint(Theme.Colors.accent)
+                }
+                if car.vehicle.locked {
+                    Button(action: { performCarAction("unlock") }, label: {
+                        Label("Unlock", systemImage: "lock.open.fill")
+                    })
+                } else {
+                    Button(action: { performCarAction("lock") }, label: {
+                        Label("Lock", systemImage: "lock.fill")
+                    })
+                }
+                Button(action: { performCarAction("rsync") }, label: {
+                    Label("Resync", systemImage: "arrow.triangle.2.circlepath")
+                })
+                Spacer()
+                Button(action: { onNavigate(.car) }, label: {
+                    Text("Details →").font(Theme.Fonts.bodyMedium)
+                }).buttonStyle(.plain).foregroundColor(Theme.Colors.accent)
+            }.buttonStyle(.bordered).disabled(carButtonsDisabled)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
 
-    private var scenesListSection: some View {
-        Section("Scenes") {
+    // MARK: - Robots
+    private func robotCard(title: String, robot: Robot, robotName: String, icon: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: icon).foregroundColor(robotIconColor(robot))
+                Text(title).font(Theme.Fonts.headerLarge()).foregroundColor(Theme.Colors.textPrimary)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 16) {
+                    robotStatusLabel(robot)
+                    if let battery = robot.batteryLevel {
+                        Label("\(battery)%", systemImage: batteryIcon(battery))
+                            .foregroundColor(Theme.Colors.textPrimary)
+                    }
+                }.font(Theme.Fonts.bodyMedium)
+                if robot.binFull == true {
+                    Label("Bin Full", systemImage: "trash.fill")
+                        .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.error)
+                }
+                if robot.running == true, let started = robot.timeStarted {
+                    Text("Started \(getCarTime(strDate: started))")
+                        .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
+                }
+                Text("Updated \(getCarTime(strDate: robot.timestamp))")
+                    .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
+            }
+            Divider()
+            HStack(spacing: 8) {
+                Button(action: { robots.performAction(action: "start", robot: robotName) }, label: {
+                    Label("Start", systemImage: "play.fill")
+                }).tint(Theme.Colors.accent).disabled(robot.running == true)
+                Button(action: { robots.performAction(action: "stop", robot: robotName) }, label: {
+                    Label("Stop", systemImage: "stop.fill")
+                }).disabled(robot.running != true)
+                Button(action: { robots.performAction(action: "dock", robot: robotName) }, label: {
+                    Label("Dock", systemImage: "house.fill")
+                })
+            }.buttonStyle(.bordered)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+}
+
+// MARK: - DashboardView Helpers
+
+extension DashboardView {
+    var allAppliances: [(source: String, appliance: Appliance)] {
+        hconn.appliances.map { ("HomeConnect", $0) } +
+        miele.appliances.map { ("Miele", $0) }
+    }
+
+    func applianceCard(appliance: Appliance, source: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: applianceIcon(appliance))
+                    .foregroundColor(appliance.inUse ? Theme.Colors.accent : Theme.Colors.textSecondary)
+                Text(appliance.name)
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(Theme.Colors.textPrimary)
+                Spacer()
+                Text(source).font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                if appliance.inUse {
+                    if appliance.timeRunning > 0 {
+                        Label("Running for \(appliance.timeRunning) min", systemImage: "timer")
+                            .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
+                    }
+                    if appliance.timeRemaining > 0 {
+                        Label(
+                            "Done in \(appliance.timeRemaining) min · \(appliance.timeFinish)",
+                            systemImage: "hourglass"
+                        ).font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
+                    }
+                    if !appliance.programName.isEmpty {
+                        Text("Program: \(appliance.programName)")
+                            .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textSecondary)
+                    }
+                    if !appliance.step.isEmpty {
+                        Text("Step: \(appliance.step)")
+                            .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textSecondary)
+                    }
+                } else {
+                    Label("Off", systemImage: "power.circle")
+                        .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textSecondary)
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    var scenesCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Scenes")
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
             LazyVGrid(
                 columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
                 spacing: 8
             ) {
                 ForEach(sceneManager.favourites) { scene in
-                    Button(action: {
-                        sceneManager.activate(scene)
-                    }, label: {
+                    Button(action: { sceneManager.activate(scene) }, label: {
                         Text(scene.name)
-                            .font(.subheadline)
+                            .font(Theme.Fonts.bodyMedium)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
                     })
@@ -88,242 +288,120 @@ struct DashboardView: View {
                     .disabled(sceneManager.activatingSceneId != nil)
                 }
             }
-            .padding(.vertical, 4)
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
     }
-
-    // MARK: - Devices
-
-    private var devicesSection: some View {
-        Section("Devices") {
-            Button(action: { onNavigate(.car) }, label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "car.fill")
-                        .font(.title3)
-                        .foregroundColor(carIconColor)
-                        .frame(width: 28)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Car")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                        Text(carStatusText)
-                            .font(Theme.Fonts.caption)
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                    Spacer()
-                    Text("\(car.vehicle.batteryLevel)%")
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(
-                            Theme.Colors.textSecondary.opacity(0.5)
-                        )
-                }
-                .contentShape(Rectangle())
-            })
-            .buttonStyle(.plain)
-
-            Button(action: { onNavigate(.robots) }, label: {
-                deviceRow(
-                    icon: "fan.fill",
-                    iconColor: robotIconColor(robots.broomBot),
-                    name: "BroomBot",
-                    status: robotStatusText(robots.broomBot),
-                    detail: robots.broomBot.batteryLevel.map { "\($0)%" }
-                )
-            })
-            .buttonStyle(.plain)
-
-            Button(action: { onNavigate(.robots) }, label: {
-                deviceRow(
-                    icon: "fan.fill",
-                    iconColor: robotIconColor(robots.mopBot),
-                    name: "MopBot",
-                    status: robotStatusText(robots.mopBot),
-                    detail: robots.mopBot.batteryLevel.map { "\($0)%" }
-                )
-            })
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func deviceRow(
-        icon: String,
-        iconColor: Color,
-        name: String,
-        status: String,
-        detail: String?
-    ) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(iconColor)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(name)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(Theme.Colors.textPrimary)
-                Text(status)
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
+    func performCarAction(_ action: String) {
+        carButtonsDisabled = true
+        car.performAction(action: action)
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            Task { @MainActor in
+                if action != "resync" { car.performAction(action: "resync") }
+                car.apiResponse = apiResponse
+                car.fetchCarDetails()
             }
-            Spacer()
-            if let detail {
-                Text(detail)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(Theme.Colors.textSecondary)
-            }
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundColor(
-                    Theme.Colors.textSecondary.opacity(0.5)
-                )
         }
-        .contentShape(Rectangle())
-    }
-
-    // MARK: - Appliances
-
-    private var allAppliances: [Appliance] {
-        hconn.appliances + miele.appliances
-    }
-
-    private var appliancesSection: some View {
-        Section("Appliances") {
-            if allAppliances.isEmpty {
-                Text("No appliances connected")
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(Theme.Colors.textSecondary)
-            } else {
-                ForEach(
-                    Array(allAppliances.enumerated()),
-                    id: \.offset
-                ) { _, appliance in
-                    Button(action: { onNavigate(.appliances) }, label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: applianceIcon(appliance))
-                                .font(.title3)
-                                .foregroundColor(
-                                    appliance.inUse
-                                        ? Theme.Colors.accent
-                                        : Theme.Colors.textSecondary
-                                )
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(appliance.name)
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(
-                                        Theme.Colors.textPrimary
-                                    )
-                                Text(
-                                    appliance.inUse
-                                        ? appliance.programName : "Off"
-                                )
-                                .font(Theme.Fonts.caption)
-                                .foregroundColor(
-                                    Theme.Colors.textSecondary
-                                )
-                            }
-                            Spacer()
-                            if appliance.inUse
-                                && appliance.timeRemaining > 0 {
-                                Text("\(appliance.timeRemaining)m")
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(Theme.Colors.accent)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(
-                                    Theme.Colors.textSecondary
-                                        .opacity(0.5)
-                                )
-                        }
-                        .contentShape(Rectangle())
-                    })
-                    .buttonStyle(.plain)
-                }
+        Timer.scheduledTimer(withTimeInterval: 90.0, repeats: false) { _ in
+            Task { @MainActor in
+                car.performAction(action: "resync")
+                car.apiResponse = apiResponse
+                car.fetchCarDetails()
+                carButtonsDisabled = false
             }
         }
     }
 
-    // MARK: - Helpers
-
-    private func applianceIcon(_ appliance: Appliance) -> String {
-        let lower = appliance.name.lowercased()
-        if lower.contains("washer") || lower.contains("wash") {
-            return "washer.fill"
-        }
-        if lower.contains("dryer") { return "dryer.fill" }
-        if lower.contains("dish") { return "dishwasher.fill" }
-        if lower.contains("oven") { return "oven.fill" }
-        if lower.contains("fridge") || lower.contains("refrig") {
-            return "refrigerator.fill"
-        }
-        return "powerplug.fill"
-    }
-
-    private var carIconColor: Color {
-        if car.vehicle.pluggedIn || car.vehicle.batteryCharge {
-            return Theme.Colors.success
-        } else if car.vehicle.hvac || car.vehicle.engine {
-            return Theme.Colors.accent
-        }
-        return .secondary
-    }
-
-    private var carStatusText: String {
-        var parts: [String] = []
-        if car.vehicle.locked {
-            parts.append("Locked")
+    @ViewBuilder
+    func robotStatusLabel(_ robot: Robot) -> some View {
+        if robot.running == true {
+            Label("Running", systemImage: "play.circle.fill")
+                .foregroundColor(Theme.Colors.accent)
+        } else if robot.charging == true {
+            Label("Charging", systemImage: "bolt.fill")
+                .foregroundColor(Theme.Colors.success)
+        } else if robot.docking == true {
+            Label("Docking", systemImage: "house.fill")
+                .foregroundColor(Theme.Colors.textSecondary)
+        } else if robot.paused == true {
+            Label("Paused", systemImage: "pause.circle.fill")
+                .foregroundColor(Theme.Colors.warning)
         } else {
-            parts.append("Unlocked")
+            Label("Idle", systemImage: "zzz")
+                .foregroundColor(Theme.Colors.textSecondary)
         }
-        if car.vehicle.pluggedIn { parts.append("Plugged in") }
-        if car.vehicle.hvac { parts.append("Climate on") }
-        return parts.joined(separator: " · ")
     }
 
-    private func robotIconColor(_ robot: Robot) -> Color {
+    func robotIconColor(_ robot: Robot) -> Color {
         if robot.running == true { return Theme.Colors.accent }
         if robot.charging == true { return Theme.Colors.success }
         if robot.binFull == true { return Theme.Colors.error }
-        return .secondary
+        return Theme.Colors.textSecondary
     }
 
-    private func robotStatusText(_ robot: Robot) -> String {
-        if robot.running == true { return "Running" }
-        if robot.charging == true { return "Charging" }
-        if robot.docking == true { return "Docking" }
-        if robot.paused == true { return "Paused" }
-        return "Idle"
+    func batteryIcon(_ level: Int) -> String {
+        if level > 75 { return "battery.100percent" }
+        if level > 50 { return "battery.75percent" }
+        if level > 25 { return "battery.50percent" }
+        return "battery.25percent"
     }
 
-    private var dateString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, MMMM d"
-        return formatter.string(from: Date())
+    func applianceIcon(_ appliance: Appliance) -> String {
+        let lower = appliance.name.lowercased()
+        if lower.contains("dish") { return "dishwasher.fill" }
+        if lower.contains("wash") { return "washer.fill" }
+        if lower.contains("dryer") || lower.contains("dry") { return "dryer.fill" }
+        if lower.contains("oven") { return "oven.fill" }
+        if lower.contains("fridge") || lower.contains("refrig") { return "refrigerator.fill" }
+        return "powerplug.fill"
     }
 
-    private var timeString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: Date())
+    var dateString: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "EEEE, MMMM d"
+        return fmt.string(from: Date())
     }
 
-    private var temperatureString: String {
+    var timeString: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "h:mm a"
+        return fmt.string(from: Date())
+    }
+
+    var temperatureString: String {
         guard let weather = locationManager.weather else { return "" }
-        let temp = weather.currentWeather.temperature
         let measurement = Measurement(
-            value: temp.value,
+            value: weather.currentWeather.temperature.value,
             unit: UnitTemperature.celsius
         )
-        let formatter = MeasurementFormatter()
-        formatter.numberFormatter.maximumFractionDigits = 0
-        return formatter.string(from: measurement)
+        let fmt = MeasurementFormatter()
+        fmt.numberFormatter.maximumFractionDigits = 0
+        return fmt.string(from: measurement)
     }
 
-    private var weatherIcon: String {
+    var highTemp: String? {
+        guard let weather = locationManager.weather,
+              let today = weather.dailyForecast.first else { return nil }
+        let fmt = MeasurementFormatter()
+        fmt.numberFormatter.maximumFractionDigits = 0
+        return fmt.string(from: Measurement(
+            value: today.highTemperature.value, unit: UnitTemperature.celsius
+        ))
+    }
+
+    var lowTemp: String? {
+        guard let weather = locationManager.weather,
+              let today = weather.dailyForecast.first else { return nil }
+        let fmt = MeasurementFormatter()
+        fmt.numberFormatter.maximumFractionDigits = 0
+        return fmt.string(from: Measurement(
+            value: today.lowTemperature.value, unit: UnitTemperature.celsius
+        ))
+    }
+
+    var weatherIcon: String {
         guard let weather = locationManager.weather else { return "cloud" }
         switch weather.currentWeather.condition {
         case .clear, .mostlyClear: return "sun.max.fill"

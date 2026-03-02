@@ -84,14 +84,12 @@ class HomeConnect: ObservableObject {
 
     func refresh() {
         if let response = apiResponse?.response {
-            DispatchQueue.main.async {
-                if let dishwasher = response.dishwasher,
-                   dishwasher.operationState.rawValue != "Inactive" &&
-                    dishwasher.operationState.rawValue != "Finished" {
-                    self.setProgram(program: dishwasher)
-                } else {
-                    self.nilProgram()
-                }
+            if let dishwasher = response.dishwasher,
+               dishwasher.operationState.rawValue != "Inactive" &&
+                dishwasher.operationState.rawValue != "Finished" {
+                self.setProgram(program: dishwasher)
+            } else {
+                self.nilProgram()
             }
         }
     }
