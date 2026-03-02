@@ -354,6 +354,17 @@ struct RobotsMacView: View {
                 }, label: {
                     Label("Dock", systemImage: "house.fill")
                 })
+
+                if robots.broomBot.running != true
+                    && robots.mopBot.running != true {
+                    Button(action: {
+                        robots.performAction(
+                            action: "deepClean", robot: robotName
+                        )
+                    }, label: {
+                        Label("Deep Clean", systemImage: "sparkles")
+                    })
+                }
             }
             .buttonStyle(.bordered)
         }

@@ -23,7 +23,7 @@ struct DashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                overviewCard
+                weatherCard
                 carCard
                 robotCard(
                     title: "BroomBot",
@@ -63,29 +63,17 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Overview
-    private var overviewCard: some View {
+    // MARK: - Weather
+    private var weatherCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(dateString)
-                        .font(Theme.Fonts.headerLarge())
-                        .foregroundColor(Theme.Colors.textPrimary)
-                    Text(timeString)
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                }
-                Spacer()
-            }
             if let weather = locationManager.weather {
-                Divider()
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     Image(systemName: weatherIcon)
                         .symbolRenderingMode(.multicolor)
-                        .font(.title2)
-                    VStack(alignment: .leading, spacing: 2) {
+                        .font(.system(size: 42))
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(temperatureString)
-                            .font(Theme.Fonts.headerLarge())
+                            .font(.system(size: 28, weight: .semibold, design: .rounded))
                             .foregroundColor(Theme.Colors.textPrimary)
                         Text(weather.currentWeather.condition.description)
                             .font(Theme.Fonts.bodyMedium)
@@ -93,13 +81,22 @@ struct DashboardView: View {
                     }
                     Spacer()
                     if let high = highTemp, let low = lowTemp {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text("H: \(high)").font(Theme.Fonts.bodyMedium)
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Label("H: \(high)", systemImage: "arrow.up")
+                                .font(Theme.Fonts.bodyMedium)
                                 .foregroundColor(Theme.Colors.textPrimary)
-                            Text("L: \(low)").font(Theme.Fonts.bodyMedium)
+                            Label("L: \(low)", systemImage: "arrow.down")
+                                .font(Theme.Fonts.bodyMedium)
                                 .foregroundColor(Theme.Colors.textSecondary)
                         }
                     }
+                }
+            } else {
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text("Loading weather…")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 }
             }
         }
@@ -206,6 +203,11 @@ struct DashboardView: View {
                 Button(action: { robots.performAction(action: "dock", robot: robotName) }, label: {
                     Label("Dock", systemImage: "house.fill")
                 })
+                if robots.broomBot.running != true && robots.mopBot.running != true {
+                    Button(action: { robots.performAction(action: "deepClean", robot: robotName) }, label: {
+                        Label("Deep Clean", systemImage: "sparkles")
+                    })
+                }
             }.buttonStyle(.bordered)
         }
         .padding()
@@ -356,18 +358,6 @@ extension DashboardView {
         if lower.contains("oven") { return "oven.fill" }
         if lower.contains("fridge") || lower.contains("refrig") { return "refrigerator.fill" }
         return "powerplug.fill"
-    }
-
-    var dateString: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "EEEE, MMMM d"
-        return fmt.string(from: Date())
-    }
-
-    var timeString: String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "h:mm a"
-        return fmt.string(from: Date())
     }
 
     var temperatureString: String {
