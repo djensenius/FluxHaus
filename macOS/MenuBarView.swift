@@ -56,6 +56,9 @@ struct MenuBarView: View {
                                 .foregroundColor(Theme.Colors.accent)
                         }
                     }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 6)
+                    .contentShape(Rectangle())
                 })
                 .buttonStyle(.plain)
             }
@@ -79,32 +82,47 @@ struct MenuBarView: View {
                         .foregroundColor(car.vehicle.locked ? Theme.Colors.success : Theme.Colors.warning)
                         .font(.caption)
                 }
+                .padding(.vertical, 4)
+                .padding(.horizontal, 6)
+                .contentShape(Rectangle())
             })
             .buttonStyle(.plain)
         }
         if let robots {
-            HStack {
-                Image(systemName: "fan.fill")
-                    .foregroundColor(
-                        robots.broomBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
-                    )
-                Text("BroomBot").font(Theme.Fonts.bodyMedium)
-                Spacer()
-                Text(robotShortStatus(robots.broomBot))
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
-            }
-            HStack {
-                Image(systemName: "humidifier.and.droplets")
-                    .foregroundColor(
-                        robots.mopBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
-                    )
-                Text("MopBot").font(Theme.Fonts.bodyMedium)
-                Spacer()
-                Text(robotShortStatus(robots.mopBot))
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
-            }
+            Button(action: { openAppToSection(.robots) }, label: {
+                HStack {
+                    Image(systemName: "fan.fill")
+                        .foregroundColor(
+                            robots.broomBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                        )
+                    Text("BroomBot").font(Theme.Fonts.bodyMedium)
+                    Spacer()
+                    Text(robotShortStatus(robots.broomBot))
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                .padding(.vertical, 4)
+                .padding(.horizontal, 6)
+                .contentShape(Rectangle())
+            })
+            .buttonStyle(.plain)
+            Button(action: { openAppToSection(.robots) }, label: {
+                HStack {
+                    Image(systemName: "humidifier.and.droplets")
+                        .foregroundColor(
+                            robots.mopBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                        )
+                    Text("MopBot").font(Theme.Fonts.bodyMedium)
+                    Spacer()
+                    Text(robotShortStatus(robots.mopBot))
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                .padding(.vertical, 4)
+                .padding(.horizontal, 6)
+                .contentShape(Rectangle())
+            })
+            .buttonStyle(.plain)
         }
     }
 
@@ -150,20 +168,25 @@ struct MenuBarView: View {
             HStack(spacing: 8) {
                 if let car {
                     Button(action: {
-                        car.performAction(action: car.vehicle.locked ? "unlock" : "lock")
+                        car.performAction(
+                            action: car.vehicle.locked ? "unlock" : "lock"
+                        )
                     }, label: {
                         Label(
-                            car.vehicle.locked ? "Unlock" : "Lock",
-                            systemImage: car.vehicle.locked ? "lock.open" : "lock"
+                            car.vehicle.locked ? "Unlock Car" : "Lock Car",
+                            systemImage: car.vehicle.locked
+                                ? "lock.open" : "lock"
                         ).font(Theme.Fonts.caption)
                     })
                     .buttonStyle(.bordered)
                 }
                 if let robots {
                     Button(action: {
-                        robots.performAction(action: "start", robot: "broomBot")
+                        robots.performAction(
+                            action: "start", robot: "broomBot"
+                        )
                     }, label: {
-                        Label("Vacuum", systemImage: "fan")
+                        Label("Start Vacuum", systemImage: "fan")
                             .font(Theme.Fonts.caption)
                     })
                     .buttonStyle(.bordered)

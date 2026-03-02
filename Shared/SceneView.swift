@@ -22,7 +22,10 @@ import SwiftUI
             if favouriteNames.isEmpty {
                 favourites = scenes
             } else {
-                favourites = scenes.filter { favouriteNames.contains($0.name) }
+                let lowerFavs = favouriteNames.map { $0.lowercased() }
+                favourites = scenes.filter {
+                    lowerFavs.contains($0.name.lowercased())
+                }
             }
             hasLoaded = true
         } catch {
@@ -83,12 +86,12 @@ struct SceneView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 40)
-            } else if sceneManager.favourites.isEmpty {
+            } else if sceneManager.scenes.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: "lightbulb.slash")
                         .font(.largeTitle)
                         .foregroundColor(Theme.Colors.textSecondary)
-                    Text("No matching scenes")
+                    Text("No scenes found")
                         .font(Theme.Fonts.headerLarge())
                         .foregroundColor(Theme.Colors.textPrimary)
                 }
@@ -99,7 +102,7 @@ struct SceneView: View {
                     columns: [GridItem(.adaptive(minimum: 140), spacing: 12)],
                     spacing: 12
                 ) {
-                    ForEach(sceneManager.favourites) { scene in
+                    ForEach(sceneManager.scenes) { scene in
                         Button(action: {
                             sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
                         }, label: {
@@ -107,17 +110,26 @@ struct SceneView: View {
                                 if sceneManager.activatingSceneId == scene.entityId {
                                     ProgressView().controlSize(.small)
                                 }
-                                Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
-                                    .foregroundColor(
-                                        scene.isActive == true ? Theme.Colors.accent : Theme.Colors.textSecondary
-                                    )
-                                Text(scene.name).font(Theme.Fonts.bodyMedium)
+                                Image(
+                                    systemName: scene.isActive == true
+                                        ? "lightbulb.fill" : "lightbulb"
+                                )
+                                .foregroundColor(
+                                    scene.isActive == true
+                                        ? Theme.Colors.accent
+                                        : Theme.Colors.textSecondary
+                                )
+                                Text(scene.name)
+                                    .font(Theme.Fonts.bodyMedium)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                         })
                         .buttonStyle(.bordered)
-                        .tint(scene.isActive == true ? Theme.Colors.accent : nil)
+                        .tint(
+                            scene.isActive == true
+                                ? Theme.Colors.accent : nil
+                        )
                         .disabled(sceneManager.activatingSceneId != nil)
                     }
                 }
