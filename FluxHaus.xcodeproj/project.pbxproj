@@ -32,7 +32,6 @@
 		632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC3F258682C9003E4988 /* Tests_iOS.swift */; };
 		632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC24258682C8003E4988 /* FluxHausApp.swift */; };
 		632CBC4F258682C9003E4988 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
-		632CBC51258682C9003E4988 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		632CBC6825868365003E4988 /* HomeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 632CBC6725868365003E4988 /* HomeKit.framework */; };
 		632CBC702586C79E003E4988 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		632CBC7725870B75003E4988 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
@@ -164,7 +163,6 @@
 		E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		EDBA0282938D145D6381768C /* MacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A02EE588AFF8C715B9DEB /* MacApp.swift */; };
 		F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
-		F5AFABDDDCCC8EBDB839E1F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
 		FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 /* End PBXBuildFile section */
@@ -740,7 +738,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F5AFABDDDCCC8EBDB839E1F8 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -748,7 +745,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				632CBC51258682C9003E4988 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

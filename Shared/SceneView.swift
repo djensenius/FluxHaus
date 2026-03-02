@@ -6,6 +6,11 @@
 //
 
 import SwiftUI
+import os
+
+private let logger = Logger(
+    subsystem: "io.fluxhaus.FluxHaus", category: "SceneManager"
+)
 
 @MainActor
 @Observable class SceneManager {
@@ -19,6 +24,11 @@ import SwiftUI
         do {
             scenes = try await fetchScenes()
             loadError = nil
+            logger.info("Loaded \(self.scenes.count) scenes from API")
+            for scene in scenes {
+                logger.info("  Scene: '\(scene.name)' (\(scene.entityId)) active=\(String(describing: scene.isActive))")
+            }
+            logger.info("Favourite filter names: \(favouriteNames)")
             if favouriteNames.isEmpty {
                 favourites = scenes
             } else {
@@ -27,8 +37,10 @@ import SwiftUI
                     lowerFavs.contains($0.name.lowercased())
                 }
             }
+            logger.info("Matched \(self.favourites.count) favourites")
             hasLoaded = true
         } catch {
+            logger.error("Failed to load scenes: \(error.localizedDescription)")
             loadError = error.localizedDescription
             scenes = []
             favourites = []
