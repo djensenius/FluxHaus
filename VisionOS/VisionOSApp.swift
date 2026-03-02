@@ -24,6 +24,7 @@ struct VisionOSApp: App {
     @State var fluxHausConsts = FluxHausConsts()
     @State var apiResponse = Api()
 
+    @Environment(\.scenePhase) private var scenePhase
     let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     var body: some Scene {
@@ -107,6 +108,9 @@ struct VisionOSApp: App {
                     }
                     .onReceive(timer) {_ in
                         if AuthManager.shared.isSignedIn {
+                            Task {
+                                _ = await AuthManager.shared.ensureValidToken()
+                            }
                             queryFlux(password: WhereWeAre.getPassword() ?? "")
                         }
                     }
@@ -116,6 +120,13 @@ struct VisionOSApp: App {
                 if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
                     if AuthManager.shared.isSignedIn {
                         queryFlux(password: WhereWeAre.getPassword() ?? "")
+                    }
+                }
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active && AuthManager.shared.isSignedIn {
+                    Task {
+                        _ = await AuthManager.shared.ensureValidToken()
                     }
                 }
             }

@@ -84,25 +84,18 @@ struct OIDCTokens: Codable {
 }
 
 /// Thread-safe coordination for token refresh to prevent concurrent refreshes.
-/// When the 5-second polling timer causes multiple 401s simultaneously,
-/// only one refresh executes — others wait for its result.
 private actor RefreshCoordinator {
     private var isRefreshing = false
     private var continuations: [CheckedContinuation<Bool, Never>] = []
 
-    /// Returns nil if the caller should perform the refresh.
-    /// Returns a Bool (via suspension) if another refresh is in-flight.
     func acquireOrWait() async -> Bool? {
         if isRefreshing {
-            return await withCheckedContinuation { continuation in
-                continuations.append(continuation)
-            }
+            return await withCheckedContinuation { cont in continuations.append(cont) }
         }
         isRefreshing = true
         return nil
     }
 
-    /// Signals all waiters with the result and resets the lock.
     func complete(success: Bool) {
         let waiters = continuations
         continuations.removeAll()
@@ -270,14 +263,8 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         let tokens = try await exchangeCode(code, codeVerifier: codeVerifier)
         storeTokens(tokens)
         authState = .signedIn(method: .oidc)
-        if tokens.refreshToken != nil {
-            logger.info("OIDC sign in successful (with refresh token)")
-        } else {
-            logger.error("""
-                OIDC sign in succeeded but NO REFRESH TOKEN was returned! \
-                Token will expire in \(tokens.expiresIn ?? -1)s with no way to renew. \
-                Check Authentik provider: offline_access scope must be enabled.
-                """)
+        if tokens.refreshToken == nil {
+            logger.error("OIDC sign in: NO refresh token! Expires in \(tokens.expiresIn ?? -1)s with no renewal.")
         }
     }
 
@@ -295,6 +282,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         logger.warning("signOut() called — clearing all tokens and credentials")
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
+        deleteKeychainItem(account: "oidc_token_expiry")
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
@@ -305,6 +293,28 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     func getAccessToken() -> String? {
         return getKeychainItem(account: "oidc_access_token")
+    }
+
+    /// Returns true if the access token is expired or will expire within the given margin.
+    func isTokenExpiringSoon(margin: TimeInterval = 300) -> Bool {
+        guard getAccessToken() != nil else { return false }
+        guard let expiryString = getKeychainItem(account: "oidc_token_expiry"),
+              let expiryInterval = TimeInterval(expiryString) else {
+            // No stored expiry — assume it could be stale
+            return true
+        }
+        let expiryDate = Date(timeIntervalSince1970: expiryInterval)
+        return Date().addingTimeInterval(margin) >= expiryDate
+    }
+
+    /// Proactively refreshes the token if it's expiring soon. Returns true if token is valid afterward.
+    func ensureValidToken() async -> Bool {
+        guard getAccessToken() != nil else { return false }
+        if isTokenExpiringSoon() {
+            logger.info("ensureValidToken: token expiring soon, refreshing proactively")
+            return await refreshTokenIfNeeded()
+        }
+        return true
     }
 
     func refreshTokenIfNeeded() async -> Bool {
@@ -325,11 +335,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         do {
             let tokens = try await refreshAccessToken(refreshToken)
             storeTokens(tokens)
-            logger.info("""
-                refreshTokenIfNeeded: SUCCESS \
-                (expiresIn=\(tokens.expiresIn ?? -1), \
-                hasNewRefreshToken=\(tokens.refreshToken != nil))
-                """)
+            logger.info("refreshTokenIfNeeded: OK (expiresIn=\(tokens.expiresIn ?? -1))")
             await refreshCoordinator.complete(success: true)
             return true
         } catch {
@@ -365,13 +371,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         }
 
         let tokens = try JSONDecoder().decode(OIDCTokens.self, from: data)
-        logger.info("""
-            exchangeCode: SUCCESS — \
-            hasAccessToken=\(tokens.accessToken.isEmpty == false), \
-            hasRefreshToken=\(tokens.refreshToken != nil), \
-            hasIdToken=\(tokens.idToken != nil), \
-            expiresIn=\(tokens.expiresIn ?? -1)
-            """)
+        logger.info("exchangeCode: OK, expiresIn=\(tokens.expiresIn ?? -1), refresh=\(tokens.refreshToken != nil)")
         return tokens
     }
 
@@ -401,9 +401,19 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         setKeychainItem(account: "oidc_access_token", value: tokens.accessToken)
         if let refreshToken = tokens.refreshToken {
             setKeychainItem(account: "oidc_refresh_token", value: refreshToken)
-            logger.info("storeTokens: stored access + refresh tokens")
+        }
+        if let expiresIn = tokens.expiresIn {
+            let expiryDate = Date().addingTimeInterval(TimeInterval(expiresIn))
+            setKeychainItem(
+                account: "oidc_token_expiry",
+                value: String(expiryDate.timeIntervalSince1970)
+            )
+            logger.info(
+                "storeTokens: stored tokens, expires in \(expiresIn)s, refreshToken=\(tokens.refreshToken != nil)"
+            )
         } else {
-            logger.warning("storeTokens: stored access token only (no refresh token returned!)")
+            deleteKeychainItem(account: "oidc_token_expiry")
+            logger.warning("storeTokens: no expiresIn — cannot track expiry")
         }
     }
 
@@ -451,40 +461,35 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     // MARK: - PKCE Helpers
 
-    /// URL-encode key=value pairs for application/x-www-form-urlencoded bodies
     private static func formEncode(_ params: [(String, String)]) -> String {
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         return params.map { key, value in
-            let encodedKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
-            let encodedValue = value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
-            return "\(encodedKey)=\(encodedValue)"
+            let encKey = key.addingPercentEncoding(withAllowedCharacters: allowed) ?? key
+            let encVal = value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+            return "\(encKey)=\(encVal)"
         }.joined(separator: "&")
+    }
+
+    private static func base64URLEncode(_ data: Data) -> String {
+        data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
     }
 
     private func generateCodeVerifier() -> String {
         var buffer = [UInt8](repeating: 0, count: 32)
         _ = SecRandomCopyBytes(kSecRandomDefault, buffer.count, &buffer)
-        return Data(buffer).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
+        return Self.base64URLEncode(Data(buffer))
     }
 
     private func generateCodeChallenge(from verifier: String) -> String {
-        let data = Data(verifier.utf8)
-        let hash = SHA256.hash(data: data)
-        return Data(hash).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
+        Self.base64URLEncode(Data(SHA256.hash(data: Data(verifier.utf8))))
     }
 
     private func generateRandomString() -> String {
         var buffer = [UInt8](repeating: 0, count: 32)
         _ = SecRandomCopyBytes(kSecRandomDefault, buffer.count, &buffer)
-        return Data(buffer).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
+        return Self.base64URLEncode(Data(buffer))
     }
 }

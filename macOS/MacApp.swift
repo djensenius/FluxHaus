@@ -107,6 +107,9 @@ struct MacApp: App {
             }
             .onReceive(timer) { _ in
                 if AuthManager.shared.isSignedIn {
+                    Task {
+                        _ = await AuthManager.shared.ensureValidToken()
+                    }
                     queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
             }
