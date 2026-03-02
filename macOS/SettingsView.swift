@@ -8,18 +8,27 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var selectedTab = "account"
+    @State private var selectedTab = "general"
+    @AppStorage("showMenuBarExtra") private var showMenuBar = true
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            Tab("Account", systemImage: "person.circle", value: "account") {
-                accountTab
-            }
             Tab("General", systemImage: "gear", value: "general") {
                 generalTab
             }
+            Tab("Account", systemImage: "person.circle", value: "account") {
+                accountTab
+            }
         }
-        .frame(width: 400, height: 250)
+        .frame(width: 420, height: 200)
+    }
+
+    private var generalTab: some View {
+        Form {
+            Toggle("Show in Menu Bar", isOn: $showMenuBar)
+        }
+        .formStyle(.grouped)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var accountTab: some View {
@@ -29,15 +38,15 @@ struct SettingsView: View {
                     .font(.largeTitle)
                     .foregroundColor(Theme.Colors.success)
                 Text("Signed In")
-                    .font(Theme.Fonts.bodyMedium)
+                    .font(.headline)
                 if AuthManager.shared.getAccessToken() != nil {
                     Text("Authenticated via OIDC")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 } else {
                     Text("Demo mode")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
                 Button("Sign Out") {
                     AuthManager.shared.signOut()
@@ -47,23 +56,13 @@ struct SettingsView: View {
                         userInfo: ["logout": true]
                     )
                 }
-                .buttonStyle(.glass)
             } else {
                 Image(systemName: "xmark.circle.fill")
                     .font(.largeTitle)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .foregroundColor(.secondary)
                 Text("Not Signed In")
-                    .font(Theme.Fonts.bodyMedium)
+                    .font(.headline)
             }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-
-    private var generalTab: some View {
-        Form {
-            Text("General settings will appear here.")
-                .font(Theme.Fonts.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

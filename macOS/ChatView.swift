@@ -13,10 +13,11 @@ struct ChatView: View {
     @FocusState private var isInputFocused: Bool
 
     var body: some View {
-        NavigationSplitView {
+        HSplitView {
             chatSidebar
-        } detail: {
+                .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
             chatDetail
+                .frame(minWidth: 400)
         }
         .task {
             if chat.conversations.isEmpty {
@@ -29,54 +30,60 @@ struct ChatView: View {
     }
 
     private var chatSidebar: some View {
-        List {
-            ForEach(chat.conversations) { conv in
-                Button(action: {
-                    Task { await chat.loadConversation(conv) }
-                }, label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(conv.title ?? "Untitled")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            .lineLimit(1)
-                        Text("\(conv.messageCount) messages")
-                            .font(Theme.Fonts.caption)
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                })
-                .buttonStyle(.plain)
-                .listRowBackground(
-                    conv.id == chat.conversationId
-                        ? Theme.Colors.accent.opacity(0.15) : nil
-                )
-            }
-            .onDelete { indexSet in
-                for index in indexSet {
-                    let conv = chat.conversations[index]
-                    Task { await chat.deleteConversation(conv) }
-                }
-            }
-        }
-        .navigationTitle("Conversations")
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Conversations")
+                    .font(.headline)
+                Spacer()
                 Button(action: {
                     Task { await chat.createNewConversation() }
                 }, label: {
                     Image(systemName: "plus")
                 })
+                .buttonStyle(.borderless)
                 .keyboardShortcut("n", modifiers: .command)
             }
-        }
-        .overlay {
+            .padding(12)
+
+            Divider()
+
             if chat.conversations.isEmpty {
-                ContentUnavailableView(
-                    "No Conversations",
-                    systemImage: "bubble.left.and.bubble.right",
-                    description: Text("Start a new conversation")
-                )
+                Spacer()
+                Text("No conversations")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                Spacer()
+            } else {
+                List {
+                    ForEach(chat.conversations) { conv in
+                        Button(action: {
+                            Task { await chat.loadConversation(conv) }
+                        }, label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(conv.title ?? "Untitled")
+                                    .font(.body)
+                                    .lineLimit(1)
+                                Text("\(conv.messageCount) messages")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        })
+                        .buttonStyle(.plain)
+                        .listRowBackground(
+                            conv.id == chat.conversationId
+                                ? Color.accentColor.opacity(0.15) : nil
+                        )
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            let conv = chat.conversations[index]
+                            Task { await chat.deleteConversation(conv) }
+                        }
+                    }
+                }
             }
         }
+        .background(.ultraThinMaterial)
     }
 
     private var chatDetail: some View {
@@ -88,7 +95,6 @@ struct ChatView: View {
             Divider()
             inputBar
         }
-        .background(Theme.Colors.background)
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
@@ -96,13 +102,13 @@ struct ChatView: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(Theme.Colors.warning)
             Text(error)
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(.caption)
+                .foregroundColor(.secondary)
             Spacer()
             Button(action: { chat.sessionError = nil }, label: {
                 Image(systemName: "xmark")
                     .font(.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .foregroundColor(.secondary)
             })
             .buttonStyle(.plain)
         }
@@ -168,14 +174,14 @@ struct ChatView: View {
                         chat.startRecording()
                     }, label: {
                         Image(systemName: "mic.circle.fill")
-                            .font(.title)
+                            .font(.title2)
                             .foregroundColor(Theme.Colors.accent)
                     })
                     .buttonStyle(.plain)
                     .disabled(chat.isLoading)
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
-                        .font(Theme.Fonts.bodyMedium)
+                        .font(.body)
                         .textFieldStyle(.plain)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
@@ -190,7 +196,7 @@ struct ChatView: View {
                                 inputText.trimmingCharacters(
                                     in: .whitespacesAndNewlines
                                 ).isEmpty
-                                ? Theme.Colors.textSecondary
+                                ? Color.secondary
                                 : Theme.Colors.accent
                             )
                     }
@@ -201,25 +207,25 @@ struct ChatView: View {
                         ).isEmpty || chat.isLoading
                     )
                 }
-                .padding()
+                .padding(10)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
     }
 
     private var recordingOverlay: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(Theme.Colors.accent.opacity(0.15))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 40, height: 40)
                     .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.5)
                 Circle()
                     .fill(Theme.Colors.accent.opacity(0.3))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 28, height: 28)
                     .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
                 Image(systemName: "mic.fill")
-                    .font(.title3)
+                    .font(.body)
                     .foregroundColor(Theme.Colors.accent)
             }
             .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
@@ -227,19 +233,19 @@ struct ChatView: View {
                 Task { await chat.stopRecordingAndSend() }
             }
             Text("Listening…")
-                .font(Theme.Fonts.bodyMedium)
-                .foregroundColor(Theme.Colors.textSecondary)
+                .font(.body)
+                .foregroundColor(.secondary)
             Spacer()
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
             }, label: {
                 Image(systemName: "stop.circle.fill")
-                    .font(.title)
+                    .font(.title2)
                     .foregroundColor(Theme.Colors.error)
             })
             .buttonStyle(.plain)
         }
-        .padding()
+        .padding(10)
     }
 
     private func sendMessage() {
@@ -256,13 +262,13 @@ struct ChatBubble: View {
 
     var body: some View {
         HStack {
-            if message.role == .user { Spacer() }
+            if message.role == .user { Spacer(minLength: 60) }
             VStack(
                 alignment: message.role == .user ? .trailing : .leading,
                 spacing: 4
             ) {
                 Text(message.content)
-                    .font(Theme.Fonts.bodyMedium)
+                    .font(.body)
                     .foregroundColor(foregroundColor)
                     .textSelection(.enabled)
                 if message.isVoice && message.audioData != nil {
@@ -271,17 +277,17 @@ struct ChatBubble: View {
                             Image(systemName: isPlaying ? "stop.fill" : "play.fill")
                                 .font(.caption)
                             Text(isPlaying ? "Stop" : "Play")
-                                .font(Theme.Fonts.caption)
+                                .font(.caption)
                         }
                         .foregroundColor(playButtonColor)
                     })
                     .buttonStyle(.plain)
                 }
             }
-            .padding(12)
+            .padding(10)
             .background(backgroundColor)
-            .cornerRadius(16)
-            if message.role != .user { Spacer() }
+            .cornerRadius(12)
+            if message.role != .user { Spacer(minLength: 60) }
         }
         .padding(.horizontal)
     }
@@ -296,7 +302,7 @@ struct ChatBubble: View {
 
     private var foregroundColor: Color {
         switch message.role {
-        case .user: return Theme.Colors.background
+        case .user: return .white
         case .assistant: return Theme.Colors.textPrimary
         case .error: return Theme.Colors.error
         }
@@ -304,7 +310,7 @@ struct ChatBubble: View {
 
     private var playButtonColor: Color {
         message.role == .user
-            ? Theme.Colors.background.opacity(0.8)
+            ? Color.white.opacity(0.8)
             : Theme.Colors.accent
     }
 }

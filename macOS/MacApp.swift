@@ -20,6 +20,7 @@ struct MacApp: App {
     @State private var hconn: HomeConnect?
     @State private var robots: Robots?
     @State private var car: Car?
+    @AppStorage("showMenuBarExtra") private var showMenuBar = true
 
     let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
@@ -36,7 +37,7 @@ struct MacApp: App {
         }
         .defaultSize(width: 900, height: 700)
 
-        MenuBarExtra("FluxHaus", systemImage: "house.fill") {
+        MenuBarExtra("FluxHaus", image: "MenuBarIcon", isInserted: $showMenuBar) {
             MenuBarView(
                 car: car,
                 robots: robots,

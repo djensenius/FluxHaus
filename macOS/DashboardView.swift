@@ -19,16 +19,18 @@ struct DashboardView: View {
     var onNavigate: (SidebarItem) -> Void
 
     private let columns = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16)
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
     ]
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 16) {
                 headerSection
-                scenesSection
+                if !fluxHausConsts.favouriteHomeKit.isEmpty {
+                    scenesSection
+                }
                 devicesGrid
                 footerSection
             }
@@ -39,35 +41,62 @@ struct DashboardView: View {
 
     private var headerSection: some View {
         HStack(alignment: .top) {
-            DateTimeView()
+            VStack(alignment: .leading, spacing: 2) {
+                Text(dateString)
+                    .font(.title2.weight(.semibold))
+                Text(timeString)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+            }
             Spacer()
-            WeatherView(lman: locationManager)
+            weatherSummary
+        }
+    }
+
+    private var weatherSummary: some View {
+        VStack(alignment: .trailing, spacing: 2) {
+            if let weather = locationManager.weather {
+                HStack(spacing: 4) {
+                    Image(systemName: weatherIcon)
+                        .symbolRenderingMode(.multicolor)
+                    Text(temperatureString)
+                        .font(.body)
+                }
+                if let condition = weather.currentWeather.condition
+                    .description as String? {
+                    Text(condition)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            } else {
+                ProgressView()
+                    .controlSize(.small)
+            }
+        }
+        .task {
+            await locationManager.startMonitoring()
+            await locationManager.fetchTheWeather()
         }
     }
 
     private var scenesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             Text("Scenes")
-                .font(Theme.Fonts.headerLarge())
-                .foregroundColor(Theme.Colors.textPrimary)
+                .font(.headline)
             SceneView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
         }
     }
 
     private var devicesGrid: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             Text("Devices")
-                .font(Theme.Fonts.headerLarge())
-                .foregroundColor(Theme.Colors.textPrimary)
-            LazyVGrid(columns: columns, spacing: 16) {
+                .font(.headline)
+            LazyVGrid(columns: columns, spacing: 12) {
                 carCard
                 robotCard(name: "BroomBot", robot: robots.broomBot)
                 robotCard(name: "MopBot", robot: robots.mopBot)
-                ForEach(hconn.appliances.indices, id: \.self) { idx in
-                    applianceCard(hconn.appliances[idx])
-                }
-                ForEach(miele.appliances.indices, id: \.self) { idx in
-                    applianceCard(miele.appliances[idx])
+                ForEach(activeAppliances.indices, id: \.self) { idx in
+                    applianceCard(activeAppliances[idx])
                 }
             }
         }
@@ -75,25 +104,22 @@ struct DashboardView: View {
 
     private var carCard: some View {
         Button(action: { onNavigate(.car) }, label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Image(systemName: "car.fill")
-                        .font(.title2)
                         .foregroundColor(carIconColor)
                     Spacer()
                     Text("\(car.vehicle.batteryLevel)%")
-                        .font(Theme.Fonts.headerXL())
-                        .foregroundColor(Theme.Colors.textPrimary)
+                        .font(.title3.weight(.semibold))
                 }
                 Text("Car")
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .font(.subheadline.weight(.medium))
                 Text(carStatusText)
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            .padding()
+            .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
         })
         .buttonStyle(.plain)
@@ -102,26 +128,23 @@ struct DashboardView: View {
 
     private func robotCard(name: String, robot: Robot) -> some View {
         Button(action: { onNavigate(.robots) }, label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Image(systemName: "fan.fill")
-                        .font(.title2)
                         .foregroundColor(robotIconColor(robot))
                     Spacer()
-                    if let battery = robot.batteryLevel {
-                        Text("\(battery)%")
-                            .font(Theme.Fonts.headerXL())
-                            .foregroundColor(Theme.Colors.textPrimary)
+                    if let batteryLvl = robot.batteryLevel {
+                        Text("\(batteryLvl)%")
+                            .font(.title3.weight(.semibold))
                     }
                 }
                 Text(name)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .font(.subheadline.weight(.medium))
                 Text(robotStatusText(robot))
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .padding()
+            .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
         })
         .buttonStyle(.plain)
@@ -130,30 +153,28 @@ struct DashboardView: View {
 
     private func applianceCard(_ appliance: Appliance) -> some View {
         Button(action: { onNavigate(.appliances) }, label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Image(systemName: "washer.fill")
-                        .font(.title2)
                         .foregroundColor(
                             appliance.inUse
-                                ? Theme.Colors.accent : Theme.Colors.textSecondary
+                                ? Theme.Colors.accent : .secondary
                         )
                     Spacer()
                     if appliance.inUse && appliance.timeRemaining > 0 {
                         Text("\(appliance.timeRemaining)m")
-                            .font(Theme.Fonts.headerXL())
+                            .font(.title3.weight(.semibold))
                             .foregroundColor(Theme.Colors.accent)
                     }
                 }
                 Text(appliance.name)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(Theme.Colors.textPrimary)
+                    .font(.subheadline.weight(.medium))
                 Text(appliance.inUse ? appliance.programName : "Off")
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            .padding()
+            .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
         })
         .buttonStyle(.plain)
@@ -168,8 +189,8 @@ struct DashboardView: View {
                     string: "https://weatherkit.apple.com/legal-attribution.html"
                 )!
             )
-            .font(Theme.Fonts.caption)
-            .foregroundColor(Theme.Colors.textSecondary)
+            .font(.caption)
+            .foregroundColor(.secondary)
             Spacer()
             Button(action: {
                 AuthManager.shared.signOut()
@@ -180,11 +201,19 @@ struct DashboardView: View {
                 )
             }, label: {
                 Text("Logout")
-                    .font(Theme.Fonts.caption)
+                    .font(.caption)
                     .foregroundColor(Theme.Colors.accent)
             })
             .buttonStyle(.plain)
         }
+    }
+
+    // MARK: - Helpers
+
+    private var activeAppliances: [Appliance] {
+        let all = hconn.appliances + miele.appliances
+        let active = all.filter { $0.inUse }
+        return active.isEmpty ? all : active
     }
 
     private var carIconColor: Color {
@@ -193,7 +222,7 @@ struct DashboardView: View {
         } else if car.vehicle.hvac || car.vehicle.engine {
             return Theme.Colors.accent
         }
-        return Theme.Colors.textSecondary
+        return .secondary
     }
 
     private var carStatusText: String {
@@ -208,7 +237,7 @@ struct DashboardView: View {
         if robot.running == true { return Theme.Colors.accent }
         if robot.charging == true { return Theme.Colors.success }
         if robot.binFull == true { return Theme.Colors.error }
-        return Theme.Colors.textSecondary
+        return .secondary
     }
 
     private func robotStatusText(_ robot: Robot) -> String {
@@ -217,6 +246,47 @@ struct DashboardView: View {
         if robot.docking == true { return "Docking" }
         if robot.paused == true { return "Paused" }
         return "Idle"
+    }
+
+    private var dateString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        return formatter.string(from: Date())
+    }
+
+    private var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: Date())
+    }
+
+    private var temperatureString: String {
+        guard let weather = locationManager.weather else { return "" }
+        let temp = weather.currentWeather.temperature
+        let measurement = Measurement(
+            value: temp.value,
+            unit: UnitTemperature.celsius
+        )
+        let formatter = MeasurementFormatter()
+        formatter.numberFormatter.maximumFractionDigits = 0
+        return formatter.string(from: measurement)
+    }
+
+    private var weatherIcon: String {
+        guard let weather = locationManager.weather else { return "cloud" }
+        switch weather.currentWeather.condition {
+        case .clear, .mostlyClear: return "sun.max.fill"
+        case .cloudy, .mostlyCloudy: return "cloud.fill"
+        case .partlyCloudy: return "cloud.sun.fill"
+        case .rain, .heavyRain: return "cloud.rain.fill"
+        case .drizzle: return "cloud.drizzle.fill"
+        case .snow, .heavySnow, .flurries: return "cloud.snow.fill"
+        case .sleet, .freezingRain: return "cloud.sleet.fill"
+        case .thunderstorms: return "cloud.bolt.fill"
+        case .foggy, .haze: return "cloud.fog.fill"
+        case .windy, .breezy: return "wind"
+        default: return "cloud"
+        }
     }
 }
 
