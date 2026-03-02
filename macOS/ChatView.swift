@@ -54,8 +54,8 @@ struct ChatView: View {
             if chat.conversations.isEmpty {
                 Spacer()
                 Text("No conversations")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(Theme.Fonts.bodySmall)
+                    .foregroundColor(Theme.Colors.textSecondary)
                 Spacer()
             } else {
                 List(selection: Binding(
@@ -72,11 +72,11 @@ struct ChatView: View {
                     ForEach(chat.conversations) { conv in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(conv.title ?? "Untitled")
-                                .font(.body)
+                                .font(Theme.Fonts.bodyMedium)
                                 .lineLimit(1)
                             Text("\(conv.messageCount) messages")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.textSecondary)
                         }
                         .tag(conv.id)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -110,13 +110,13 @@ struct ChatView: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(Theme.Colors.warning)
             Text(error)
-                .font(.caption)
-                .foregroundColor(.secondary)
+                .font(Theme.Fonts.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
             Button(action: { chat.sessionError = nil }, label: {
                 Image(systemName: "xmark")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
             })
             .buttonStyle(.plain)
         }
@@ -189,7 +189,7 @@ struct ChatView: View {
                     .disabled(chat.isLoading)
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
-                        .font(.body)
+                        .font(Theme.Fonts.bodyMedium)
                         .textFieldStyle(.plain)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
@@ -204,7 +204,7 @@ struct ChatView: View {
                                 inputText.trimmingCharacters(
                                     in: .whitespacesAndNewlines
                                 ).isEmpty
-                                ? Color.secondary
+                                ? Theme.Colors.textSecondary
                                 : Theme.Colors.accent
                             )
                     }
@@ -233,7 +233,7 @@ struct ChatView: View {
                     .frame(width: 28, height: 28)
                     .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
                 Image(systemName: "mic.fill")
-                    .font(.body)
+                    .font(Theme.Fonts.bodyMedium)
                     .foregroundColor(Theme.Colors.accent)
             }
             .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
@@ -241,8 +241,8 @@ struct ChatView: View {
                 Task { await chat.stopRecordingAndSend() }
             }
             Text("Listening…")
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
@@ -276,16 +276,16 @@ struct ChatBubble: View {
                 spacing: 4
             ) {
                 Text(message.content)
-                    .font(.body)
+                    .font(Theme.Fonts.bodyMedium)
                     .foregroundColor(foregroundColor)
                     .textSelection(.enabled)
                 if message.isVoice && message.audioData != nil {
                     Button(action: onPlayTapped, label: {
                         HStack(spacing: 4) {
                             Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                                .font(.caption)
+                                .font(Theme.Fonts.caption)
                             Text(isPlaying ? "Stop" : "Play")
-                                .font(.caption)
+                                .font(Theme.Fonts.caption)
                         }
                         .foregroundColor(playButtonColor)
                     })
@@ -310,7 +310,7 @@ struct ChatBubble: View {
 
     private var foregroundColor: Color {
         switch message.role {
-        case .user: return .white
+        case .user: return Theme.Colors.background
         case .assistant: return Theme.Colors.textPrimary
         case .error: return Theme.Colors.error
         }
@@ -318,7 +318,7 @@ struct ChatBubble: View {
 
     private var playButtonColor: Color {
         message.role == .user
-            ? Color.white.opacity(0.8)
+            ? Theme.Colors.background.opacity(0.8)
             : Theme.Colors.accent
     }
 }

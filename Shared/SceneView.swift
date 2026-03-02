@@ -13,6 +13,7 @@ import SwiftUI
     var favourites: [HomeScene] = []
     var activatingSceneId: String?
     var loadError: String?
+    var hasLoaded = false
 
     func loadScenes(favouriteNames: [String]) async {
         do {
@@ -23,18 +24,21 @@ import SwiftUI
             } else {
                 favourites = scenes.filter { favouriteNames.contains($0.name) }
             }
+            hasLoaded = true
         } catch {
             loadError = error.localizedDescription
             scenes = []
             favourites = []
+            hasLoaded = true
         }
     }
 
-    func activate(_ scene: HomeScene) {
+    func activate(_ scene: HomeScene, favouriteNames: [String] = []) {
         activatingSceneId = scene.entityId
         Task {
             try? await activateScene(entityId: scene.entityId)
             try? await Task.sleep(for: .seconds(1))
+            await loadScenes(favouriteNames: favouriteNames)
             activatingSceneId = nil
         }
     }
@@ -69,7 +73,7 @@ struct SceneView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 40)
-            } else if sceneManager.favourites.isEmpty {
+            } else if !sceneManager.hasLoaded {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.large)
@@ -79,13 +83,26 @@ struct SceneView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 40)
+            } else if sceneManager.favourites.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "lightbulb.slash")
+                        .font(.largeTitle)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                    Text("No matching scenes")
+                        .font(Theme.Fonts.headerLarge())
+                        .foregroundColor(Theme.Colors.textPrimary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 40)
             } else {
                 LazyVGrid(
                     columns: [GridItem(.adaptive(minimum: 140), spacing: 12)],
                     spacing: 12
                 ) {
                     ForEach(sceneManager.favourites) { scene in
-                        Button(action: { sceneManager.activate(scene) }, label: {
+                        Button(action: {
+                            sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
+                        }, label: {
                             HStack {
                                 if sceneManager.activatingSceneId == scene.entityId {
                                     ProgressView().controlSize(.small)
@@ -119,7 +136,7 @@ struct SceneView: View {
             LazyHGrid(rows: [GridItem(.flexible())], spacing: 8) {
                 ForEach(sceneManager.favourites) { scene in
                     Button(action: {
-                        sceneManager.activate(scene)
+                        sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
                     }, label: {
                         HStack {
                             if sceneManager.activatingSceneId == scene.entityId {

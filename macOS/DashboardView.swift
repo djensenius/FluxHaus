@@ -286,19 +286,25 @@ extension DashboardView {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.warning)
-            } else if sceneManager.favourites.isEmpty {
+            } else if !sceneManager.hasLoaded {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
                     Text("Loading…").font(Theme.Fonts.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
+            } else if sceneManager.favourites.isEmpty {
+                Text("No matching scenes")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
             } else {
                 LazyVGrid(
                     columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
                     spacing: 8
                 ) {
                     ForEach(sceneManager.favourites) { scene in
-                        Button(action: { sceneManager.activate(scene) }, label: {
+                        Button(action: {
+                            sceneManager.activate(scene, favouriteNames: fluxHausConsts.favouriteHomeKit)
+                        }, label: {
                             HStack(spacing: 4) {
                                 Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
                                     .foregroundColor(

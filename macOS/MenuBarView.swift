@@ -118,7 +118,7 @@ struct MenuBarView: View {
             FlowLayout(spacing: 6) {
                 ForEach(sceneManager.favourites) { scene in
                     Button(action: {
-                        sceneManager.activate(scene)
+                        sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
                     }, label: {
                         HStack(spacing: 4) {
                             Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
