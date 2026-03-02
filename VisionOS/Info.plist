@@ -32,6 +32,8 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>FluxHaus uses the microphone for voice commands to the AI assistant.</string>
 	<key>OIDCIssuerBase</key>
 	<string>https://auth.fluxhaus.io/application/o/flux-haus-mobile</string>
 	<key>OIDCClientID</key>
