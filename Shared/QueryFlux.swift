@@ -10,6 +10,34 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryFlux")
 
+private struct CsrfResponse: Decodable {
+    let csrfToken: String
+}
+
+func fetchCsrfToken() async -> String? {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/auth/csrf-token"
+
+    guard let url = components.url else { return nil }
+
+    var request = URLRequest(url: url)
+    if let authHeader = AuthManager.shared.authorizationHeader() {
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+    }
+
+    do {
+        let session = URLSession(configuration: .default)
+        let (data, _) = try await session.data(for: request)
+        let response = try JSONDecoder().decode(CsrfResponse.self, from: data)
+        return response.csrfToken
+    } catch {
+        logger.error("Failed to fetch CSRF token: \(error.localizedDescription)")
+        return nil
+    }
+}
+
 class BasicAuthDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     let user: String
     let password: String

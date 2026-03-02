@@ -96,20 +96,27 @@ import Foundation
             return
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "get"
+        Task {
+            let csrfToken = await fetchCsrfToken()
 
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        if let authHeader = AuthManager.shared.authorizationHeader() {
-            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-        }
-        let session = URLSession(configuration: .default)
-        let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
-            if data != nil {
-                print("Got Robot data \(path)")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            if let authHeader = AuthManager.shared.authorizationHeader() {
+                request.setValue(authHeader, forHTTPHeaderField: "Authorization")
             }
+            if let csrfToken = csrfToken {
+                request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+            }
+            let session = URLSession(configuration: .default)
+            let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
+                if data != nil {
+                    print("Got Robot data \(path)")
+                }
+            }
+            task.resume()
         }
-        task.resume()
     }
 }
