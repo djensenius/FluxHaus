@@ -14,18 +14,19 @@ struct MenuBarView: View {
     var hconn: HomeConnect?
     var favouriteHomeKit: [String]
     @State private var sceneManager = SceneManager()
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             activeAppliancesSection
             deviceStatusSection
             scenesSection
             quickActionsSection
-            Divider()
+            Divider().padding(.vertical, 4)
             footerSection
         }
-        .padding()
-        .frame(width: 320)
+        .padding(10)
+        .frame(width: 300)
         .task {
             await sceneManager.loadScenes(favouriteNames: favouriteHomeKit)
         }
@@ -35,19 +36,21 @@ struct MenuBarView: View {
     private var activeAppliancesSection: some View {
         let active = activeAppliances
         if !active.isEmpty {
-            Text("Active")
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
+            sectionHeader("Active")
             ForEach(active.indices, id: \.self) { index in
-                Button(action: { openAppToSection(.appliances) }, label: {
+                menuRow(action: {
+                    dismiss()
+                    openAppToSection(.appliances)
+                }, label: {
                     HStack {
                         Image(systemName: applianceIcon(active[index]))
                             .foregroundColor(Theme.Colors.accent)
+                            .frame(width: 16)
                         Text(active[index].name)
                             .font(Theme.Fonts.bodySmall)
                         Spacer()
                         if active[index].timeRemaining > 0 {
-                            Text("\(active[index].timeRemaining)m left")
+                            Text("\(active[index].timeRemaining)m")
                                 .font(Theme.Fonts.caption)
                                 .foregroundColor(Theme.Colors.accent)
                         } else {
@@ -56,102 +59,117 @@ struct MenuBarView: View {
                                 .foregroundColor(Theme.Colors.accent)
                         }
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 6)
-                    .contentShape(Rectangle())
                 })
-                .buttonStyle(.plain)
             }
-            Divider()
+            Divider().padding(.vertical, 4)
         }
     }
 
     @ViewBuilder
     private var deviceStatusSection: some View {
         if let car {
-            Button(action: { openAppToSection(.car) }, label: {
+            menuRow(action: {
+                dismiss()
+                openAppToSection(.car)
+            }, label: {
                 HStack {
                     Image(systemName: "car.fill")
                         .foregroundColor(Theme.Colors.accent)
-                    Text("Car")
-                        .font(Theme.Fonts.bodyMedium)
+                        .frame(width: 16)
+                    Text("Car").font(Theme.Fonts.bodySmall)
                     Spacer()
                     Text("\(car.vehicle.batteryLevel)%")
-                        .font(Theme.Fonts.bodyMedium)
-                    Image(systemName: car.vehicle.locked ? "lock.fill" : "lock.open.fill")
-                        .foregroundColor(car.vehicle.locked ? Theme.Colors.success : Theme.Colors.warning)
-                        .font(.caption)
+                        .font(Theme.Fonts.bodySmall)
+                    Image(
+                        systemName: car.vehicle.locked
+                            ? "lock.fill" : "lock.open.fill"
+                    )
+                    .foregroundColor(
+                        car.vehicle.locked
+                            ? Theme.Colors.success
+                            : Theme.Colors.warning
+                    )
+                    .font(.caption)
                 }
-                .padding(.vertical, 4)
-                .padding(.horizontal, 6)
-                .contentShape(Rectangle())
             })
-            .buttonStyle(.plain)
         }
         if let robots {
-            Button(action: { openAppToSection(.robots) }, label: {
+            menuRow(action: {
+                dismiss()
+                openAppToSection(.robots)
+            }, label: {
                 HStack {
                     Image(systemName: "fan.fill")
                         .foregroundColor(
-                            robots.broomBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                            robots.broomBot.running == true
+                                ? Theme.Colors.accent
+                                : Theme.Colors.textSecondary
                         )
-                    Text("BroomBot").font(Theme.Fonts.bodyMedium)
+                        .frame(width: 16)
+                    Text("BroomBot").font(Theme.Fonts.bodySmall)
                     Spacer()
                     Text(robotShortStatus(robots.broomBot))
                         .font(Theme.Fonts.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
-                .padding(.vertical, 4)
-                .padding(.horizontal, 6)
-                .contentShape(Rectangle())
             })
-            .buttonStyle(.plain)
-            Button(action: { openAppToSection(.robots) }, label: {
+            menuRow(action: {
+                dismiss()
+                openAppToSection(.robots)
+            }, label: {
                 HStack {
                     Image(systemName: "humidifier.and.droplets")
                         .foregroundColor(
-                            robots.mopBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                            robots.mopBot.running == true
+                                ? Theme.Colors.accent
+                                : Theme.Colors.textSecondary
                         )
-                    Text("MopBot").font(Theme.Fonts.bodyMedium)
+                        .frame(width: 16)
+                    Text("MopBot").font(Theme.Fonts.bodySmall)
                     Spacer()
                     Text(robotShortStatus(robots.mopBot))
                         .font(Theme.Fonts.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
-                .padding(.vertical, 4)
-                .padding(.horizontal, 6)
-                .contentShape(Rectangle())
             })
-            .buttonStyle(.plain)
         }
     }
 
     @ViewBuilder
     private var scenesSection: some View {
         if !sceneManager.favourites.isEmpty {
-            Divider()
-            Text("Scenes")
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
+            Divider().padding(.vertical, 4)
+            sectionHeader("Scenes")
             FlowLayout(spacing: 6) {
                 ForEach(sceneManager.favourites) { scene in
                     Button(action: {
-                        sceneManager.activate(scene, favouriteNames: favouriteHomeKit)
+                        sceneManager.activate(
+                            scene, favouriteNames: favouriteHomeKit
+                        )
                     }, label: {
                         HStack(spacing: 4) {
-                            Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
-                                .font(.caption2)
-                                .foregroundColor(
-                                    scene.isActive == true ? Theme.Colors.accent : Theme.Colors.textSecondary
-                                )
+                            Image(
+                                systemName: scene.isActive == true
+                                    ? "lightbulb.fill" : "lightbulb"
+                            )
+                            .font(.caption2)
+                            .foregroundColor(
+                                scene.isActive == true
+                                    ? Theme.Colors.accent
+                                    : Theme.Colors.textSecondary
+                            )
                             Text(scene.name)
                                 .font(Theme.Fonts.caption)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
                     })
                     .buttonStyle(.bordered)
-                    .tint(scene.isActive == true ? Theme.Colors.accent : nil)
+                    .controlSize(.small)
+                    .tint(
+                        scene.isActive == true
+                            ? Theme.Colors.accent : nil
+                    )
                     .disabled(sceneManager.activatingSceneId != nil)
                 }
             }
@@ -161,35 +179,35 @@ struct MenuBarView: View {
     @ViewBuilder
     private var quickActionsSection: some View {
         if car != nil || robots != nil {
-            Divider()
-            Text("Quick Actions")
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-            HStack(spacing: 8) {
+            Divider().padding(.vertical, 4)
+            sectionHeader("Quick Actions")
+            FlowLayout(spacing: 6) {
                 if let car {
-                    Button(action: {
+                    quickButton(
+                        car.vehicle.locked ? "Unlock Car" : "Lock Car",
+                        icon: car.vehicle.locked
+                            ? "lock.open" : "lock"
+                    ) {
                         car.performAction(
-                            action: car.vehicle.locked ? "unlock" : "lock"
+                            action: car.vehicle.locked
+                                ? "unlock" : "lock"
                         )
-                    }, label: {
-                        Label(
-                            car.vehicle.locked ? "Unlock Car" : "Lock Car",
-                            systemImage: car.vehicle.locked
-                                ? "lock.open" : "lock"
-                        ).font(Theme.Fonts.caption)
-                    })
-                    .buttonStyle(.bordered)
+                    }
+                    quickButton("Climate", icon: "thermometer.sun") {
+                        car.performAction(action: "start")
+                    }
                 }
-                if let robots {
-                    Button(action: {
-                        robots.performAction(
+                if robots != nil {
+                    quickButton("Vacuum", icon: "fan") {
+                        robots?.performAction(
                             action: "start", robot: "broomBot"
                         )
-                    }, label: {
-                        Label("Start Vacuum", systemImage: "fan")
-                            .font(Theme.Fonts.caption)
-                    })
-                    .buttonStyle(.bordered)
+                    }
+                    quickButton("Deep Clean", icon: "sparkles") {
+                        robots?.performAction(
+                            action: "deepClean", robot: "broomBot"
+                        )
+                    }
                 }
             }
         }
@@ -198,6 +216,7 @@ struct MenuBarView: View {
     private var footerSection: some View {
         HStack {
             Button("Open FluxHaus") {
+                dismiss()
                 NSApp.activate(ignoringOtherApps: true)
             }
             .font(Theme.Fonts.caption)
@@ -207,6 +226,39 @@ struct MenuBarView: View {
             }
             .font(Theme.Fonts.caption)
         }
+    }
+
+    // MARK: - Helpers
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(Theme.Fonts.caption)
+            .foregroundColor(Theme.Colors.textSecondary)
+            .padding(.horizontal, 6)
+            .padding(.bottom, 2)
+    }
+
+    private func menuRow<Content: View>(
+        action: @escaping () -> Void,
+        @ViewBuilder label: () -> Content
+    ) -> some View {
+        Button(action: action, label: label)
+            .buttonStyle(MenuRowButtonStyle())
+    }
+
+    private func quickButton(
+        _ title: String,
+        icon: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action, label: {
+            Label(title, systemImage: icon)
+                .font(Theme.Fonts.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+        })
+        .buttonStyle(.bordered)
+        .controlSize(.small)
     }
 
     private func openAppToSection(_ section: SidebarItem) {
@@ -233,7 +285,9 @@ struct MenuBarView: View {
         let lower = appliance.name.lowercased()
         if lower.contains("dish") { return "dishwasher.fill" }
         if lower.contains("wash") { return "washer.fill" }
-        if lower.contains("dryer") || lower.contains("dry") { return "dryer.fill" }
+        if lower.contains("dryer") || lower.contains("dry") {
+            return "dryer.fill"
+        }
         if lower.contains("oven") { return "oven.fill" }
         return "powerplug.fill"
     }
@@ -242,6 +296,58 @@ struct MenuBarView: View {
         if robot.running == true { return "Running" }
         if robot.charging == true { return "Charging" }
         return "Idle"
+    }
+}
+
+struct MenuRowButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 6)
+            .background(
+                configuration.isPressed
+                    ? Theme.Colors.accent.opacity(0.2)
+                    : Color.clear
+            )
+            .background(MenuRowHover())
+            .cornerRadius(4)
+            .contentShape(Rectangle())
+    }
+}
+
+struct MenuRowHover: NSViewRepresentable {
+    func makeNSView(context: Context) -> MenuRowHoverView {
+        MenuRowHoverView()
+    }
+    func updateNSView(_ nsView: MenuRowHoverView, context: Context) {}
+}
+
+class MenuRowHoverView: NSView {
+    var trackingArea: NSTrackingArea?
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let existing = trackingArea {
+            removeTrackingArea(existing)
+        }
+        trackingArea = NSTrackingArea(
+            rect: bounds,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+            owner: self
+        )
+        addTrackingArea(trackingArea!)
+    }
+
+    override func mouseEntered(with event: NSEvent) {
+        superview?.layer?.backgroundColor = NSColor(
+            Theme.Colors.accent.opacity(0.1)
+        ).cgColor
+        superview?.layer?.cornerRadius = 4
+    }
+
+    override func mouseExited(with event: NSEvent) {
+        superview?.layer?.backgroundColor = nil
     }
 }
 
