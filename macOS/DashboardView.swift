@@ -47,9 +47,10 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(dateString)
                         .font(.title3.weight(.semibold))
+                        .foregroundColor(Theme.Colors.textPrimary)
                     Text(timeString)
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 }
                 Spacer()
                 if let weather = locationManager.weather {
@@ -59,6 +60,7 @@ struct DashboardView: View {
                             .font(.title3)
                         Text(temperatureString)
                             .font(.title3.weight(.medium))
+                            .foregroundColor(Theme.Colors.textPrimary)
                     }
                 }
             }
@@ -102,18 +104,21 @@ struct DashboardView: View {
                         .frame(width: 28)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Car")
-                            .font(.body)
+                            .font(Theme.Fonts.bodyMedium)
+                            .foregroundColor(Theme.Colors.textPrimary)
                         Text(carStatusText)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(Theme.Fonts.caption)
+                            .foregroundColor(Theme.Colors.textSecondary)
                     }
                     Spacer()
                     Text("\(car.vehicle.batteryLevel)%")
-                        .font(.body.weight(.medium))
-                        .foregroundColor(.secondary)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundColor(.secondary.opacity(0.5))
+                        .foregroundColor(
+                            Theme.Colors.textSecondary.opacity(0.5)
+                        )
                 }
                 .contentShape(Rectangle())
             })
@@ -157,20 +162,23 @@ struct DashboardView: View {
                 .frame(width: 28)
             VStack(alignment: .leading, spacing: 1) {
                 Text(name)
-                    .font(.body)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
                 Text(status)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
             }
             Spacer()
             if let detail {
                 Text(detail)
-                    .font(.body.weight(.medium))
-                    .foregroundColor(.secondary)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
             }
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundColor(.secondary.opacity(0.5))
+                .foregroundColor(
+                    Theme.Colors.textSecondary.opacity(0.5)
+                )
         }
         .contentShape(Rectangle())
     }
@@ -185,8 +193,8 @@ struct DashboardView: View {
         Section("Appliances") {
             if allAppliances.isEmpty {
                 Text("No appliances connected")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
             } else {
                 ForEach(
                     Array(allAppliances.enumerated()),
@@ -197,28 +205,39 @@ struct DashboardView: View {
                             Image(systemName: applianceIcon(appliance))
                                 .font(.title3)
                                 .foregroundColor(
-                                    appliance.inUse ? Theme.Colors.accent : .secondary
+                                    appliance.inUse
+                                        ? Theme.Colors.accent
+                                        : Theme.Colors.textSecondary
                                 )
                                 .frame(width: 28)
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(appliance.name)
-                                    .font(.body)
+                                    .font(Theme.Fonts.bodyMedium)
+                                    .foregroundColor(
+                                        Theme.Colors.textPrimary
+                                    )
                                 Text(
                                     appliance.inUse
                                         ? appliance.programName : "Off"
                                 )
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(
+                                    Theme.Colors.textSecondary
+                                )
                             }
                             Spacer()
-                            if appliance.inUse && appliance.timeRemaining > 0 {
+                            if appliance.inUse
+                                && appliance.timeRemaining > 0 {
                                 Text("\(appliance.timeRemaining)m")
-                                    .font(.body.weight(.medium))
+                                    .font(Theme.Fonts.bodyMedium)
                                     .foregroundColor(Theme.Colors.accent)
                             }
                             Image(systemName: "chevron.right")
                                 .font(.caption)
-                                .foregroundColor(.secondary.opacity(0.5))
+                                .foregroundColor(
+                                    Theme.Colors.textSecondary
+                                        .opacity(0.5)
+                                )
                         }
                         .contentShape(Rectangle())
                     })

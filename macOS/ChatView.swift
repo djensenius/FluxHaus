@@ -24,7 +24,11 @@ struct ChatView: View {
                 await chat.loadConversations()
             }
             if chat.conversationId == nil {
-                await chat.createNewConversation()
+                if chat.conversations.isEmpty {
+                    await chat.createNewConversation()
+                } else if let first = chat.conversations.first {
+                    await chat.loadConversation(first)
+                }
             }
         }
     }

@@ -139,72 +139,112 @@ struct AppliancesMacView: View {
     var hconn: HomeConnect
     var miele: Miele
 
-    var body: some View {
-        List {
-            if !hconn.appliances.isEmpty {
-                Section("HomeConnect") {
-                    ForEach(
-                        Array(hconn.appliances.enumerated()),
-                        id: \.offset
-                    ) { _, appliance in
-                        applianceRow(appliance)
-                    }
-                }
-            }
-            if !miele.appliances.isEmpty {
-                Section("Miele") {
-                    ForEach(
-                        Array(miele.appliances.enumerated()),
-                        id: \.offset
-                    ) { _, appliance in
-                        applianceRow(appliance)
-                    }
-                }
-            }
-            if hconn.appliances.isEmpty && miele.appliances.isEmpty {
-                ContentUnavailableView(
-                    "No Appliances",
-                    systemImage: "washer.fill",
-                    description: Text("All appliances are off")
-                )
-            }
-        }
+    private var allAppliances: [(source: String, appliance: Appliance)] {
+        hconn.appliances.map { ("HomeConnect", $0) } +
+        miele.appliances.map { ("Miele", $0) }
     }
 
-    private func applianceRow(_ appliance: Appliance) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "washer.fill")
-                .font(.title3)
-                .foregroundColor(
-                    appliance.inUse ? Theme.Colors.accent : .secondary
-                )
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(appliance.name)
-                    .font(.body)
-                if !appliance.programName.isEmpty {
-                    Text(appliance.programName)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                if allAppliances.isEmpty {
+                    ContentUnavailableView(
+                        "No Appliances",
+                        systemImage: "washer.fill",
+                        description: Text("All appliances are off")
+                    )
+                } else {
+                    ForEach(
+                        Array(allAppliances.enumerated()),
+                        id: \.offset
+                    ) { _, item in
+                        applianceCard(
+                            appliance: item.appliance,
+                            source: item.source
+                        )
+                    }
                 }
             }
-            Spacer()
-            if appliance.inUse {
-                if appliance.timeRemaining > 0 {
-                    Text("\(appliance.timeRemaining)m remaining")
-                        .font(.caption)
-                        .foregroundColor(Theme.Colors.accent)
+            .padding()
+        }
+        .background(Theme.Colors.background)
+    }
+
+    private func applianceCard(
+        appliance: Appliance,
+        source: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: applianceIcon(appliance))
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(
+                        appliance.inUse
+                            ? Theme.Colors.accent
+                            : Theme.Colors.textSecondary
+                    )
+                Text(appliance.name)
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(Theme.Colors.textPrimary)
+                Spacer()
+                Text(source)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                if appliance.inUse {
+                    if appliance.timeRunning > 0 {
+                        Label(
+                            "Running for \(appliance.timeRunning) min",
+                            systemImage: "timer"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    }
+                    if appliance.timeRemaining > 0 {
+                        Label(
+                            "Done in \(appliance.timeRemaining) min · \(appliance.timeFinish)",
+                            systemImage: "hourglass"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    }
+                    if !appliance.programName.isEmpty {
+                        Text("Program: \(appliance.programName)")
+                            .font(Theme.Fonts.bodyMedium)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                    if !appliance.step.isEmpty {
+                        Text("Step: \(appliance.step)")
+                            .font(Theme.Fonts.bodyMedium)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
                 } else {
-                    Text("Running")
-                        .font(.caption)
-                        .foregroundColor(Theme.Colors.accent)
+                    Label("Off", systemImage: "power.circle")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 }
-            } else {
-                Text("Off")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    private func applianceIcon(_ appliance: Appliance) -> String {
+        let lower = appliance.name.lowercased()
+        if lower.contains("dish") { return "dishwasher.fill" }
+        if lower.contains("wash") { return "washer.fill" }
+        if lower.contains("dryer") || lower.contains("dry") {
+            return "dryer.fill"
+        }
+        if lower.contains("oven") { return "oven.fill" }
+        if lower.contains("fridge") || lower.contains("refrig") {
+            return "refrigerator.fill"
+        }
+        return "powerplug.fill"
     }
 }
 
@@ -212,56 +252,134 @@ struct RobotsMacView: View {
     var robots: Robots
 
     var body: some View {
-        List {
-            Section("BroomBot") {
-                robotRows(robot: robots.broomBot, robots: robots, name: "broomBot")
+        ScrollView {
+            VStack(spacing: 16) {
+                robotCard(
+                    title: "BroomBot",
+                    robot: robots.broomBot,
+                    robotName: "broomBot",
+                    icon: "fan"
+                )
+                robotCard(
+                    title: "MopBot",
+                    robot: robots.mopBot,
+                    robotName: "mopBot",
+                    icon: "humidifier.and.droplets"
+                )
             }
-            Section("MopBot") {
-                robotRows(robot: robots.mopBot, robots: robots, name: "mopBot")
-            }
+            .padding()
         }
+        .background(Theme.Colors.background)
     }
 
-    private func robotRows(robot: Robot, robots: Robots, name: String) -> some View {
-        Group {
+    private func robotCard(
+        title: String,
+        robot: Robot,
+        robotName: String,
+        icon: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Header
             HStack {
-                Label("Status", systemImage: "circle.fill")
+                Image(systemName: icon)
                     .foregroundColor(statusColor(robot))
-                Spacer()
-                Text(statusText(robot))
-                    .foregroundColor(.secondary)
+                Text(title)
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(Theme.Colors.textPrimary)
             }
-            if let battery = robot.batteryLevel {
-                HStack {
-                    Label("Battery", systemImage: "battery.50percent")
-                    Spacer()
-                    Text("\(battery)%")
-                        .foregroundColor(.secondary)
+
+            // Status rows
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 16) {
+                    statusLabel(robot)
+                    if let battery = robot.batteryLevel {
+                        Label(
+                            "\(battery)%",
+                            systemImage: batteryIcon(battery)
+                        )
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    }
                 }
-            }
-            if robot.binFull == true {
-                HStack {
-                    Label("Bin", systemImage: "trash.fill")
+                .font(Theme.Fonts.bodyMedium)
+
+                if robot.binFull == true {
+                    Label("Bin Full", systemImage: "trash.fill")
+                        .font(Theme.Fonts.bodyMedium)
                         .foregroundColor(Theme.Colors.error)
-                    Spacer()
-                    Text("Full")
-                        .foregroundColor(Theme.Colors.error)
                 }
+
+                if robot.running == true,
+                   let started = robot.timeStarted {
+                    Text(
+                        "Started \(getCarTime(strDate: started))"
+                    )
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                }
+
+                Text(
+                    "Updated \(getCarTime(strDate: robot.timestamp))"
+                )
+                .font(Theme.Fonts.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
             }
-            HStack(spacing: 12) {
-                Button("Start") {
-                    robots.performAction(action: "start", robot: name)
-                }
+
+            Divider()
+
+            // Controls
+            HStack(spacing: 8) {
+                Button(action: {
+                    robots.performAction(
+                        action: "start", robot: robotName
+                    )
+                }, label: {
+                    Label("Start", systemImage: "play.fill")
+                })
+                .tint(Theme.Colors.accent)
                 .disabled(robot.running == true)
-                Button("Stop") {
-                    robots.performAction(action: "stop", robot: name)
-                }
+
+                Button(action: {
+                    robots.performAction(
+                        action: "stop", robot: robotName
+                    )
+                }, label: {
+                    Label("Stop", systemImage: "stop.fill")
+                })
                 .disabled(robot.running != true)
-                Button("Dock") {
-                    robots.performAction(action: "dock", robot: name)
-                }
+
+                Button(action: {
+                    robots.performAction(
+                        action: "dock", robot: robotName
+                    )
+                }, label: {
+                    Label("Dock", systemImage: "house.fill")
+                })
             }
-            .padding(.vertical, 4)
+            .buttonStyle(.bordered)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    @ViewBuilder
+    private func statusLabel(_ robot: Robot) -> some View {
+        if robot.running == true {
+            Label("Running", systemImage: "play.circle.fill")
+                .foregroundColor(Theme.Colors.accent)
+        } else if robot.charging == true {
+            Label("Charging", systemImage: "bolt.fill")
+                .foregroundColor(Theme.Colors.success)
+        } else if robot.docking == true {
+            Label("Docking", systemImage: "house.fill")
+                .foregroundColor(Theme.Colors.textSecondary)
+        } else if robot.paused == true {
+            Label("Paused", systemImage: "pause.circle.fill")
+                .foregroundColor(Theme.Colors.warning)
+        } else {
+            Label("Idle", systemImage: "zzz")
+                .foregroundColor(Theme.Colors.textSecondary)
         }
     }
 
@@ -269,15 +387,14 @@ struct RobotsMacView: View {
         if robot.running == true { return Theme.Colors.accent }
         if robot.charging == true { return Theme.Colors.success }
         if robot.binFull == true { return Theme.Colors.error }
-        return .secondary
+        return Theme.Colors.textSecondary
     }
 
-    private func statusText(_ robot: Robot) -> String {
-        if robot.running == true { return "Running" }
-        if robot.charging == true { return "Charging" }
-        if robot.docking == true { return "Docking" }
-        if robot.paused == true { return "Paused" }
-        return "Idle"
+    private func batteryIcon(_ level: Int) -> String {
+        if level > 75 { return "battery.100percent" }
+        if level > 50 { return "battery.75percent" }
+        if level > 25 { return "battery.50percent" }
+        return "battery.25percent"
     }
 }
 

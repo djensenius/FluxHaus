@@ -16,6 +16,7 @@ struct ApplianceDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    #if !os(macOS)
                     // Header
                     HStack {
                         if appliance.name == "Washing machine" {
@@ -30,6 +31,7 @@ struct ApplianceDetailView: View {
                     .font(Theme.Fonts.headerXL())
                     .foregroundColor(Theme.Colors.textPrimary)
                     .padding(.top)
+                    #endif
 
                     // Status Card
                     VStack(alignment: .leading, spacing: 12) {
@@ -73,6 +75,7 @@ struct ApplianceDetailView: View {
                 }
                 .padding()
             }
+            #if !os(macOS)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Dismiss") {
@@ -80,6 +83,7 @@ struct ApplianceDetailView: View {
                     }
                 }
             }
+            #endif
         }
         #if os(visionOS)
         .glassBackgroundEffect()
