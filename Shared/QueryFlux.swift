@@ -123,11 +123,12 @@ private func handleUnauthorized(password: String, user: String?) {
             }
         }
     } else if user == nil {
-        logger.info("handleUnauthorized: no OIDC token, retrying with demo user")
-        queryFlux(password: password, user: "demo")
+        logger.info("handleUnauthorized: no OIDC token, retrying with admin user")
+        queryFlux(password: password, user: "admin")
     } else {
-        logger.error("handleUnauthorized: demo auth also failed — posting loginError")
+        logger.error("handleUnauthorized: demo auth also failed — signing out and posting loginError")
         DispatchQueue.main.async {
+            AuthManager.shared.signOut()
             NotificationCenter.default.post(
                 name: Notification.Name.loginsUpdated,
                 object: nil,
