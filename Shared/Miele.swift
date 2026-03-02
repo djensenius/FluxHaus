@@ -6,9 +6,6 @@
 //
 
 import Foundation
-import UIKit
-
-// MARK: - Miele
 
 @MainActor
 class Miele: ObservableObject {

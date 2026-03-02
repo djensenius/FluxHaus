@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if canImport(UIKit)
 import UIKit
+#endif
 
 enum Model {
     case iPhone
@@ -14,6 +16,8 @@ enum Model {
     case visionPro
     case mac
 }
+
+#if canImport(UIKit)
 @MainActor
 @Observable class Battery {
     var percent = 0
@@ -59,3 +63,17 @@ enum Model {
          state = UIDevice.current.batteryState
      }
 }
+#else
+enum BatteryState {
+    case unknown, unplugged, charging, full
+}
+
+@MainActor
+@Observable class Battery {
+    var percent = 0
+    var state = BatteryState.unknown
+    var model = Model.mac
+
+    init() {}
+}
+#endif

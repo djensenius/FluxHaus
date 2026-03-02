@@ -6,9 +6,6 @@
 //
 
 import Foundation
-import UIKit
-
-// HomeConnect-specific logic and classes
 // Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor

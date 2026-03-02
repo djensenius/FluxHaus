@@ -5,6 +5,7 @@
 //  Created by David Jensenius on 2020-12-20.
 //
 
+#if canImport(HomeKit)
 import SwiftUI
 
 struct HomeKitView: View {
@@ -125,3 +126,4 @@ struct HomeKitView_Previews: PreviewProvider {
         HomeKitView(favouriteHomeKit: ["Light 1", "Light 2"])
     }
 }
+#endif

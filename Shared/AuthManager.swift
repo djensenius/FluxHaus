@@ -9,6 +9,9 @@ import Foundation
 import AuthenticationServices
 import CryptoKit
 import os
+#if canImport(AppKit)
+import AppKit
+#endif
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
@@ -17,7 +20,9 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthMa
 // "unavailable in app extensions" error (the widget never calls this).
 private class AuthSessionAnchorProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        #if os(iOS) || os(visionOS)
+        #if os(macOS)
+        return NSApp.keyWindow ?? NSWindow()
+        #elseif os(iOS) || os(visionOS)
         if let app = (NSClassFromString("UIApplication") as? NSObject.Type)?
             .value(forKeyPath: "sharedApplication") as? NSObject,
            let scenes = app.value(forKey: "connectedScenes") as? Set<NSObject> {
@@ -29,21 +34,20 @@ private class AuthSessionAnchorProvider: NSObject, ASWebAuthenticationPresentati
                             return window as! ASPresentationAnchor // swiftlint:disable:this force_cast
                         }
                     }
-                    // No key window found, but we have a scene — return first window
                     if let firstWindow = windows.first {
                         return firstWindow as! ASPresentationAnchor // swiftlint:disable:this force_cast
                     }
                 }
             }
         }
-        #endif
         // Should never reach here when called from a foreground app.
         if #unavailable(iOS 26, visionOS 26) {
             return ASPresentationAnchor(frame: .zero)
         }
-        // iOS 26+ requires UIWindow(windowScene:) — but if we're here,
-        // no scene was found, so the auth session will fail regardless.
         fatalError("No window scene available for ASWebAuthenticationSession")
+        #else
+        return ASPresentationAnchor(frame: .zero)
+        #endif
     }
 }
 
