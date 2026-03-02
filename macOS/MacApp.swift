@@ -37,7 +37,7 @@ struct MacApp: App {
         }
         .defaultSize(width: 900, height: 700)
 
-        MenuBarExtra("FluxHaus", image: "MenuBarIcon", isInserted: $showMenuBar) {
+        MenuBarExtra("FluxHaus", systemImage: "house.fill", isInserted: $showMenuBar) {
             MenuBarView(
                 car: car,
                 robots: robots,

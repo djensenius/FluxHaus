@@ -299,12 +299,19 @@ extension DashboardView {
                 ) {
                     ForEach(sceneManager.favourites) { scene in
                         Button(action: { sceneManager.activate(scene) }, label: {
-                            Text(scene.name)
-                                .font(Theme.Fonts.bodyMedium)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 6)
+                            HStack(spacing: 4) {
+                                Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
+                                    .foregroundColor(
+                                        scene.isActive == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                                    )
+                                Text(scene.name)
+                                    .font(Theme.Fonts.bodyMedium)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
                         })
                         .buttonStyle(.bordered)
+                        .tint(scene.isActive == true ? Theme.Colors.accent : nil)
                         .disabled(sceneManager.activatingSceneId != nil)
                     }
                 }

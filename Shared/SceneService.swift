@@ -13,6 +13,7 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "SceneS
 struct HomeScene: Codable, Identifiable {
     let entityId: String
     let name: String
+    let isActive: Bool?
 
     var id: String { entityId }
 }

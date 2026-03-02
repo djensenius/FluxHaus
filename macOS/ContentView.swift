@@ -48,6 +48,14 @@ struct ContentView: View {
             detailView
         }
         .frame(minWidth: 800, minHeight: 600)
+        .onReceive(
+            NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
+        ) { notification in
+            if let rawValue = notification.userInfo?["section"] as? String,
+               let section = SidebarItem(rawValue: rawValue) {
+                selectedItem = section
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .automatic) {
                 Button(action: {

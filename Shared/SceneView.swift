@@ -21,8 +21,7 @@ import SwiftUI
             if favouriteNames.isEmpty {
                 favourites = scenes
             } else {
-                let matched = scenes.filter { favouriteNames.contains($0.name) }
-                favourites = matched.isEmpty ? scenes : matched
+                favourites = scenes.filter { favouriteNames.contains($0.name) }
             }
         } catch {
             loadError = error.localizedDescription
@@ -91,12 +90,17 @@ struct SceneView: View {
                                 if sceneManager.activatingSceneId == scene.entityId {
                                     ProgressView().controlSize(.small)
                                 }
+                                Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
+                                    .foregroundColor(
+                                        scene.isActive == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                                    )
                                 Text(scene.name).font(Theme.Fonts.bodyMedium)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                         })
                         .buttonStyle(.bordered)
+                        .tint(scene.isActive == true ? Theme.Colors.accent : nil)
                         .disabled(sceneManager.activatingSceneId != nil)
                     }
                 }

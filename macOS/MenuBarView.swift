@@ -17,8 +17,8 @@ struct MenuBarView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            deviceStatusSection
             activeAppliancesSection
+            deviceStatusSection
             scenesSection
             quickActionsSection
             Divider()
@@ -32,74 +32,78 @@ struct MenuBarView: View {
     }
 
     @ViewBuilder
+    private var activeAppliancesSection: some View {
+        let active = activeAppliances
+        if !active.isEmpty {
+            Text("Active")
+                .font(Theme.Fonts.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
+            ForEach(active.indices, id: \.self) { index in
+                Button(action: { openAppToSection(.appliances) }, label: {
+                    HStack {
+                        Image(systemName: applianceIcon(active[index]))
+                            .foregroundColor(Theme.Colors.accent)
+                        Text(active[index].name)
+                            .font(Theme.Fonts.bodySmall)
+                        Spacer()
+                        if active[index].timeRemaining > 0 {
+                            Text("\(active[index].timeRemaining)m left")
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.accent)
+                        } else {
+                            Text("Running")
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.accent)
+                        }
+                    }
+                })
+                .buttonStyle(.plain)
+            }
+            Divider()
+        }
+    }
+
+    @ViewBuilder
     private var deviceStatusSection: some View {
         if let car {
-            HStack {
-                Image(systemName: "car.fill")
-                    .foregroundColor(Theme.Colors.accent)
-                Text("Car")
-                    .font(Theme.Fonts.bodyMedium)
-                Spacer()
-                Text("\(car.vehicle.batteryLevel)%")
-                    .font(Theme.Fonts.bodyMedium)
-                Image(
-                    systemName: car.vehicle.locked
-                        ? "lock.fill" : "lock.open.fill"
-                )
-                .foregroundColor(
-                    car.vehicle.locked
-                        ? Theme.Colors.success : Theme.Colors.warning
-                )
-                .font(.caption)
-            }
+            Button(action: { openAppToSection(.car) }, label: {
+                HStack {
+                    Image(systemName: "car.fill")
+                        .foregroundColor(Theme.Colors.accent)
+                    Text("Car")
+                        .font(Theme.Fonts.bodyMedium)
+                    Spacer()
+                    Text("\(car.vehicle.batteryLevel)%")
+                        .font(Theme.Fonts.bodyMedium)
+                    Image(systemName: car.vehicle.locked ? "lock.fill" : "lock.open.fill")
+                        .foregroundColor(car.vehicle.locked ? Theme.Colors.success : Theme.Colors.warning)
+                        .font(.caption)
+                }
+            })
+            .buttonStyle(.plain)
         }
         if let robots {
             HStack {
                 Image(systemName: "fan.fill")
-                    .foregroundColor(Theme.Colors.accent)
-                Text("BroomBot")
-                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(
+                        robots.broomBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                    )
+                Text("BroomBot").font(Theme.Fonts.bodyMedium)
                 Spacer()
                 Text(robotShortStatus(robots.broomBot))
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
             }
             HStack {
-                Image(systemName: "fan.fill")
-                    .foregroundColor(Theme.Colors.accent)
-                Text("MopBot")
-                    .font(Theme.Fonts.bodyMedium)
+                Image(systemName: "humidifier.and.droplets")
+                    .foregroundColor(
+                        robots.mopBot.running == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                    )
+                Text("MopBot").font(Theme.Fonts.bodyMedium)
                 Spacer()
                 Text(robotShortStatus(robots.mopBot))
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var activeAppliancesSection: some View {
-        let active = activeAppliances
-        if !active.isEmpty {
-            Divider()
-            Text("Active")
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-            ForEach(active.indices, id: \.self) { index in
-                HStack {
-                    Text(active[index].name)
-                        .font(Theme.Fonts.bodySmall)
-                    Spacer()
-                    if active[index].timeRemaining > 0 {
-                        Text("\(active[index].timeRemaining)m")
-                            .font(Theme.Fonts.caption)
-                            .foregroundColor(Theme.Colors.accent)
-                    } else {
-                        Text("Running")
-                            .font(Theme.Fonts.caption)
-                            .foregroundColor(Theme.Colors.accent)
-                    }
-                }
             }
         }
     }
@@ -116,12 +120,20 @@ struct MenuBarView: View {
                     Button(action: {
                         sceneManager.activate(scene)
                     }, label: {
-                        Text(scene.name)
-                            .font(Theme.Fonts.caption)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                        HStack(spacing: 4) {
+                            Image(systemName: scene.isActive == true ? "lightbulb.fill" : "lightbulb")
+                                .font(.caption2)
+                                .foregroundColor(
+                                    scene.isActive == true ? Theme.Colors.accent : Theme.Colors.textSecondary
+                                )
+                            Text(scene.name)
+                                .font(Theme.Fonts.caption)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
                     })
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
+                    .tint(scene.isActive == true ? Theme.Colors.accent : nil)
                     .disabled(sceneManager.activatingSceneId != nil)
                 }
             }
@@ -143,10 +155,9 @@ struct MenuBarView: View {
                         Label(
                             car.vehicle.locked ? "Unlock" : "Lock",
                             systemImage: car.vehicle.locked ? "lock.open" : "lock"
-                        )
-                        .font(Theme.Fonts.caption)
+                        ).font(Theme.Fonts.caption)
                     })
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                 }
                 if let robots {
                     Button(action: {
@@ -155,7 +166,7 @@ struct MenuBarView: View {
                         Label("Vacuum", systemImage: "fan")
                             .font(Theme.Fonts.caption)
                     })
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                 }
             }
         }
@@ -175,6 +186,15 @@ struct MenuBarView: View {
         }
     }
 
+    private func openAppToSection(_ section: SidebarItem) {
+        NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(
+            name: Notification.Name("navigateToSection"),
+            object: nil,
+            userInfo: ["section": section.rawValue]
+        )
+    }
+
     private var activeAppliances: [Appliance] {
         var result: [Appliance] = []
         if let hconn {
@@ -184,6 +204,15 @@ struct MenuBarView: View {
             result.append(contentsOf: miele.appliances.filter { $0.inUse })
         }
         return result
+    }
+
+    private func applianceIcon(_ appliance: Appliance) -> String {
+        let lower = appliance.name.lowercased()
+        if lower.contains("dish") { return "dishwasher.fill" }
+        if lower.contains("wash") { return "washer.fill" }
+        if lower.contains("dryer") || lower.contains("dry") { return "dryer.fill" }
+        if lower.contains("oven") { return "oven.fill" }
+        return "powerplug.fill"
     }
 
     private func robotShortStatus(_ robot: Robot) -> String {
