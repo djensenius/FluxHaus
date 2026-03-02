@@ -17,203 +17,231 @@ struct DashboardView: View {
     var apiResponse: Api
     @ObservedObject var locationManager: LocationManager
     var onNavigate: (SidebarItem) -> Void
-
-    private let columns = [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
-    ]
+    @State private var sceneManager = SceneManager()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                headerSection
-                if !fluxHausConsts.favouriteHomeKit.isEmpty {
-                    scenesSection
-                }
-                devicesGrid
-                footerSection
+        List {
+            overviewSection
+            if !sceneManager.favourites.isEmpty {
+                scenesListSection
             }
-            .padding()
+            devicesSection
+            appliancesSection
         }
+        .listStyle(.sidebar)
         .navigationTitle("Dashboard")
-    }
-
-    private var headerSection: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(dateString)
-                    .font(.title2.weight(.semibold))
-                Text(timeString)
-                    .font(.body)
-                    .foregroundColor(.secondary)
-            }
-            Spacer()
-            weatherSummary
-        }
-    }
-
-    private var weatherSummary: some View {
-        VStack(alignment: .trailing, spacing: 2) {
-            if let weather = locationManager.weather {
-                HStack(spacing: 4) {
-                    Image(systemName: weatherIcon)
-                        .symbolRenderingMode(.multicolor)
-                    Text(temperatureString)
-                        .font(.body)
-                }
-                if let condition = weather.currentWeather.condition
-                    .description as String? {
-                    Text(condition)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            } else {
-                ProgressView()
-                    .controlSize(.small)
-            }
-        }
         .task {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
+            await sceneManager.loadScenes(
+                favouriteNames: fluxHausConsts.favouriteHomeKit
+            )
         }
     }
 
-    private var scenesSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Scenes")
-                .font(.headline)
-            SceneView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-        }
-    }
+    // MARK: - Overview
 
-    private var devicesGrid: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Devices")
-                .font(.headline)
-            LazyVGrid(columns: columns, spacing: 12) {
-                carCard
-                robotCard(name: "BroomBot", robot: robots.broomBot)
-                robotCard(name: "MopBot", robot: robots.mopBot)
-                ForEach(activeAppliances.indices, id: \.self) { idx in
-                    applianceCard(activeAppliances[idx])
+    private var overviewSection: some View {
+        Section {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(dateString)
+                        .font(.title3.weight(.semibold))
+                    Text(timeString)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                if let weather = locationManager.weather {
+                    HStack(spacing: 6) {
+                        Image(systemName: weatherIcon)
+                            .symbolRenderingMode(.multicolor)
+                            .font(.title3)
+                        Text(temperatureString)
+                            .font(.title3.weight(.medium))
+                    }
                 }
             }
         }
     }
 
-    private var carCard: some View {
-        Button(action: { onNavigate(.car) }, label: {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
+    // MARK: - Scenes
+
+    private var scenesListSection: some View {
+        Section("Scenes") {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: 100), spacing: 8)],
+                spacing: 8
+            ) {
+                ForEach(sceneManager.favourites) { scene in
+                    Button(action: {
+                        sceneManager.activate(scene)
+                    }, label: {
+                        Text(scene.name)
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 6)
+                    })
+                    .buttonStyle(.bordered)
+                    .disabled(sceneManager.activatingSceneId != nil)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    // MARK: - Devices
+
+    private var devicesSection: some View {
+        Section("Devices") {
+            Button(action: { onNavigate(.car) }, label: {
+                HStack(spacing: 12) {
                     Image(systemName: "car.fill")
+                        .font(.title3)
                         .foregroundColor(carIconColor)
+                        .frame(width: 28)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Car")
+                            .font(.body)
+                        Text(carStatusText)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                     Spacer()
                     Text("\(car.vehicle.batteryLevel)%")
-                        .font(.title3.weight(.semibold))
+                        .font(.body.weight(.medium))
+                        .foregroundColor(.secondary)
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary.opacity(0.5))
                 }
-                Text("Car")
-                    .font(.subheadline.weight(.medium))
-                Text(carStatusText)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        })
-        .buttonStyle(.plain)
-        .glassEffect(.regular.interactive())
-    }
+                .contentShape(Rectangle())
+            })
+            .buttonStyle(.plain)
 
-    private func robotCard(name: String, robot: Robot) -> some View {
-        Button(action: { onNavigate(.robots) }, label: {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Image(systemName: "fan.fill")
-                        .foregroundColor(robotIconColor(robot))
-                    Spacer()
-                    if let batteryLvl = robot.batteryLevel {
-                        Text("\(batteryLvl)%")
-                            .font(.title3.weight(.semibold))
-                    }
-                }
-                Text(name)
-                    .font(.subheadline.weight(.medium))
-                Text(robotStatusText(robot))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        })
-        .buttonStyle(.plain)
-        .glassEffect(.regular.interactive())
-    }
-
-    private func applianceCard(_ appliance: Appliance) -> some View {
-        Button(action: { onNavigate(.appliances) }, label: {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Image(systemName: "washer.fill")
-                        .foregroundColor(
-                            appliance.inUse
-                                ? Theme.Colors.accent : .secondary
-                        )
-                    Spacer()
-                    if appliance.inUse && appliance.timeRemaining > 0 {
-                        Text("\(appliance.timeRemaining)m")
-                            .font(.title3.weight(.semibold))
-                            .foregroundColor(Theme.Colors.accent)
-                    }
-                }
-                Text(appliance.name)
-                    .font(.subheadline.weight(.medium))
-                Text(appliance.inUse ? appliance.programName : "Off")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        })
-        .buttonStyle(.plain)
-        .glassEffect(.regular.interactive())
-    }
-
-    private var footerSection: some View {
-        HStack {
-            Link(
-                "Weather provided by  Weather",
-                destination: URL(
-                    string: "https://weatherkit.apple.com/legal-attribution.html"
-                )!
-            )
-            .font(.caption)
-            .foregroundColor(.secondary)
-            Spacer()
-            Button(action: {
-                AuthManager.shared.signOut()
-                NotificationCenter.default.post(
-                    name: Notification.Name.logout,
-                    object: nil,
-                    userInfo: ["logout": true]
+            Button(action: { onNavigate(.robots) }, label: {
+                deviceRow(
+                    icon: "fan.fill",
+                    iconColor: robotIconColor(robots.broomBot),
+                    name: "BroomBot",
+                    status: robotStatusText(robots.broomBot),
+                    detail: robots.broomBot.batteryLevel.map { "\($0)%" }
                 )
-            }, label: {
-                Text("Logout")
-                    .font(.caption)
-                    .foregroundColor(Theme.Colors.accent)
+            })
+            .buttonStyle(.plain)
+
+            Button(action: { onNavigate(.robots) }, label: {
+                deviceRow(
+                    icon: "fan.fill",
+                    iconColor: robotIconColor(robots.mopBot),
+                    name: "MopBot",
+                    status: robotStatusText(robots.mopBot),
+                    detail: robots.mopBot.batteryLevel.map { "\($0)%" }
+                )
             })
             .buttonStyle(.plain)
         }
     }
 
+    private func deviceRow(
+        icon: String,
+        iconColor: Color,
+        name: String,
+        status: String,
+        detail: String?
+    ) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(iconColor)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name)
+                    .font(.body)
+                Text(status)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+            if let detail {
+                Text(detail)
+                    .font(.body.weight(.medium))
+                    .foregroundColor(.secondary)
+            }
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary.opacity(0.5))
+        }
+        .contentShape(Rectangle())
+    }
+
+    // MARK: - Appliances
+
+    private var allAppliances: [Appliance] {
+        hconn.appliances + miele.appliances
+    }
+
+    private var appliancesSection: some View {
+        Section("Appliances") {
+            if allAppliances.isEmpty {
+                Text("No appliances connected")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            } else {
+                ForEach(
+                    Array(allAppliances.enumerated()),
+                    id: \.offset
+                ) { _, appliance in
+                    Button(action: { onNavigate(.appliances) }, label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: applianceIcon(appliance))
+                                .font(.title3)
+                                .foregroundColor(
+                                    appliance.inUse ? Theme.Colors.accent : .secondary
+                                )
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(appliance.name)
+                                    .font(.body)
+                                Text(
+                                    appliance.inUse
+                                        ? appliance.programName : "Off"
+                                )
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            if appliance.inUse && appliance.timeRemaining > 0 {
+                                Text("\(appliance.timeRemaining)m")
+                                    .font(.body.weight(.medium))
+                                    .foregroundColor(Theme.Colors.accent)
+                            }
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundColor(.secondary.opacity(0.5))
+                        }
+                        .contentShape(Rectangle())
+                    })
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
     // MARK: - Helpers
 
-    private var activeAppliances: [Appliance] {
-        let all = hconn.appliances + miele.appliances
-        let active = all.filter { $0.inUse }
-        return active.isEmpty ? all : active
+    private func applianceIcon(_ appliance: Appliance) -> String {
+        let lower = appliance.name.lowercased()
+        if lower.contains("washer") || lower.contains("wash") {
+            return "washer.fill"
+        }
+        if lower.contains("dryer") { return "dryer.fill" }
+        if lower.contains("dish") { return "dishwasher.fill" }
+        if lower.contains("oven") { return "oven.fill" }
+        if lower.contains("fridge") || lower.contains("refrig") {
+            return "refrigerator.fill"
+        }
+        return "powerplug.fill"
     }
 
     private var carIconColor: Color {
@@ -227,7 +255,11 @@ struct DashboardView: View {
 
     private var carStatusText: String {
         var parts: [String] = []
-        if car.vehicle.locked { parts.append("Locked") } else { parts.append("Unlocked") }
+        if car.vehicle.locked {
+            parts.append("Locked")
+        } else {
+            parts.append("Unlocked")
+        }
         if car.vehicle.pluggedIn { parts.append("Plugged in") }
         if car.vehicle.hvac { parts.append("Climate on") }
         return parts.joined(separator: " · ")

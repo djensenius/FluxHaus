@@ -54,25 +54,29 @@ struct ChatView: View {
                     .foregroundColor(.secondary)
                 Spacer()
             } else {
-                List {
-                    ForEach(chat.conversations) { conv in
-                        Button(action: {
+                List(selection: Binding(
+                    get: { chat.conversationId },
+                    set: { newId in
+                        if let newId,
+                           let conv = chat.conversations.first(
+                            where: { $0.id == newId }
+                           ) {
                             Task { await chat.loadConversation(conv) }
-                        }, label: {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(conv.title ?? "Untitled")
-                                    .font(.body)
-                                    .lineLimit(1)
-                                Text("\(conv.messageCount) messages")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        })
-                        .buttonStyle(.plain)
-                        .listRowBackground(
-                            conv.id == chat.conversationId
-                                ? Color.accentColor.opacity(0.15) : nil
-                        )
+                        }
+                    }
+                )) {
+                    ForEach(chat.conversations) { conv in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(conv.title ?? "Untitled")
+                                .font(.body)
+                                .lineLimit(1)
+                            Text("\(conv.messageCount) messages")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .tag(conv.id)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
                     .onDelete { indexSet in
                         for index in indexSet {

@@ -25,6 +25,7 @@ class HomeConnect: ObservableObject {
     }
 
     func nilProgram() {
+        self.appliances.removeAll()
         self.appliances.append(
             Appliance(
                 name: "Dishwasher",

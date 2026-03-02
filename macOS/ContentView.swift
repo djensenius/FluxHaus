@@ -102,11 +102,8 @@ struct ContentView: View {
             CarDetailView(car: car, locationManager: locationManager)
                 .navigationTitle("Car")
         case .robots:
-            VStack {
-                RobotDetailView(robot: robots.broomBot, robots: robots)
-                RobotDetailView(robot: robots.mopBot, robots: robots)
-            }
-            .navigationTitle("Robots")
+            RobotsMacView(robots: robots)
+                .navigationTitle("Robots")
         case .assistant:
             ChatView(chat: chat)
                 .navigationTitle("Assistant")
@@ -146,15 +143,21 @@ struct AppliancesMacView: View {
         List {
             if !hconn.appliances.isEmpty {
                 Section("HomeConnect") {
-                    ForEach(hconn.appliances.indices, id: \.self) { index in
-                        applianceRow(hconn.appliances[index])
+                    ForEach(
+                        Array(hconn.appliances.enumerated()),
+                        id: \.offset
+                    ) { _, appliance in
+                        applianceRow(appliance)
                     }
                 }
             }
             if !miele.appliances.isEmpty {
                 Section("Miele") {
-                    ForEach(miele.appliances.indices, id: \.self) { index in
-                        applianceRow(miele.appliances[index])
+                    ForEach(
+                        Array(miele.appliances.enumerated()),
+                        id: \.offset
+                    ) { _, appliance in
+                        applianceRow(appliance)
                     }
                 }
             }
@@ -169,33 +172,112 @@ struct AppliancesMacView: View {
     }
 
     private func applianceRow(_ appliance: Appliance) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 12) {
+            Image(systemName: "washer.fill")
+                .font(.title3)
+                .foregroundColor(
+                    appliance.inUse ? Theme.Colors.accent : .secondary
+                )
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
                 Text(appliance.name)
-                    .font(Theme.Fonts.bodyMedium)
+                    .font(.body)
                 if !appliance.programName.isEmpty {
                     Text(appliance.programName)
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
             Spacer()
             if appliance.inUse {
                 if appliance.timeRemaining > 0 {
-                    Text("\(appliance.timeRemaining)m")
-                        .font(Theme.Fonts.caption)
+                    Text("\(appliance.timeRemaining)m remaining")
+                        .font(.caption)
                         .foregroundColor(Theme.Colors.accent)
                 } else {
                     Text("Running")
-                        .font(Theme.Fonts.caption)
+                        .font(.caption)
                         .foregroundColor(Theme.Colors.accent)
                 }
             } else {
                 Text("Off")
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
+    }
+}
+
+struct RobotsMacView: View {
+    var robots: Robots
+
+    var body: some View {
+        List {
+            Section("BroomBot") {
+                robotRows(robot: robots.broomBot, robots: robots, name: "broomBot")
+            }
+            Section("MopBot") {
+                robotRows(robot: robots.mopBot, robots: robots, name: "mopBot")
+            }
+        }
+    }
+
+    private func robotRows(robot: Robot, robots: Robots, name: String) -> some View {
+        Group {
+            HStack {
+                Label("Status", systemImage: "circle.fill")
+                    .foregroundColor(statusColor(robot))
+                Spacer()
+                Text(statusText(robot))
+                    .foregroundColor(.secondary)
+            }
+            if let battery = robot.batteryLevel {
+                HStack {
+                    Label("Battery", systemImage: "battery.50percent")
+                    Spacer()
+                    Text("\(battery)%")
+                        .foregroundColor(.secondary)
+                }
+            }
+            if robot.binFull == true {
+                HStack {
+                    Label("Bin", systemImage: "trash.fill")
+                        .foregroundColor(Theme.Colors.error)
+                    Spacer()
+                    Text("Full")
+                        .foregroundColor(Theme.Colors.error)
+                }
+            }
+            HStack(spacing: 12) {
+                Button("Start") {
+                    robots.performAction(action: "start", robot: name)
+                }
+                .disabled(robot.running == true)
+                Button("Stop") {
+                    robots.performAction(action: "stop", robot: name)
+                }
+                .disabled(robot.running != true)
+                Button("Dock") {
+                    robots.performAction(action: "dock", robot: name)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
+
+    private func statusColor(_ robot: Robot) -> Color {
+        if robot.running == true { return Theme.Colors.accent }
+        if robot.charging == true { return Theme.Colors.success }
+        if robot.binFull == true { return Theme.Colors.error }
+        return .secondary
+    }
+
+    private func statusText(_ robot: Robot) -> String {
+        if robot.running == true { return "Running" }
+        if robot.charging == true { return "Charging" }
+        if robot.docking == true { return "Docking" }
+        if robot.paused == true { return "Paused" }
+        return "Idle"
     }
 }
 
