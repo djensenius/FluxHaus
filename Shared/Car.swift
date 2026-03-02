@@ -91,39 +91,48 @@ import Foundation
         components.scheme = scheme
         components.host = host
         components.path = path
-        if action == "start" {
-            var items = [
-                URLQueryItem(name: "heatedFeatures", value: String(steeringWheel)),
-                URLQueryItem(name: "seatFL", value: seatFL ? "1" : "0"),
-                URLQueryItem(name: "seatFR", value: seatFR ? "1" : "0"),
-                URLQueryItem(name: "seatRL", value: seatRL ? "1" : "0"),
-                URLQueryItem(name: "seatRR", value: seatRR ? "1" : "0"),
-                URLQueryItem(name: "defrost", value: String(defrost))
-            ]
-            if let temp = temperature {
-                items.append(URLQueryItem(name: "temp", value: String(temp)))
-            }
-            components.queryItems = items
-        }
 
         guard let url = components.url else {
             return
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "get"
+        Task {
+            let csrfToken = await fetchCsrfToken()
 
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        if let authHeader = AuthManager.shared.authorizationHeader() {
-            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-        }
-        let session = URLSession(configuration: .default)
-        let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
-            if data != nil {
-                print("Got data \(path)")
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            if let authHeader = AuthManager.shared.authorizationHeader() {
+                request.setValue(authHeader, forHTTPHeaderField: "Authorization")
             }
+            if let csrfToken = csrfToken {
+                request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+            }
+
+            if action == "start" {
+                var body: [String: Any] = [
+                    "heatedFeatures": steeringWheel,
+                    "seatFL": seatFL ? 1 : 0,
+                    "seatFR": seatFR ? 1 : 0,
+                    "seatRL": seatRL ? 1 : 0,
+                    "seatRR": seatRR ? 1 : 0,
+                    "defrost": defrost
+                ]
+                if let temp = temperature {
+                    body["temp"] = temp
+                }
+                request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            }
+
+            let session = URLSession(configuration: .default)
+            let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
+                if data != nil {
+                    print("Got data \(path)")
+                }
+            }
+            task.resume()
         }
-        task.resume()
     }
 }
