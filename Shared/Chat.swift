@@ -100,6 +100,7 @@ struct Conversation: Identifiable, Codable {
     }
 
     func startRecording() {
+        #if canImport(UIKit)
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.playAndRecord, mode: .default)
@@ -108,6 +109,7 @@ struct Conversation: Identifiable, Codable {
             logger.error("Failed to set up audio session: \(error.localizedDescription)")
             return
         }
+        #endif
 
         let tempDir = FileManager.default.temporaryDirectory
         let url = tempDir.appendingPathComponent("voice_recording.m4a")

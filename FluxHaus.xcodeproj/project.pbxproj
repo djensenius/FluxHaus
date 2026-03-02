@@ -7,15 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-AA0002000000000000000001 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
-AA0002000000000000000002 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
-AA0003000000000000000001 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
-AA0003000000000000000002 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
-AA0004000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000003 /* ChatView.swift */; };
-AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000004 /* ChatView.swift */; };
+		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
+		0B1E0128C093516D2338D7B8 /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
+		0FDA7AE0AE986D66811CD243 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E37BE77DA97D1A7B4F3394 /* ContentView.swift */; };
+		15B1C3D6EF5DE28749332251 /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
 		1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC999E976448F6757BA7155 /* MockDataUITests.swift */; };
+		1D0580D31B64ED384590793B /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
+		1EE958BBEBFBE734319E4BAB /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
+		20B3C50781AECEC9A50DCD5D /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
+		256B98E625030109C7B0072B /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
+		25E035A77577F0A7C6C1FAA6 /* WeatherKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */; };
+		323C8C60BEA480D9040C3B37 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
+		36CDAE36186F337CA02795D9 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
+		36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
+		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
+		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		47DAD3A56DB24CE1A601DE56 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
+		55FD5BBD882FC925D75E3214 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
+		5B735B126D86700D42C36453 /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
+		5D05B5523942BB577B0175D4 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
 		63282DC52B992B08009140F2 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC3F258682C9003E4988 /* Tests_iOS.swift */; };
 		632CBC4D258682C9003E4988 /* FluxHausApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC24258682C8003E4988 /* FluxHausApp.swift */; };
@@ -82,6 +94,7 @@ AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; 
 		637BC63A2C5BDA8000E7884E /* FluxWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		637CE4C72BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
+		638F139E7CAD98A830B3DD77 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
 		6399EA272B9CA534000C8CA4 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA262B9CA534000C8CA4 /* LoadingView.swift */; };
 		6399EA292B9CA534000C8CA4 /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA262B9CA534000C8CA4 /* LoadingView.swift */; };
 		6399EA2C2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
@@ -116,10 +129,43 @@ AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; 
 		63DBD75C2B954486006603D1 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		63EB92652BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		63EB92672BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
+		6FCFCDBD5CD529EC139A4A95 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
+		76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
+		773F6A161767F7B9301A70C8 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		77CDDA9FA1A142A79B3AEB86 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		77FD37A48518D9CC2AF19BFA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		84C5DCC07BF2CE1E4D72F885 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
+		8716D5FE3271F7DBCEF8D744 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+		8D80E6BB0FEBF2D6F21674BD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC70F639352E9D9252F77D43 /* Cocoa.framework */; };
+		92895C4DCFEB63889AE653C5 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
+		9D14B888828F5291C3A1B2D5 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
+		9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
+		A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
+		A833D279DDED4F415801541F /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		AA0002000000000000000001 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+		AA0002000000000000000002 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+		AA0003000000000000000001 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
+		AA0003000000000000000002 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
+		AA0004000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000003 /* ChatView.swift */; };
+		AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000004 /* ChatView.swift */; };
 		BA938AC82C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		C623C52748905A66CF3956EB /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
+		D170D5FEA1F77CDDD5473F1B /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
+		D4CF7F9BD9DD51C77C6AB4C9 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9B78F7F035E29316F494F7 /* ChatView.swift */; };
+		D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8757ED2EF3E226D6B1548CAE /* SettingsView.swift */; };
+		DB270713ED62FAF0BB0921F5 /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
+		DB373BE2AB83A8BE0010308F /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		E0FFED608140DA7EB6F6D326 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
+		E222079D6E3C7E5941D2D5C0 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
+		E45053421DDDDCF16D51FBAD /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
+		EDBA0282938D145D6381768C /* MacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A02EE588AFF8C715B9DEB /* MacApp.swift */; };
 		F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
+		FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -161,11 +207,12 @@ AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; 
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-AA0001000000000000000001 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
-AA0001000000000000000002 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
-AA0001000000000000000003 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = WeatherKit.framework; sourceTree = "<group>"; };
 		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		1B9B78F7F035E29316F494F7 /* ChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		54E080FFA20990ACE9D14FB1 /* FluxHaus (macOS).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "FluxHaus (macOS).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		57CB3B0423E7608E287483D2 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
 		632CBC25258682C8003E4988 /* DateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimeView.swift; sourceTree = "<group>"; };
 		632CBC26258682C9003E4988 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -242,6 +289,17 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 		63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplianceDetailView.swift; sourceTree = "<group>"; };
 		6BC999E976448F6757BA7155 /* MockDataUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataUITests.swift; sourceTree = "<group>"; };
 		726CDAE4D264490999414676 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		731A02EE588AFF8C715B9DEB /* MacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacApp.swift; sourceTree = "<group>"; };
+		76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		8757ED2EF3E226D6B1548CAE /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA0001000000000000000001 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
+		AA0001000000000000000002 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
+		AA0001000000000000000003 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		AC70F639352E9D9252F77D43 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
+		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -284,6 +342,15 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FDEE4364CE8EE809E1F384B1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D80E6BB0FEBF2D6F21674BD /* Cocoa.framework in Frameworks */,
+				25E035A77577F0A7C6C1FAA6 /* WeatherKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,6 +413,8 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				726CDAE4D264490999414676 /* AuthManager.swift */,
 				632CBC26258682C9003E4988 /* Assets.xcassets */,
 				63BCF7542C63FABB001D4375 /* Api.swift */,
+				B21E737133023F1FB8033FE1 /* SceneService.swift */,
+				C6709013ABF8AA633E63B128 /* SceneView.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -358,6 +427,7 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				63DBD72E2B954215006603D0 /* VisionOS.app */,
 				63DBD7422B954216006603D0 /* VisionOSTests.xctest */,
 				637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */,
+				54E080FFA20990ACE9D14FB1 /* FluxHaus (macOS).app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -378,6 +448,13 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 			children = (
 				632CBC35258682C9003E4988 /* Info.plist */,
 				632CBC36258682C9003E4988 /* macOS.entitlements */,
+				1B9B78F7F035E29316F494F7 /* ChatView.swift */,
+				35E37BE77DA97D1A7B4F3394 /* ContentView.swift */,
+				57CB3B0423E7608E287483D2 /* DashboardView.swift */,
+				AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */,
+				731A02EE588AFF8C715B9DEB /* MacApp.swift */,
+				76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */,
+				8757ED2EF3E226D6B1548CAE /* SettingsView.swift */,
 			);
 			path = macOS;
 			sourceTree = "<group>";
@@ -412,6 +489,8 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				632CBC6725868365003E4988 /* HomeKit.framework */,
 				63A39FB42C44391E00E62C09 /* WidgetKit.framework */,
 				63A39FB62C44391E00E62C09 /* SwiftUI.framework */,
+				D064384394F50320A7808D6A /* OS X */,
+				0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -481,6 +560,14 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 			path = VisionOSTests;
 			sourceTree = "<group>";
 		};
+		D064384394F50320A7808D6A /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				AC70F639352E9D9252F77D43 /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -500,8 +587,6 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				637BC6392C5BDA8000E7884E /* PBXTargetDependency */,
 			);
 			name = "FluxHaus (iOS)";
-			packageProductDependencies = (
-			);
 			productName = "FluxHaus (iOS)";
 			productReference = 632CBC2B258682C9003E4988 /* FluxHaus.app */;
 			productType = "com.apple.product-type.application";
@@ -580,6 +665,23 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 			productReference = 63DBD7422B954216006603D0 /* VisionOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		6D3A6DEFADB0547372080997 /* FluxHaus (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE6E2D981A53D917A0B1CFD2 /* Build configuration list for PBXNativeTarget "FluxHaus (macOS)" */;
+			buildPhases = (
+				07BA3F65B7BE442FC38C7B7E /* Sources */,
+				FDEE4364CE8EE809E1F384B1 /* Frameworks */,
+				21420D8EE80B4840A70E3755 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FluxHaus (macOS)";
+			productName = "FluxHaus (macOS)";
+			productReference = 54E080FFA20990ACE9D14FB1 /* FluxHaus (macOS).app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -618,8 +720,6 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				Base,
 			);
 			mainGroup = 632CBC1E258682C8003E4988;
-			packageReferences = (
-			);
 			productRefGroup = 632CBC2C258682C9003E4988 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -629,11 +729,19 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				63DBD72D2B954215006603D0 /* VisionOS */,
 				63DBD7412B954216006603D0 /* VisionOSTests */,
 				637BC6282C5BDA7F00E7884E /* FluxWidgetExtension */,
+				6D3A6DEFADB0547372080997 /* FluxHaus (macOS) */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		21420D8EE80B4840A70E3755 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		632CBC29258682C9003E4988 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -715,6 +823,53 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		07BA3F65B7BE442FC38C7B7E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */,
+				1D0580D31B64ED384590793B /* AppliancesView.swift in Sources */,
+				37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */,
+				6FCFCDBD5CD529EC139A4A95 /* ApplianceViewHelpers.swift in Sources */,
+				20B3C50781AECEC9A50DCD5D /* BackgroundView.swift in Sources */,
+				15B1C3D6EF5DE28749332251 /* Battery.swift in Sources */,
+				638F139E7CAD98A830B3DD77 /* Chat.swift in Sources */,
+				8716D5FE3271F7DBCEF8D744 /* ChatService.swift in Sources */,
+				92895C4DCFEB63889AE653C5 /* Car.swift in Sources */,
+				FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */,
+				E222079D6E3C7E5941D2D5C0 /* CarHelper.swift in Sources */,
+				47DAD3A56DB24CE1A601DE56 /* DateTimeView.swift in Sources */,
+				256B98E625030109C7B0072B /* FluxHausConsts.swift in Sources */,
+				36CDAE36186F337CA02795D9 /* HomeConnect.swift in Sources */,
+				DB373BE2AB83A8BE0010308F /* HomeKitIntegration.swift in Sources */,
+				DB270713ED62FAF0BB0921F5 /* HomeKitView.swift in Sources */,
+				FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */,
+				773F6A161767F7B9301A70C8 /* LoginStucts.swift in Sources */,
+				55FD5BBD882FC925D75E3214 /* Theme.swift in Sources */,
+				9D14B888828F5291C3A1B2D5 /* Miele.swift in Sources */,
+				E0FFED608140DA7EB6F6D326 /* MieleAppliance.swift in Sources */,
+				3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */,
+				323C8C60BEA480D9040C3B37 /* RobotDetailView.swift in Sources */,
+				A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */,
+				1EE958BBEBFBE734319E4BAB /* SystemNotifications.swift in Sources */,
+				0B1E0128C093516D2338D7B8 /* Weather.swift in Sources */,
+				5B735B126D86700D42C36453 /* WeatherAlertView.swift in Sources */,
+				D170D5FEA1F77CDDD5473F1B /* WeatherView.swift in Sources */,
+				84C5DCC07BF2CE1E4D72F885 /* WhereWeAre.swift in Sources */,
+				77FD37A48518D9CC2AF19BFA /* AuthManager.swift in Sources */,
+				E45053421DDDDCF16D51FBAD /* Api.swift in Sources */,
+				D4CF7F9BD9DD51C77C6AB4C9 /* ChatView.swift in Sources */,
+				0FDA7AE0AE986D66811CD243 /* ContentView.swift in Sources */,
+				01682556DD76455141307783 /* DashboardView.swift in Sources */,
+				5D05B5523942BB577B0175D4 /* LoginView.swift in Sources */,
+				EDBA0282938D145D6381768C /* MacApp.swift in Sources */,
+				C623C52748905A66CF3956EB /* MenuBarView.swift in Sources */,
+				D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */,
+				76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */,
+				A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		632CBC27258682C9003E4988 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -754,6 +909,8 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				636B9B3A258E57D400DE97BD /* WeatherView.swift in Sources */,
 				63610D2E2BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
 				6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
+				9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */,
+				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -834,6 +991,8 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 				63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */,
 				63BCF7572C63FABB001D4375 /* Api.swift in Sources */,
 				6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
+				36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */,
+				A833D279DDED4F415801541F /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1327,6 +1486,60 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 			};
 			name = Release;
 		};
+		A68D89F4120EA45BE0F6C59E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.macOS;
+				PRODUCT_NAME = FluxHaus;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		C78591EC8F616A21821BE64E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = macOS/macOS.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = macOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.macOS;
+				PRODUCT_NAME = FluxHaus;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1380,6 +1593,15 @@ AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKno
 			buildConfigurations = (
 				63DBD74A2B954216006603D0 /* Debug */,
 				63DBD74B2B954216006603D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AE6E2D981A53D917A0B1CFD2 /* Build configuration list for PBXNativeTarget "FluxHaus (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A68D89F4120EA45BE0F6C59E /* Release */,
+				C78591EC8F616A21821BE64E /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

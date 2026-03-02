@@ -5,7 +5,7 @@
 //  Created by David Jensenius on 2024-08-01.
 //
 
-#if !targetEnvironment(macCatalyst)
+#if os(iOS)
 import ActivityKit
 import WidgetKit
 import SwiftUI

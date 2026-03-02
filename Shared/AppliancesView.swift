@@ -97,7 +97,9 @@ struct Appliances: View {
                                     .background(Theme.Colors.secondaryBackground)
                                     .cornerRadius(12)
                                     #endif
+                                    #if !os(macOS)
                                     .hoverEffect()
+                                    #endif
                                     .sheet(
                                         isPresented:
                                             binding(for: "\(theAppliances[app].name)-\(theAppliances[app].index)")

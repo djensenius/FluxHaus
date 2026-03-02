@@ -60,7 +60,9 @@ struct SceneView: View {
                         }
                         .frame(width: 120, height: 50, alignment: .center)
                     })
+                    #if !os(visionOS)
                     .glassEffect(.regular.interactive())
+                    #endif
                     .disabled(sceneManager.activatingSceneId != nil)
                     .padding(.leading)
                 }
