@@ -24,6 +24,14 @@ struct ContentView: View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
+            if AuthManager.hasOIDCToken() {
+                Button(action: { showChat = true }, label: {
+                    Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.accent)
+                })
+                .padding(.top, 4)
+            }
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             HStack {
                 Text("Appliances")
@@ -53,15 +61,6 @@ struct ContentView: View {
                 .padding([.bottom, .leading])
 
                 Spacer()
-
-                if AuthManager.hasOIDCToken() {
-                    Button(action: { showChat = true }, label: {
-                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
-                            .font(Theme.Fonts.caption)
-                            .foregroundColor(Theme.Colors.accent)
-                    })
-                    .padding([.bottom, .trailing])
-                }
 
                 Button(action: {
                     AuthManager.shared.signOut()
