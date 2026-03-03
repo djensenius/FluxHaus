@@ -112,8 +112,7 @@ private func handleUnauthorized(password: String) {
                 logger.debug("handleUnauthorized: refresh succeeded, retrying queryFlux")
                 queryFlux(password: password)
             } else {
-                logger.error("handleUnauthorized: refresh FAILED — signing out")
-                AuthManager.shared.signOut()
+                logger.error("handleUnauthorized: refresh FAILED — will retry on next poll")
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
@@ -161,11 +160,10 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
                 logger.error("Response body: \(jsonStr.prefix(500))")
             }
             DispatchQueue.main.async {
-                AuthManager.shared.signOut()
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
-                    userInfo: ["loginError": "Incorrect Password"]
+                    userInfo: ["loginError": "Failed to load data"]
                 )
             }
         }

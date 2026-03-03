@@ -30,7 +30,10 @@ struct MacApp: App {
                 .onAppear {
                     if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
                         if AuthManager.shared.isSignedIn {
-                            queryFlux(password: WhereWeAre.getPassword() ?? "")
+                            Task {
+                                _ = await AuthManager.shared.ensureValidToken()
+                                queryFlux(password: WhereWeAre.getPassword() ?? "")
+                            }
                         }
                     }
                 }
@@ -109,8 +112,8 @@ struct MacApp: App {
                 if AuthManager.shared.isSignedIn {
                     Task {
                         _ = await AuthManager.shared.ensureValidToken()
+                        queryFlux(password: WhereWeAre.getPassword() ?? "")
                     }
-                    queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
             }
         }
