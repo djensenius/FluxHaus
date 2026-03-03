@@ -134,6 +134,8 @@
 		637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
 		637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
 		637BC6362C5BDA8000E7884E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
+		632CBC51258682C9003E4988 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
+		6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		637BC63A2C5BDA8000E7884E /* FluxWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		637CE4C52BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		637CE4C72BE71FC000258158 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
@@ -827,6 +829,7 @@ productType = "com.apple.product-type.bundle.unit-test";
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -834,6 +837,7 @@ productType = "com.apple.product-type.bundle.unit-test";
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				632CBC51258682C9003E4988 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
