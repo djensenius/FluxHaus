@@ -97,6 +97,7 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         mapView.isRotateEnabled = false
         mapView.showsZoomControls = true
         mapView.showsCompass = true
+        mapView.wantsLayer = true
         let region = MKCoordinateRegion(
             center: coordinate,
             span: MKCoordinateSpan(latitudeDelta: 4.0, longitudeDelta: 4.0)
@@ -111,7 +112,13 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         let frame = frames[frameIndex]
         guard frame.path != context.coordinator.currentPath else { return }
 
-        // Add new overlay first, then remove old ones (prevents flash)
+        // Cross-fade between frames using CATransition
+        let transition = CATransition()
+        transition.type = .fade
+        transition.duration = 0.4
+        transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        mapView.layer?.add(transition, forKey: "radarFade")
+
         let newOverlay = RadarTileOverlay(
             host: radarService.host, framePath: frame.path
         )
@@ -146,7 +153,8 @@ struct WeatherRadarSheet: View {
     let weather: Weather?
     @State private var frameIndex = 0
     @State private var isPlaying = false
-    @State private var timer: Timer?
+    @State private var animationTask: Task<Void, Never>?
+    @State private var playingForward = true
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -245,23 +253,36 @@ struct WeatherRadarSheet: View {
 
     private func startAnimation() {
         isPlaying = true
-        timer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
-            Task { @MainActor in
+        playingForward = true
+        animationTask = Task {
+            while !Task.isCancelled {
                 let total = radarService.allFrames.count
-                guard total > 0 else { return }
-                frameIndex = (frameIndex + 1) % total
+                guard total > 1 else { break }
+                let atEnd = frameIndex >= total - 1
+                let atStart = frameIndex <= 0
+                // Pause at boundaries, then reverse direction
+                if playingForward && atEnd {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    playingForward = false
+                } else if !playingForward && atStart {
+                    try? await Task.sleep(for: .seconds(0.8))
+                    playingForward = true
+                }
+                guard !Task.isCancelled else { break }
+                frameIndex += playingForward ? 1 : -1
+                try? await Task.sleep(for: .milliseconds(500))
             }
         }
     }
 
     private func stopAnimation() {
         isPlaying = false
-        timer?.invalidate()
-        timer = nil
+        animationTask?.cancel()
+        animationTask = nil
     }
 }
 
-// MARK: - Weather Card with Radar Background
+// MARK: - Weather Section (Dashboard Card)
 
 struct WeatherCard: View {
     @ObservedObject var locationManager: LocationManager
@@ -269,29 +290,32 @@ struct WeatherCard: View {
     @Binding var showRadarSheet: Bool
 
     var body: some View {
-        ZStack(alignment: .leading) {
-            if radarService.isLoaded {
-                RadarMapView(
-                    coordinate: locationManager.coordinate,
-                    radarService: radarService, frameIndex: nil
-                )
-                .frame(maxWidth: .infinity).frame(height: 160).clipped()
-                .overlay(
-                    LinearGradient(
-                        colors: [
-                            Theme.Colors.secondaryBackground.opacity(0.85),
-                            Theme.Colors.secondaryBackground.opacity(0.6)
-                        ],
-                        startPoint: .leading, endPoint: .trailing
-                    )
-                )
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Weather")
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
+            if let weather = locationManager.weather {
+                currentConditions(weather: weather)
+                Divider()
+                detailsRow(weather: weather)
+                if let precipText = precipitationText {
+                    Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
+                        .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.accent)
+                }
+                Divider()
+                HourlyForecastRow(weather: weather).padding(.horizontal, -16)
+                Divider()
+                radarPreview
+                Divider()
+                footerButton
+            } else {
+                loadingPlaceholder
             }
-            weatherOverlay
         }
+        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Theme.Colors.secondaryBackground)
-        .cornerRadius(12).clipped()
-        .onTapGesture { showRadarSheet = true }
+        .cornerRadius(12)
         .sheet(isPresented: $showRadarSheet) {
             WeatherRadarSheet(
                 coordinate: locationManager.coordinate,
@@ -301,53 +325,83 @@ struct WeatherCard: View {
         }
     }
 
-    private var weatherOverlay: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let weather = locationManager.weather {
-                HStack(spacing: 16) {
-                    Image(systemName: weatherIcon)
-                        .symbolRenderingMode(.multicolor)
-                        .font(.system(size: 42))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(temperatureString)
-                            .font(.system(size: 28, weight: .semibold, design: .rounded))
-                            .foregroundColor(Theme.Colors.textPrimary)
-                        Text(weather.currentWeather.condition.description)
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                    Spacer()
-                    if let high = highTemp, let low = lowTemp {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Label("H: \(high)", systemImage: "arrow.up")
-                                .font(Theme.Fonts.bodyMedium)
-                                .foregroundColor(Theme.Colors.textPrimary)
-                            Label("L: \(low)", systemImage: "arrow.down")
-                                .font(Theme.Fonts.bodyMedium)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                    }
-                }
-                HStack(spacing: 16) {
-                    weatherDetail(icon: "thermometer.medium", label: "Feels like", value: feelsLikeString)
-                    weatherDetail(icon: "humidity", label: "Humidity", value: humidityString)
-                    weatherDetail(icon: "sun.max.trianglebadge.exclamationmark", label: "UV", value: uvIndexString)
-                    weatherDetail(icon: "wind", label: "Wind", value: windString)
-                }
-                if let precipText = precipitationText {
-                    Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
-                        .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.accent)
-                }
-            } else {
-                HStack {
-                    ProgressView().controlSize(.small)
-                    Text("Loading weather…")
+    private func currentConditions(weather: Weather) -> some View {
+        HStack(spacing: 16) {
+            Image(systemName: weatherIcon)
+                .symbolRenderingMode(.multicolor)
+                .font(.system(size: 42))
+            VStack(alignment: .leading, spacing: 4) {
+                Text(temperatureString)
+                    .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    .foregroundColor(Theme.Colors.textPrimary)
+                Text(weather.currentWeather.condition.description)
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+            Spacer()
+            if let high = highTemp, let low = lowTemp {
+                VStack(alignment: .trailing, spacing: 4) {
+                    Label("H: \(high)", systemImage: "arrow.up")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    Label("L: \(low)", systemImage: "arrow.down")
                         .font(Theme.Fonts.bodyMedium)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
             }
         }
-        .padding()
+    }
+
+    private func detailsRow(weather: Weather) -> some View {
+        HStack(spacing: 16) {
+            weatherDetail(icon: "thermometer.medium", label: "Feels like", value: feelsLikeString)
+            weatherDetail(icon: "humidity", label: "Humidity", value: humidityString)
+            weatherDetail(icon: "sun.max.trianglebadge.exclamationmark", label: "UV", value: uvIndexString)
+            weatherDetail(icon: "wind", label: "Wind", value: windString)
+        }
+    }
+
+    private var radarPreview: some View {
+        ZStack(alignment: .bottomTrailing) {
+            if radarService.isLoaded {
+                RadarMapView(
+                    coordinate: locationManager.coordinate,
+                    radarService: radarService, frameIndex: nil
+                )
+                .frame(maxWidth: .infinity).frame(height: 120)
+                .cornerRadius(8).clipped()
+                .allowsHitTesting(false)
+            } else {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Theme.Colors.background.opacity(0.5))
+                    .frame(maxWidth: .infinity).frame(height: 120)
+                    .overlay {
+                        Label("Loading radar…", systemImage: "antenna.radiowaves.left.and.right")
+                            .font(Theme.Fonts.caption)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+            }
+        }
+    }
+
+    private var footerButton: some View {
+        HStack {
+            Spacer()
+            Button(action: { showRadarSheet = true }, label: {
+                Label("Full Forecast & Radar", systemImage: "map")
+                    .font(Theme.Fonts.bodyMedium)
+            })
+            .buttonStyle(.plain).foregroundColor(Theme.Colors.accent)
+        }
+    }
+
+    private var loadingPlaceholder: some View {
+        HStack {
+            ProgressView().controlSize(.small)
+            Text("Loading weather…")
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.textSecondary)
+        }
     }
 
     private func weatherDetail(icon: String, label: String, value: String) -> some View {
