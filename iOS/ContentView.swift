@@ -18,25 +18,53 @@ struct ContentView: View {
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
     @State private var chat = Chat()
-    @State private var showChat = false
 
     var body: some View {
+        TabView {
+            homeTab
+                .tabItem { Label("Home", systemImage: "house.fill") }
+            weatherTab
+                .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
+            if AuthManager.hasOIDCToken() {
+                ChatView(chat: chat)
+                    .tabItem {
+                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                    }
+            }
+            carTab
+                .tabItem { Label("Car", systemImage: "car.fill") }
+            appliancesTab
+                .tabItem { Label("Appliances", systemImage: "washer.fill") }
+        }
+    }
+
+    private var homeTab: some View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
-            if AuthManager.hasOIDCToken() {
-                HStack {
-                    Spacer()
-                    Button(action: { showChat = true }, label: {
-                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.accent)
-                    })
-                }
-                .padding(.top, 4)
-                .padding(.trailing)
-            }
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+            Spacer()
+            footer
+        }
+        .background(Theme.Colors.background)
+    }
+
+    private var weatherTab: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                WeatherView(lman: locationManager)
+            }
+            .padding(.bottom)
+        }
+        .background(Theme.Colors.background)
+    }
+
+    private var carTab: some View {
+        CarDetailView(car: car, locationManager: locationManager)
+    }
+
+    private var appliancesTab: some View {
+        VStack {
             HStack {
                 Text("Appliances")
                     .font(Theme.Fonts.headerLarge())
@@ -55,44 +83,35 @@ struct ContentView: View {
                 locationManager: locationManager
             )
             Spacer()
-            HStack {
-                Link(
-                    "Weather provided by  Weather",
-                    destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
-                )
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-                .padding([.bottom, .leading])
-
-                Spacer()
-
-                Button(action: {
-                    AuthManager.shared.signOut()
-                    NotificationCenter.default.post(
-                        name: Notification.Name.logout,
-                        object: nil,
-                        userInfo: ["logout": true]
-                    )
-                }, label: {
-                    Text("Logout")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.accent)
-                })
-                .padding([.bottom, .trailing])
-            }
         }
         .background(Theme.Colors.background)
-        .fullScreenCover(isPresented: $showChat) {
-            ChatView(chat: chat)
-        }
-        .overlay {
-            if AuthManager.hasOIDCToken() {
-                Button("") { showChat = true }
-                    .keyboardShortcut("c", modifiers: .command)
-                    .frame(width: 0, height: 0)
-                    .opacity(0)
-                    .accessibilityHidden(true)
-            }
+    }
+
+    private var footer: some View {
+        HStack {
+            Link(
+                "Weather provided by  Weather",
+                destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+            )
+            .font(Theme.Fonts.caption)
+            .foregroundColor(Theme.Colors.textSecondary)
+            .padding([.bottom, .leading])
+
+            Spacer()
+
+            Button(action: {
+                AuthManager.shared.signOut()
+                NotificationCenter.default.post(
+                    name: Notification.Name.logout,
+                    object: nil,
+                    userInfo: ["logout": true]
+                )
+            }, label: {
+                Text("Logout")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.accent)
+            })
+            .padding([.bottom, .trailing])
         }
     }
 }
