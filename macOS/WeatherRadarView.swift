@@ -143,23 +143,30 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 struct WeatherRadarSheet: View {
     let coordinate: CLLocationCoordinate2D
     let radarService: RadarService
+    let weather: Weather?
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var timer: Timer?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            InteractiveRadarMapView(
-                coordinate: coordinate,
-                radarService: radarService,
-                frameIndex: frameIndex
-            )
-            .frame(minWidth: 500, minHeight: 400)
-            controls
+        ScrollView {
+            VStack(spacing: 0) {
+                header
+                InteractiveRadarMapView(
+                    coordinate: coordinate,
+                    radarService: radarService,
+                    frameIndex: frameIndex
+                )
+                .frame(minWidth: 500).frame(height: 350)
+                controls
+                if let weather {
+                    Divider()
+                    WeatherForecastSection(weather: weather)
+                }
+            }
         }
-        .frame(minWidth: 550, minHeight: 500)
+        .frame(minWidth: 550, minHeight: 600)
         .onDisappear { stopAnimation() }
         .onAppear {
             frameIndex = max(0, radarService.pastFrames.count - 1)
@@ -288,7 +295,8 @@ struct WeatherCard: View {
         .sheet(isPresented: $showRadarSheet) {
             WeatherRadarSheet(
                 coordinate: locationManager.coordinate,
-                radarService: radarService
+                radarService: radarService,
+                weather: locationManager.weather
             )
         }
     }
