@@ -111,22 +111,24 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         let frame = frames[frameIndex]
         guard frame.path != context.coordinator.currentPath else { return }
 
-        // Add new overlay, then remove stale ones after a delay
+        // Add new overlay on top
         let newOverlay = RadarTileOverlay(
             host: radarService.host, framePath: frame.path
         )
         mapView.addOverlay(newOverlay, level: .aboveLabels)
-        context.coordinator.currentPath = frame.path
 
-        // Keep old overlays briefly so new tiles load underneath
-        let staleOverlays = mapView.overlays.filter {
-            ($0 as? RadarTileOverlay)?.framePath != frame.path
-        }
-        if !staleOverlays.isEmpty {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                mapView.removeOverlays(staleOverlays)
+        // Keep only current + previous overlay (no delayed removal needed)
+        let previousPath = context.coordinator.currentPath
+        let toRemove = mapView.overlays.filter {
+            guard let path = ($0 as? RadarTileOverlay)?.framePath else {
+                return false
             }
+            return path != frame.path && path != previousPath
         }
+        if !toRemove.isEmpty {
+            mapView.removeOverlays(toRemove)
+        }
+        context.coordinator.currentPath = frame.path
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
