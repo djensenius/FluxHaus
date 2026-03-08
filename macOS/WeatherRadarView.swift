@@ -9,7 +9,7 @@ import SwiftUI
 import MapKit
 @preconcurrency import WeatherKit
 
-struct RadarTileOverlay: MKTileOverlay {
+class RadarTileOverlay: MKTileOverlay {
     let host: String
     let framePath: String
 
