@@ -20,7 +20,6 @@ struct DashboardView: View {
     var onNavigate: (SidebarItem) -> Void
     @State private var sceneManager = SceneManager()
     @State private var carButtonsDisabled = false
-    @State private var showRadarSheet = false
 
     var body: some View {
         ScrollView {
@@ -80,7 +79,7 @@ struct DashboardView: View {
         WeatherCard(
             locationManager: locationManager,
             radarService: radarService,
-            showRadarSheet: $showRadarSheet
+            onNavigate: onNavigate
         )
     }
 

@@ -179,6 +179,9 @@ struct WeatherForecastSection: View {
 struct WeatherDetailView: View {
     @ObservedObject var locationManager: LocationManager
     var radarService: RadarService
+    @State private var frameIndex = 0
+    @State private var isPlaying = false
+    @State private var animationTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
@@ -194,10 +197,12 @@ struct WeatherDetailView: View {
             .padding()
         }
         .background(Theme.Colors.background)
+        .onDisappear { stopAnimation() }
         .task {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
             await radarService.fetchFrames()
+            frameIndex = max(0, radarService.pastFrames.count - 1)
         }
     }
 
@@ -282,30 +287,113 @@ struct WeatherDetailView: View {
 
     private var radarCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Radar", systemImage: "antenna.radiowaves.left.and.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Theme.Colors.textSecondary)
-                .textCase(.uppercase)
+            HStack {
+                Label("Radar", systemImage: "antenna.radiowaves.left.and.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .textCase(.uppercase)
+                Spacer()
+                if radarService.nowcastFrames.isEmpty && radarService.isLoaded {
+                    Text("No active precipitation forecast")
+                        .font(.caption2).foregroundColor(.secondary)
+                }
+            }
             if radarService.isLoaded {
-                RadarMapView(
+                InteractiveRadarMapView(
                     coordinate: locationManager.coordinate,
-                    radarService: radarService, frameIndex: nil
+                    radarService: radarService,
+                    frameIndex: frameIndex
                 )
-                .frame(maxWidth: .infinity).frame(height: 250)
+                .frame(maxWidth: .infinity).frame(height: 300)
                 .cornerRadius(8).clipped()
+                radarControls
             } else {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Theme.Colors.background.opacity(0.5))
-                    .frame(maxWidth: .infinity).frame(height: 250)
-                    .overlay {
-                        ProgressView("Loading radar…")
-                            .font(Theme.Fonts.caption)
-                    }
+                    .frame(maxWidth: .infinity).frame(height: 300)
+                    .overlay { ProgressView("Loading radar…").font(Theme.Fonts.caption) }
             }
         }
         .padding()
         .background(Theme.Colors.secondaryBackground)
         .cornerRadius(12)
+    }
+
+    private var radarControls: some View {
+        VStack(spacing: 6) {
+            HStack {
+                Text(frameTimeLabel)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .monospacedDigit()
+                Spacer()
+                Text(relativeTimeLabel)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(
+                        frameIndex < radarService.pastFrames.count
+                            ? .secondary : Theme.Colors.accent
+                    )
+            }
+            HStack(spacing: 10) {
+                Button(action: togglePlay) {
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                }
+                .buttonStyle(.borderless)
+                Slider(
+                    value: Binding(
+                        get: { Double(frameIndex) },
+                        set: { frameIndex = Int($0) }
+                    ),
+                    in: 0...Double(max(0, radarService.allFrames.count - 1)),
+                    step: 1
+                )
+            }
+        }
+    }
+
+    private var frameTimeLabel: String {
+        let frames = radarService.allFrames
+        guard frameIndex >= 0, frameIndex < frames.count else { return "" }
+        let date = Date(timeIntervalSince1970: Double(frames[frameIndex].time))
+        let fmt = DateFormatter()
+        fmt.dateFormat = "h:mm a"
+        return fmt.string(from: date)
+    }
+
+    private var relativeTimeLabel: String {
+        let frames = radarService.allFrames
+        guard frameIndex >= 0, frameIndex < frames.count else { return "" }
+        let frameTime = Double(frames[frameIndex].time)
+        let minutes = Int((frameTime - Date().timeIntervalSince1970) / 60)
+        if minutes == 0 { return "Now" }
+        let prefix = minutes > 0 ? "+" : ""
+        return "\(prefix)\(minutes) min"
+    }
+
+    private func togglePlay() {
+        if isPlaying { stopAnimation() } else { startAnimation() }
+    }
+
+    private func startAnimation() {
+        isPlaying = true
+        animationTask = Task {
+            while !Task.isCancelled {
+                let total = radarService.allFrames.count
+                guard total > 1 else { break }
+                let nextIndex = (frameIndex + 1) % total
+                if nextIndex == 0 {
+                    try? await Task.sleep(for: .seconds(2))
+                }
+                guard !Task.isCancelled else { break }
+                frameIndex = nextIndex
+                try? await Task.sleep(for: .milliseconds(600))
+            }
+        }
+    }
+
+    private func stopAnimation() {
+        isPlaying = false
+        animationTask?.cancel()
+        animationTask = nil
     }
 
     private func forecastCard(weather: Weather) -> some View {
