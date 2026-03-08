@@ -11,7 +11,7 @@ import MapKit
 
 class RadarTileOverlay: MKTileOverlay {
     let host: String
-    var framePath: String
+    let framePath: String
 
     init(host: String, framePath: String) {
         self.host = host
@@ -107,43 +107,45 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
-        let idx = min(max(frameIndex, 0), frames.count - 1)
-        guard idx >= 0, idx < frames.count else { return }
-        let frame = frames[idx]
+        guard !frames.isEmpty else { return }
         let coord = context.coordinator
+        let idx = min(max(frameIndex, 0), frames.count - 1)
+        let activePath = frames[idx].path
+        coord.activePath = activePath
 
-        if let overlay = coord.overlay {
-            // Reuse existing overlay — just update its path
-            guard frame.path != coord.currentPath else { return }
-            overlay.framePath = frame.path
-            coord.currentPath = frame.path
-            coord.renderer?.reloadData()
-        } else {
-            // First time: create and add the overlay
-            let overlay = RadarTileOverlay(
-                host: radarService.host, framePath: frame.path
-            )
-            mapView.addOverlay(overlay, level: .aboveLabels)
-            coord.overlay = overlay
-            coord.currentPath = frame.path
+        // Add all overlays once — they stay for the lifetime of the view
+        if !coord.overlaysLoaded {
+            for frame in frames {
+                let overlay = RadarTileOverlay(
+                    host: radarService.host, framePath: frame.path
+                )
+                mapView.addOverlay(overlay, level: .aboveLabels)
+            }
+            coord.overlaysLoaded = true
+        }
+
+        // Always set alpha on every renderer — no guards, no shortcuts
+        for (path, renderer) in coord.renderers {
+            renderer.alpha = (path == activePath) ? 1.0 : 0.0
         }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var currentPath: String?
-        var overlay: RadarTileOverlay?
-        var renderer: MKTileOverlayRenderer?
+        var activePath: String?
+        var renderers: [String: MKTileOverlayRenderer] = [:]
+        var overlaysLoaded = false
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? MKTileOverlay {
-                let rend = MKTileOverlayRenderer(overlay: tileOverlay)
-                self.renderer = rend
-                return rend
+            if let tileOverlay = overlay as? RadarTileOverlay {
+                let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
+                renderer.alpha = (tileOverlay.framePath == activePath) ? 1.0 : 0.0
+                renderers[tileOverlay.framePath] = renderer
+                return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
         }
