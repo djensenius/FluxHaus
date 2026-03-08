@@ -340,8 +340,8 @@ struct WeatherDetailView: View {
                 .buttonStyle(.borderless)
                 Slider(
                     value: Binding(
-                        get: { Double(frameIndex) },
-                        set: { frameIndex = Int($0) }
+                        get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },
+                        set: { frameIndex = min(Int($0), radarService.allFrames.count - 1) }
                     ),
                     in: 0...Double(max(0, radarService.allFrames.count - 1)),
                     step: 1
@@ -375,17 +375,20 @@ struct WeatherDetailView: View {
 
     private func startAnimation() {
         isPlaying = true
-        animationTask = Task {
+        animationTask = Task { @MainActor in
             while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(600))
+                guard !Task.isCancelled else { break }
                 let total = radarService.allFrames.count
                 guard total > 1 else { break }
-                let nextIndex = (frameIndex + 1) % total
-                if nextIndex == 0 {
-                    try? await Task.sleep(for: .seconds(2))
+                let next = frameIndex + 1
+                if next >= total {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    guard !Task.isCancelled else { break }
+                    frameIndex = 0
+                } else {
+                    frameIndex = next
                 }
-                guard !Task.isCancelled else { break }
-                frameIndex = nextIndex
-                try? await Task.sleep(for: .milliseconds(600))
             }
         }
     }

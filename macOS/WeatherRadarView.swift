@@ -107,8 +107,9 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
-        guard frameIndex >= 0, frameIndex < frames.count else { return }
-        let frame = frames[frameIndex]
+        let clampedIndex = min(frameIndex, frames.count - 1)
+        guard clampedIndex >= 0, clampedIndex < frames.count else { return }
+        let frame = frames[clampedIndex]
         guard frame.path != context.coordinator.currentPath else { return }
 
         // Add new overlay on top
@@ -117,7 +118,7 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         )
         mapView.addOverlay(newOverlay, level: .aboveLabels)
 
-        // Keep only current + previous overlay (no delayed removal needed)
+        // Keep only current + previous overlay
         let previousPath = context.coordinator.currentPath
         let toRemove = mapView.overlays.filter {
             guard let path = ($0 as? RadarTileOverlay)?.framePath else {
@@ -217,8 +218,8 @@ struct WeatherRadarSheet: View {
                 .buttonStyle(.borderless)
                 Slider(
                     value: Binding(
-                        get: { Double(frameIndex) },
-                        set: { frameIndex = Int($0) }
+                        get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },
+                        set: { frameIndex = min(Int($0), radarService.allFrames.count - 1) }
                     ),
                     in: 0...Double(max(0, radarService.allFrames.count - 1)),
                     step: 1
@@ -253,18 +254,20 @@ struct WeatherRadarSheet: View {
 
     private func startAnimation() {
         isPlaying = true
-        animationTask = Task {
+        animationTask = Task { @MainActor in
             while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(600))
+                guard !Task.isCancelled else { break }
                 let total = radarService.allFrames.count
                 guard total > 1 else { break }
-                let nextIndex = (frameIndex + 1) % total
-                let looping = nextIndex == 0
-                if looping {
-                    try? await Task.sleep(for: .seconds(2))
+                let next = frameIndex + 1
+                if next >= total {
+                    try? await Task.sleep(for: .seconds(1.5))
+                    guard !Task.isCancelled else { break }
+                    frameIndex = 0
+                } else {
+                    frameIndex = next
                 }
-                guard !Task.isCancelled else { break }
-                frameIndex = nextIndex
-                try? await Task.sleep(for: .milliseconds(600))
             }
         }
     }
