@@ -107,29 +107,43 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
+        guard !frames.isEmpty else { return }
+
+        // Add all overlays on first load
+        if context.coordinator.renderers.isEmpty {
+            for frame in frames {
+                let overlay = RadarTileOverlay(
+                    host: radarService.host, framePath: frame.path
+                )
+                mapView.addOverlay(overlay, level: .aboveLabels)
+            }
+        }
+
+        // Toggle visibility: show only the active frame
         guard frameIndex >= 0, frameIndex < frames.count else { return }
-        let frame = frames[frameIndex]
-        let currentPath = context.coordinator.currentPath
-        guard currentPath != frame.path else { return }
-        mapView.removeOverlays(mapView.overlays)
-        let overlay = RadarTileOverlay(
-            host: radarService.host, framePath: frame.path
-        )
-        mapView.addOverlay(overlay, level: .aboveLabels)
-        context.coordinator.currentPath = frame.path
+        let activePath = frames[frameIndex].path
+        guard activePath != context.coordinator.activePath else { return }
+        context.coordinator.activePath = activePath
+        for (path, renderer) in context.coordinator.renderers {
+            renderer.alpha = (path == activePath) ? 1.0 : 0.0
+        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var currentPath: String?
+        var activePath: String?
+        var renderers: [String: MKTileOverlayRenderer] = [:]
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? MKTileOverlay {
-                return MKTileOverlayRenderer(overlay: tileOverlay)
+            if let tileOverlay = overlay as? RadarTileOverlay {
+                let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
+                renderer.alpha = (tileOverlay.framePath == activePath) ? 1.0 : 0.0
+                renderers[tileOverlay.framePath] = renderer
+                return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
         }
@@ -166,40 +180,44 @@ struct WeatherRadarSheet: View {
         HStack {
             Text("Weather Radar").font(.headline)
             Spacer()
-            Text(frameLabel).font(.caption).foregroundColor(.secondary)
             Button("Done") { dismiss() }
         }
         .padding()
     }
 
     private var controls: some View {
-        HStack(spacing: 12) {
-            Button(action: togglePlay) {
-                Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+        VStack(spacing: 8) {
+            HStack {
+                Text(frameTimeLabel)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .monospacedDigit()
+                Spacer()
+                Text(relativeTimeLabel)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(
+                        frameIndex < radarService.pastFrames.count
+                            ? .secondary : Theme.Colors.accent
+                    )
             }
-            .buttonStyle(.borderless)
-            Slider(
-                value: Binding(
-                    get: { Double(frameIndex) },
-                    set: { frameIndex = Int($0) }
-                ),
-                in: 0...Double(max(0, radarService.allFrames.count - 1)),
-                step: 1
-            )
-            pastFutureLabel
+            HStack(spacing: 12) {
+                Button(action: togglePlay) {
+                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                }
+                .buttonStyle(.borderless)
+                Slider(
+                    value: Binding(
+                        get: { Double(frameIndex) },
+                        set: { frameIndex = Int($0) }
+                    ),
+                    in: 0...Double(max(0, radarService.allFrames.count - 1)),
+                    step: 1
+                )
+            }
         }
         .padding()
     }
 
-    private var pastFutureLabel: some View {
-        let isPast = frameIndex < radarService.pastFrames.count
-        return Text(isPast ? "Past" : "Forecast")
-            .font(.caption)
-            .foregroundColor(isPast ? .secondary : Theme.Colors.accent)
-            .frame(width: 55)
-    }
-
-    private var frameLabel: String {
+    private var frameTimeLabel: String {
         let frames = radarService.allFrames
         guard frameIndex >= 0, frameIndex < frames.count else { return "" }
         let date = Date(timeIntervalSince1970: Double(frames[frameIndex].time))
@@ -208,13 +226,23 @@ struct WeatherRadarSheet: View {
         return fmt.string(from: date)
     }
 
+    private var relativeTimeLabel: String {
+        let frames = radarService.allFrames
+        guard frameIndex >= 0, frameIndex < frames.count else { return "" }
+        let frameTime = Double(frames[frameIndex].time)
+        let minutes = Int((frameTime - Date().timeIntervalSince1970) / 60)
+        if minutes == 0 { return "Now" }
+        let prefix = minutes > 0 ? "+" : ""
+        return "\(prefix)\(minutes) min"
+    }
+
     private func togglePlay() {
         if isPlaying { stopAnimation() } else { startAnimation() }
     }
 
     private func startAnimation() {
         isPlaying = true
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        timer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { _ in
             Task { @MainActor in
                 let total = radarService.allFrames.count
                 guard total > 0 else { return }
