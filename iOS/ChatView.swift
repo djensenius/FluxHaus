@@ -14,61 +14,56 @@ struct ChatBubble: View {
 
     var body: some View {
         HStack {
-            if message.role == .user {
-                Spacer()
-            }
+            if message.role == .user { Spacer() }
             VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(foregroundColor)
+                if message.isProgress {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text(message.content)
+                            .font(Theme.Fonts.caption).italic()
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                } else {
+                    Text(message.content)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(foregroundColor)
+                }
                 if message.isVoice && message.audioData != nil {
                     Button(action: onPlayTapped, label: {
                         HStack(spacing: 4) {
-                            Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                                .font(.caption)
-                            Text(isPlaying ? "Stop" : "Play")
-                                .font(Theme.Fonts.caption)
+                            Image(systemName: isPlaying ? "stop.fill" : "play.fill").font(.caption)
+                            Text(isPlaying ? "Stop" : "Play").font(Theme.Fonts.caption)
                         }
                         .foregroundColor(playButtonColor)
                     })
                 }
             }
-            .padding(12)
-            .background(backgroundColor)
+            .padding(message.isProgress ? 8 : 12)
+            .background(message.isProgress ? Color.clear : backgroundColor)
             .cornerRadius(16)
-            if message.role != .user {
-                Spacer()
-            }
+            if message.role != .user { Spacer() }
         }
         .padding(.horizontal)
     }
 
     private var backgroundColor: Color {
         switch message.role {
-        case .user:
-            return Theme.Colors.accent
-        case .assistant:
-            return Theme.Colors.secondaryBackground
-        case .error:
-            return Theme.Colors.error.opacity(0.2)
+        case .user: return Theme.Colors.accent
+        case .assistant: return Theme.Colors.secondaryBackground
+        case .error: return Theme.Colors.error.opacity(0.2)
         }
     }
 
     private var foregroundColor: Color {
         switch message.role {
-        case .user:
-            return Theme.Colors.background
-        case .assistant:
-            return Theme.Colors.textPrimary
-        case .error:
-            return Theme.Colors.error
+        case .user: return Theme.Colors.background
+        case .assistant: return Theme.Colors.textPrimary
+        case .error: return Theme.Colors.error
         }
     }
 
     private var playButtonColor: Color {
-        message.role == .user
-            ? Theme.Colors.background.opacity(0.8)
-            : Theme.Colors.accent
+        message.role == .user ? Theme.Colors.background.opacity(0.8) : Theme.Colors.accent
     }
 }
 

@@ -19,6 +19,95 @@ struct CommandResponse: Decodable {
     let response: String
 }
 
+struct StreamEvent: Decodable {
+    let type: String
+    let text: String?
+    let tool: String?
+}
+
+func streamCommand(
+    _ command: String,
+    conversationId: String? = nil
+) -> AsyncThrowingStream<StreamEvent, Error> {
+    AsyncThrowingStream { continuation in
+        Task {
+            do {
+                var components = URLComponents()
+                components.scheme = "https"
+                components.host = "api.fluxhaus.io"
+                components.path = "/command/stream"
+                let url = components.url!
+
+                var request = try buildAuthRequest(url: url)
+                request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+                let body = CommandRequest(command: command, conversationId: conversationId)
+                request.httpBody = try JSONEncoder().encode(body)
+
+                let session = URLSession(configuration: .default)
+                let (bytes, response) = try await session.bytes(for: request)
+
+                if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+                    // Retry after token refresh
+                    let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+                    guard refreshed else {
+                        continuation.finish(throwing: ChatServiceError.unauthorized)
+                        return
+                    }
+                    var retry = try buildAuthRequest(url: url)
+                    retry.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+                    retry.httpBody = try JSONEncoder().encode(body)
+                    let (retryBytes, retryResp) = try await session.bytes(for: retry)
+                    if let http = retryResp as? HTTPURLResponse, http.statusCode != 200 {
+                        continuation.finish(throwing: ChatServiceError.serverError(
+                            "Server error (\(http.statusCode))"
+                        ))
+                        return
+                    }
+                    try await parseSSE(bytes: retryBytes, continuation: continuation)
+                    return
+                }
+
+                if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+                    continuation.finish(throwing: ChatServiceError.serverError(
+                        "Server error (\(http.statusCode))"
+                    ))
+                    return
+                }
+
+                try await parseSSE(bytes: bytes, continuation: continuation)
+            } catch {
+                continuation.finish(throwing: error)
+            }
+        }
+    }
+}
+
+private func parseSSE(
+    bytes: URLSession.AsyncBytes,
+    continuation: AsyncThrowingStream<StreamEvent, Error>.Continuation
+) async throws {
+    var buffer = ""
+    for try await byte in bytes {
+        buffer.append(Character(UnicodeScalar(byte)))
+        while buffer.contains("\n\n") {
+            guard let range = buffer.range(of: "\n\n") else { break }
+            let chunk = String(buffer[buffer.startIndex..<range.lowerBound])
+            buffer = String(buffer[range.upperBound...])
+            for line in chunk.components(separatedBy: "\n") {
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                if trimmed.hasPrefix("data: ") {
+                    let json = String(trimmed.dropFirst(6))
+                    if let data = json.data(using: .utf8),
+                       let event = try? JSONDecoder().decode(StreamEvent.self, from: data) {
+                        continuation.yield(event)
+                    }
+                }
+            }
+        }
+    }
+    continuation.finish()
+}
+
 struct VoiceRequest: Encodable {
     let audio: String?
     let text: String?

@@ -24,6 +24,7 @@ struct ChatMessage: Identifiable {
     let timestamp: Date
     var audioData: Data?
     var isVoice: Bool
+    var isProgress: Bool
     var serverMessageId: String?
 
     init(
@@ -32,6 +33,7 @@ struct ChatMessage: Identifiable {
         timestamp: Date = Date(),
         audioData: Data? = nil,
         isVoice: Bool = false,
+        isProgress: Bool = false,
         serverMessageId: String? = nil
     ) {
         self.id = UUID()
@@ -40,6 +42,7 @@ struct ChatMessage: Identifiable {
         self.timestamp = timestamp
         self.audioData = audioData
         self.isVoice = isVoice
+        self.isProgress = isProgress
         self.serverMessageId = serverMessageId
     }
 }
@@ -84,11 +87,38 @@ struct Conversation: Identifiable, Codable {
         isLoading = true
 
         do {
-            let response = try await sendCommand(trimmed, conversationId: conversationId)
+            var finalText: String?
+            for try await event in streamCommand(trimmed, conversationId: conversationId) {
+                switch event.type {
+                case "progress":
+                    if let text = event.text, !text.isEmpty {
+                        messages.append(ChatMessage(
+                            role: .assistant, content: text, isProgress: true
+                        ))
+                    }
+                case "tool_call":
+                    if let tool = event.tool {
+                        let label = formatToolName(tool)
+                        messages.append(ChatMessage(
+                            role: .assistant, content: "🔧 \(label)", isProgress: true
+                        ))
+                    }
+                case "done":
+                    finalText = event.text
+                case "error":
+                    throw ChatServiceError.serverError(event.text ?? "Unknown error")
+                default:
+                    break
+                }
+            }
+            // Remove progress messages and add the final response
+            messages.removeAll { $0.isProgress }
+            let response = finalText ?? "Done."
             messages.append(ChatMessage(role: .assistant, content: response))
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
         } catch {
+            messages.removeAll { $0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
             messages.append(ChatMessage(
                 role: .error,
@@ -97,6 +127,11 @@ struct Conversation: Identifiable, Codable {
         }
 
         isLoading = false
+    }
+
+    private func formatToolName(_ name: String) -> String {
+        name.replacingOccurrences(of: "_", with: " ")
+            .capitalized
     }
 
     func startRecording() {
