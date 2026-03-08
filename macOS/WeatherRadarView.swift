@@ -26,7 +26,7 @@ struct RadarMapView: NSViewRepresentable {
         mapView.showsCompass = false
         let region = MKCoordinateRegion(
             center: coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
+            span: MKCoordinateSpan(latitudeDelta: 1.5, longitudeDelta: 1.5)
         )
         mapView.setRegion(region, animated: false)
         let overlay = RadarAnimationOverlay(coordinate: coordinate)
@@ -89,7 +89,7 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         mapView.showsCompass = true
         let region = MKCoordinateRegion(
             center: coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 4.0, longitudeDelta: 4.0)
+            span: MKCoordinateSpan(latitudeDelta: 2.5, longitudeDelta: 2.5)
         )
         mapView.setRegion(region, animated: false)
         let overlay = RadarAnimationOverlay(coordinate: coordinate)
