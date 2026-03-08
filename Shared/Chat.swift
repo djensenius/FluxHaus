@@ -87,46 +87,74 @@ struct Conversation: Identifiable, Codable {
         isLoading = true
 
         do {
-            var finalText: String?
-            for try await event in streamCommand(trimmed, conversationId: conversationId) {
-                switch event.type {
-                case "progress":
-                    if let text = event.text, !text.isEmpty {
-                        messages.append(ChatMessage(
-                            role: .assistant, content: text, isProgress: true
-                        ))
-                    }
-                case "tool_call":
-                    if let tool = event.tool {
-                        let label = formatToolName(tool)
-                        messages.append(ChatMessage(
-                            role: .assistant, content: "🔧 \(label)", isProgress: true
-                        ))
-                    }
-                case "done":
-                    finalText = event.text
-                case "error":
-                    throw ChatServiceError.serverError(event.text ?? "Unknown error")
-                default:
-                    break
-                }
-            }
-            // Remove progress messages and add the final response
+            let result = try await processStream(
+                streamCommand(trimmed, conversationId: conversationId)
+            )
             messages.removeAll { $0.isProgress }
-            let response = finalText ?? "Done."
-            messages.append(ChatMessage(role: .assistant, content: response))
+            messages.append(ChatMessage(role: .assistant, content: result.text))
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
         } catch {
             messages.removeAll { $0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
-            messages.append(ChatMessage(
-                role: .error,
-                content: error.localizedDescription
-            ))
+            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
         }
 
         isLoading = false
+    }
+
+    private struct StreamResult {
+        var text: String = "Done."
+        var transcript: String?
+        var audioData: Data?
+    }
+
+    private func processStream(
+        _ stream: AsyncThrowingStream<StreamEvent, Error>
+    ) async throws -> StreamResult {
+        var result = StreamResult()
+        for try await event in stream {
+            switch event.type {
+            case "transcript":
+                result.transcript = event.text
+                updateUserTranscript(event.text)
+            case "progress":
+                appendProgress(event.text)
+            case "tool_call":
+                appendToolCall(event.tool)
+            case "done":
+                if let text = event.text { result.text = text }
+                if let b64 = event.audio, let data = Data(base64Encoded: b64) {
+                    result.audioData = data
+                }
+            case "error":
+                throw ChatServiceError.serverError(event.text ?? "Unknown error")
+            default: break
+            }
+        }
+        return result
+    }
+
+    private func appendProgress(_ text: String?) {
+        guard let text, !text.isEmpty else { return }
+        messages.append(ChatMessage(role: .assistant, content: text, isProgress: true))
+    }
+
+    private func appendToolCall(_ tool: String?) {
+        guard let tool else { return }
+        messages.append(ChatMessage(
+            role: .assistant, content: "🔧 \(formatToolName(tool))", isProgress: true
+        ))
+    }
+
+    private func updateUserTranscript(_ text: String?) {
+        guard let text, !text.isEmpty,
+              let idx = messages.lastIndex(where: { $0.role == .user }) else { return }
+        messages[idx] = ChatMessage(
+            role: .user, content: text,
+            timestamp: messages[idx].timestamp,
+            audioData: messages[idx].audioData, isVoice: true
+        )
     }
 
     private func formatToolName(_ name: String) -> String {
@@ -184,45 +212,29 @@ struct Conversation: Identifiable, Codable {
 
         await ensureConversation()
         messages.append(ChatMessage(
-            role: .user,
-            content: "🎤 Voice message",
-            audioData: audioData,
-            isVoice: true
+            role: .user, content: "🎤 Voice message",
+            audioData: audioData, isVoice: true
         ))
         isLoading = true
 
         do {
-            let response = try await sendVoice(audioData: audioData, conversationId: conversationId)
-
-            // Update user message with transcript
-            if !response.transcript.isEmpty {
-                if let lastUserIndex = messages.lastIndex(where: { $0.role == .user }) {
-                    messages[lastUserIndex] = ChatMessage(
-                        role: .user,
-                        content: response.transcript,
-                        timestamp: messages[lastUserIndex].timestamp,
-                        audioData: messages[lastUserIndex].audioData,
-                        isVoice: true
-                    )
-                }
-            }
-
+            let result = try await processStream(
+                streamVoice(audioData: audioData, conversationId: conversationId)
+            )
+            messages.removeAll { $0.isProgress }
             messages.append(ChatMessage(
-                role: .assistant,
-                content: response.responseText,
-                audioData: response.audioData,
-                isVoice: true
+                role: .assistant, content: result.text,
+                audioData: result.audioData, isVoice: true
             ))
-
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
-            playAudioResponse(data: response.audioData)
+            if let audio = result.audioData {
+                playAudioResponse(data: audio)
+            }
         } catch {
+            messages.removeAll { $0.isProgress }
             logger.error("Voice error: \(error.localizedDescription)")
-            messages.append(ChatMessage(
-                role: .error,
-                content: error.localizedDescription
-            ))
+            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
         }
 
         isLoading = false

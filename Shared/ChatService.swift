@@ -23,6 +23,7 @@ struct StreamEvent: Decodable {
     let type: String
     let text: String?
     let tool: String?
+    let audio: String?
 }
 
 func streamCommand(
@@ -106,6 +107,68 @@ private func parseSSE(
         }
     }
     continuation.finish()
+}
+
+func streamVoice(
+    audioData: Data,
+    conversationId: String? = nil
+) -> AsyncThrowingStream<StreamEvent, Error> {
+    AsyncThrowingStream { continuation in
+        Task {
+            do {
+                var components = URLComponents()
+                components.scheme = "https"
+                components.host = "api.fluxhaus.io"
+                components.path = "/voice/stream"
+                let url = components.url!
+
+                var request = try buildAuthRequest(url: url)
+                request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+                let voiceReq = VoiceRequest(
+                    audio: audioData.base64EncodedString(),
+                    text: nil,
+                    filename: "audio.m4a",
+                    conversationId: conversationId
+                )
+                let bodyData = try JSONEncoder().encode(voiceReq)
+                request.httpBody = bodyData
+
+                let session = URLSession(configuration: .default)
+                let (bytes, response) = try await session.bytes(for: request)
+
+                if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+                    let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+                    guard refreshed else {
+                        continuation.finish(throwing: ChatServiceError.unauthorized)
+                        return
+                    }
+                    var retry = try buildAuthRequest(url: url)
+                    retry.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+                    retry.httpBody = bodyData
+                    let (retryBytes, retryResp) = try await session.bytes(for: retry)
+                    if let http = retryResp as? HTTPURLResponse, http.statusCode != 200 {
+                        continuation.finish(throwing: ChatServiceError.serverError(
+                            "Server error (\(http.statusCode))"
+                        ))
+                        return
+                    }
+                    try await parseSSE(bytes: retryBytes, continuation: continuation)
+                    return
+                }
+
+                if let http = response as? HTTPURLResponse, http.statusCode != 200 {
+                    continuation.finish(throwing: ChatServiceError.serverError(
+                        "Server error (\(http.statusCode))"
+                    ))
+                    return
+                }
+
+                try await parseSSE(bytes: bytes, continuation: continuation)
+            } catch {
+                continuation.finish(throwing: error)
+            }
+        }
+    }
 }
 
 struct VoiceRequest: Encodable {
