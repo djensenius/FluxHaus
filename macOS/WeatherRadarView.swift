@@ -123,14 +123,20 @@ struct InteractiveRadarMapView: NSViewRepresentable {
                 mapView.addOverlay(overlay, level: .aboveLabels)
             }
             coord.overlaysLoaded = true
+
+            // Deferred alpha pass — renderers are created async by MKMapView
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                for (path, renderer) in coord.renderers {
+                    renderer.alpha = path == coord.activePath ? 1.0 : 0.0
+                }
+            }
         }
 
-        guard activePath != coord.currentPath else { return }
-        coord.currentPath = activePath
-
+        // Always re-apply alpha (renderers may have appeared since last call)
         for (path, renderer) in coord.renderers {
             renderer.alpha = path == activePath ? 1.0 : 0.0
         }
+        coord.currentPath = activePath
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
