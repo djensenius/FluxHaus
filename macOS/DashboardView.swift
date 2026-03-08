@@ -19,6 +19,8 @@ struct DashboardView: View {
     var onNavigate: (SidebarItem) -> Void
     @State private var sceneManager = SceneManager()
     @State private var carButtonsDisabled = false
+    @State private var radarService = RadarService()
+    @State private var showRadarSheet = false
 
     var body: some View {
         ScrollView {
@@ -36,6 +38,7 @@ struct DashboardView: View {
         .task {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
+            await radarService.fetchFrames()
             await sceneManager.loadScenes(
                 favouriteNames: fluxHausConsts.favouriteScenes
             )
@@ -74,71 +77,11 @@ struct DashboardView: View {
 
     // MARK: - Weather
     private var weatherCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if let weather = locationManager.weather {
-                HStack(spacing: 16) {
-                    Image(systemName: weatherIcon)
-                        .symbolRenderingMode(.multicolor)
-                        .font(.system(size: 42))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(temperatureString)
-                            .font(.system(size: 28, weight: .semibold, design: .rounded))
-                            .foregroundColor(Theme.Colors.textPrimary)
-                        Text(weather.currentWeather.condition.description)
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                    Spacer()
-                    if let high = highTemp, let low = lowTemp {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Label("H: \(high)", systemImage: "arrow.up")
-                                .font(Theme.Fonts.bodyMedium)
-                                .foregroundColor(Theme.Colors.textPrimary)
-                            Label("L: \(low)", systemImage: "arrow.down")
-                                .font(Theme.Fonts.bodyMedium)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                    }
-                }
-                HStack(spacing: 16) {
-                    weatherDetail(icon: "thermometer.medium", label: "Feels like", value: feelsLikeString)
-                    weatherDetail(icon: "humidity", label: "Humidity", value: humidityString)
-                    weatherDetail(icon: "sun.max.trianglebadge.exclamationmark", label: "UV", value: uvIndexString)
-                    weatherDetail(icon: "wind", label: "Wind", value: windString)
-                }
-                if let precipText = precipitationText {
-                    Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.accent)
-                }
-            } else {
-                HStack {
-                    ProgressView().controlSize(.small)
-                    Text("Loading weather…")
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                }
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.secondaryBackground)
-        .cornerRadius(12)
-    }
-
-    private func weatherDetail(icon: String, label: String, value: String) -> some View {
-        VStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-            Text(value)
-                .font(Theme.Fonts.bodySmall)
-                .foregroundColor(Theme.Colors.textPrimary)
-            Text(label)
-                .font(.system(size: 9))
-                .foregroundColor(Theme.Colors.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
+        WeatherCard(
+            locationManager: locationManager,
+            radarService: radarService,
+            showRadarSheet: $showRadarSheet
+        )
     }
 
     // MARK: - Car
@@ -422,52 +365,6 @@ extension DashboardView {
         return "powerplug.fill"
     }
 
-    var temperatureString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return WeatherHelpers.formatTemp(weather.currentWeather.temperature.value)
-    }
-
-    var highTemp: String? {
-        guard let weather = locationManager.weather,
-              let today = weather.dailyForecast.first else { return nil }
-        return WeatherHelpers.formatTemp(today.highTemperature.value)
-    }
-
-    var lowTemp: String? {
-        guard let weather = locationManager.weather,
-              let today = weather.dailyForecast.first else { return nil }
-        return WeatherHelpers.formatTemp(today.lowTemperature.value)
-    }
-
-    var weatherIcon: String {
-        guard let weather = locationManager.weather else { return "cloud" }
-        return WeatherHelpers.icon(for: weather.currentWeather.condition)
-    }
-
-    var feelsLikeString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return WeatherHelpers.formatTemp(weather.currentWeather.apparentTemperature.value)
-    }
-
-    var humidityString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return "\(Int(weather.currentWeather.humidity * 100))%"
-    }
-
-    var uvIndexString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return "\(weather.currentWeather.uvIndex.value)"
-    }
-
-    var windString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return WeatherHelpers.formatSpeed(weather.currentWeather.wind.speed.value)
-    }
-
-    var precipitationText: String? {
-        guard let forecast = locationManager.forecast else { return nil }
-        return WeatherHelpers.precipitationText(from: forecast)
-    }
 }
 
 #if DEBUG

@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		RD0003000000000000000001 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
+		RD0003000000000000000002 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
+		RD0003000000000000000003 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
+		RD0004000000000000000001 /* WeatherRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0002000000000000000001 /* WeatherRadarView.swift */; };
+		RD0003000000000000000004 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
+		RD0004000000000000000002 /* WeatherRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0002000000000000000001 /* WeatherRadarView.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		31FCD81922AE005906F0AC46 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
@@ -348,6 +354,8 @@
 		AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		AC70F639352E9D9252F77D43 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
+		RD0001000000000000000001 /* RadarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarService.swift; sourceTree = "<group>"; };
+		RD0002000000000000000001 /* WeatherRadarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherRadarView.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -470,6 +478,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				632CBC26258682C9003E4988 /* Assets.xcassets */,
 				63BCF7542C63FABB001D4375 /* Api.swift */,
 				B21E737133023F1FB8033FE1 /* SceneService.swift */,
+				RD0001000000000000000001 /* RadarService.swift */,
 				C6709013ABF8AA633E63B128 /* SceneView.swift */,
 			);
 			path = Shared;
@@ -509,6 +518,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				35E37BE77DA97D1A7B4F3394 /* ContentView.swift */,
 				57CB3B0423E7608E287483D2 /* DashboardView.swift */,
 				FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */,
+				RD0002000000000000000001 /* WeatherRadarView.swift */,
 				AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */,
 				731A02EE588AFF8C715B9DEB /* MacApp.swift */,
 				76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */,
@@ -966,6 +976,8 @@ runOnlyForDeploymentPostprocessing = 0;
 				D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */,
 				76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */,
 				A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */,
+				RD0003000000000000000001 /* RadarService.swift in Sources */,
+				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1009,6 +1021,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				63610D2E2BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
 				6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */,
+				RD0003000000000000000002 /* RadarService.swift in Sources */,
 				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1091,6 +1104,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				63BCF7572C63FABB001D4375 /* Api.swift in Sources */,
 				6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */,
+				RD0003000000000000000003 /* RadarService.swift in Sources */,
 				A833D279DDED4F415801541F /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1156,6 +1170,8 @@ B250E6A2C157F636EA648473 /* DashboardView.swift in Sources */,
 94150B7CEBCFBDF569235F89 /* SettingsView.swift in Sources */,
 5C3861FC78328082D3079690 /* SceneService.swift in Sources */,
 BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */,
+RD0003000000000000000004 /* RadarService.swift in Sources */,
+RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
 );
 runOnlyForDeploymentPostprocessing = 0;
 };
