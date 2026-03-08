@@ -110,8 +110,12 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         guard !frames.isEmpty else { return }
         let coord = context.coordinator
 
+        guard frameIndex >= 0, frameIndex < frames.count else { return }
+        let activePath = frames[frameIndex].path
+        coord.activePath = activePath
+
         // Pre-load all overlays once so tiles are cached
-        if !coord.overlaysLoaded && !frames.isEmpty {
+        if !coord.overlaysLoaded {
             for frame in frames {
                 let overlay = RadarTileOverlay(
                     host: radarService.host, framePath: frame.path
@@ -121,12 +125,9 @@ struct InteractiveRadarMapView: NSViewRepresentable {
             coord.overlaysLoaded = true
         }
 
-        guard frameIndex >= 0, frameIndex < frames.count else { return }
-        let activePath = frames[frameIndex].path
         guard activePath != coord.currentPath else { return }
         coord.currentPath = activePath
 
-        // Toggle alpha: active frame = 1, all others = 0
         for (path, renderer) in coord.renderers {
             renderer.alpha = path == activePath ? 1.0 : 0.0
         }
@@ -136,6 +137,7 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var currentPath: String?
+        var activePath: String?
         var renderers: [String: MKTileOverlayRenderer] = [:]
         var overlaysLoaded = false
 
@@ -145,7 +147,8 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         ) -> MKOverlayRenderer {
             if let tileOverlay = overlay as? RadarTileOverlay {
                 let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
-                renderer.alpha = 0
+                // Show immediately if this is the active frame
+                renderer.alpha = tileOverlay.framePath == activePath ? 1.0 : 0.0
                 renderers[tileOverlay.framePath] = renderer
                 return renderer
             }
@@ -296,7 +299,7 @@ struct WeatherCard: View {
                     coordinate: locationManager.coordinate,
                     radarService: radarService, frameIndex: nil
                 )
-                .frame(maxWidth: .infinity).frame(height: 160).clipped()
+                .frame(maxWidth: .infinity).frame(height: 120).clipped()
                 .overlay(
                     LinearGradient(
                         colors: [
@@ -309,65 +312,49 @@ struct WeatherCard: View {
             }
             weatherOverlay
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity).frame(height: 120)
         .background(Theme.Colors.secondaryBackground)
         .cornerRadius(12).clipped()
         .onTapGesture { onNavigate(.weather) }
     }
 
     private var weatherOverlay: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        HStack(spacing: 16) {
             if let weather = locationManager.weather {
-                HStack(spacing: 16) {
-                    Image(systemName: weatherIcon)
-                        .symbolRenderingMode(.multicolor)
-                        .font(.system(size: 42))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(temperatureString)
-                            .font(.system(size: 28, weight: .semibold, design: .rounded))
+                Image(systemName: weatherIcon)
+                    .symbolRenderingMode(.multicolor)
+                    .font(.system(size: 36))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(temperatureString)
+                        .font(.system(size: 24, weight: .semibold, design: .rounded))
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    Text(weather.currentWeather.condition.description)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                    if let precipText = precipitationText {
+                        Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
+                            .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.accent)
+                    }
+                }
+                Spacer()
+                if let high = highTemp, let low = lowTemp {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Label("H: \(high)", systemImage: "arrow.up")
+                            .font(Theme.Fonts.bodyMedium)
                             .foregroundColor(Theme.Colors.textPrimary)
-                        Text(weather.currentWeather.condition.description)
+                        Label("L: \(low)", systemImage: "arrow.down")
                             .font(Theme.Fonts.bodyMedium)
                             .foregroundColor(Theme.Colors.textSecondary)
                     }
-                    Spacer()
-                    if let high = highTemp, let low = lowTemp {
-                        VStack(alignment: .trailing, spacing: 4) {
-                            Label("H: \(high)", systemImage: "arrow.up")
-                                .font(Theme.Fonts.bodyMedium)
-                                .foregroundColor(Theme.Colors.textPrimary)
-                            Label("L: \(low)", systemImage: "arrow.down")
-                                .font(Theme.Fonts.bodyMedium)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                    }
-                }
-                HStack(spacing: 16) {
-                    weatherDetail(icon: "thermometer.medium", value: feelsLikeString)
-                    weatherDetail(icon: "humidity", value: humidityString)
-                    weatherDetail(icon: "wind", value: windString)
-                }
-                if let precipText = precipitationText {
-                    Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
-                        .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.accent)
                 }
             } else {
-                HStack {
-                    ProgressView().controlSize(.small)
-                    Text("Loading weather…")
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                }
+                ProgressView().controlSize(.small)
+                Text("Loading weather…")
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
             }
         }
         .padding()
-    }
-
-    private func weatherDetail(icon: String, value: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon).font(.caption2).foregroundColor(Theme.Colors.textSecondary)
-            Text(value).font(Theme.Fonts.bodySmall).foregroundColor(Theme.Colors.textPrimary)
-        }
     }
 
     private var temperatureString: String {
@@ -387,18 +374,6 @@ struct WeatherCard: View {
     private var weatherIcon: String {
         guard let weather = locationManager.weather else { return "cloud" }
         return WeatherHelpers.icon(for: weather.currentWeather.condition)
-    }
-    private var feelsLikeString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return WeatherHelpers.formatTemp(weather.currentWeather.apparentTemperature.value)
-    }
-    private var humidityString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return "\(Int(weather.currentWeather.humidity * 100))%"
-    }
-    private var windString: String {
-        guard let weather = locationManager.weather else { return "" }
-        return WeatherHelpers.formatSpeed(weather.currentWeather.wind.speed.value)
     }
     private var precipitationText: String? {
         guard let forecast = locationManager.forecast else { return nil }
