@@ -173,3 +173,156 @@ struct WeatherForecastSection: View {
             .padding(.horizontal)
     }
 }
+
+// MARK: - Weather Detail View (Sidebar Section)
+
+struct WeatherDetailView: View {
+    @ObservedObject var locationManager: LocationManager
+    var radarService: RadarService
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                if let weather = locationManager.weather {
+                    currentWeatherCard(weather: weather)
+                    radarCard
+                    forecastCard(weather: weather)
+                } else {
+                    loadingView
+                }
+            }
+            .padding()
+        }
+        .background(Theme.Colors.background)
+        .task {
+            await locationManager.startMonitoring()
+            await locationManager.fetchTheWeather()
+            await radarService.fetchFrames()
+        }
+    }
+
+    private func currentWeatherCard(weather: Weather) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 16) {
+                Image(systemName: WeatherHelpers.icon(for: weather.currentWeather.condition))
+                    .symbolRenderingMode(.multicolor)
+                    .font(.system(size: 48))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(WeatherHelpers.formatTemp(weather.currentWeather.temperature.value))
+                        .font(.system(size: 36, weight: .semibold, design: .rounded))
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    Text(weather.currentWeather.condition.description)
+                        .font(Theme.Fonts.bodyLarge)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                Spacer()
+                if let today = weather.dailyForecast.first {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Label(
+                            "H: \(WeatherHelpers.formatTemp(today.highTemperature.value))",
+                            systemImage: "arrow.up"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                        Label(
+                            "L: \(WeatherHelpers.formatTemp(today.lowTemperature.value))",
+                            systemImage: "arrow.down"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                }
+            }
+            detailsGrid(weather: weather)
+            if let forecast = locationManager.forecast,
+               let text = WeatherHelpers.precipitationText(from: forecast) {
+                Label(text, systemImage: forecast.symbolName)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.accent)
+            }
+        }
+        .padding()
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    private func detailsGrid(weather: Weather) -> some View {
+        let cur = weather.currentWeather
+        return HStack(spacing: 16) {
+            detailItem(
+                icon: "thermometer.medium", label: "Feels like",
+                value: WeatherHelpers.formatTemp(cur.apparentTemperature.value)
+            )
+            detailItem(
+                icon: "humidity", label: "Humidity",
+                value: "\(Int(cur.humidity * 100))%"
+            )
+            detailItem(
+                icon: "sun.max.trianglebadge.exclamationmark", label: "UV",
+                value: "\(cur.uvIndex.value)"
+            )
+            detailItem(
+                icon: "wind", label: "Wind",
+                value: WeatherHelpers.formatSpeed(cur.wind.speed.value)
+            )
+        }
+    }
+
+    private func detailItem(icon: String, label: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Image(systemName: icon).font(.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
+            Text(value).font(Theme.Fonts.bodySmall)
+                .foregroundColor(Theme.Colors.textPrimary)
+            Text(label).font(.system(size: 9))
+                .foregroundColor(Theme.Colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var radarCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Radar", systemImage: "antenna.radiowaves.left.and.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Theme.Colors.textSecondary)
+                .textCase(.uppercase)
+            if radarService.isLoaded {
+                RadarMapView(
+                    coordinate: locationManager.coordinate,
+                    radarService: radarService, frameIndex: nil
+                )
+                .frame(maxWidth: .infinity).frame(height: 250)
+                .cornerRadius(8).clipped()
+            } else {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Theme.Colors.background.opacity(0.5))
+                    .frame(maxWidth: .infinity).frame(height: 250)
+                    .overlay {
+                        ProgressView("Loading radar…")
+                            .font(Theme.Fonts.caption)
+                    }
+            }
+        }
+        .padding()
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    private func forecastCard(weather: Weather) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            WeatherForecastSection(weather: weather)
+        }
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    private var loadingView: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("Loading weather…")
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.textSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}

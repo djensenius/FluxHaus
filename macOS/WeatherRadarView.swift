@@ -97,7 +97,6 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         mapView.isRotateEnabled = false
         mapView.showsZoomControls = true
         mapView.showsCompass = true
-        mapView.wantsLayer = true
         let region = MKCoordinateRegion(
             center: coordinate,
             span: MKCoordinateSpan(latitudeDelta: 4.0, longitudeDelta: 4.0)
@@ -112,22 +111,26 @@ struct InteractiveRadarMapView: NSViewRepresentable {
         let frame = frames[frameIndex]
         guard frame.path != context.coordinator.currentPath else { return }
 
-        // Cross-fade between frames using CATransition
-        let transition = CATransition()
-        transition.type = .fade
-        transition.duration = 0.4
-        transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        mapView.layer?.add(transition, forKey: "radarFade")
-
         let newOverlay = RadarTileOverlay(
             host: radarService.host, framePath: frame.path
         )
         mapView.addOverlay(newOverlay, level: .aboveLabels)
-        let stale = mapView.overlays.filter {
-            ($0 as? RadarTileOverlay)?.framePath != frame.path
-        }
-        mapView.removeOverlays(stale)
+
+        // Delay stale overlay removal so new tiles load first
+        let stalePaths = mapView.overlays.compactMap {
+            ($0 as? RadarTileOverlay)?.framePath
+        }.filter { $0 != frame.path }
         context.coordinator.currentPath = frame.path
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            let toRemove = mapView.overlays.filter {
+                guard let path = ($0 as? RadarTileOverlay)?.framePath else {
+                    return false
+                }
+                return stalePaths.contains(path)
+            }
+            mapView.removeOverlays(toRemove)
+        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -154,7 +157,6 @@ struct WeatherRadarSheet: View {
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
-    @State private var playingForward = true
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -253,24 +255,18 @@ struct WeatherRadarSheet: View {
 
     private func startAnimation() {
         isPlaying = true
-        playingForward = true
         animationTask = Task {
             while !Task.isCancelled {
                 let total = radarService.allFrames.count
                 guard total > 1 else { break }
-                let atEnd = frameIndex >= total - 1
-                let atStart = frameIndex <= 0
-                // Pause at boundaries, then reverse direction
-                if playingForward && atEnd {
-                    try? await Task.sleep(for: .seconds(1.5))
-                    playingForward = false
-                } else if !playingForward && atStart {
-                    try? await Task.sleep(for: .seconds(0.8))
-                    playingForward = true
+                let nextIndex = (frameIndex + 1) % total
+                let looping = nextIndex == 0
+                if looping {
+                    try? await Task.sleep(for: .seconds(2))
                 }
                 guard !Task.isCancelled else { break }
-                frameIndex += playingForward ? 1 : -1
-                try? await Task.sleep(for: .milliseconds(500))
+                frameIndex = nextIndex
+                try? await Task.sleep(for: .milliseconds(600))
             }
         }
     }

@@ -16,10 +16,10 @@ struct DashboardView: View {
     var car: Car
     var apiResponse: Api
     @ObservedObject var locationManager: LocationManager
+    var radarService: RadarService
     var onNavigate: (SidebarItem) -> Void
     @State private var sceneManager = SceneManager()
     @State private var carButtonsDisabled = false
-    @State private var radarService = RadarService()
     @State private var showRadarSheet = false
 
     var body: some View {
@@ -384,6 +384,7 @@ extension DashboardView {
         car: MockData.createCar(),
         apiResponse: MockData.createApi(),
         locationManager: LocationManager(),
+        radarService: RadarService(),
         onNavigate: { _ in }
     )
 }
