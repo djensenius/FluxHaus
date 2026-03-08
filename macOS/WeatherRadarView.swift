@@ -107,43 +107,33 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
-        guard !frames.isEmpty else { return }
-
-        // Add all overlays on first load
-        if context.coordinator.renderers.isEmpty {
-            for frame in frames {
-                let overlay = RadarTileOverlay(
-                    host: radarService.host, framePath: frame.path
-                )
-                mapView.addOverlay(overlay, level: .aboveLabels)
-            }
-        }
-
-        // Toggle visibility: show only the active frame
         guard frameIndex >= 0, frameIndex < frames.count else { return }
-        let activePath = frames[frameIndex].path
-        guard activePath != context.coordinator.activePath else { return }
-        context.coordinator.activePath = activePath
-        for (path, renderer) in context.coordinator.renderers {
-            renderer.alpha = (path == activePath) ? 1.0 : 0.0
+        let frame = frames[frameIndex]
+        guard frame.path != context.coordinator.currentPath else { return }
+
+        // Add new overlay first, then remove old ones (prevents flash)
+        let newOverlay = RadarTileOverlay(
+            host: radarService.host, framePath: frame.path
+        )
+        mapView.addOverlay(newOverlay, level: .aboveLabels)
+        let stale = mapView.overlays.filter {
+            ($0 as? RadarTileOverlay)?.framePath != frame.path
         }
+        mapView.removeOverlays(stale)
+        context.coordinator.currentPath = frame.path
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var activePath: String?
-        var renderers: [String: MKTileOverlayRenderer] = [:]
+        var currentPath: String?
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? RadarTileOverlay {
-                let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
-                renderer.alpha = (tileOverlay.framePath == activePath) ? 1.0 : 0.0
-                renderers[tileOverlay.framePath] = renderer
-                return renderer
+            if let tileOverlay = overlay as? MKTileOverlay {
+                return MKTileOverlayRenderer(overlay: tileOverlay)
             }
             return MKOverlayRenderer(overlay: overlay)
         }
@@ -178,7 +168,13 @@ struct WeatherRadarSheet: View {
 
     private var header: some View {
         HStack {
-            Text("Weather Radar").font(.headline)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Weather Radar").font(.headline)
+                if radarService.nowcastFrames.isEmpty {
+                    Text("Forecast unavailable — no active precipitation")
+                        .font(.caption2).foregroundColor(.secondary)
+                }
+            }
             Spacer()
             Button("Done") { dismiss() }
         }
