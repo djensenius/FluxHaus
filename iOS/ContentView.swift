@@ -17,6 +17,7 @@ struct ContentView: View {
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
+    @ObservedObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var showChat = false
 
@@ -24,7 +25,7 @@ struct ContentView: View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
-            if AuthManager.hasOIDCToken() {
+            if authManager.isOIDC {
                 HStack {
                     Spacer()
                     Button(action: { showChat = true }, label: {
@@ -86,7 +87,7 @@ struct ContentView: View {
             ChatView(chat: chat)
         }
         .overlay {
-            if AuthManager.hasOIDCToken() {
+            if authManager.isOIDC {
                 Button("") { showChat = true }
                     .keyboardShortcut("c", modifiers: .command)
                     .frame(width: 0, height: 0)

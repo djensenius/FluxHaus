@@ -154,6 +154,11 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         return false
     }
 
+    var isOIDC: Bool {
+        if case .signedIn(method: .oidc) = authState { return true }
+        return false
+    }
+
     private init() {
         let hasAccessToken = getAccessToken() != nil
         let hasRefreshToken = getKeychainItem(account: "oidc_refresh_token") != nil
