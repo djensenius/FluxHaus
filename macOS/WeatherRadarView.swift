@@ -107,56 +107,39 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
-        guard !frames.isEmpty else { return }
-        let coord = context.coordinator
-
         guard frameIndex >= 0, frameIndex < frames.count else { return }
-        let activePath = frames[frameIndex].path
-        coord.activePath = activePath
+        let frame = frames[frameIndex]
+        guard frame.path != context.coordinator.currentPath else { return }
 
-        // Pre-load all overlays once so tiles are cached
-        if !coord.overlaysLoaded {
-            for frame in frames {
-                let overlay = RadarTileOverlay(
-                    host: radarService.host, framePath: frame.path
-                )
-                mapView.addOverlay(overlay, level: .aboveLabels)
-            }
-            coord.overlaysLoaded = true
+        // Add new overlay, then remove stale ones after a delay
+        let newOverlay = RadarTileOverlay(
+            host: radarService.host, framePath: frame.path
+        )
+        mapView.addOverlay(newOverlay, level: .aboveLabels)
+        context.coordinator.currentPath = frame.path
 
-            // Deferred alpha pass — renderers are created async by MKMapView
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                for (path, renderer) in coord.renderers {
-                    renderer.alpha = path == coord.activePath ? 1.0 : 0.0
-                }
+        // Keep old overlays briefly so new tiles load underneath
+        let staleOverlays = mapView.overlays.filter {
+            ($0 as? RadarTileOverlay)?.framePath != frame.path
+        }
+        if !staleOverlays.isEmpty {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                mapView.removeOverlays(staleOverlays)
             }
         }
-
-        // Always re-apply alpha (renderers may have appeared since last call)
-        for (path, renderer) in coord.renderers {
-            renderer.alpha = path == activePath ? 1.0 : 0.0
-        }
-        coord.currentPath = activePath
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var currentPath: String?
-        var activePath: String?
-        var renderers: [String: MKTileOverlayRenderer] = [:]
-        var overlaysLoaded = false
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? RadarTileOverlay {
-                let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
-                // Show immediately if this is the active frame
-                renderer.alpha = tileOverlay.framePath == activePath ? 1.0 : 0.0
-                renderers[tileOverlay.framePath] = renderer
-                return renderer
+            if let tileOverlay = overlay as? MKTileOverlay {
+                return MKTileOverlayRenderer(overlay: tileOverlay)
             }
             return MKOverlayRenderer(overlay: overlay)
         }
