@@ -107,29 +107,28 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
-        guard frameIndex >= 0, frameIndex < frames.count else { return }
-        let frame = frames[frameIndex]
-        guard frame.path != context.coordinator.currentPath else { return }
+        guard !frames.isEmpty else { return }
+        let coord = context.coordinator
 
-        let newOverlay = RadarTileOverlay(
-            host: radarService.host, framePath: frame.path
-        )
-        mapView.addOverlay(newOverlay, level: .aboveLabels)
-
-        // Delay stale overlay removal so new tiles load first
-        let stalePaths = mapView.overlays.compactMap {
-            ($0 as? RadarTileOverlay)?.framePath
-        }.filter { $0 != frame.path }
-        context.coordinator.currentPath = frame.path
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            let toRemove = mapView.overlays.filter {
-                guard let path = ($0 as? RadarTileOverlay)?.framePath else {
-                    return false
-                }
-                return stalePaths.contains(path)
+        // Pre-load all overlays once so tiles are cached
+        if !coord.overlaysLoaded && !frames.isEmpty {
+            for frame in frames {
+                let overlay = RadarTileOverlay(
+                    host: radarService.host, framePath: frame.path
+                )
+                mapView.addOverlay(overlay, level: .aboveLabels)
             }
-            mapView.removeOverlays(toRemove)
+            coord.overlaysLoaded = true
+        }
+
+        guard frameIndex >= 0, frameIndex < frames.count else { return }
+        let activePath = frames[frameIndex].path
+        guard activePath != coord.currentPath else { return }
+        coord.currentPath = activePath
+
+        // Toggle alpha: active frame = 1, all others = 0
+        for (path, renderer) in coord.renderers {
+            renderer.alpha = path == activePath ? 1.0 : 0.0
         }
     }
 
@@ -137,13 +136,18 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var currentPath: String?
+        var renderers: [String: MKTileOverlayRenderer] = [:]
+        var overlaysLoaded = false
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? MKTileOverlay {
-                return MKTileOverlayRenderer(overlay: tileOverlay)
+            if let tileOverlay = overlay as? RadarTileOverlay {
+                let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
+                renderer.alpha = 0
+                renderers[tileOverlay.framePath] = renderer
+                return renderer
             }
             return MKOverlayRenderer(overlay: overlay)
         }
