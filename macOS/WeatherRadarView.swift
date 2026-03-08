@@ -9,26 +9,6 @@ import SwiftUI
 import MapKit
 @preconcurrency import WeatherKit
 
-class RadarTileOverlay: MKTileOverlay {
-    let host: String
-    let framePath: String
-
-    init(host: String, framePath: String) {
-        self.host = host
-        self.framePath = framePath
-        super.init(urlTemplate: nil)
-        self.canReplaceMapContent = false
-        self.tileSize = CGSize(width: 256, height: 256)
-        self.minimumZ = 1
-        self.maximumZ = 7
-    }
-
-    override func url(forTilePath path: MKTileOverlayPath) -> URL {
-        let urlStr = "\(host)\(framePath)/256/\(path.z)/\(path.x)/\(path.y)/6/1_1.png"
-        return URL(string: urlStr)!
-    }
-}
-
 struct RadarMapView: NSViewRepresentable {
     let coordinate: CLLocationCoordinate2D
     let radarService: RadarService
@@ -49,6 +29,8 @@ struct RadarMapView: NSViewRepresentable {
             span: MKCoordinateSpan(latitudeDelta: 2.0, longitudeDelta: 2.0)
         )
         mapView.setRegion(region, animated: false)
+        let overlay = RadarAnimationOverlay(coordinate: coordinate)
+        mapView.addOverlay(overlay, level: .aboveLabels)
         return mapView
     }
 
@@ -57,26 +39,34 @@ struct RadarMapView: NSViewRepresentable {
         guard !frames.isEmpty else { return }
         let idx = frameIndex ?? (radarService.pastFrames.count - 1)
         guard idx >= 0, idx < frames.count else { return }
-        let frame = frames[idx]
-        guard frame.path != context.coordinator.currentPath else { return }
-
-        mapView.removeOverlays(mapView.overlays)
-        let overlay = RadarTileOverlay(host: radarService.host, framePath: frame.path)
-        mapView.addOverlay(overlay, level: .aboveLabels)
-        context.coordinator.currentPath = frame.path
+        context.coordinator.renderer?.setFrame(frames[idx].path)
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeCoordinator() -> Coordinator {
+        Coordinator(radarService: radarService)
+    }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var currentPath: String?
+        let radarService: RadarService
+        var renderer: RadarAnimationRenderer?
+
+        init(radarService: RadarService) {
+            self.radarService = radarService
+        }
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? MKTileOverlay {
-                return MKTileOverlayRenderer(overlay: tileOverlay)
+            if overlay is RadarAnimationOverlay {
+                let rdr = RadarAnimationRenderer(
+                    overlay: overlay,
+                    host: radarService.host,
+                    initialPath: radarService.latestPastFrame?.path,
+                    overlayAlpha: 1.0
+                )
+                self.renderer = rdr
+                return rdr
             }
             return MKOverlayRenderer(overlay: overlay)
         }
@@ -102,50 +92,52 @@ struct InteractiveRadarMapView: NSViewRepresentable {
             span: MKCoordinateSpan(latitudeDelta: 4.0, longitudeDelta: 4.0)
         )
         mapView.setRegion(region, animated: false)
+        let overlay = RadarAnimationOverlay(coordinate: coordinate)
+        mapView.addOverlay(overlay, level: .aboveLabels)
         return mapView
     }
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
         guard !frames.isEmpty else { return }
-        let coord = context.coordinator
         let idx = min(max(frameIndex, 0), frames.count - 1)
-        let activePath = frames[idx].path
-        coord.activePath = activePath
-
-        // Add all overlays once — they stay for the lifetime of the view
-        if !coord.overlaysLoaded {
-            for frame in frames {
-                let overlay = RadarTileOverlay(
-                    host: radarService.host, framePath: frame.path
-                )
-                mapView.addOverlay(overlay, level: .aboveLabels)
-            }
-            coord.overlaysLoaded = true
-        }
-
-        // Always set alpha on every renderer — no guards, no shortcuts
-        for (path, renderer) in coord.renderers {
-            renderer.alpha = (path == activePath) ? 1.0 : 0.0
+        let coord = context.coordinator
+        coord.renderer?.setFrame(frames[idx].path)
+        if !coord.hasPreloaded, let rdr = coord.renderer {
+            rdr.preload(
+                frames: frames,
+                visibleRect: mapView.visibleMapRect,
+                viewWidth: mapView.frame.width
+            )
+            coord.hasPreloaded = true
         }
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
+    func makeCoordinator() -> Coordinator {
+        Coordinator(radarService: radarService)
+    }
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var activePath: String?
-        var renderers: [String: MKTileOverlayRenderer] = [:]
-        var overlaysLoaded = false
+        let radarService: RadarService
+        var renderer: RadarAnimationRenderer?
+        var hasPreloaded = false
+
+        init(radarService: RadarService) {
+            self.radarService = radarService
+        }
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
-            if let tileOverlay = overlay as? RadarTileOverlay {
-                let renderer = MKTileOverlayRenderer(overlay: tileOverlay)
-                renderer.alpha = (tileOverlay.framePath == activePath) ? 1.0 : 0.0
-                renderers[tileOverlay.framePath] = renderer
-                return renderer
+            if overlay is RadarAnimationOverlay {
+                let rdr = RadarAnimationRenderer(
+                    overlay: overlay,
+                    host: radarService.host,
+                    initialPath: radarService.latestPastFrame?.path
+                )
+                self.renderer = rdr
+                return rdr
             }
             return MKOverlayRenderer(overlay: overlay)
         }

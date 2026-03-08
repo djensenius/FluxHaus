@@ -12,9 +12,11 @@
 		RD0003000000000000000003 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
 		RD0004000000000000000001 /* WeatherRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0002000000000000000001 /* WeatherRadarView.swift */; };
 		WF0001000000000000000001 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
+		RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000000000000000000001 /* RadarOverlayRenderer.swift */; };
 		RD0003000000000000000004 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
 		RD0004000000000000000002 /* WeatherRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0002000000000000000001 /* WeatherRadarView.swift */; };
 		WF0001000000000000000002 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
+		RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000000000000000000001 /* RadarOverlayRenderer.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		31FCD81922AE005906F0AC46 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
@@ -359,6 +361,7 @@
 		RD0001000000000000000001 /* RadarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarService.swift; sourceTree = "<group>"; };
 		RD0002000000000000000001 /* WeatherRadarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherRadarView.swift; sourceTree = "<group>"; };
 		WF0000000000000000000001 /* WeatherForecastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherForecastView.swift; sourceTree = "<group>"; };
+		RO0000000000000000000001 /* RadarOverlayRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarOverlayRenderer.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -522,6 +525,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				57CB3B0423E7608E287483D2 /* DashboardView.swift */,
 				FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */,
 				WF0000000000000000000001 /* WeatherForecastView.swift */,
+				RO0000000000000000000001 /* RadarOverlayRenderer.swift */,
 				RD0002000000000000000001 /* WeatherRadarView.swift */,
 				AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */,
 				731A02EE588AFF8C715B9DEB /* MacApp.swift */,
@@ -982,6 +986,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */,
 				RD0003000000000000000001 /* RadarService.swift in Sources */,
 				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
+				RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */,
 				WF0001000000000000000001 /* WeatherForecastView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1177,6 +1182,7 @@ B250E6A2C157F636EA648473 /* DashboardView.swift in Sources */,
 BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */,
 RD0003000000000000000004 /* RadarService.swift in Sources */,
 RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
+RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */,
 WF0001000000000000000002 /* WeatherForecastView.swift in Sources */,
 );
 runOnlyForDeploymentPostprocessing = 0;
