@@ -377,7 +377,7 @@ struct WeatherDetailView: View {
         isPlaying = true
         animationTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(600))
+                try? await Task.sleep(for: .milliseconds(400))
                 guard !Task.isCancelled else { break }
                 let total = radarService.allFrames.count
                 guard total > 1 else { break }

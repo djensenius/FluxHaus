@@ -11,7 +11,7 @@ import MapKit
 
 class RadarTileOverlay: MKTileOverlay {
     let host: String
-    let framePath: String
+    var framePath: String
 
     init(host: String, framePath: String) {
         self.host = host
@@ -58,8 +58,8 @@ struct RadarMapView: NSViewRepresentable {
         let idx = frameIndex ?? (radarService.pastFrames.count - 1)
         guard idx >= 0, idx < frames.count else { return }
         let frame = frames[idx]
-        let currentPath = context.coordinator.currentPath
-        guard currentPath != frame.path else { return }
+        guard frame.path != context.coordinator.currentPath else { return }
+
         mapView.removeOverlays(mapView.overlays)
         let overlay = RadarTileOverlay(host: radarService.host, framePath: frame.path)
         mapView.addOverlay(overlay, level: .aboveLabels)
@@ -107,42 +107,43 @@ struct InteractiveRadarMapView: NSViewRepresentable {
 
     func updateNSView(_ mapView: MKMapView, context: Context) {
         let frames = radarService.allFrames
-        let clampedIndex = min(frameIndex, frames.count - 1)
-        guard clampedIndex >= 0, clampedIndex < frames.count else { return }
-        let frame = frames[clampedIndex]
-        guard frame.path != context.coordinator.currentPath else { return }
+        let idx = min(max(frameIndex, 0), frames.count - 1)
+        guard idx >= 0, idx < frames.count else { return }
+        let frame = frames[idx]
+        let coord = context.coordinator
 
-        // Add new overlay on top
-        let newOverlay = RadarTileOverlay(
-            host: radarService.host, framePath: frame.path
-        )
-        mapView.addOverlay(newOverlay, level: .aboveLabels)
-
-        // Keep only current + previous overlay
-        let previousPath = context.coordinator.currentPath
-        let toRemove = mapView.overlays.filter {
-            guard let path = ($0 as? RadarTileOverlay)?.framePath else {
-                return false
-            }
-            return path != frame.path && path != previousPath
+        if let overlay = coord.overlay {
+            // Reuse existing overlay — just update its path
+            guard frame.path != coord.currentPath else { return }
+            overlay.framePath = frame.path
+            coord.currentPath = frame.path
+            coord.renderer?.reloadData()
+        } else {
+            // First time: create and add the overlay
+            let overlay = RadarTileOverlay(
+                host: radarService.host, framePath: frame.path
+            )
+            mapView.addOverlay(overlay, level: .aboveLabels)
+            coord.overlay = overlay
+            coord.currentPath = frame.path
         }
-        if !toRemove.isEmpty {
-            mapView.removeOverlays(toRemove)
-        }
-        context.coordinator.currentPath = frame.path
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var currentPath: String?
+        var overlay: RadarTileOverlay?
+        var renderer: MKTileOverlayRenderer?
 
         func mapView(
             _ mapView: MKMapView,
             rendererFor overlay: MKOverlay
         ) -> MKOverlayRenderer {
             if let tileOverlay = overlay as? MKTileOverlay {
-                return MKTileOverlayRenderer(overlay: tileOverlay)
+                let rend = MKTileOverlayRenderer(overlay: tileOverlay)
+                self.renderer = rend
+                return rend
             }
             return MKOverlayRenderer(overlay: overlay)
         }
@@ -256,7 +257,7 @@ struct WeatherRadarSheet: View {
         isPlaying = true
         animationTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(600))
+                try? await Task.sleep(for: .milliseconds(400))
                 guard !Task.isCancelled else { break }
                 let total = radarService.allFrames.count
                 guard total > 1 else { break }
