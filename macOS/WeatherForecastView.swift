@@ -251,7 +251,9 @@ struct WeatherDetailView: View {
             }
         }
         .padding()
+        #if !os(visionOS)
         .background(Theme.Colors.secondaryBackground)
+        #endif
         .cornerRadius(12)
         #if os(visionOS)
         .glassBackgroundEffect()
@@ -322,7 +324,9 @@ struct WeatherDetailView: View {
             }
         }
         .padding()
+        #if !os(visionOS)
         .background(Theme.Colors.secondaryBackground)
+        #endif
         .cornerRadius(12)
         #if os(visionOS)
         .glassBackgroundEffect()
@@ -413,7 +417,9 @@ struct WeatherDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             WeatherForecastSection(weather: weather)
         }
+        #if !os(visionOS)
         .background(Theme.Colors.secondaryBackground)
+        #endif
         .cornerRadius(12)
         #if os(visionOS)
         .glassBackgroundEffect()
