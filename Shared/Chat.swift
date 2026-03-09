@@ -90,6 +90,7 @@ struct Conversation: Identifiable, Codable {
     private var audioPlayer: AVAudioPlayer?
     private var recordingURL: URL?
     private var levelTimer: Timer?
+    private var isSyncing = false
 
     func send(_ text: String) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -316,6 +317,9 @@ struct Conversation: Identifiable, Codable {
     // MARK: - Session management
 
     func syncConversationsPeriodically() async {
+        guard !isSyncing else { return }
+        isSyncing = true
+        defer { isSyncing = false }
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(30))
             guard !Task.isCancelled else { break }
