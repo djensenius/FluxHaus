@@ -181,15 +181,16 @@ struct ChatView: View {
             .scrollPosition(id: $scrolledMessageId)
             .defaultScrollAnchor(.bottom)
             .onChange(of: chat.messages.count) { oldCount, newCount in
-                if oldCount == 0, newCount > 0,
-                   let savedIndex = chat.savedScrollIndex(),
-                   savedIndex < newCount {
-                    proxy.scrollTo(chat.messages[savedIndex].id, anchor: .top)
+                if oldCount == 0, newCount > 0 {
+                    if let savedIndex = chat.savedScrollIndex(),
+                       savedIndex < newCount {
+                        proxy.scrollTo(chat.messages[savedIndex].id, anchor: .top)
+                    } else if let last = chat.messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
                 } else if newCount > oldCount {
-                    withAnimation {
-                        if let last = chat.messages.last {
-                            proxy.scrollTo(last.id, anchor: .bottom)
-                        }
+                    if let last = chat.messages.last {
+                        proxy.scrollTo(last.id, anchor: .bottom)
                     }
                 }
             }
