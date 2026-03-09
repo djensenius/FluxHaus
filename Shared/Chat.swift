@@ -7,9 +7,23 @@
 
 import Foundation
 import AVFoundation
+import SwiftUI
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Chat")
+
+func markdownAttributed(_ string: String) -> AttributedString {
+    let cleaned = string.replacingOccurrences(
+        of: #"^#{1,6}\s+"#,
+        with: "",
+        options: .regularExpression
+    ).replacingOccurrences(
+        of: #"\n#{1,6}\s+"#,
+        with: "\n",
+        options: .regularExpression
+    )
+    return (try? AttributedString(markdown: cleaned)) ?? AttributedString(string)
+}
 
 enum ChatRole: String {
     case user

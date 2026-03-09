@@ -87,23 +87,13 @@ private func parseSSE(
     bytes: URLSession.AsyncBytes,
     continuation: AsyncThrowingStream<StreamEvent, Error>.Continuation
 ) async throws {
-    var buffer = ""
-    for try await byte in bytes {
-        buffer.append(Character(UnicodeScalar(byte)))
-        while buffer.contains("\n\n") {
-            guard let range = buffer.range(of: "\n\n") else { break }
-            let chunk = String(buffer[buffer.startIndex..<range.lowerBound])
-            buffer = String(buffer[range.upperBound...])
-            for line in chunk.components(separatedBy: "\n") {
-                let trimmed = line.trimmingCharacters(in: .whitespaces)
-                if trimmed.hasPrefix("data: ") {
-                    let json = String(trimmed.dropFirst(6))
-                    if let data = json.data(using: .utf8),
-                       let event = try? JSONDecoder().decode(StreamEvent.self, from: data) {
-                        continuation.yield(event)
-                    }
-                }
-            }
+    for try await line in bytes.lines {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard trimmed.hasPrefix("data: ") else { continue }
+        let json = String(trimmed.dropFirst(6))
+        if let data = json.data(using: .utf8),
+           let event = try? JSONDecoder().decode(StreamEvent.self, from: data) {
+            continuation.yield(event)
         }
     }
     continuation.finish()

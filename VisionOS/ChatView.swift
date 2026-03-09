@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ChatBubble: View {
     let message: ChatMessage
+    let isLastProgress: Bool
     let isPlaying: Bool
     let onPlayTapped: () -> Void
 
@@ -23,13 +24,23 @@ struct ChatBubble: View {
             ) {
                 if message.isProgress {
                     HStack(spacing: 6) {
-                        ProgressView()
-                            .controlSize(.small)
+                        if isLastProgress {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption2)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
                         Text(message.content)
                             .font(Theme.Fonts.caption)
                             .italic()
                             .foregroundColor(Theme.Colors.textSecondary)
                     }
+                } else if message.role == .assistant {
+                    Text(markdownAttributed(message.content))
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(foregroundColor)
                 } else {
                     Text(message.content)
                         .font(Theme.Fonts.bodyMedium)
@@ -177,6 +188,8 @@ struct ChatView: View {
                     ForEach(chat.messages) { message in
                         ChatBubble(
                             message: message,
+                            isLastProgress: message.isProgress
+                                && message.id == chat.messages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
