@@ -417,6 +417,10 @@ struct Conversation: Identifiable, Codable {
         guard let convId = conversationId,
               let index = conversations.firstIndex(where: { $0.id == convId }) else { return }
         conversations[index].messageCount += count
+        if index != 0 {
+            let conv = conversations.remove(at: index)
+            conversations.insert(conv, at: 0)
+        }
     }
 
     private func cleanupRecording() {

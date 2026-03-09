@@ -260,6 +260,7 @@ struct ChatView: View {
                 }
                 .padding(.vertical, 8)
             }
+            .defaultScrollAnchor(.bottom)
             .onChange(of: chat.messages.count) {
                 withAnimation {
                     if let last = chat.messages.last {
@@ -459,6 +460,7 @@ struct ConversationListView: View {
                     )
                 }
             }
+            .task { await chat.loadConversations() }
         }
     }
 }
