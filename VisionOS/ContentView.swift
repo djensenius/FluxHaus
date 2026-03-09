@@ -46,6 +46,22 @@ struct ContentView: View {
                 DateTimeView()
                 WeatherView(lman: locationManager)
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                HStack {
+                    Text("Appliances")
+                        .font(.title)
+                        .padding(.leading)
+                    Spacer()
+                }
+                Appliances(
+                    fluxHausConsts: fluxHausConsts,
+                    hconn: hconn,
+                    miele: miele,
+                    apiResponse: apiResponse,
+                    robots: robots,
+                    battery: battery,
+                    car: car,
+                    locationManager: locationManager
+                )
             }
             .padding()
         }
