@@ -28,7 +28,7 @@ class RadarAnimationOverlay: NSObject, MKOverlay {
 /// cache. Frame changes use `setFrame()` → `setNeedsDisplay()`
 /// which redraws from cache instantly — no overlay add/remove,
 /// no reloadData(), no MapKit tile-cache involvement.
-class RadarAnimationRenderer: MKOverlayRenderer {
+class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
     private let host: String
     private var _framePath: String?
     private var cache: [String: CGImage] = [:]

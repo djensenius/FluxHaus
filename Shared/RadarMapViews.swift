@@ -15,7 +15,7 @@ struct RadarMapView {
     let radarService: RadarService
     let frameIndex: Int?
 
-    func buildMap(delegate: MKMapViewDelegate) -> MKMapView {
+    @MainActor func buildMap(delegate: MKMapViewDelegate) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = delegate
         mapView.mapType = .mutedStandard
@@ -107,7 +107,7 @@ struct InteractiveRadarMapView {
     let radarService: RadarService
     let frameIndex: Int
 
-    func buildMap(delegate: MKMapViewDelegate) -> MKMapView {
+    @MainActor func buildMap(delegate: MKMapViewDelegate) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = delegate
         mapView.mapType = .mutedStandard
