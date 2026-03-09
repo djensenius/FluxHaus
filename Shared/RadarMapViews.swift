@@ -27,10 +27,12 @@ struct RadarMapView {
         mapView.showsZoomControls = false
         #endif
         mapView.showsCompass = false
-        let region = MKCoordinateRegion(
-            center: coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 1.5, longitudeDelta: 1.5)
-        )
+        #if os(macOS)
+        let span = MKCoordinateSpan(latitudeDelta: 1.5, longitudeDelta: 1.5)
+        #else
+        let span = MKCoordinateSpan(latitudeDelta: 1.0, longitudeDelta: 1.0)
+        #endif
+        let region = MKCoordinateRegion(center: coordinate, span: span)
         mapView.setRegion(region, animated: false)
         let overlay = RadarAnimationOverlay(coordinate: coordinate)
         mapView.addOverlay(overlay, level: .aboveLabels)
@@ -116,10 +118,12 @@ struct InteractiveRadarMapView {
         mapView.showsZoomControls = true
         #endif
         mapView.showsCompass = true
-        let region = MKCoordinateRegion(
-            center: coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 2.5, longitudeDelta: 2.5)
-        )
+        #if os(macOS)
+        let span = MKCoordinateSpan(latitudeDelta: 2.5, longitudeDelta: 2.5)
+        #else
+        let span = MKCoordinateSpan(latitudeDelta: 1.5, longitudeDelta: 1.5)
+        #endif
+        let region = MKCoordinateRegion(center: coordinate, span: span)
         mapView.setRegion(region, animated: false)
         let overlay = RadarAnimationOverlay(coordinate: coordinate)
         mapView.addOverlay(overlay, level: .aboveLabels)
