@@ -126,6 +126,8 @@ struct Conversation: Identifiable, Codable {
         _ stream: AsyncThrowingStream<StreamEvent, Error>
     ) async throws -> StreamResult {
         var result = StreamResult()
+        var hadToolCalls = false
+        var receivedDone = false
         for try await event in stream {
             switch event.type {
             case "transcript":
@@ -134,8 +136,10 @@ struct Conversation: Identifiable, Codable {
             case "progress":
                 appendProgress(event.text)
             case "tool_call":
+                hadToolCalls = true
                 appendToolCall(event.tool)
             case "done":
+                receivedDone = true
                 if let text = event.text { result.text = text }
                 if let b64 = event.audio, let data = Data(base64Encoded: b64) {
                     result.audioData = data
@@ -144,6 +148,9 @@ struct Conversation: Identifiable, Codable {
                 throw ChatServiceError.serverError(event.text ?? "Unknown error")
             default: break
             }
+        }
+        if !receivedDone && hadToolCalls {
+            result.text = "The request timed out while processing. Please try again."
         }
         return result
     }
