@@ -108,6 +108,7 @@ struct ChatView: View {
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var showConversations = false
+    @State private var scrolledMessageId: UUID?
 
     var body: some View {
         NavigationStack {
@@ -149,7 +150,7 @@ struct ChatView: View {
                 }
             }
             .sheet(isPresented: $showConversations) {
-                ConversationListView(chat: chat)
+                ConversationListView(chat: chat, onSwitch: saveCurrentScrollPosition)
             }
             .task {
                 if chat.conversations.isEmpty {
@@ -165,6 +166,12 @@ struct ChatView: View {
             }
             .task { await chat.syncConversationsPeriodically() }
         }
+    }
+
+    private func saveCurrentScrollPosition() {
+        guard let scrolledMessageId,
+              let index = chat.messages.firstIndex(where: { $0.id == scrolledMessageId }) else { return }
+        chat.saveScrollPosition(messageIndex: index)
     }
 
     private var chatMessages: some View {
@@ -199,11 +206,18 @@ struct ChatView: View {
                 }
                 .padding(.vertical, 8)
             }
+            .scrollPosition(id: $scrolledMessageId)
             .defaultScrollAnchor(.bottom)
-            .onChange(of: chat.messages.count) {
-                withAnimation {
-                    if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
+            .onChange(of: chat.messages.count) { oldCount, newCount in
+                if oldCount == 0, newCount > 0,
+                   let savedIndex = chat.savedScrollIndex(),
+                   savedIndex < newCount {
+                    proxy.scrollTo(chat.messages[savedIndex].id, anchor: .top)
+                } else if newCount > oldCount {
+                    withAnimation {
+                        if let last = chat.messages.last {
+                            proxy.scrollTo(last.id, anchor: .bottom)
+                        }
                     }
                 }
             }
@@ -358,6 +372,7 @@ struct ChatView: View {
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
+    var onSwitch: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -365,6 +380,7 @@ struct ConversationListView: View {
             List {
                 ForEach(chat.conversations) { conv in
                     Button(action: {
+                        onSwitch()
                         Task {
                             await chat.loadConversation(conv)
                             dismiss()
