@@ -17,6 +17,16 @@
 		RD0004000000000000000002 /* WeatherRadarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0002000000000000000001 /* WeatherRadarView.swift */; };
 		WF0001000000000000000002 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
 		RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000000000000000000001 /* RadarOverlayRenderer.swift */; };
+RM0001000000000000000001 /* RadarMapViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = RM0000000000000000000001 /* RadarMapViews.swift */; };
+RM0001000000000000000002 /* RadarMapViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = RM0000000000000000000001 /* RadarMapViews.swift */; };
+RM0001000000000000000003 /* RadarMapViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = RM0000000000000000000001 /* RadarMapViews.swift */; };
+RM0001000000000000000004 /* RadarMapViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = RM0000000000000000000001 /* RadarMapViews.swift */; };
+WH0001000000000000000001 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
+WH0001000000000000000002 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
+RO0001000000000000000003 /* RadarOverlayRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000000000000000000001 /* RadarOverlayRenderer.swift */; };
+RO0001000000000000000004 /* RadarOverlayRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = RO0000000000000000000001 /* RadarOverlayRenderer.swift */; };
+WF0001000000000000000003 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
+WF0001000000000000000004 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		31FCD81922AE005906F0AC46 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
@@ -361,7 +371,8 @@
 		RD0001000000000000000001 /* RadarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarService.swift; sourceTree = "<group>"; };
 		RD0002000000000000000001 /* WeatherRadarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherRadarView.swift; sourceTree = "<group>"; };
 		WF0000000000000000000001 /* WeatherForecastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherForecastView.swift; sourceTree = "<group>"; };
-		RO0000000000000000000001 /* RadarOverlayRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarOverlayRenderer.swift; sourceTree = "<group>"; };
+		RM0000000000000000000001 /* RadarMapViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarMapViews.swift; sourceTree = "<group>"; };
+RO0000000000000000000001 /* RadarOverlayRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarOverlayRenderer.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -485,6 +496,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				63BCF7542C63FABB001D4375 /* Api.swift */,
 				B21E737133023F1FB8033FE1 /* SceneService.swift */,
 				RD0001000000000000000001 /* RadarService.swift */,
+RM0000000000000000000001 /* RadarMapViews.swift */,
 				C6709013ABF8AA633E63B128 /* SceneView.swift */,
 			);
 			path = Shared;
@@ -987,6 +999,7 @@ runOnlyForDeploymentPostprocessing = 0;
 				RD0003000000000000000001 /* RadarService.swift in Sources */,
 				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */,
+				RM0001000000000000000003 /* RadarMapViews.swift in Sources */,
 				WF0001000000000000000001 /* WeatherForecastView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1032,6 +1045,10 @@ runOnlyForDeploymentPostprocessing = 0;
 				6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */,
 				RD0003000000000000000002 /* RadarService.swift in Sources */,
+				RM0001000000000000000001 /* RadarMapViews.swift in Sources */,
+				WH0001000000000000000001 /* WeatherHelpers.swift in Sources */,
+				RO0001000000000000000003 /* RadarOverlayRenderer.swift in Sources */,
+				WF0001000000000000000003 /* WeatherForecastView.swift in Sources */,
 				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1115,6 +1132,10 @@ runOnlyForDeploymentPostprocessing = 0;
 				6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
 				36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */,
 				RD0003000000000000000003 /* RadarService.swift in Sources */,
+				RM0001000000000000000002 /* RadarMapViews.swift in Sources */,
+				WH0001000000000000000002 /* WeatherHelpers.swift in Sources */,
+				RO0001000000000000000004 /* RadarOverlayRenderer.swift in Sources */,
+				WF0001000000000000000004 /* WeatherForecastView.swift in Sources */,
 				A833D279DDED4F415801541F /* SceneView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1183,6 +1204,7 @@ BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */,
 RD0003000000000000000004 /* RadarService.swift in Sources */,
 RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
 RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */,
+RM0001000000000000000004 /* RadarMapViews.swift in Sources */,
 WF0001000000000000000002 /* WeatherForecastView.swift in Sources */,
 );
 runOnlyForDeploymentPostprocessing = 0;

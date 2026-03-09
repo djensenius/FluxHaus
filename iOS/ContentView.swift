@@ -18,6 +18,7 @@ struct ContentView: View {
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
     @State private var chat = Chat()
+    @State private var radarService = RadarService()
 
     var body: some View {
         TabView {
@@ -67,13 +68,10 @@ struct ContentView: View {
     }
 
     private var weatherTab: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                WeatherView(lman: locationManager)
-            }
-            .padding(.bottom)
-        }
-        .background(Theme.Colors.background)
+        WeatherDetailView(
+            locationManager: locationManager,
+            radarService: radarService
+        )
     }
 
     private var carTab: some View {
