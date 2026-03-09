@@ -107,6 +107,11 @@ struct ChatView: View {
             }
         }
         .task { await chat.syncConversationsPeriodically() }
+        .onReceive(
+            NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
+        ) { _ in
+            Task { await chat.createNewConversation() }
+        }
     }
 
     private var splitLayout: some View {
@@ -134,7 +139,6 @@ struct ChatView: View {
                             Image(systemName: "plus")
                                 .foregroundColor(Theme.Colors.accent)
                         })
-                        .keyboardShortcut("n", modifiers: .command)
                     }
                 }
                 .sheet(isPresented: $showConversations) {
@@ -180,7 +184,6 @@ struct ChatView: View {
                     Image(systemName: "plus")
                         .foregroundColor(Theme.Colors.accent)
                 })
-                .keyboardShortcut("n", modifiers: .command)
             }
         }
         .overlay {

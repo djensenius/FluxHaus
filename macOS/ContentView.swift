@@ -67,7 +67,6 @@ struct ContentView: View {
                 }, label: {
                     Image(systemName: "arrow.clockwise")
                 })
-                .keyboardShortcut("r", modifiers: .command)
             }
         }
     }
@@ -84,9 +83,6 @@ struct ContentView: View {
             }
         }
         .navigationTitle("FluxHaus")
-        .overlay {
-            hiddenShortcuts
-        }
     }
 
     @ViewBuilder
@@ -129,31 +125,6 @@ struct ContentView: View {
         }
     }
 
-    private var hiddenShortcuts: some View {
-        Group {
-            Button("") { selectedItem = .dashboard }
-                .keyboardShortcut("1", modifiers: .command)
-            Button("") { selectedItem = .weather }
-                .keyboardShortcut("2", modifiers: .command)
-            Button("") { selectedItem = .scenes }
-                .keyboardShortcut("3", modifiers: .command)
-            Button("") { selectedItem = .appliances }
-                .keyboardShortcut("4", modifiers: .command)
-            Button("") { selectedItem = .car }
-                .keyboardShortcut("5", modifiers: .command)
-            Button("") { selectedItem = .robots }
-                .keyboardShortcut("6", modifiers: .command)
-            Button("") {
-                if authManager.isOIDC {
-                    selectedItem = .assistant
-                }
-            }
-            .keyboardShortcut("7", modifiers: .command)
-        }
-        .frame(width: 0, height: 0)
-        .opacity(0)
-        .accessibilityHidden(true)
-    }
 }
 
 struct AppliancesMacView: View {

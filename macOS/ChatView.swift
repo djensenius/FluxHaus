@@ -33,6 +33,11 @@ struct ChatView: View {
             }
         }
         .task { await chat.syncConversationsPeriodically() }
+        .onReceive(
+            NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
+        ) { _ in
+            Task { await chat.createNewConversation() }
+        }
     }
 
     private var chatSidebar: some View {
@@ -47,7 +52,6 @@ struct ChatView: View {
                     Image(systemName: "plus")
                 })
                 .buttonStyle(.borderless)
-                .keyboardShortcut("n", modifiers: .command)
             }
             .padding(12)
 

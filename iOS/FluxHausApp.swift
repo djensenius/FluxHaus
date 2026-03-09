@@ -136,6 +136,37 @@ struct FluxHausApp: App {
                 }
             }
         }
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Conversation") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("newConversation"),
+                        object: nil
+                    )
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+
+            CommandMenu("Navigate") {
+                Button("Home") { postNavigation("home") }
+                    .keyboardShortcut("1", modifiers: .command)
+                Button("Weather") { postNavigation("weather") }
+                    .keyboardShortcut("2", modifiers: .command)
+                Button("Assistant") { postNavigation("assistant") }
+                    .keyboardShortcut("3", modifiers: .command)
+                Button("Car") { postNavigation("car") }
+                    .keyboardShortcut("4", modifiers: .command)
+                Button("Appliances") { postNavigation("appliances") }
+                    .keyboardShortcut("5", modifiers: .command)
+
+                Divider()
+
+                Button("Refresh Data") {
+                    queryFlux(password: WhereWeAre.getPassword() ?? "")
+                }
+                .keyboardShortcut("r", modifiers: .command)
+            }
+        }
     }
 
     func loadMiele() {
@@ -164,5 +195,13 @@ struct FluxHausApp: App {
         let fluxData = convertLoginResponseToAppData(response: response)
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
         LiveActivityManager.shared.reconcile(devices: devices)
+    }
+
+    private func postNavigation(_ section: String) {
+        NotificationCenter.default.post(
+            name: Notification.Name("navigateToSection"),
+            object: nil,
+            userInfo: ["section": section]
+        )
     }
 }
