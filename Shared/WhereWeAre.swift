@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "WhereWeAre")
 
 public struct WhereWeAre {
     public var hasKeyChainPassword = false
@@ -26,18 +29,16 @@ public struct WhereWeAre {
     }
 
     public mutating func setPassword(password: String) {
-        // Set attributes
         let attributes: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrServer as String: "api.fluxhaus.io",
             kSecAttrAccount as String: "demo",
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecValueData as String: password.data(using: String.Encoding.utf8)!
         ]
-        // Add user
         let status = SecItemAdd(attributes as CFDictionary, nil)
-
-        if status == noErr {
-            print("User saved successfully in the keychain")
+        if status != noErr {
+            logger.error("Keychain write FAILED for demo password: OSStatus \(status)")
         }
         hasKeychainPassword(has: true)
     }
@@ -47,20 +48,21 @@ public struct WhereWeAre {
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrAccount as String: "demo",
             kSecAttrServer as String: "api.fluxhaus.io",
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnAttributes as String: true,
             kSecReturnData as String: true
         ]
-
         var item: CFTypeRef?
-
-        if SecItemCopyMatching(query as CFDictionary, &item) == noErr {
-            // Extract result
-            if let existingItem = item as? [String: Any],
-               let passwordData = existingItem[kSecValueData as String] as? Data,
-               let password = String(data: passwordData, encoding: .utf8) {
-                return password
-            }
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        if status == noErr,
+           let existingItem = item as? [String: Any],
+           let passwordData = existingItem[kSecValueData as String] as? Data,
+           let password = String(data: passwordData, encoding: .utf8) {
+            return password
+        }
+        if status != errSecItemNotFound {
+            logger.error("Keychain read FAILED for demo password: OSStatus \(status)")
         }
         return nil
     }
@@ -79,11 +81,9 @@ public struct WhereWeAre {
             kSecAttrServer as String: "api.fluxhaus.io",
             kSecAttrAccount as String: "demo"
         ]
-        // Find user and delete
-        if SecItemDelete(query as CFDictionary) == noErr {
-            print("User removed successfully from the keychain")
-        } else {
-            print("Something went wrong trying to remove the user from the keychain")
+        let status = SecItemDelete(query as CFDictionary)
+        if status != noErr && status != errSecItemNotFound {
+            logger.error("Keychain delete FAILED for demo password: OSStatus \(status)")
         }
         hasKeychainPassword(has: false)
     }
