@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     '/Users/david/Developer/FluxHaus/build/Release-iphoneos/FluxWidgetExtension.appex/FluxWidgetExtension'
-relocations:     []
-...
