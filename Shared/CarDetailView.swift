@@ -67,7 +67,9 @@ struct CarDetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
 
                     // Details Section
@@ -106,7 +108,9 @@ struct CarDetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
 
                     // Controls Section
@@ -115,7 +119,7 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
 
-                        #if os(macOS)
+                        #if os(macOS) || os(visionOS)
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 8) {
                                 if car.vehicle.hvac {
@@ -213,9 +217,13 @@ struct CarDetailView: View {
                                         Image(systemName: "chevron.right")
                                     }
                                     .padding()
+                                    #if os(visionOS)
+                                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                    #else
                                     .background(Theme.Colors.secondaryBackground)
-                                    .foregroundColor(Theme.Colors.textPrimary)
                                     .cornerRadius(8)
+                                    #endif
+                                    .foregroundColor(Theme.Colors.textPrimary)
                                 }
                             }
 
@@ -225,9 +233,13 @@ struct CarDetailView: View {
                                         Label("Unlock", systemImage: "lock.open.fill")
                                             .frame(maxWidth: .infinity)
                                             .padding()
+                                            #if os(visionOS)
+                                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                            #else
                                             .background(Theme.Colors.secondaryBackground)
-                                            .foregroundColor(Theme.Colors.textPrimary)
                                             .cornerRadius(8)
+                                            #endif
+                                            .foregroundColor(Theme.Colors.textPrimary)
                                     })
                                     .disabled(self.buttonsDisabled)
                                 } else {
@@ -235,9 +247,13 @@ struct CarDetailView: View {
                                         Label("Lock", systemImage: "lock.fill")
                                             .frame(maxWidth: .infinity)
                                             .padding()
+                                            #if os(visionOS)
+                                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                            #else
                                             .background(Theme.Colors.secondaryBackground)
-                                            .foregroundColor(Theme.Colors.textPrimary)
                                             .cornerRadius(8)
+                                            #endif
+                                            .foregroundColor(Theme.Colors.textPrimary)
                                     })
                                     .disabled(self.buttonsDisabled)
                                 }
@@ -246,9 +262,13 @@ struct CarDetailView: View {
                                     Label("Resync", systemImage: "arrow.triangle.2.circlepath")
                                         .frame(maxWidth: .infinity)
                                         .padding()
+                                        #if os(visionOS)
+                                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                        #else
                                         .background(Theme.Colors.secondaryBackground)
-                                        .foregroundColor(Theme.Colors.textPrimary)
                                         .cornerRadius(8)
+                                        #endif
+                                        .foregroundColor(Theme.Colors.textPrimary)
                                 })
                                 .disabled(self.buttonsDisabled)
                             }
@@ -257,7 +277,9 @@ struct CarDetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
 
                     if self.buttonsDisabled {
