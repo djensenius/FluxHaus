@@ -17,6 +17,7 @@ struct ContentView: View {
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
+    @ObservedObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
 
@@ -26,7 +27,7 @@ struct ContentView: View {
                 .tabItem { Label("Home", systemImage: "house.fill") }
             weatherTab
                 .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
-            if AuthManager.hasOIDCToken() {
+            if authManager.isOIDC {
                 ChatView(chat: chat)
                     .tabItem {
                         Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
