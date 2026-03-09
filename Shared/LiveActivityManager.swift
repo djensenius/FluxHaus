@@ -27,8 +27,37 @@ class LiveActivityManager {
 
     private var activities: [String: Activity<FluxWidgetAttributes>] = [:]
     private var pushTokenTasks: [String: Task<Void, Never>] = [:]
+    private var pushToStartTask: Task<Void, Never>?
 
-    private init() {}
+    private init() {
+        restoreExistingActivities()
+        observePushToStartToken()
+    }
+
+    /// Re-adopt activities that iOS kept alive while the app was killed.
+    private func restoreExistingActivities() {
+        for activity in Activity<FluxWidgetAttributes>.activities {
+            let name = activity.attributes.name
+            if activity.activityState == .active || activity.activityState == .stale {
+                activities[name] = activity
+                observePushToken(for: name, activity: activity)
+                logger.info("Restored Live Activity for \(name)")
+            }
+        }
+    }
+
+    /// Observe the push-to-start token so the server can start activities remotely.
+    private func observePushToStartToken() {
+        if #available(iOS 17.2, *) {
+            pushToStartTask = Task {
+                for await tokenData in Activity<FluxWidgetAttributes>.pushToStartTokenUpdates {
+                    let token = tokenData.map { String(format: "%02x", $0) }.joined()
+                    logger.info("Push-to-start token: \(token.prefix(8))...")
+                    await registerDeviceToken(token: token)
+                }
+            }
+        }
+    }
 
     func reconcile(devices: [WidgetDevice]) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
@@ -130,10 +159,31 @@ class LiveActivityManager {
     }
 
     private func registerPushToken(token: String, activityType: String) async {
+        await postToServer(
+            path: "/push-tokens",
+            body: [
+                "pushToken": token,
+                "activityType": activityType,
+                "deviceName": UIDevice.current.name
+            ]
+        )
+    }
+
+    private func registerDeviceToken(token: String) async {
+        await postToServer(
+            path: "/push-tokens/device",
+            body: [
+                "pushToStartToken": token,
+                "deviceName": UIDevice.current.name
+            ]
+        )
+    }
+
+    private func postToServer(path: String, body: [String: String]) async {
         var components = URLComponents()
         components.scheme = "https"
         components.host = "api.fluxhaus.io"
-        components.path = "/push-tokens"
+        components.path = path
 
         guard let url = components.url else { return }
 
@@ -150,21 +200,15 @@ class LiveActivityManager {
             request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
         }
 
-        let body: [String: String] = [
-            "pushToken": token,
-            "activityType": activityType,
-            "deviceName": UIDevice.current.name
-        ]
-
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             let session = URLSession(configuration: .default)
             let (_, response) = try await session.data(for: request)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                logger.info("Push token registered for \(activityType)")
+                logger.info("Registered token at \(path)")
             }
         } catch {
-            logger.error("Failed to register push token: \(error)")
+            logger.error("Failed to register token at \(path): \(error)")
         }
     }
 
