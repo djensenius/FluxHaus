@@ -11,6 +11,31 @@ import os
 
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
 
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+    ) -> Bool {
+        application.registerForRemoteNotifications()
+        return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        appLogger.info("Registered for remote notifications: \(token.prefix(8))...")
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        appLogger.error("Failed to register for remote notifications: \(error)")
+    }
+}
+
 @MainActor var hconn: HomeConnect?
 @MainActor var miele: Miele?
 @MainActor var robots: Robots?
@@ -19,6 +44,7 @@ private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Flu
 
 @main
 struct FluxHausApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var whereWeAre = WhereWeAre()
     @State var fluxHausConsts = FluxHausConsts()
     @State private var battery = Battery()
