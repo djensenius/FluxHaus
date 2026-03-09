@@ -179,7 +179,7 @@ struct Appliances: View {
         }
         #endif
 
-        if WhereWeAre.getPassword() != nil {
+        if WhereWeAre.getPassword() != nil || AuthManager.shared.isSignedIn {
             robots.setApiResponse(apiResponse: apiResponse)
             hconn.setApiResponse(apiResponse: self.apiResponse)
             miele.setApiResponse(apiResponse: self.apiResponse)
