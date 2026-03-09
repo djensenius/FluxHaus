@@ -39,7 +39,7 @@ func streamCommand(
                 components.path = "/command/stream"
                 let url = components.url!
 
-                var request = try buildAuthRequest(url: url)
+                var request = try await buildAuthRequest(url: url)
                 request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
                 let body = CommandRequest(command: command, conversationId: conversationId)
                 request.httpBody = try JSONEncoder().encode(body)
@@ -54,7 +54,7 @@ func streamCommand(
                         continuation.finish(throwing: ChatServiceError.unauthorized)
                         return
                     }
-                    var retry = try buildAuthRequest(url: url)
+                    var retry = try await buildAuthRequest(url: url)
                     retry.setValue("text/event-stream", forHTTPHeaderField: "Accept")
                     retry.httpBody = try JSONEncoder().encode(body)
                     let (retryBytes, retryResp) = try await session.bytes(for: retry)
@@ -122,7 +122,7 @@ func streamVoice(
                 components.path = "/voice/stream"
                 let url = components.url!
 
-                var request = try buildAuthRequest(url: url)
+                var request = try await buildAuthRequest(url: url)
                 request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
                 let voiceReq = VoiceRequest(
                     audio: audioData.base64EncodedString(),
@@ -142,7 +142,7 @@ func streamVoice(
                         continuation.finish(throwing: ChatServiceError.unauthorized)
                         return
                     }
-                    var retry = try buildAuthRequest(url: url)
+                    var retry = try await buildAuthRequest(url: url)
                     retry.setValue("text/event-stream", forHTTPHeaderField: "Accept")
                     retry.httpBody = bodyData
                     let (retryBytes, retryResp) = try await session.bytes(for: retry)
@@ -205,17 +205,24 @@ enum ChatServiceError: Error, LocalizedError {
     }
 }
 
-private func buildAuthRequest(url: URL, method: String = "POST") throws -> URLRequest {
+private func buildAuthRequest(url: URL, method: String = "POST") async throws -> URLRequest {
     var request = URLRequest(url: url)
     request.httpMethod = method
-    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.addValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
 
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
         throw ChatServiceError.unauthorized
     }
+
+    if method != "GET" && method != "HEAD" {
+        if let csrfToken = await fetchCsrfToken() {
+            request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+        }
+    }
+
     return request
 }
 
@@ -232,7 +239,7 @@ private func handleUnauthorizedRetry(
     guard refreshed else {
         throw ChatServiceError.unauthorized
     }
-    var retryRequest = try buildAuthRequest(url: url, method: method)
+    var retryRequest = try await buildAuthRequest(url: url, method: method)
     retryRequest.httpBody = body
     return try await session.data(for: retryRequest)
 }
@@ -244,7 +251,7 @@ func sendCommand(_ command: String, conversationId: String? = nil) async throws 
     components.path = "/command"
     let url = components.url!
 
-    var request = try buildAuthRequest(url: url)
+    var request = try await buildAuthRequest(url: url)
     let body = CommandRequest(command: command, conversationId: conversationId)
     let bodyData = try JSONEncoder().encode(body)
     request.httpBody = bodyData
@@ -274,7 +281,7 @@ func sendVoice(audioData: Data, conversationId: String? = nil) async throws -> V
     components.path = "/voice"
     let url = components.url!
 
-    var request = try buildAuthRequest(url: url)
+    var request = try await buildAuthRequest(url: url)
     let voiceReq = VoiceRequest(
         audio: audioData.base64EncodedString(),
         text: nil,
@@ -344,7 +351,7 @@ func fetchConversations() async throws -> [Conversation] {
     components.path = "/conversations"
     let url = components.url!
 
-    var request = try buildAuthRequest(url: url, method: "GET")
+    var request = try await buildAuthRequest(url: url, method: "GET")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
 
     let session = URLSession(configuration: .default)
@@ -374,7 +381,7 @@ func createConversation() async throws -> Conversation {
     components.path = "/conversations"
     let url = components.url!
 
-    var request = try buildAuthRequest(url: url)
+    var request = try await buildAuthRequest(url: url)
     let bodyData = try JSONEncoder().encode(["title": "New conversation"])
     request.httpBody = bodyData
 
@@ -404,7 +411,7 @@ func fetchConversation(id: String) async throws -> ConversationDetail {
     components.path = "/conversations/\(id)"
     let url = components.url!
 
-    let request = try buildAuthRequest(url: url, method: "GET")
+    let request = try await buildAuthRequest(url: url, method: "GET")
 
     let session = URLSession(configuration: .default)
     var (data, response) = try await session.data(for: request)
@@ -432,7 +439,7 @@ func updateConversationTitle(id: String, title: String) async throws {
     components.path = "/conversations/\(id)"
     let url = components.url!
 
-    var request = try buildAuthRequest(url: url, method: "PATCH")
+    var request = try await buildAuthRequest(url: url, method: "PATCH")
     let bodyData = try JSONEncoder().encode(["title": title])
     request.httpBody = bodyData
 
@@ -460,7 +467,7 @@ func deleteConversationRequest(id: String) async throws {
     components.path = "/conversations/\(id)"
     let url = components.url!
 
-    let request = try buildAuthRequest(url: url, method: "DELETE")
+    let request = try await buildAuthRequest(url: url, method: "DELETE")
 
     let session = URLSession(configuration: .default)
     let (_, response) = try await session.data(for: request)
