@@ -1,0 +1,19 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/david/Library/Developer/Xcode/DerivedData/FluxHaus-gvzksadceelmqlckpeokqnkbbisf/Build/Intermediates.noindex/ArchiveIntermediates/VisionOS/InstallationBuildProductsLocation/Applications/VisionOS.app/VisionOS'
+relocations:
+  - { offset: 0x13903D, size: 0x8, addend: 0x0, symName: '_$sSo8NSBundleC17RealityKitContentE6moduleABvpZ', symObjAddr: 0x52D0, symBinAddr: 0x100118AE8, symSize: 0x0 }
+  - { offset: 0x13904B, size: 0x8, addend: 0x0, symName: '_$s17RealityKitContent12BundleFinder33_89D9C57088B05BE065D890C263EAA5AFLLCMa', symObjAddr: 0x10, symBinAddr: 0x1000C062C, symSize: 0x20 }
+  - { offset: 0x13905F, size: 0x8, addend: 0x0, symName: '_$sSo8NSBundleC17RealityKitContentE6module_WZ', symObjAddr: 0x30, symBinAddr: 0x1000C064C, symSize: 0x1C }
+  - { offset: 0x139126, size: 0x8, addend: 0x0, symName: '_$sSo8NSBundleC17RealityKitContentE6moduleABvpZfiAByXEfU_', symObjAddr: 0x4C, symBinAddr: 0x1000C0668, symSize: 0x514 }
+  - { offset: 0x139422, size: 0x8, addend: 0x0, symName: '_$s10Foundation3URLVSgWOb', symObjAddr: 0x74C, symBinAddr: 0x1000C0D18, symSize: 0x50 }
+  - { offset: 0x1394FC, size: 0x8, addend: 0x0, symName: '_$sSa6append10contentsOfyqd__n_t7ElementQyd__RszSTRd__lF10Foundation3URLVSg_SayAHGTg5', symObjAddr: 0x79C, symBinAddr: 0x1000C0D68, symSize: 0x11C }
+  - { offset: 0x13976C, size: 0x8, addend: 0x0, symName: '_$s10Foundation3URLVSgWOc', symObjAddr: 0x8B8, symBinAddr: 0x1000C0E84, symSize: 0x50 }
+  - { offset: 0x139780, size: 0x8, addend: 0x0, symName: '_$s10Foundation3URLVSgWOh', symObjAddr: 0x908, symBinAddr: 0x1000C0ED4, symSize: 0x48 }
+  - { offset: 0x139794, size: 0x8, addend: 0x0, symName: '_$ss15ContiguousArrayV16_createNewBuffer14bufferIsUnique15minimumCapacity13growForAppendySb_SiSbtF10Foundation3URLVSg_Tg5', symObjAddr: 0x950, symBinAddr: 0x1000C0F1C, symSize: 0x24 }
+  - { offset: 0x1398D4, size: 0x8, addend: 0x0, symName: '_$ss15_arrayForceCastySayq_GSayxGr0_lF10Foundation3URLV_AFSgTg5', symObjAddr: 0x5B0, symBinAddr: 0x1000C0B7C, symSize: 0x19C }
+  - { offset: 0x139B87, size: 0x8, addend: 0x0, symName: '_$s17RealityKitContent07realitybC6Bundle_WZ', symObjAddr: 0x0, symBinAddr: 0x1000C10D8, symSize: 0x48 }
+  - { offset: 0x139BAB, size: 0x8, addend: 0x0, symName: '_$s17RealityKitContent07realitybC6BundleSo8NSBundleCvp', symObjAddr: 0xE28, symBinAddr: 0x100118AF0, symSize: 0x0 }
+  - { offset: 0x139BCA, size: 0x8, addend: 0x0, symName: '_$s17RealityKitContent07realitybC6Bundle_WZ', symObjAddr: 0x0, symBinAddr: 0x1000C10D8, symSize: 0x48 }
+  - { offset: 0x139BF2, size: 0x8, addend: 0x0, symName: '_$s17RealityKitContent07realitybC6BundleSo8NSBundleCvau', symObjAddr: 0x48, symBinAddr: 0x1000C1120, symSize: 0x40 }
+...
