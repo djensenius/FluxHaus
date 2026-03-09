@@ -37,6 +37,7 @@ struct ContentView: View {
             appliancesTab
                 .tabItem { Label("Appliances", systemImage: "washer.fill") }
         }
+        .tabViewStyle(.sidebarAdaptable)
     }
 
     private var homeTab: some View {
