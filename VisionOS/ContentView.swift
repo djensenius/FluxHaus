@@ -81,27 +81,11 @@ struct ContentView: View {
     }
 
     private var appliancesTab: some View {
-        ScrollView {
-            VStack {
-                HStack {
-                    Text("Appliances")
-                        .font(.title)
-                        .padding(.leading)
-                    Spacer()
-                }
-                Appliances(
-                    fluxHausConsts: fluxHausConsts,
-                    hconn: hconn,
-                    miele: miele,
-                    apiResponse: apiResponse,
-                    robots: robots,
-                    battery: battery,
-                    car: car,
-                    locationManager: locationManager
-                )
-            }
-            .padding()
-        }
+        AppliancesDetailView(
+            hconn: hconn,
+            miele: miele,
+            apiResponse: apiResponse
+        )
     }
 }
 

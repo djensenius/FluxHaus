@@ -81,27 +81,11 @@ struct ContentView: View {
     }
 
     private var appliancesTab: some View {
-        VStack {
-            HStack {
-                Text("Appliances")
-                    .font(Theme.Fonts.headerLarge())
-                    .foregroundColor(Theme.Colors.textPrimary)
-                    .padding(.leading)
-                Spacer()
-            }
-            Appliances(
-                fluxHausConsts: fluxHausConsts,
-                hconn: hconn,
-                miele: miele,
-                apiResponse: apiResponse,
-                robots: robots,
-                battery: battery,
-                car: car,
-                locationManager: locationManager
-            )
-            Spacer()
-        }
-        .background(Theme.Colors.background)
+        AppliancesDetailView(
+            hconn: hconn,
+            miele: miele,
+            apiResponse: apiResponse
+        )
     }
 
     private var footer: some View {
