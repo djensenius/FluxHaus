@@ -304,6 +304,7 @@ struct ChatView: View {
                     }
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
         }
     }
 
@@ -322,9 +323,6 @@ struct ChatView: View {
                         .submitLabel(.send)
                         .onSubmit {
                             sendMessage()
-                        }
-                        .onAppear {
-                            isInputFocused = true
                         }
 
                     Button(action: sendMessage) {

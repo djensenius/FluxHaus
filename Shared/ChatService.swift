@@ -91,9 +91,16 @@ private func parseSSE(
         let trimmed = line.trimmingCharacters(in: .whitespaces)
         guard trimmed.hasPrefix("data: ") else { continue }
         let json = String(trimmed.dropFirst(6))
-        if let data = json.data(using: .utf8),
-           let event = try? JSONDecoder().decode(StreamEvent.self, from: data) {
+        guard let data = json.data(using: .utf8) else { continue }
+        do {
+            let event = try JSONDecoder().decode(StreamEvent.self, from: data)
             continuation.yield(event)
+        } catch {
+            // Server returned non-JSON (e.g. HTML error page)
+            let preview = String(json.prefix(200))
+            continuation.yield(StreamEvent(
+                type: "error", text: "Unexpected server response: \(preview)", tool: nil, audio: nil
+            ))
         }
     }
     continuation.finish()
