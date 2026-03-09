@@ -20,12 +20,12 @@
             landmarkType = "3">
             <Locations>
                <Location
-                  uuid = "5670E4A8-2F70-46A7-8986-7A944DDDABEF - ac0418a172f04768"
+                  uuid = "5670E4A8-2F70-46A7-8986-7A944DDDABEF - a30470fb3829c076"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
                   symbolName = "(3) suspend resume partial function for closure #1 () async -&gt; () in FluxHaus.Car.performAction(action: Swift.String, steeringWheel: Swift.Bool, seatFL: Swift.Bool, seatFR: Swift.Bool, seatRL: Swift.Bool, seatRR: Swift.Bool, defrost: Swift.Bool, temperature: Swift.Optional&lt;Swift.Int&gt;) -&gt; ()"
-                  moduleName = "FluxHaus.debug.dylib"
+                  moduleName = "VisionOS.debug.dylib"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/david/Developer/FluxHaus/Shared/Car.swift"
                   startingColumnNumber = "9223372036854775807"
@@ -34,12 +34,12 @@
                   endingLineNumber = "130">
                </Location>
                <Location
-                  uuid = "5670E4A8-2F70-46A7-8986-7A944DDDABEF - cee17d8bf8e71c07"
+                  uuid = "5670E4A8-2F70-46A7-8986-7A944DDDABEF - c1e115d1b23e9b19"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
                   symbolName = "closure #1 @Sendable (Swift.Optional&lt;Foundation.Data&gt;, Swift.Optional&lt;__C.NSURLResponse&gt;, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in closure #1 () async -&gt; () in FluxHaus.Car.performAction(action: Swift.String, steeringWheel: Swift.Bool, seatFL: Swift.Bool, seatFR: Swift.Bool, seatRL: Swift.Bool, seatRR: Swift.Bool, defrost: Swift.Bool, temperature: Swift.Optional&lt;Swift.Int&gt;) -&gt; ()"
-                  moduleName = "FluxHaus.debug.dylib"
+                  moduleName = "VisionOS.debug.dylib"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/david/Developer/FluxHaus/Shared/Car.swift"
                   startingColumnNumber = "9223372036854775807"

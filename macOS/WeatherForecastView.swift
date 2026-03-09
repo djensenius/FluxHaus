@@ -196,8 +196,12 @@ struct WeatherDetailView: View {
             }
             .padding()
         }
-        .background(Theme.Colors.background)
         .onDisappear { stopAnimation() }
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #else
+        .background(Theme.Colors.background)
+        #endif
         .task {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
@@ -249,6 +253,9 @@ struct WeatherDetailView: View {
         .padding()
         .background(Theme.Colors.secondaryBackground)
         .cornerRadius(12)
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #endif
     }
 
     private func detailsGrid(weather: Weather) -> some View {
@@ -317,6 +324,9 @@ struct WeatherDetailView: View {
         .padding()
         .background(Theme.Colors.secondaryBackground)
         .cornerRadius(12)
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #endif
     }
 
     private var radarControls: some View {
@@ -405,6 +415,9 @@ struct WeatherDetailView: View {
         }
         .background(Theme.Colors.secondaryBackground)
         .cornerRadius(12)
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #endif
     }
 
     private var loadingView: some View {
