@@ -239,6 +239,7 @@ AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PB
 		WF0001000000000000000004 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
 		WH0001000000000000000001 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		WH0001000000000000000002 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
+		F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -384,6 +385,7 @@ AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileRefere
 		RM0000000000000000000001 /* RadarMapViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarMapViews.swift; sourceTree = "<group>"; };
 		RO0000000000000000000001 /* RadarOverlayRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarOverlayRenderer.swift; sourceTree = "<group>"; };
 		WF0000000000000000000001 /* WeatherForecastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherForecastView.swift; sourceTree = "<group>"; };
+		9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -471,6 +473,7 @@ AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileRefere
 		632CBC23258682C8003E4988 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */,
 				63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */,
 AD0001000000000000000001 /* AppliancesDetailView.swift */,
 				632CBC7D25870CBB003E4988 /* AppliancesView.swift */,
@@ -1054,6 +1057,7 @@ AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				WF0001000000000000000003 /* WeatherForecastView.swift in Sources */,
 				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
 				37D0A0010000000000000002 /* SuggestionChips.swift in Sources */,
+							F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

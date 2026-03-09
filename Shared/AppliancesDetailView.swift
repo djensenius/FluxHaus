@@ -2,7 +2,6 @@
 //  AppliancesDetailView.swift
 //  FluxHaus
 //
-
 import SwiftUI
 
 struct AppliancesDetailView: View {
@@ -489,7 +488,7 @@ private extension AppliancesDetailView {
         }
     }
 }
-
+#if DEBUG
 #Preview {
     AppliancesDetailView(
         hconn: MockData.createHomeConnect(),
@@ -498,3 +497,4 @@ private extension AppliancesDetailView {
         robots: MockData.createRobots()
     )
 }
+#endif

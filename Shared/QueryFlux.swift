@@ -303,6 +303,7 @@ struct WidgetDevice: Codable, Equatable, Hashable {
     var trailingText: String
     var shortText: String
     var running: Bool
+    var battery: Int?
 }
 
 func formatTimeRemaining(timeRemaining: Int) -> String {
@@ -415,7 +416,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             icon: "fan",
             trailingText: fluxData.broomBot?.running ?? false ? "On" : "Off",
             shortText: fluxData.broomBot?.running ?? false ? "On" : "Off",
-            running: fluxData.broomBot?.running ?? false
+            running: fluxData.broomBot?.running ?? false,
+            battery: fluxData.broomBot?.batteryLevel
         )
     )
 
@@ -426,7 +428,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             icon: "humidifier.and.droplets",
             trailingText: fluxData.mopBot?.running ?? false ? "On" : "Off",
             shortText: fluxData.mopBot?.running ?? false ? "On" : "Off",
-            running: fluxData.mopBot?.running ?? false
+            running: fluxData.mopBot?.running ?? false,
+            battery: fluxData.mopBot?.batteryLevel
         )
     )
 

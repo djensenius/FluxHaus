@@ -105,6 +105,7 @@ struct FluxHausApp: App {
                             hconn.setApiResponse(apiResponse: self.apiResponse)
                             miele.setApiResponse(apiResponse: self.apiResponse)
                             car.setApiResponse(apiResponse: self.apiResponse)
+                            updateLiveActivities(response: response)
                         }
                     }
                     .onReceive(timer) {_ in
@@ -157,5 +158,11 @@ struct FluxHausApp: App {
     func loadCar() {
         car = Car()
         car?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func updateLiveActivities(response: LoginResponse) {
+        let fluxData = convertLoginResponseToAppData(response: response)
+        let devices = convertDataToWidgetDevices(fluxData: fluxData)
+        LiveActivityManager.shared.reconcile(devices: devices)
     }
 }

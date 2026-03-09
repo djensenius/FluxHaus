@@ -81,5 +81,9 @@
 	<string>https://auth.fluxhaus.io/application/o/flux-haus-mobile</string>
 	<key>OIDCClientID</key>
 	<string>f2COTwjAfHLRPbk8AaTlhph4lpP4dSzXIXxrLGj7</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>NSSupportsLiveActivitiesFrequentUpdates</key>
+	<true/>
 </dict>
 </plist>

@@ -9,3 +9,4 @@ swiftlint.zip
 # Swift Package Manager
 .swiftpm/
 Package.resolved
+build/
