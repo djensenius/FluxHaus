@@ -180,16 +180,21 @@ struct WeatherCard: View {
                 Image(systemName: weatherIcon)
                     .symbolRenderingMode(.multicolor)
                     .font(.system(size: 36))
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(temperatureString)
                         .font(.system(size: 24, weight: .semibold, design: .rounded))
                         .foregroundColor(Theme.Colors.textPrimary)
-                    Text(weather.currentWeather.condition.description)
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                    if let precipText = precipitationText {
-                        Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
-                            .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.accent)
+                    HStack(spacing: 4) {
+                        Text(weather.currentWeather.condition.description)
+                            .font(Theme.Fonts.bodySmall)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                        if let precipText = precipitationText {
+                            Text("·")
+                                .foregroundColor(Theme.Colors.textSecondary)
+                            Label(precipText, systemImage: locationManager.forecast?.symbolName ?? "cloud.rain")
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.accent)
+                        }
                     }
                 }
                 Spacer()
