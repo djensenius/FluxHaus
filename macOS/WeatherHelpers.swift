@@ -46,16 +46,17 @@ enum WeatherHelpers {
 
     static func precipitationText(from forecast: ForecastInfo) -> String? {
         let chance = Int(forecast.chance * 100)
+        let type = forecast.type.description.capitalized
         if let endNum = forecast.endingNumber, let endType = forecast.endingType {
             let unit = endType == .minute ? "min" : "hr"
-            return "\(forecast.type.description) ending in \(endNum) \(unit) (\(chance)%)"
+            return "\(type) ending in \(endNum) \(unit) (\(chance)%)"
         }
         if let startNum = forecast.startingNumber, let startType = forecast.startingType {
             if startType == .day {
-                return "\(forecast.type.description) tomorrow (\(chance)%)"
+                return "\(type) tomorrow (\(chance)%)"
             }
             let unit = startType == .minute ? "min" : "hr"
-            return "\(forecast.type.description) in \(startNum) \(unit) (\(chance)%)"
+            return "\(type) in \(startNum) \(unit) (\(chance)%)"
         }
         return nil
     }

@@ -248,6 +248,7 @@ struct WeatherDetailView: View {
                 Label(text, systemImage: forecast.symbolName)
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.accent)
+                    .padding(.top, 4)
             }
         }
         .padding()
