@@ -169,16 +169,17 @@ struct ChatView: View {
                     }
                 }
                 .padding(.vertical, 8)
+                Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
             .onChange(of: chat.messages.last?.id) {
-                if let last = chat.messages.last {
-                    proxy.scrollTo(last.id, anchor: .bottom)
+                DispatchQueue.main.async {
+                    proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
                 if chat.isLoading {
-                    proxy.scrollTo("loading", anchor: .bottom)
+                    proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
         }
