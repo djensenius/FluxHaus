@@ -13,16 +13,15 @@ import os
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Chat")
 
 func markdownAttributed(_ string: String) -> AttributedString {
-    let cleaned = string.replacingOccurrences(
-        of: #"^#{1,6}\s+"#,
-        with: "",
-        options: .regularExpression
-    ).replacingOccurrences(
-        of: #"\n#{1,6}\s+"#,
-        with: "\n",
-        options: .regularExpression
+    var cleaned = string
+        .replacingOccurrences(of: #"^#{1,6}\s+"#, with: "", options: .regularExpression)
+        .replacingOccurrences(of: #"\n#{1,6}\s+"#, with: "\n", options: .regularExpression)
+    // Convert single newlines to hard line breaks (two trailing spaces)
+    cleaned = cleaned.replacingOccurrences(of: "\n", with: "  \n")
+    let options = AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
     )
-    return (try? AttributedString(markdown: cleaned)) ?? AttributedString(string)
+    return (try? AttributedString(markdown: cleaned, options: options)) ?? AttributedString(string)
 }
 
 enum ChatRole: String {
