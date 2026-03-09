@@ -12,7 +12,6 @@ struct ChatView: View {
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
-    @State private var visibleMessageIds: [UUID] = []
 
     var body: some View {
         HSplitView {
@@ -72,7 +71,6 @@ struct ChatView: View {
                            let conv = chat.conversations.first(
                             where: { $0.id == newId }
                            ) {
-                            saveCurrentScrollPosition()
                             Task { await chat.loadConversation(conv) }
                         }
                     }
@@ -139,16 +137,6 @@ struct ChatView: View {
         .background(Theme.Colors.warning.opacity(0.1))
     }
 
-    private func saveCurrentScrollPosition() {
-        guard let firstId = visibleMessageIds.first,
-              let index = chat.messages.firstIndex(where: { $0.id == firstId }) else { return }
-        if visibleMessageIds.last == chat.messages.last?.id {
-            chat.clearScrollPosition()
-        } else {
-            chat.saveScrollPosition(messageIndex: index)
-        }
-    }
-
     private var chatMessages: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -181,31 +169,16 @@ struct ChatView: View {
                     }
                 }
                 .padding(.vertical, 8)
-                .scrollTargetLayout()
             }
             .defaultScrollAnchor(.bottom)
-            .onScrollTargetVisibilityChange(idType: UUID.self) { ids in
-                visibleMessageIds = ids
-            }
-            .onChange(of: chat.messages.count) { oldCount, newCount in
-                if oldCount == 0, newCount > 0 {
-                    if let savedIndex = chat.savedScrollIndex(),
-                       savedIndex < newCount {
-                        proxy.scrollTo(chat.messages[savedIndex].id, anchor: .top)
-                    } else if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
-                } else if newCount > oldCount {
-                    if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+            .onChange(of: chat.messages.count) {
+                if let last = chat.messages.last {
+                    proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
                 if chat.isLoading {
-                    withAnimation {
-                        proxy.scrollTo("loading", anchor: .bottom)
-                    }
+                    proxy.scrollTo("loading", anchor: .bottom)
                 }
             }
         }

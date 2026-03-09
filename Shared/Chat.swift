@@ -85,7 +85,6 @@ struct Conversation: Identifiable, Codable {
     var playingMessageId: UUID?
     var sessionError: String?
     var conversations: [Conversation] = []
-    private var savedScrollPositions: [String: Int] = [:]
 
     private var audioRecorder: AVAudioRecorder?
     private var audioPlayer: AVAudioPlayer?
@@ -385,23 +384,6 @@ struct Conversation: Identifiable, Codable {
         } catch {
             logger.error("Failed to delete conversation: \(error.localizedDescription)")
         }
-    }
-
-    // MARK: - Scroll position persistence
-
-    func saveScrollPosition(messageIndex: Int) {
-        guard let convId = conversationId else { return }
-        savedScrollPositions[convId] = messageIndex
-    }
-
-    func clearScrollPosition() {
-        guard let convId = conversationId else { return }
-        savedScrollPositions.removeValue(forKey: convId)
-    }
-
-    func savedScrollIndex() -> Int? {
-        guard let convId = conversationId else { return nil }
-        return savedScrollPositions[convId]
     }
 
     // MARK: - Conversation helpers

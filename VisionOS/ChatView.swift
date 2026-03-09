@@ -108,7 +108,6 @@ struct ChatView: View {
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var showConversations = false
-    @State private var visibleMessageIds: [UUID] = []
 
     var body: some View {
         NavigationStack {
@@ -150,7 +149,7 @@ struct ChatView: View {
                 }
             }
             .sheet(isPresented: $showConversations) {
-                ConversationListView(chat: chat, onSwitch: saveCurrentScrollPosition)
+                ConversationListView(chat: chat)
             }
             .task {
                 if chat.conversations.isEmpty {
@@ -165,16 +164,6 @@ struct ChatView: View {
                 }
             }
             .task { await chat.syncConversationsPeriodically() }
-        }
-    }
-
-    private func saveCurrentScrollPosition() {
-        guard let firstId = visibleMessageIds.first,
-              let index = chat.messages.firstIndex(where: { $0.id == firstId }) else { return }
-        if visibleMessageIds.last == chat.messages.last?.id {
-            chat.clearScrollPosition()
-        } else {
-            chat.saveScrollPosition(messageIndex: index)
         }
     }
 
@@ -209,31 +198,16 @@ struct ChatView: View {
                     }
                 }
                 .padding(.vertical, 8)
-                .scrollTargetLayout()
             }
             .defaultScrollAnchor(.bottom)
-            .onScrollTargetVisibilityChange(idType: UUID.self) { ids in
-                visibleMessageIds = ids
-            }
-            .onChange(of: chat.messages.count) { oldCount, newCount in
-                if oldCount == 0, newCount > 0 {
-                    if let savedIndex = chat.savedScrollIndex(),
-                       savedIndex < newCount {
-                        proxy.scrollTo(chat.messages[savedIndex].id, anchor: .top)
-                    } else if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
-                } else if newCount > oldCount {
-                    if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+            .onChange(of: chat.messages.count) {
+                if let last = chat.messages.last {
+                    proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
                 if chat.isLoading {
-                    withAnimation {
-                        proxy.scrollTo("loading", anchor: .bottom)
-                    }
+                    proxy.scrollTo("loading", anchor: .bottom)
                 }
             }
         }
@@ -380,7 +354,6 @@ struct ChatView: View {
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
-    var onSwitch: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -388,7 +361,6 @@ struct ConversationListView: View {
             List {
                 ForEach(chat.conversations) { conv in
                     Button(action: {
-                        onSwitch()
                         Task {
                             await chat.loadConversation(conv)
                             dismiss()
