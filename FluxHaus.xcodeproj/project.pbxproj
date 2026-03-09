@@ -28,6 +28,10 @@
 		323C8C60BEA480D9040C3B37 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		36CDAE36186F337CA02795D9 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
+		37D0A0010000000000000001 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
+		37D0A0010000000000000002 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
+		37D0A0010000000000000003 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
+		37D0A0010000000000000004 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
 		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
@@ -366,6 +370,7 @@
 		AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		AC70F639352E9D9252F77D43 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
+		37D0A0000000000000000001 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_ViewTests.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
@@ -498,6 +503,7 @@
 				RD0001000000000000000001 /* RadarService.swift */,
 				RM0000000000000000000001 /* RadarMapViews.swift */,
 				C6709013ABF8AA633E63B128 /* SceneView.swift */,
+				37D0A0000000000000000001 /* SuggestionChips.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -984,6 +990,7 @@
 				D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */,
 				76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */,
 				A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */,
+				37D0A0010000000000000001 /* SuggestionChips.swift in Sources */,
 				RD0003000000000000000001 /* RadarService.swift in Sources */,
 				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */,
@@ -1038,6 +1045,7 @@
 				RO0001000000000000000003 /* RadarOverlayRenderer.swift in Sources */,
 				WF0001000000000000000003 /* WeatherForecastView.swift in Sources */,
 				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
+				37D0A0010000000000000002 /* SuggestionChips.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1125,6 +1133,7 @@
 				RO0001000000000000000004 /* RadarOverlayRenderer.swift in Sources */,
 				WF0001000000000000000004 /* WeatherForecastView.swift in Sources */,
 				A833D279DDED4F415801541F /* SceneView.swift in Sources */,
+				37D0A0010000000000000003 /* SuggestionChips.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1189,6 +1198,7 @@
 				94150B7CEBCFBDF569235F89 /* SettingsView.swift in Sources */,
 				5C3861FC78328082D3079690 /* SceneService.swift in Sources */,
 				BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */,
+				37D0A0010000000000000004 /* SuggestionChips.swift in Sources */,
 				RD0003000000000000000004 /* RadarService.swift in Sources */,
 				RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */,
