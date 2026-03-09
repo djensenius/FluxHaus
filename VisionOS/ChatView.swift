@@ -38,8 +38,20 @@ struct ChatBubble: View {
                 }
             }
             .padding(12)
-            .background(backgroundColor)
-            .cornerRadius(16)
+            .background {
+                switch message.role {
+                case .user:
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Theme.Colors.accent)
+                case .assistant:
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                case .error:
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Theme.Colors.error.opacity(0.2))
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             if message.role != .user {
                 Spacer()
             }
@@ -47,21 +59,10 @@ struct ChatBubble: View {
         .padding(.horizontal)
     }
 
-    private var backgroundColor: Color {
-        switch message.role {
-        case .user:
-            return Theme.Colors.accent
-        case .assistant:
-            return Theme.Colors.secondaryBackground
-        case .error:
-            return Theme.Colors.error.opacity(0.2)
-        }
-    }
-
     private var foregroundColor: Color {
         switch message.role {
         case .user:
-            return Theme.Colors.background
+            return .white
         case .assistant:
             return Theme.Colors.textPrimary
         case .error:
@@ -71,7 +72,7 @@ struct ChatBubble: View {
 
     private var playButtonColor: Color {
         message.role == .user
-            ? Theme.Colors.background.opacity(0.8)
+            ? Color.white.opacity(0.8)
             : Theme.Colors.accent
     }
 }
@@ -100,7 +101,7 @@ struct ChatView: View {
             Divider()
             inputBar
         }
-        .background(Theme.Colors.background)
+        .scrollContentBackground(.hidden)
         .navigationTitle(
             chat.conversationId != nil ? "Assistant" : "New Chat"
         )

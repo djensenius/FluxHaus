@@ -9,6 +9,7 @@ import SwiftUI
 
 enum SidebarItem: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
+    case weather = "Weather"
     case scenes = "Scenes"
     case appliances = "Appliances"
     case car = "Car"
@@ -20,6 +21,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .dashboard: return "house.fill"
+        case .weather: return "cloud.sun.fill"
         case .scenes: return "lightbulb.fill"
         case .appliances: return "washer.fill"
         case .car: return "car.fill"
@@ -39,6 +41,7 @@ struct ContentView: View {
     var apiResponse: Api
     @StateObject private var locationManager = LocationManager()
     @State private var chat = Chat()
+    @State private var radarService = RadarService()
     @State private var selectedItem: SidebarItem = .dashboard
 
     var body: some View {
@@ -98,8 +101,15 @@ struct ContentView: View {
                 car: car,
                 apiResponse: apiResponse,
                 locationManager: locationManager,
+                radarService: radarService,
                 onNavigate: { selectedItem = $0 }
             )
+        case .weather:
+            WeatherDetailView(
+                locationManager: locationManager,
+                radarService: radarService
+            )
+            .navigationTitle("Weather")
         case .scenes:
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .navigationTitle("Scenes")
@@ -122,20 +132,22 @@ struct ContentView: View {
         Group {
             Button("") { selectedItem = .dashboard }
                 .keyboardShortcut("1", modifiers: .command)
-            Button("") { selectedItem = .scenes }
+            Button("") { selectedItem = .weather }
                 .keyboardShortcut("2", modifiers: .command)
-            Button("") { selectedItem = .appliances }
+            Button("") { selectedItem = .scenes }
                 .keyboardShortcut("3", modifiers: .command)
-            Button("") { selectedItem = .car }
+            Button("") { selectedItem = .appliances }
                 .keyboardShortcut("4", modifiers: .command)
-            Button("") { selectedItem = .robots }
+            Button("") { selectedItem = .car }
                 .keyboardShortcut("5", modifiers: .command)
+            Button("") { selectedItem = .robots }
+                .keyboardShortcut("6", modifiers: .command)
             Button("") {
                 if AuthManager.hasOIDCToken() {
                     selectedItem = .assistant
                 }
             }
-            .keyboardShortcut("6", modifiers: .command)
+            .keyboardShortcut("7", modifiers: .command)
         }
         .frame(width: 0, height: 0)
         .opacity(0)

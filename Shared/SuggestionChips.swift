@@ -37,7 +37,7 @@ struct SuggestionChipsView: View {
                                 .font(Theme.Fonts.caption)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
-                                .background(Theme.Colors.cardBackground)
+                                .background(Theme.Colors.secondaryBackground)
                                 .foregroundColor(Theme.Colors.accent)
                                 .cornerRadius(16)
                                 .overlay(

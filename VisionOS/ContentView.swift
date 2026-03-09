@@ -20,79 +20,86 @@ struct ContentView: View {
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
     @State private var chat = Chat()
-    @State private var showChat = false
+    @State private var radarService = RadarService()
 
     var body: some View {
-        VStack {
+        TabView {
+            homeTab
+                .tabItem { Label("Home", systemImage: "house.fill") }
+            weatherTab
+                .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
+            if AuthManager.hasOIDCToken() {
+                ChatView(chat: chat)
+                    .tabItem {
+                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                    }
+            }
+            carTab
+                .tabItem { Label("Car", systemImage: "car.fill") }
+            appliancesTab
+                .tabItem { Label("Appliances", systemImage: "washer.fill") }
+        }
+    }
+
+    private var homeTab: some View {
+        ScrollView {
             VStack {
-                VStack {
-                    DateTimeView()
-                    WeatherView(lman: locationManager)
-                    if AuthManager.hasOIDCToken() {
-                        HStack {
-                            Spacer()
-                            Button(action: { showChat = true }, label: {
-                                Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
-                                    .font(.body)
-                            })
-                        }
-                        .padding(.top, 4)
-                    }
-                    HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-                    HStack {
-                        Text("Appliances")
-                            .font(.title)
-                            .padding(.leading)
-                        Spacer()
-                    }
-                    Appliances(
-                        fluxHausConsts: fluxHausConsts,
-                        hconn: hconn,
-                        miele: miele,
-                        apiResponse: apiResponse,
-                        robots: robots,
-                        battery: battery,
-                        car: car,
-                        locationManager: locationManager
-                    )
+                DateTimeView()
+                WeatherView(lman: locationManager)
+                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                HStack {
+                    Text("Appliances")
+                        .font(.title)
+                        .padding(.leading)
+                    Spacer()
                 }
+                Appliances(
+                    fluxHausConsts: fluxHausConsts,
+                    hconn: hconn,
+                    miele: miele,
+                    apiResponse: apiResponse,
+                    robots: robots,
+                    battery: battery,
+                    car: car,
+                    locationManager: locationManager
+                )
             }
             .padding()
-            HStack {
-                Link(
-                    "Weather provided by  Weather",
-                    destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+        }
+    }
+
+    private var weatherTab: some View {
+        WeatherDetailView(
+            locationManager: locationManager,
+            radarService: radarService
+        )
+    }
+
+    private var carTab: some View {
+        CarDetailView(car: car, locationManager: locationManager)
+    }
+
+    private var appliancesTab: some View {
+        ScrollView {
+            VStack {
+                HStack {
+                    Text("Appliances")
+                        .font(.title)
+                        .padding(.leading)
+                    Spacer()
+                }
+                Appliances(
+                    fluxHausConsts: fluxHausConsts,
+                    hconn: hconn,
+                    miele: miele,
+                    apiResponse: apiResponse,
+                    robots: robots,
+                    battery: battery,
+                    car: car,
+                    locationManager: locationManager
                 )
-                .font(.caption)
-                .padding([.bottom, .leading])
-
-                Spacer()
-
-                Button(action: {
-                    AuthManager.shared.signOut()
-                    NotificationCenter.default.post(
-                        name: Notification.Name.logout,
-                        object: nil,
-                        userInfo: ["logout": true]
-                    )
-                }, label: {
-                    Text("Logout")
-                        .font(.caption)
-                })
-                .padding([.bottom, .trailing])
             }
-        }
-        .fullScreenCover(isPresented: $showChat) {
-            ChatView(chat: chat)
-        }
-        .overlay {
-            if AuthManager.hasOIDCToken() {
-                Button("") { showChat = true }
-                    .keyboardShortcut("c", modifiers: .command)
-                    .frame(width: 0, height: 0)
-                    .opacity(0)
-                    .accessibilityHidden(true)
-            }
+            .padding()
         }
     }
 }

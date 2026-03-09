@@ -75,7 +75,9 @@ struct RobotDetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
 
                     // Controls Card
@@ -84,7 +86,7 @@ struct RobotDetailView: View {
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
 
-                        #if os(macOS)
+                        #if os(macOS) || os(visionOS)
                         HStack(spacing: 8) {
                             if robot.running == true {
                                 Button(action: { performAction(action: "stop") }, label: {
@@ -114,9 +116,13 @@ struct RobotDetailView: View {
                                     Label("Stop", systemImage: "stop.fill")
                                         .frame(maxWidth: .infinity)
                                         .padding()
+                                        #if os(visionOS)
+                                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                        #else
                                         .background(Theme.Colors.secondaryBackground)
-                                        .foregroundColor(Theme.Colors.textPrimary)
                                         .cornerRadius(8)
+                                        #endif
+                                        .foregroundColor(Theme.Colors.textPrimary)
                                 })
                                 .disabled(self.buttonsDisabled)
                             } else {
@@ -139,9 +145,13 @@ struct RobotDetailView: View {
                                         )
                                             .frame(maxWidth: .infinity)
                                             .padding()
+                                            #if os(visionOS)
+                                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                            #else
                                             .background(Theme.Colors.secondaryBackground)
-                                            .foregroundColor(Theme.Colors.textPrimary)
                                             .cornerRadius(8)
+                                            #endif
+                                            .foregroundColor(Theme.Colors.textPrimary)
                                     })
                                     .disabled(self.buttonsDisabled)
                                 }
@@ -151,7 +161,9 @@ struct RobotDetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
 
                     if self.buttonsDisabled {
