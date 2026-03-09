@@ -139,6 +139,8 @@ struct ChatView: View {
                     ForEach(chat.messages) { message in
                         ChatBubble(
                             message: message,
+                            isLastProgress: message.isProgress
+                                && message.id == chat.messages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -297,6 +299,7 @@ struct ChatView: View {
 
 struct ChatBubble: View {
     let message: ChatMessage
+    let isLastProgress: Bool
     let isPlaying: Bool
     let onPlayTapped: () -> Void
 
@@ -307,10 +310,32 @@ struct ChatBubble: View {
                 alignment: message.role == .user ? .trailing : .leading,
                 spacing: 4
             ) {
-                Text(message.content)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(foregroundColor)
-                    .textSelection(.enabled)
+                if message.isProgress {
+                    HStack(spacing: 6) {
+                        if isLastProgress {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption2)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                        Text(message.content)
+                            .font(Theme.Fonts.caption)
+                            .italic()
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                } else if message.role == .assistant {
+                    Text(markdownAttributed(message.content))
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(foregroundColor)
+                        .textSelection(.enabled)
+                } else {
+                    Text(message.content)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(foregroundColor)
+                        .textSelection(.enabled)
+                }
                 if message.isVoice && message.audioData != nil {
                     Button(action: onPlayTapped, label: {
                         HStack(spacing: 4) {
@@ -324,8 +349,8 @@ struct ChatBubble: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(10)
-            .background(backgroundColor)
+            .padding(message.isProgress ? 6 : 10)
+            .background(message.isProgress ? Color.clear : backgroundColor)
             .cornerRadius(12)
             if message.role != .user { Spacer(minLength: 60) }
         }

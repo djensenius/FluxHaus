@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ChatBubble: View {
     let message: ChatMessage
+    let isLastProgress: Bool
     let isPlaying: Bool
     let onPlayTapped: () -> Void
 
@@ -21,9 +22,30 @@ struct ChatBubble: View {
                 alignment: message.role == .user ? .trailing : .leading,
                 spacing: 4
             ) {
-                Text(message.content)
-                    .font(Theme.Fonts.bodyMedium)
-                    .foregroundColor(foregroundColor)
+                if message.isProgress {
+                    HStack(spacing: 6) {
+                        if isLastProgress {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.caption2)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                        Text(message.content)
+                            .font(Theme.Fonts.caption)
+                            .italic()
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                } else if message.role == .assistant {
+                    Text(markdownAttributed(message.content))
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(foregroundColor)
+                } else {
+                    Text(message.content)
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(foregroundColor)
+                }
                 if message.isVoice && message.audioData != nil {
                     Button(action: onPlayTapped, label: {
                         HStack(spacing: 4) {
@@ -37,18 +59,22 @@ struct ChatBubble: View {
                     })
                 }
             }
-            .padding(12)
+            .padding(message.isProgress ? 8 : 12)
             .background {
-                switch message.role {
-                case .user:
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Theme.Colors.accent)
-                case .assistant:
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial)
-                case .error:
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Theme.Colors.error.opacity(0.2))
+                if message.isProgress {
+                    Color.clear
+                } else {
+                    switch message.role {
+                    case .user:
+                        AnyView(RoundedRectangle(cornerRadius: 16)
+                            .fill(Theme.Colors.accent))
+                    case .assistant:
+                        AnyView(RoundedRectangle(cornerRadius: 16)
+                            .fill(.ultraThinMaterial))
+                    case .error:
+                        AnyView(RoundedRectangle(cornerRadius: 16)
+                            .fill(Theme.Colors.error.opacity(0.2)))
+                    }
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -162,6 +188,8 @@ struct ChatView: View {
                     ForEach(chat.messages) { message in
                         ChatBubble(
                             message: message,
+                            isLastProgress: message.isProgress
+                                && message.id == chat.messages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {

@@ -16,11 +16,16 @@ struct SuggestionChip: Identifiable {
 
 let defaultSuggestions: [SuggestionChip] = [
     SuggestionChip(label: "Home status", icon: "house", command: "What's the home status?"),
-    SuggestionChip(label: "Lock car", icon: "car", command: "Lock the car"),
     SuggestionChip(label: "Start BroomBot", icon: "fan", command: "Start the broombot"),
     SuggestionChip(label: "Appliances", icon: "washer", command: "Check the appliances"),
     SuggestionChip(label: "Car status", icon: "bolt.car", command: "What's the car status?"),
-    SuggestionChip(label: "Deep clean", icon: "sparkles", command: "Start a deep clean")
+    SuggestionChip(
+        label: "Driving stats",
+        icon: "chart.bar",
+        command: "How many km have I driven this month, broken down by week?"
+    ),
+    SuggestionChip(label: "Deep clean", icon: "sparkles", command: "Start a deep clean"),
+    SuggestionChip(label: "Lock car", icon: "lock", command: "Lock the car")
 ]
 
 struct SuggestionChipsView: View {

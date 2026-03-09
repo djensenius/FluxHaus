@@ -7,9 +7,22 @@
 
 import Foundation
 import AVFoundation
+import SwiftUI
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Chat")
+
+func markdownAttributed(_ string: String) -> AttributedString {
+    var cleaned = string
+        .replacingOccurrences(of: #"^#{1,6}\s+"#, with: "", options: .regularExpression)
+        .replacingOccurrences(of: #"\n#{1,6}\s+"#, with: "\n", options: .regularExpression)
+    // Convert single newlines to hard line breaks (two trailing spaces)
+    cleaned = cleaned.replacingOccurrences(of: "\n", with: "  \n")
+    let options = AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
+    )
+    return (try? AttributedString(markdown: cleaned, options: options)) ?? AttributedString(string)
+}
 
 enum ChatRole: String {
     case user
@@ -24,6 +37,7 @@ struct ChatMessage: Identifiable {
     let timestamp: Date
     var audioData: Data?
     var isVoice: Bool
+    var isProgress: Bool
     var serverMessageId: String?
 
     init(
@@ -32,6 +46,7 @@ struct ChatMessage: Identifiable {
         timestamp: Date = Date(),
         audioData: Data? = nil,
         isVoice: Bool = false,
+        isProgress: Bool = false,
         serverMessageId: String? = nil
     ) {
         self.id = UUID()
@@ -40,6 +55,7 @@ struct ChatMessage: Identifiable {
         self.timestamp = timestamp
         self.audioData = audioData
         self.isVoice = isVoice
+        self.isProgress = isProgress
         self.serverMessageId = serverMessageId
     }
 }
@@ -84,19 +100,79 @@ struct Conversation: Identifiable, Codable {
         isLoading = true
 
         do {
-            let response = try await sendCommand(trimmed, conversationId: conversationId)
-            messages.append(ChatMessage(role: .assistant, content: response))
+            let result = try await processStream(
+                streamCommand(trimmed, conversationId: conversationId)
+            )
+            messages.removeAll { $0.isProgress }
+            messages.append(ChatMessage(role: .assistant, content: result.text))
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
         } catch {
+            messages.removeAll { $0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
-            messages.append(ChatMessage(
-                role: .error,
-                content: error.localizedDescription
-            ))
+            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
         }
 
         isLoading = false
+    }
+
+    private struct StreamResult {
+        var text: String = "Done."
+        var transcript: String?
+        var audioData: Data?
+    }
+
+    private func processStream(
+        _ stream: AsyncThrowingStream<StreamEvent, Error>
+    ) async throws -> StreamResult {
+        var result = StreamResult()
+        for try await event in stream {
+            switch event.type {
+            case "transcript":
+                result.transcript = event.text
+                updateUserTranscript(event.text)
+            case "progress":
+                appendProgress(event.text)
+            case "tool_call":
+                appendToolCall(event.tool)
+            case "done":
+                if let text = event.text { result.text = text }
+                if let b64 = event.audio, let data = Data(base64Encoded: b64) {
+                    result.audioData = data
+                }
+            case "error":
+                throw ChatServiceError.serverError(event.text ?? "Unknown error")
+            default: break
+            }
+        }
+        return result
+    }
+
+    private func appendProgress(_ text: String?) {
+        guard let text, !text.isEmpty else { return }
+        messages.append(ChatMessage(role: .assistant, content: text, isProgress: true))
+    }
+
+    private func appendToolCall(_ tool: String?) {
+        guard let tool else { return }
+        messages.append(ChatMessage(
+            role: .assistant, content: "🔧 \(formatToolName(tool))", isProgress: true
+        ))
+    }
+
+    private func updateUserTranscript(_ text: String?) {
+        guard let text, !text.isEmpty,
+              let idx = messages.lastIndex(where: { $0.role == .user }) else { return }
+        messages[idx] = ChatMessage(
+            role: .user, content: text,
+            timestamp: messages[idx].timestamp,
+            audioData: messages[idx].audioData, isVoice: true
+        )
+    }
+
+    private func formatToolName(_ name: String) -> String {
+        name.replacingOccurrences(of: "_", with: " ")
+            .capitalized
     }
 
     func startRecording() {
@@ -149,45 +225,29 @@ struct Conversation: Identifiable, Codable {
 
         await ensureConversation()
         messages.append(ChatMessage(
-            role: .user,
-            content: "🎤 Voice message",
-            audioData: audioData,
-            isVoice: true
+            role: .user, content: "🎤 Voice message",
+            audioData: audioData, isVoice: true
         ))
         isLoading = true
 
         do {
-            let response = try await sendVoice(audioData: audioData, conversationId: conversationId)
-
-            // Update user message with transcript
-            if !response.transcript.isEmpty {
-                if let lastUserIndex = messages.lastIndex(where: { $0.role == .user }) {
-                    messages[lastUserIndex] = ChatMessage(
-                        role: .user,
-                        content: response.transcript,
-                        timestamp: messages[lastUserIndex].timestamp,
-                        audioData: messages[lastUserIndex].audioData,
-                        isVoice: true
-                    )
-                }
-            }
-
+            let result = try await processStream(
+                streamVoice(audioData: audioData, conversationId: conversationId)
+            )
+            messages.removeAll { $0.isProgress }
             messages.append(ChatMessage(
-                role: .assistant,
-                content: response.responseText,
-                audioData: response.audioData,
-                isVoice: true
+                role: .assistant, content: result.text,
+                audioData: result.audioData, isVoice: true
             ))
-
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
-            playAudioResponse(data: response.audioData)
+            if let audio = result.audioData {
+                playAudioResponse(data: audio)
+            }
         } catch {
+            messages.removeAll { $0.isProgress }
             logger.error("Voice error: \(error.localizedDescription)")
-            messages.append(ChatMessage(
-                role: .error,
-                content: error.localizedDescription
-            ))
+            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
         }
 
         isLoading = false
