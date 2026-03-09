@@ -101,6 +101,13 @@ struct ChatView: View {
                 sessionErrorBanner(error)
             }
             chatMessages
+            if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
+                SuggestionChipsView { command in
+                    inputText = command
+                    sendMessage()
+                }
+                .padding(.vertical, 8)
+            }
             Divider()
             inputBar
         }

@@ -40,6 +40,7 @@ struct ContentView: View {
     var car: Car
     var apiResponse: Api
     @StateObject private var locationManager = LocationManager()
+    @ObservedObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedItem: SidebarItem = .dashboard
@@ -74,7 +75,7 @@ struct ContentView: View {
     private var sidebar: some View {
         List(selection: $selectedItem) {
             ForEach(SidebarItem.allCases) { item in
-                if item == .assistant && !AuthManager.hasOIDCToken() {
+                if item == .assistant && !authManager.isOIDC {
                     EmptyView()
                 } else {
                     Label(item.rawValue, systemImage: item.icon)
@@ -143,7 +144,7 @@ struct ContentView: View {
             Button("") { selectedItem = .robots }
                 .keyboardShortcut("6", modifiers: .command)
             Button("") {
-                if AuthManager.hasOIDCToken() {
+                if authManager.isOIDC {
                     selectedItem = .assistant
                 }
             }

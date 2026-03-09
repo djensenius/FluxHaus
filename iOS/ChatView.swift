@@ -215,10 +215,12 @@ struct ChatView: View {
 
     private var chatDetail: some View {
         VStack(spacing: 0) {
-            if let error = chat.sessionError {
-                sessionErrorBanner(error)
-            }
+            if let error = chat.sessionError { sessionErrorBanner(error) }
             chatMessages
+            if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
+                SuggestionChipsView { inputText = $0; sendMessage() }
+                    .padding(.vertical, 8)
+            }
             Divider()
             inputBar
         }
@@ -429,9 +431,7 @@ struct ChatView: View {
     private func sendMessage() {
         let text = inputText
         inputText = ""
-        Task {
-            await chat.send(text)
-        }
+        Task { await chat.send(text) }
     }
 }
 
