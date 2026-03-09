@@ -394,6 +394,11 @@ struct Conversation: Identifiable, Codable {
         savedScrollPositions[convId] = messageIndex
     }
 
+    func clearScrollPosition() {
+        guard let convId = conversationId else { return }
+        savedScrollPositions.removeValue(forKey: convId)
+    }
+
     func savedScrollIndex() -> Int? {
         guard let convId = conversationId else { return nil }
         return savedScrollPositions[convId]

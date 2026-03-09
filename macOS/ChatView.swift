@@ -12,7 +12,7 @@ struct ChatView: View {
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
-    @State private var scrolledMessageId: UUID?
+    @State private var visibleMessageIds: [UUID] = []
 
     var body: some View {
         HSplitView {
@@ -140,9 +140,13 @@ struct ChatView: View {
     }
 
     private func saveCurrentScrollPosition() {
-        guard let scrolledMessageId,
-              let index = chat.messages.firstIndex(where: { $0.id == scrolledMessageId }) else { return }
-        chat.saveScrollPosition(messageIndex: index)
+        guard let firstId = visibleMessageIds.first,
+              let index = chat.messages.firstIndex(where: { $0.id == firstId }) else { return }
+        if visibleMessageIds.last == chat.messages.last?.id {
+            chat.clearScrollPosition()
+        } else {
+            chat.saveScrollPosition(messageIndex: index)
+        }
     }
 
     private var chatMessages: some View {
@@ -177,9 +181,12 @@ struct ChatView: View {
                     }
                 }
                 .padding(.vertical, 8)
+                .scrollTargetLayout()
             }
-            .scrollPosition(id: $scrolledMessageId)
             .defaultScrollAnchor(.bottom)
+            .onScrollTargetVisibilityChange(idType: UUID.self) { ids in
+                visibleMessageIds = ids
+            }
             .onChange(of: chat.messages.count) { oldCount, newCount in
                 if oldCount == 0, newCount > 0 {
                     if let savedIndex = chat.savedScrollIndex(),
