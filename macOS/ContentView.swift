@@ -40,7 +40,7 @@ struct ContentView: View {
     var car: Car
     var apiResponse: Api
     @StateObject private var locationManager = LocationManager()
-    @ObservedObject private var authManager = AuthManager.shared
+    @StateObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedItem: SidebarItem = .dashboard

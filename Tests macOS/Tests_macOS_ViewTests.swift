@@ -115,6 +115,7 @@ struct MacOSViewSmokeTests {
             car: car,
             apiResponse: MockData.createApi(),
             locationManager: LocationManager(),
+            radarService: RadarService(),
             onNavigate: { _ in }
         )
 
@@ -152,8 +153,9 @@ struct SidebarItemTests {
     @Test("SidebarItem has all expected cases")
     func testAllCases() {
         let items = SidebarItem.allCases
-        #expect(items.count == 6)
+        #expect(items.count == 7)
         #expect(items.contains(.dashboard))
+        #expect(items.contains(.weather))
         #expect(items.contains(.scenes))
         #expect(items.contains(.appliances))
         #expect(items.contains(.car))
@@ -164,6 +166,7 @@ struct SidebarItemTests {
     @Test("SidebarItem has correct display names")
     func testDisplayNames() {
         #expect(SidebarItem.dashboard.rawValue == "Dashboard")
+        #expect(SidebarItem.weather.rawValue == "Weather")
         #expect(SidebarItem.scenes.rawValue == "Scenes")
         #expect(SidebarItem.appliances.rawValue == "Appliances")
         #expect(SidebarItem.car.rawValue == "Car")
@@ -174,6 +177,7 @@ struct SidebarItemTests {
     @Test("SidebarItem has correct icons")
     func testIcons() {
         #expect(SidebarItem.dashboard.icon == "house.fill")
+        #expect(SidebarItem.weather.icon == "cloud.sun.fill")
         #expect(SidebarItem.scenes.icon == "lightbulb.fill")
         #expect(SidebarItem.appliances.icon == "washer.fill")
         #expect(SidebarItem.car.icon == "car.fill")
@@ -373,6 +377,7 @@ struct MacOSNilDataResilienceTests {
             hconn: hconn, miele: miele, robots: robots,
             battery: Battery(), car: car, apiResponse: api,
             locationManager: LocationManager(),
+            radarService: RadarService(),
             onNavigate: { _ in }
         )
         let controller = NSHostingController(rootView: view)

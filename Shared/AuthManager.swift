@@ -180,6 +180,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: "oidc_access_token",
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: false
         ]
@@ -187,7 +188,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Authorization Header
-
     /// Returns the Authorization header value for API requests
     func authorizationHeader() -> String? {
         if let token = getAccessToken() {
@@ -201,7 +201,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - OIDC Sign In
-
     @MainActor func signInWithOIDC() async throws {
         let codeVerifier = generateCodeVerifier()
         let codeChallenge = generateCodeChallenge(from: codeVerifier)
@@ -272,7 +271,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Demo Sign In
-
     @MainActor func signInDemo(password: String) {
         var whereWeAre = WhereWeAre()
         whereWeAre.setPassword(password: password)
@@ -280,7 +278,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Sign Out
-
     @MainActor func signOut() {
         logger.warning("signOut() called — clearing all tokens and credentials")
         deleteKeychainItem(account: "oidc_access_token")
@@ -289,11 +286,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
-        logger.warning("signOut() complete — state=signedOut")
     }
 
     // MARK: - Token Management
-
     func getAccessToken() -> String? {
         return getKeychainItem(account: "oidc_access_token")
     }
@@ -312,12 +307,23 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     /// Proactively refreshes the token if it's expiring soon. Returns true if token is valid afterward.
     func ensureValidToken() async -> Bool {
+        await restoreStateIfNeeded()
         guard getAccessToken() != nil else { return false }
         if isTokenExpiringSoon() {
             logger.debug("ensureValidToken: token expiring soon, refreshing proactively")
             return await refreshTokenIfNeeded()
         }
         return true
+    }
+
+    /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
+    @MainActor func restoreStateIfNeeded() {
+        guard !isSignedIn else { return }
+        if getAccessToken() != nil {
+            authState = .signedIn(method: .oidc)
+        } else if WhereWeAre.getPassword() != nil {
+            authState = .signedIn(method: .demo)
+        }
     }
 
     func refreshTokenIfNeeded() async -> Bool {
@@ -377,12 +383,10 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         logger.info("exchangeCode: OK, expiresIn=\(tokens.expiresIn ?? -1), refresh=\(tokens.refreshToken != nil)")
         return tokens
     }
-
     private func refreshAccessToken(_ refreshToken: String) async throws -> OIDCTokens {
         var request = URLRequest(url: URL(string: Self.tokenURL)!)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
         let params: [(String, String)] = [
             ("grant_type", "refresh_token"),
             ("refresh_token", refreshToken),
@@ -390,13 +394,11 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             ("scope", Self.scopes)
         ]
         request.httpBody = Self.formEncode(params).data(using: .utf8)
-
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             let body = String(data: data, encoding: .utf8) ?? "unknown"
             throw AuthError.tokenExchangeFailed(body)
         }
-
         return try JSONDecoder().decode(OIDCTokens.self, from: data)
     }
 
@@ -418,13 +420,13 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Keychain Helpers
-
     private func setKeychainItem(account: String, value: String) {
         deleteKeychainItem(account: account)
         let attributes: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: account,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecValueData as String: value.data(using: .utf8)!
         ]
         let status = SecItemAdd(attributes as CFDictionary, nil)
@@ -438,14 +440,18 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: account,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        if SecItemCopyMatching(query as CFDictionary, &item) == noErr,
-           let data = item as? Data,
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        if status == noErr, let data = item as? Data,
            let value = String(data: data, encoding: .utf8) {
             return value
+        }
+        if status != errSecItemNotFound {
+            logger.error("Keychain read FAILED for \(account): OSStatus \(status)")
         }
         return nil
     }
@@ -460,7 +466,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - PKCE Helpers
-
     private static func formEncode(_ params: [(String, String)]) -> String {
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         return params.map { key, value in

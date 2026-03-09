@@ -74,18 +74,18 @@ struct MockData {
         ),
         carOdometer: 15000.0,
         dishwasher: DishWasher(
-            status: "Ready",
+            status: "Running",
             program: "Eco50",
-            remainingTime: 0,
-            remainingTimeUnit: "min",
+            remainingTime: 2700,
+            remainingTimeUnit: "sec",
             remainingTimeEstimate: true,
-            programProgress: 0,
-            operationState: .ready,
+            programProgress: 45,
+            operationState: .run,
             doorState: "Closed",
             selectedProgram: "Eco50",
-            activeProgram: nil,
+            activeProgram: .eco50,
             startInRelative: 0,
-            startInRelativeUnit: "min"
+            startInRelativeUnit: "sec"
         ),
         dryer: WasherDryer(
             name: "Dryer",

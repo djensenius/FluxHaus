@@ -19,7 +19,7 @@ struct ContentView: View {
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
-    @ObservedObject private var authManager = AuthManager.shared
+    @StateObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
 
@@ -81,27 +81,12 @@ struct ContentView: View {
     }
 
     private var appliancesTab: some View {
-        ScrollView {
-            VStack {
-                HStack {
-                    Text("Appliances")
-                        .font(.title)
-                        .padding(.leading)
-                    Spacer()
-                }
-                Appliances(
-                    fluxHausConsts: fluxHausConsts,
-                    hconn: hconn,
-                    miele: miele,
-                    apiResponse: apiResponse,
-                    robots: robots,
-                    battery: battery,
-                    car: car,
-                    locationManager: locationManager
-                )
-            }
-            .padding()
-        }
+        AppliancesDetailView(
+            hconn: hconn,
+            miele: miele,
+            apiResponse: apiResponse,
+            robots: robots
+        )
     }
 }
 
