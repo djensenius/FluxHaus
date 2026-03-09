@@ -43,6 +43,11 @@ struct ForecastInfo {
     private var retryCount = 0
     private static let maxRetries = 3
 
+    var coordinate: CLLocationCoordinate2D {
+        let loc = location ?? CLLocation(latitude: 43.44, longitude: -80.49)
+        return loc.coordinate
+    }
+
     func fetchTheWeather() async {
         let loc = self.location ?? CLLocation(
             latitude: 43.44, longitude: -80.49

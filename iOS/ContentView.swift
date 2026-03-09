@@ -19,24 +19,32 @@ struct ContentView: View {
     @StateObject private var locationManager = LocationManager()
     @ObservedObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
-    @State private var showChat = false
+    @State private var radarService = RadarService()
 
     var body: some View {
+        TabView {
+            homeTab
+                .tabItem { Label("Home", systemImage: "house.fill") }
+            weatherTab
+                .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
+            if authManager.isOIDC {
+                ChatView(chat: chat)
+                    .tabItem {
+                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                    }
+            }
+            carTab
+                .tabItem { Label("Car", systemImage: "car.fill") }
+            appliancesTab
+                .tabItem { Label("Appliances", systemImage: "washer.fill") }
+        }
+        .tabViewStyle(.sidebarAdaptable)
+    }
+
+    private var homeTab: some View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
-            if authManager.isOIDC {
-                HStack {
-                    Spacer()
-                    Button(action: { showChat = true }, label: {
-                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.accent)
-                    })
-                }
-                .padding(.top, 4)
-                .padding(.trailing)
-            }
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             HStack {
                 Text("Appliances")
@@ -56,44 +64,71 @@ struct ContentView: View {
                 locationManager: locationManager
             )
             Spacer()
-            HStack {
-                Link(
-                    "Weather provided by  Weather",
-                    destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
-                )
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-                .padding([.bottom, .leading])
-
-                Spacer()
-
-                Button(action: {
-                    AuthManager.shared.signOut()
-                    NotificationCenter.default.post(
-                        name: Notification.Name.logout,
-                        object: nil,
-                        userInfo: ["logout": true]
-                    )
-                }, label: {
-                    Text("Logout")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.accent)
-                })
-                .padding([.bottom, .trailing])
-            }
+            footer
         }
         .background(Theme.Colors.background)
-        .fullScreenCover(isPresented: $showChat) {
-            ChatView(chat: chat)
-        }
-        .overlay {
-            if authManager.isOIDC {
-                Button("") { showChat = true }
-                    .keyboardShortcut("c", modifiers: .command)
-                    .frame(width: 0, height: 0)
-                    .opacity(0)
-                    .accessibilityHidden(true)
+    }
+
+    private var weatherTab: some View {
+        WeatherDetailView(
+            locationManager: locationManager,
+            radarService: radarService
+        )
+    }
+
+    private var carTab: some View {
+        CarDetailView(car: car, locationManager: locationManager)
+    }
+
+    private var appliancesTab: some View {
+        VStack {
+            HStack {
+                Text("Appliances")
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(Theme.Colors.textPrimary)
+                    .padding(.leading)
+                Spacer()
             }
+            Appliances(
+                fluxHausConsts: fluxHausConsts,
+                hconn: hconn,
+                miele: miele,
+                apiResponse: apiResponse,
+                robots: robots,
+                battery: battery,
+                car: car,
+                locationManager: locationManager
+            )
+            Spacer()
+        }
+        .background(Theme.Colors.background)
+    }
+
+    private var footer: some View {
+        HStack {
+            Link(
+                "Weather provided by  Weather",
+                destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+            )
+            .font(Theme.Fonts.caption)
+            .foregroundColor(Theme.Colors.textSecondary)
+            .padding([.bottom, .leading])
+
+            Spacer()
+
+            Button(action: {
+                AuthManager.shared.signOut()
+                NotificationCenter.default.post(
+                    name: Notification.Name.logout,
+                    object: nil,
+                    userInfo: ["logout": true]
+                )
+            }, label: {
+                Text("Logout")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.accent)
+            })
+            .padding([.bottom, .trailing])
         }
     }
 }

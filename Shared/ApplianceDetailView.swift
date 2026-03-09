@@ -70,7 +70,9 @@ struct ApplianceDetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
                 }
                 .padding()

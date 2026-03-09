@@ -39,7 +39,9 @@ struct WeatherAlertView: View {
                         })
                     }
                     .padding()
+                    #if !os(visionOS)
                     .background(Theme.Colors.secondaryBackground)
+                    #endif
                     .cornerRadius(12)
 
                 }
@@ -52,8 +54,12 @@ struct WeatherAlertView: View {
                 }).padding()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            #if !os(visionOS)
             .background(Theme.Colors.background)
+            #endif
         }
+        #if !os(visionOS)
         .background(Theme.Colors.background)
+        #endif
     }
 }
