@@ -65,11 +65,11 @@ struct WeatherView: View {
                     Image(systemName: forecastIcon())
                         .symbolRenderingMode(getRenderMode())
                         .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     Text(buildForecast())
                         .font(Theme.Fonts.bodyMedium)
                         .foregroundColor(Theme.Colors.textPrimary)
                         .padding(.trailing)
-
                 }
             }
             HStack {
@@ -217,14 +217,16 @@ struct WeatherView: View {
     func buildForecast() -> String {
         let forecast = lman.forecast!
         let percent = "\(String(format: "%.0f", forecast.chance * 100))%"
-        let type = forecast.type
+        let type = "\(forecast.type)".capitalized
         var theWhen = ""
         if forecast.endingNumber != nil {
-            theWhen = "ending in  \(getTime(time: forecast.endingNumber!, type: forecast.endingType!))"
+            theWhen = "ending in \(getTime(time: forecast.endingNumber!, type: forecast.endingType!))"
+        } else if forecast.startingNumber == 1 && forecast.startingType == .day {
+            theWhen = "tomorrow"
         } else {
             theWhen = "starting in \(getTime(time: forecast.startingNumber!, type: forecast.startingType!))"
         }
-        return "\(percent) chance of \(type) \(theWhen)"
+        return "\(type) \(theWhen) (\(percent))"
     }
 }
 
