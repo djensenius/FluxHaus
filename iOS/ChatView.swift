@@ -314,7 +314,6 @@ struct ChatView: View {
             } else {
                 HStack(spacing: 8) {
                     micButton
-
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyMedium)
                         .textFieldStyle(.plain)
@@ -396,13 +395,9 @@ struct ChatView: View {
             Text("Listening…")
                 .font(Theme.Fonts.bodyMedium)
                 .foregroundColor(Theme.Colors.textSecondary)
-
             Spacer()
-
             audioLevelBars
-
             Spacer()
-
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
             }, label: {
@@ -500,8 +495,6 @@ struct ConversationListView: View {
     }
 }
 
-#if DEBUG
 #Preview {
     ChatView(chat: Chat())
 }
-#endif
