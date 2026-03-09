@@ -77,7 +77,6 @@ struct Conversation: Identifiable, Codable {
 
 @MainActor
 @Observable class Chat: NSObject, AVAudioPlayerDelegate {
-    var messages: [ChatMessage] = []
     var isLoading = false
     var isRecording = false
     var audioLevel: Float = 0
@@ -85,6 +84,30 @@ struct Conversation: Identifiable, Codable {
     var playingMessageId: UUID?
     var sessionError: String?
     var conversations: [Conversation] = []
+    private(set) var cachedConversationIds: [String] = []
+    private var cachedMessages: [String: [ChatMessage]] = [:]
+    private let maxCachedConversations = 5
+
+    var messages: [ChatMessage] {
+        get { conversationId.flatMap { cachedMessages[$0] } ?? [] }
+        set {
+            guard let id = conversationId else { return }
+            cachedMessages[id] = newValue
+        }
+    }
+
+    func messages(for convId: String) -> [ChatMessage] {
+        cachedMessages[convId] ?? []
+    }
+
+    private func touchConversation(_ id: String) {
+        cachedConversationIds.removeAll { $0 == id }
+        cachedConversationIds.insert(id, at: 0)
+        while cachedConversationIds.count > maxCachedConversations {
+            let evicted = cachedConversationIds.removeLast()
+            cachedMessages.removeValue(forKey: evicted)
+        }
+    }
 
     private var audioRecorder: AVAudioRecorder?
     private var audioPlayer: AVAudioPlayer?
@@ -342,6 +365,7 @@ struct Conversation: Identifiable, Codable {
         do {
             let conv = try await createConversation()
             conversationId = conv.id
+            touchConversation(conv.id)
             messages = []
             conversations.insert(conv, at: 0)
             sessionError = nil
@@ -352,8 +376,11 @@ struct Conversation: Identifiable, Codable {
     }
 
     func loadConversation(_ conv: Conversation) async {
+        touchConversation(conv.id)
         conversationId = conv.id
-        messages = []
+        if cachedMessages[conv.id] != nil {
+            return
+        }
         isLoading = true
         do {
             let detail = try await fetchConversation(id: conv.id)
@@ -376,9 +403,10 @@ struct Conversation: Identifiable, Codable {
         do {
             try await deleteConversationRequest(id: conv.id)
             conversations.removeAll { $0.id == conv.id }
+            cachedMessages.removeValue(forKey: conv.id)
+            cachedConversationIds.removeAll { $0 == conv.id }
             if conversationId == conv.id {
                 conversationId = nil
-                messages = []
                 await ensureConversation()
             }
         } catch {
@@ -393,6 +421,7 @@ struct Conversation: Identifiable, Codable {
         do {
             let conv = try await createConversation()
             conversationId = conv.id
+            touchConversation(conv.id)
             conversations.insert(conv, at: 0)
             sessionError = nil
         } catch {

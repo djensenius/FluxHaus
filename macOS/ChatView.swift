@@ -138,14 +138,25 @@ struct ChatView: View {
     }
 
     private var chatMessages: some View {
-        ScrollViewReader { proxy in
+        ZStack {
+            ForEach(chat.cachedConversationIds, id: \.self) { convId in
+                conversationScrollView(for: convId)
+                    .opacity(convId == chat.conversationId ? 1 : 0)
+                    .allowsHitTesting(convId == chat.conversationId)
+            }
+        }
+    }
+
+    private func conversationScrollView(for convId: String) -> some View {
+        let convMessages = chat.messages(for: convId)
+        return ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    ForEach(chat.messages) { message in
+                    ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
                             isLastProgress: message.isProgress
-                                && message.id == chat.messages.last(where: \.isProgress)?.id,
+                                && message.id == convMessages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -157,7 +168,7 @@ struct ChatView: View {
                         )
                         .id(message.id)
                     }
-                    if chat.isLoading {
+                    if chat.isLoading && convId == chat.conversationId {
                         HStack {
                             ProgressView()
                                 .controlSize(.small)
@@ -172,13 +183,13 @@ struct ChatView: View {
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: chat.messages.last?.id) {
+            .onChange(of: convMessages.last?.id) {
                 DispatchQueue.main.async {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
-                if chat.isLoading {
+                if chat.isLoading && convId == chat.conversationId {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
