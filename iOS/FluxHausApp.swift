@@ -128,7 +128,7 @@ struct FluxHausApp: App {
                 }
             }
             .onChange(of: scenePhase) { _, newPhase in
-                if newPhase == .active && AuthManager.shared.isSignedIn {
+                if newPhase == .active {
                     Task {
                         _ = await AuthManager.shared.ensureValidToken()
                     }

@@ -187,7 +187,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Authorization Header
-
     /// Returns the Authorization header value for API requests
     func authorizationHeader() -> String? {
         if let token = getAccessToken() {
@@ -201,7 +200,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - OIDC Sign In
-
     @MainActor func signInWithOIDC() async throws {
         let codeVerifier = generateCodeVerifier()
         let codeChallenge = generateCodeChallenge(from: codeVerifier)
@@ -272,7 +270,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Demo Sign In
-
     @MainActor func signInDemo(password: String) {
         var whereWeAre = WhereWeAre()
         whereWeAre.setPassword(password: password)
@@ -280,7 +277,6 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     }
 
     // MARK: - Sign Out
-
     @MainActor func signOut() {
         logger.warning("signOut() called — clearing all tokens and credentials")
         deleteKeychainItem(account: "oidc_access_token")
@@ -289,11 +285,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
-        logger.warning("signOut() complete — state=signedOut")
     }
 
     // MARK: - Token Management
-
     func getAccessToken() -> String? {
         return getKeychainItem(account: "oidc_access_token")
     }
@@ -312,12 +306,23 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     /// Proactively refreshes the token if it's expiring soon. Returns true if token is valid afterward.
     func ensureValidToken() async -> Bool {
+        await restoreStateIfNeeded()
         guard getAccessToken() != nil else { return false }
         if isTokenExpiringSoon() {
             logger.debug("ensureValidToken: token expiring soon, refreshing proactively")
             return await refreshTokenIfNeeded()
         }
         return true
+    }
+
+    /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
+    @MainActor func restoreStateIfNeeded() {
+        guard !isSignedIn else { return }
+        if getAccessToken() != nil {
+            authState = .signedIn(method: .oidc)
+        } else if WhereWeAre.getPassword() != nil {
+            authState = .signedIn(method: .demo)
+        }
     }
 
     func refreshTokenIfNeeded() async -> Bool {

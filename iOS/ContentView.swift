@@ -17,7 +17,7 @@ struct ContentView: View {
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
-    @ObservedObject private var authManager = AuthManager.shared
+    @StateObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
 
@@ -84,7 +84,8 @@ struct ContentView: View {
         AppliancesDetailView(
             hconn: hconn,
             miele: miele,
-            apiResponse: apiResponse
+            apiResponse: apiResponse,
+            robots: robots
         )
     }
 

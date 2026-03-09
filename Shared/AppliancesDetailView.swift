@@ -2,8 +2,6 @@
 //  AppliancesDetailView.swift
 //  FluxHaus
 //
-//  Created by Copilot on 2026-03-09.
-//
 
 import SwiftUI
 
@@ -11,6 +9,10 @@ struct AppliancesDetailView: View {
     @ObservedObject var hconn: HomeConnect
     @ObservedObject var miele: Miele
     @ObservedObject var apiResponse: Api
+    var robots: Robots
+    @State private var showBroomBotSheet = false
+    @State private var showMopBotSheet = false
+    @State private var robotActionPending: String?
 
     var body: some View {
         ScrollView {
@@ -20,14 +22,97 @@ struct AppliancesDetailView: View {
                     washerCard(response: response)
                     dryerCard(response: response)
                 }
+                robotCard(robot: robots.broomBot)
+                robotCard(robot: robots.mopBot)
             }
             .padding()
+        }
+        .sheet(isPresented: $showBroomBotSheet) {
+            RobotDetailView(robot: robots.broomBot, robots: robots)
+        }
+        .sheet(isPresented: $showMopBotSheet) {
+            RobotDetailView(robot: robots.mopBot, robots: robots)
         }
         #if os(visionOS)
         .glassBackgroundEffect()
         #else
         .background(Theme.Colors.background)
         #endif
+    }
+
+    @ViewBuilder
+    private func robotCard(robot: Robot) -> some View {
+        let isActive = robot.running == true || robot.paused == true
+        let isPending = robotActionPending == robot.name
+        applianceCard(
+            icon: robot.name == "MopBot" ? "humidifier.and.droplets" : "fan.fill",
+            name: robot.name ?? "Robot",
+            iconColor: robotIconColor(robot)
+        ) {
+            VStack(alignment: .leading, spacing: 12) {
+                robotDetails(robot: robot, isActive: isActive)
+                HStack(spacing: 10) {
+                    if isActive {
+                        Button {
+                            performRobotAction(action: "stop", robot: robot)
+                        } label: {
+                            Label("Stop", systemImage: "stop.fill")
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(Theme.Colors.error)
+                        .disabled(isPending)
+                    } else {
+                        Button {
+                            performRobotAction(action: "start", robot: robot)
+                        } label: {
+                            Label("Start", systemImage: "play.fill")
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(Theme.Colors.accent)
+                        .disabled(isPending)
+                    }
+                    Button {
+                        if robot.name == "BroomBot" {
+                            showBroomBotSheet = true
+                        } else {
+                            showMopBotSheet = true
+                        }
+                    } label: {
+                        Label("More", systemImage: "ellipsis.circle")
+                    }
+                    .buttonStyle(.bordered)
+                    if isPending {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func robotDetails(robot: Robot, isActive: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            detailRow(
+                label: "Status",
+                value: robotStatusText(robot),
+                icon: robotStatusIcon(robot),
+                color: robotIconColor(robot)
+            )
+            if let battery = robot.batteryLevel {
+                detailRow(
+                    label: "Battery",
+                    value: "\(battery)%\(robot.charging == true ? " ⚡" : "")",
+                    icon: batteryIcon(battery)
+                )
+            }
+            if robot.binFull == true {
+                detailRow(label: "Bin", value: "Full", icon: "trash.fill", color: Theme.Colors.warning)
+            }
+            if isActive, let started = robot.timeStarted, !started.isEmpty {
+                detailRow(label: "Started", value: started, icon: "clock")
+            }
+        }
     }
 
     @ViewBuilder
@@ -38,8 +123,8 @@ struct AppliancesDetailView: View {
             name: "Dishwasher",
             iconColor: dishwasherIconColor(dishwasher: dishwasher)
         ) {
-            if let dw = dishwasher {
-                dishwasherDetails(dw: dw)
+            if let dwm = dishwasher {
+                dishwasherDetails(dwm: dwm)
             } else {
                 noDataLabel()
             }
@@ -52,10 +137,10 @@ struct AppliancesDetailView: View {
         applianceCard(
             icon: "washer",
             name: "Washing Machine",
-            iconColor: washerDryerIconColor(wd: washer)
+            iconColor: washerDryerIconColor(wdm: washer)
         ) {
-            if let wd = washer {
-                washerDryerDetails(wd: wd)
+            if let wdm = washer {
+                washerDryerDetails(wdm: wdm)
             } else {
                 noDataLabel()
             }
@@ -68,10 +153,10 @@ struct AppliancesDetailView: View {
         applianceCard(
             icon: "dryer",
             name: "Dryer",
-            iconColor: washerDryerIconColor(wd: dryer)
+            iconColor: washerDryerIconColor(wdm: dryer)
         ) {
-            if let wd = dryer {
-                washerDryerDetails(wd: wd)
+            if let wdm = dryer {
+                washerDryerDetails(wdm: wdm)
             } else {
                 noDataLabel()
             }
@@ -88,10 +173,10 @@ struct AppliancesDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
-                    .font(Theme.Fonts.headerXL())
+                    .font(Theme.Fonts.headerLarge())
                     .foregroundColor(iconColor)
                 Text(name)
-                    .font(Theme.Fonts.headerXL())
+                    .font(Theme.Fonts.headerLarge())
                     .foregroundColor(Theme.Colors.textPrimary)
                 Spacer()
             }
@@ -115,27 +200,25 @@ struct AppliancesDetailView: View {
             .foregroundColor(Theme.Colors.textSecondary)
     }
 
-    // MARK: - Dishwasher Details
-
     @ViewBuilder
-    private func dishwasherDetails(dw: DishWasher) -> some View {
+    private func dishwasherDetails(dwm: DishWasher) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             detailRow(
                 label: "Status",
-                value: operationStateDisplay(dw.operationState),
-                icon: operationStateIcon(dw.operationState),
-                color: operationStateColor(dw.operationState)
+                value: operationStateDisplay(dwm.operationState),
+                icon: operationStateIcon(dwm.operationState),
+                color: operationStateColor(dwm.operationState)
             )
 
-            detailRow(label: "Door", value: dw.doorState, icon: doorIcon(dw.doorState))
+            detailRow(label: "Door", value: dwm.doorState, icon: doorIcon(dwm.doorState))
 
-            if let program = dw.activeProgram {
+            if let program = dwm.activeProgram {
                 detailRow(label: "Program", value: programDisplay(program), icon: "list.bullet")
-            } else if let selected = dw.selectedProgram, !selected.isEmpty {
+            } else if let selected = dwm.selectedProgram, !selected.isEmpty {
                 detailRow(label: "Selected Program", value: selected, icon: "list.bullet")
             }
 
-            if let progress = dw.programProgress, progress > 0 {
+            if let progress = dwm.programProgress, progress > 0 {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("Progress")
@@ -151,8 +234,8 @@ struct AppliancesDetailView: View {
                 }
             }
 
-            if dw.operationState == .run || dw.operationState == .pause {
-                if let remaining = dw.remainingTime, remaining > 0 {
+            if dwm.operationState == .run || dwm.operationState == .pause {
+                if let remaining = dwm.remainingTime, remaining > 0 {
                     let minutes = remaining / 60
                     let finishTime = finishTimeString(minutesRemaining: minutes)
                     detailRow(
@@ -163,11 +246,11 @@ struct AppliancesDetailView: View {
                 }
             }
 
-            if dw.operationState == .delayedStart {
-                if let startIn = dw.startInRelative, startIn > 0 {
+            if dwm.operationState == .delayedStart {
+                if let startIn = dwm.startInRelative, startIn > 0 {
                     detailRow(
                         label: "Starts In",
-                        value: "\(startIn) \(dw.startInRelativeUnit ?? "sec")",
+                        value: "\(startIn) \(dwm.startInRelativeUnit ?? "sec")",
                         icon: "clock.arrow.circlepath"
                     )
                 }
@@ -175,20 +258,18 @@ struct AppliancesDetailView: View {
         }
     }
 
-    // MARK: - Washer/Dryer Details
-
     @ViewBuilder
-    private func washerDryerDetails(wd: WasherDryer) -> some View {
+    private func washerDryerDetails(wdm: WasherDryer) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            if wd.inUse {
+            if wdm.inUse {
                 detailRow(
                     label: "Status",
-                    value: wd.status ?? "Running",
+                    value: wdm.status ?? "Running",
                     icon: "play.circle.fill",
                     color: Theme.Colors.accent
                 )
 
-                if let programName = wd.programName,
+                if let programName = wdm.programName,
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Program",
@@ -197,7 +278,7 @@ struct AppliancesDetailView: View {
                     )
                 }
 
-                if let step = wd.step,
+                if let step = wdm.step,
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Step",
@@ -206,7 +287,7 @@ struct AppliancesDetailView: View {
                     )
                 }
 
-                if let running = wd.timeRunning, running > 0 {
+                if let running = wdm.timeRunning, running > 0 {
                     detailRow(
                         label: "Running For",
                         value: "\(running) min",
@@ -214,7 +295,7 @@ struct AppliancesDetailView: View {
                     )
                 }
 
-                if let remaining = wd.timeRemaining, remaining > 0 {
+                if let remaining = wdm.timeRemaining, remaining > 0 {
                     let finishTime = finishTimeString(minutesRemaining: remaining)
                     detailRow(
                         label: "Time Remaining",
@@ -225,12 +306,12 @@ struct AppliancesDetailView: View {
             } else {
                 detailRow(
                     label: "Status",
-                    value: wd.status ?? "Off",
+                    value: wdm.status ?? "Off",
                     icon: "power.circle",
                     color: Theme.Colors.textSecondary
                 )
 
-                if let programName = wd.programName,
+                if let programName = wdm.programName,
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Program",
@@ -239,7 +320,7 @@ struct AppliancesDetailView: View {
                     )
                 }
 
-                if let step = wd.step,
+                if let step = wdm.step,
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Step",
@@ -250,8 +331,6 @@ struct AppliancesDetailView: View {
             }
         }
     }
-
-    // MARK: - Shared Components
 
     @ViewBuilder
     private func detailRow(
@@ -270,25 +349,21 @@ struct AppliancesDetailView: View {
                 .foregroundColor(color)
         }
     }
+}
 
-    // MARK: - Helpers
-
-    private static let timeFormatter: DateFormatter = {
+private extension AppliancesDetailView {
+    static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return formatter
     }()
-
-    private func finishTimeString(minutesRemaining: Int) -> String {
+    func finishTimeString(minutesRemaining: Int) -> String {
         let finishTime = Calendar.current.date(
-            byAdding: .minute,
-            value: minutesRemaining,
-            to: Date()
+            byAdding: .minute, value: minutesRemaining, to: Date()
         ) ?? Date()
         return Self.timeFormatter.string(from: finishTime)
     }
-
-    private func operationStateDisplay(_ state: OperationState) -> String {
+    func operationStateDisplay(_ state: OperationState) -> String {
         switch state {
         case .inactive: return "Inactive"
         case .ready: return "Ready"
@@ -301,8 +376,7 @@ struct AppliancesDetailView: View {
         case .aborting: return "Aborting"
         }
     }
-
-    private func operationStateIcon(_ state: OperationState) -> String {
+    func operationStateIcon(_ state: OperationState) -> String {
         switch state {
         case .inactive: return "power.circle"
         case .ready: return "checkmark.circle"
@@ -315,26 +389,22 @@ struct AppliancesDetailView: View {
         case .aborting: return "stop.circle.fill"
         }
     }
-
-    private func operationStateColor(_ state: OperationState) -> Color {
+    func operationStateColor(_ state: OperationState) -> Color {
         switch state {
         case .inactive: return Theme.Colors.textSecondary
         case .ready: return Theme.Colors.textPrimary
         case .delayedStart: return Theme.Colors.info
         case .run: return Theme.Colors.accent
-        case .pause: return Theme.Colors.warning
-        case .actionRequired: return Theme.Colors.warning
+        case .pause, .actionRequired: return Theme.Colors.warning
         case .finished: return Theme.Colors.success
-        case .error: return Theme.Colors.error
-        case .aborting: return Theme.Colors.error
+        case .error, .aborting: return Theme.Colors.error
         }
     }
-
-    private func doorIcon(_ doorState: String) -> String {
+    func doorIcon(_ doorState: String) -> String {
         doorState == "Open" ? "door.left.hand.open" : "door.left.hand.closed"
     }
-
-    private func programDisplay(_ program: DishWasherProgram) -> String {
+    // swiftlint:disable:next cyclomatic_complexity
+    func programDisplay(_ program: DishWasherProgram) -> String {
         switch program {
         case .preRinse: return "Pre-Rinse"
         case .auto1: return "Auto 1"
@@ -362,10 +432,9 @@ struct AppliancesDetailView: View {
         case .mixedLoad: return "Mixed Load"
         }
     }
-
-    private func dishwasherIconColor(dishwasher: DishWasher?) -> Color {
-        guard let dw = dishwasher else { return Theme.Colors.textSecondary }
-        switch dw.operationState {
+    func dishwasherIconColor(dishwasher: DishWasher?) -> Color {
+        guard let dwm = dishwasher else { return Theme.Colors.textSecondary }
+        switch dwm.operationState {
         case .run: return Theme.Colors.accent
         case .finished: return Theme.Colors.success
         case .error, .aborting: return Theme.Colors.error
@@ -373,21 +442,59 @@ struct AppliancesDetailView: View {
         default: return Theme.Colors.textSecondary
         }
     }
-
-    private func washerDryerIconColor(wd: WasherDryer?) -> Color {
-        guard let wd = wd else { return Theme.Colors.textSecondary }
-        if wd.inUse { return Theme.Colors.accent }
-        if wd.status == "Finished" { return Theme.Colors.success }
+    func washerDryerIconColor(wdm: WasherDryer?) -> Color {
+        guard let wdm = wdm else { return Theme.Colors.textSecondary }
+        if wdm.inUse { return Theme.Colors.accent }
+        if wdm.status == "Finished" { return Theme.Colors.success }
         return Theme.Colors.textSecondary
+    }
+
+    func robotStatusText(_ robot: Robot) -> String {
+        if robot.running == true { return "Running" }
+        if robot.paused == true { return "Paused" }
+        if robot.docking == true { return "Docking" }
+        if robot.charging == true { return "Charging" }
+        return "Idle"
+    }
+    func robotStatusIcon(_ robot: Robot) -> String {
+        if robot.running == true { return "play.circle.fill" }
+        if robot.paused == true { return "pause.circle.fill" }
+        if robot.docking == true { return "arrow.down.to.line" }
+        if robot.charging == true { return "bolt.fill" }
+        return "power.circle"
+    }
+    func robotIconColor(_ robot: Robot) -> Color {
+        if robot.running == true { return Theme.Colors.accent }
+        if robot.paused == true { return Theme.Colors.warning }
+        if robot.charging == true { return Theme.Colors.info }
+        return Theme.Colors.textSecondary
+    }
+    func batteryIcon(_ level: Int) -> String {
+        switch level {
+        case 0..<25: return "battery.25percent"
+        case 25..<50: return "battery.50percent"
+        case 50..<75: return "battery.75percent"
+        default: return "battery.100percent"
+        }
+    }
+    func performRobotAction(action: String, robot: Robot) {
+        guard let name = robot.name else { return }
+        robotActionPending = name
+        robots.performAction(action: action, robot: name)
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            Task { @MainActor in
+                robots.fetchRobots()
+                robotActionPending = nil
+            }
+        }
     }
 }
 
-#if DEBUG
 #Preview {
     AppliancesDetailView(
         hconn: MockData.createHomeConnect(),
         miele: MockData.createMiele(),
-        apiResponse: MockData.createApi()
+        apiResponse: MockData.createApi(),
+        robots: MockData.createRobots()
     )
 }
-#endif
