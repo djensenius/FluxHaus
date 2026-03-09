@@ -142,10 +142,7 @@ struct DailyForecastList: View {
     }
 
     private var tempGradient: LinearGradient {
-        LinearGradient(
-            colors: [Theme.Colors.info, Theme.Colors.warning],
-            startPoint: .leading, endPoint: .trailing
-        )
+        LinearGradient(colors: [Theme.Colors.info, Theme.Colors.warning], startPoint: .leading, endPoint: .trailing)
     }
 }
 
@@ -188,6 +185,9 @@ struct WeatherDetailView: View {
             VStack(spacing: 16) {
                 if let weather = locationManager.weather {
                     currentWeatherCard(weather: weather)
+                    if let alerts = weather.weatherAlerts, !alerts.isEmpty {
+                        weatherAlertsCard(alerts: alerts)
+                    }
                     radarCard
                     forecastCard(weather: weather)
                 } else {
@@ -264,35 +264,96 @@ struct WeatherDetailView: View {
     private func detailsGrid(weather: Weather) -> some View {
         let cur = weather.currentWeather
         return HStack(spacing: 16) {
-            detailItem(
-                icon: "thermometer.medium", label: "Feels like",
-                value: WeatherHelpers.formatTemp(cur.apparentTemperature.value)
-            )
-            detailItem(
-                icon: "humidity", label: "Humidity",
-                value: "\(Int(cur.humidity * 100))%"
-            )
-            detailItem(
-                icon: "sun.max.trianglebadge.exclamationmark", label: "UV",
-                value: "\(cur.uvIndex.value)"
-            )
-            detailItem(
-                icon: "wind", label: "Wind",
-                value: WeatherHelpers.formatSpeed(cur.wind.speed.value)
-            )
+            detailItem(icon: "thermometer.medium", label: "Feels like",
+                       value: WeatherHelpers.formatTemp(cur.apparentTemperature.value))
+            detailItem(icon: "humidity", label: "Humidity", value: "\(Int(cur.humidity * 100))%")
+            detailItem(icon: "sun.max.trianglebadge.exclamationmark", label: "UV",
+                       value: "\(cur.uvIndex.value)")
+            detailItem(icon: "wind", label: "Wind",
+                       value: WeatherHelpers.formatSpeed(cur.wind.speed.value))
         }
     }
 
     private func detailItem(icon: String, label: String, value: String) -> some View {
         VStack(spacing: 2) {
-            Image(systemName: icon).font(.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-            Text(value).font(Theme.Fonts.bodySmall)
-                .foregroundColor(Theme.Colors.textPrimary)
-            Text(label).font(.system(size: 9))
-                .foregroundColor(Theme.Colors.textSecondary)
+            Image(systemName: icon).font(.caption).foregroundColor(Theme.Colors.textSecondary)
+            Text(value).font(Theme.Fonts.bodySmall).foregroundColor(Theme.Colors.textPrimary)
+            Text(label).font(.system(size: 9)).foregroundColor(Theme.Colors.textSecondary)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    @State private var selectedAlertURL: URL?
+
+    private func weatherAlertsCard(alerts: [WeatherAlert]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Weather Alerts", systemImage: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Theme.Colors.error)
+                .textCase(.uppercase)
+                .padding(.horizontal)
+            ForEach(alerts, id: \.summary) { alert in
+                Button {
+                    selectedAlertURL = alert.detailsURL
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .symbolRenderingMode(.multicolor)
+                            .font(.system(size: 20))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(alert.summary)
+                                .font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .multilineTextAlignment(.leading)
+                            if let region = alert.region {
+                                Text("\(alert.severity.description.capitalized) · \(region)")
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                            }
+                            Text("Source: \(alert.source)")
+                                .font(.system(size: 10))
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption).foregroundColor(Theme.Colors.textSecondary)
+                    }
+                    .padding(.horizontal).padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.vertical)
+        #if !os(visionOS)
+        .background(Theme.Colors.secondaryBackground)
+        #endif
+        .cornerRadius(12)
+        #if os(visionOS)
+        .glassBackgroundEffect()
+        #endif
+        .sheet(item: $selectedAlertURL) { url in
+            NavigationStack {
+                AlertWebView(url: url)
+                    .ignoresSafeArea(.container, edges: .bottom)
+                    #if !os(macOS)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { selectedAlertURL = nil }
+                        }
+                    }
+                    #else
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { selectedAlertURL = nil }
+                        }
+                    }
+                    #endif
+            }
+            #if os(macOS)
+            .frame(minWidth: 600, minHeight: 500)
+            #endif
+        }
     }
 
     private var radarCard: some View {

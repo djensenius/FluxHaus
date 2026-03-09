@@ -196,6 +196,17 @@ struct WeatherCard: View {
                                 .foregroundColor(Theme.Colors.accent)
                         }
                     }
+                    if let alerts = weather.weatherAlerts, !alerts.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .symbolRenderingMode(.multicolor)
+                                .font(.system(size: 10))
+                            Text(alerts.map(\.summary).joined(separator: " · "))
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.error)
+                                .lineLimit(1)
+                        }
+                    }
                 }
                 Spacer()
                 if let high = highTemp, let low = lowTemp {
