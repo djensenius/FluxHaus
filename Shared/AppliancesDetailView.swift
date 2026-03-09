@@ -273,15 +273,19 @@ struct AppliancesDetailView: View {
 
     // MARK: - Helpers
 
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter
+    }()
+
     private func finishTimeString(minutesRemaining: Int) -> String {
         let finishTime = Calendar.current.date(
             byAdding: .minute,
             value: minutesRemaining,
             to: Date()
         ) ?? Date()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        return formatter.string(from: finishTime)
+        return Self.timeFormatter.string(from: finishTime)
     }
 
     private func operationStateDisplay(_ state: OperationState) -> String {
