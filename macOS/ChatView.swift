@@ -32,6 +32,12 @@ struct ChatView: View {
                 }
             }
         }
+        .task { await chat.syncConversationsPeriodically() }
+        .onReceive(
+            NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
+        ) { _ in
+            Task { await chat.createNewConversation() }
+        }
     }
 
     private var chatSidebar: some View {
@@ -46,7 +52,6 @@ struct ChatView: View {
                     Image(systemName: "plus")
                 })
                 .buttonStyle(.borderless)
-                .keyboardShortcut("n", modifiers: .command)
             }
             .padding(12)
 
@@ -133,14 +138,25 @@ struct ChatView: View {
     }
 
     private var chatMessages: some View {
-        ScrollViewReader { proxy in
+        ZStack {
+            ForEach(chat.cachedConversationIds, id: \.self) { convId in
+                conversationScrollView(for: convId)
+                    .opacity(convId == chat.conversationId ? 1 : 0)
+                    .allowsHitTesting(convId == chat.conversationId)
+            }
+        }
+    }
+
+    private func conversationScrollView(for convId: String) -> some View {
+        let convMessages = chat.messages(for: convId)
+        return ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    ForEach(chat.messages) { message in
+                    ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
                             isLastProgress: message.isProgress
-                                && message.id == chat.messages.last(where: \.isProgress)?.id,
+                                && message.id == convMessages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -152,7 +168,7 @@ struct ChatView: View {
                         )
                         .id(message.id)
                     }
-                    if chat.isLoading {
+                    if chat.isLoading && convId == chat.conversationId {
                         HStack {
                             ProgressView()
                                 .controlSize(.small)
@@ -164,19 +180,17 @@ struct ChatView: View {
                     }
                 }
                 .padding(.vertical, 8)
+                Color.clear.frame(height: 1).id("bottom")
             }
-            .onChange(of: chat.messages.count) {
-                withAnimation {
-                    if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+            .defaultScrollAnchor(.bottom)
+            .onChange(of: convMessages.last?.id) {
+                DispatchQueue.main.async {
+                    proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
-                if chat.isLoading {
-                    withAnimation {
-                        proxy.scrollTo("loading", anchor: .bottom)
-                    }
+                if chat.isLoading && convId == chat.conversationId {
+                    proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
         }

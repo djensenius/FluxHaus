@@ -105,7 +105,6 @@ struct ChatBubble: View {
 
 struct ChatView: View {
     @Bindable var chat: Chat
-    @Environment(\.dismiss) private var dismiss
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var showConversations = false
@@ -140,20 +139,13 @@ struct ChatView: View {
                     })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 12) {
-                        Button(action: {
-                            Task { await chat.createNewConversation() }
-                        }, label: {
-                            Image(systemName: "plus")
-                                .foregroundColor(Theme.Colors.accent)
-                        })
-                        .keyboardShortcut("n", modifiers: .command)
-                        Button(action: { dismiss() }, label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        })
-                        .keyboardShortcut(.escape, modifiers: [])
-                    }
+                    Button(action: {
+                        Task { await chat.createNewConversation() }
+                    }, label: {
+                        Image(systemName: "plus")
+                            .foregroundColor(Theme.Colors.accent)
+                    })
+                    .keyboardShortcut("n", modifiers: .command)
                 }
             }
             .sheet(isPresented: $showConversations) {
@@ -171,25 +163,30 @@ struct ChatView: View {
                     }
                 }
             }
-        }
-        .overlay {
-            Button("") { dismiss() }
-                .keyboardShortcut("c", modifiers: .command)
-                .frame(width: 0, height: 0)
-                .opacity(0)
-                .accessibilityHidden(true)
+            .task { await chat.syncConversationsPeriodically() }
         }
     }
 
     private var chatMessages: some View {
-        ScrollViewReader { proxy in
+        ZStack {
+            ForEach(chat.cachedConversationIds, id: \.self) { convId in
+                conversationScrollView(for: convId)
+                    .opacity(convId == chat.conversationId ? 1 : 0)
+                    .allowsHitTesting(convId == chat.conversationId)
+            }
+        }
+    }
+
+    private func conversationScrollView(for convId: String) -> some View {
+        let convMessages = chat.messages(for: convId)
+        return ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    ForEach(chat.messages) { message in
+                    ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
                             isLastProgress: message.isProgress
-                                && message.id == chat.messages.last(where: \.isProgress)?.id,
+                                && message.id == convMessages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -201,7 +198,7 @@ struct ChatView: View {
                         )
                         .id(message.id)
                     }
-                    if chat.isLoading {
+                    if chat.isLoading && convId == chat.conversationId {
                         HStack {
                             ProgressView()
                                 .padding(12)
@@ -212,19 +209,17 @@ struct ChatView: View {
                     }
                 }
                 .padding(.vertical, 8)
+                Color.clear.frame(height: 1).id("bottom")
             }
-            .onChange(of: chat.messages.count) {
-                withAnimation {
-                    if let last = chat.messages.last {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+            .defaultScrollAnchor(.bottom)
+            .onChange(of: convMessages.last?.id) {
+                DispatchQueue.main.async {
+                    proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
-                if chat.isLoading {
-                    withAnimation {
-                        proxy.scrollTo("loading", anchor: .bottom)
-                    }
+                if chat.isLoading && convId == chat.conversationId {
+                    proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
         }
@@ -417,6 +412,7 @@ struct ConversationListView: View {
                     )
                 }
             }
+            .task { await chat.loadConversations() }
         }
     }
 }

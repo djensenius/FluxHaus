@@ -20,25 +20,38 @@ struct ContentView: View {
     @StateObject private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
+    @State private var selectedTab = "home"
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             homeTab
                 .tabItem { Label("Home", systemImage: "house.fill") }
+                .tag("home")
             weatherTab
                 .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
+                .tag("weather")
             if authManager.isOIDC {
                 ChatView(chat: chat)
                     .tabItem {
                         Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
                     }
+                    .tag("assistant")
             }
             carTab
                 .tabItem { Label("Car", systemImage: "car.fill") }
+                .tag("car")
             appliancesTab
                 .tabItem { Label("Appliances", systemImage: "washer.fill") }
+                .tag("appliances")
         }
         .tabViewStyle(.sidebarAdaptable)
+        .onReceive(
+            NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
+        ) { notification in
+            if let section = notification.userInfo?["section"] as? String {
+                selectedTab = section
+            }
+        }
     }
 
     private var homeTab: some View {

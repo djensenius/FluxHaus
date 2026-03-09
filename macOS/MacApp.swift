@@ -39,6 +39,41 @@ struct MacApp: App {
                 }
         }
         .defaultSize(width: 900, height: 700)
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("New Conversation") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("newConversation"),
+                        object: nil
+                    )
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+
+            CommandMenu("Navigate") {
+                Button("Dashboard") { postNavigation("Dashboard") }
+                    .keyboardShortcut("1", modifiers: .command)
+                Button("Weather") { postNavigation("Weather") }
+                    .keyboardShortcut("2", modifiers: .command)
+                Button("Scenes") { postNavigation("Scenes") }
+                    .keyboardShortcut("3", modifiers: .command)
+                Button("Appliances") { postNavigation("Appliances") }
+                    .keyboardShortcut("4", modifiers: .command)
+                Button("Car") { postNavigation("Car") }
+                    .keyboardShortcut("5", modifiers: .command)
+                Button("Robots") { postNavigation("Robots") }
+                    .keyboardShortcut("6", modifiers: .command)
+                Button("Assistant") { postNavigation("Assistant") }
+                    .keyboardShortcut("7", modifiers: .command)
+
+                Divider()
+
+                Button("Refresh Data") {
+                    queryFlux(password: WhereWeAre.getPassword() ?? "")
+                }
+                .keyboardShortcut("r", modifiers: .command)
+            }
+        }
 
         MenuBarExtra("FluxHaus", systemImage: "house.fill", isInserted: $showMenuBar) {
             MenuBarView(
@@ -148,6 +183,14 @@ struct MacApp: App {
                 whereWeAre.deleteKeyChainPasword()
             }
         }
+    }
+
+    private func postNavigation(_ section: String) {
+        NotificationCenter.default.post(
+            name: Notification.Name("navigateToSection"),
+            object: nil,
+            userInfo: ["section": section]
+        )
     }
 
     private func handleDataUpdated(_ object: NotificationCenter.Publisher.Output) {
