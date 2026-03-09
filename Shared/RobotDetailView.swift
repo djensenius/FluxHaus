@@ -86,7 +86,7 @@ struct RobotDetailView: View {
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
 
-                        #if os(macOS)
+                        #if os(macOS) || os(visionOS)
                         HStack(spacing: 8) {
                             if robot.running == true {
                                 Button(action: { performAction(action: "stop") }, label: {

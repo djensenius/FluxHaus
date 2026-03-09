@@ -119,7 +119,7 @@ struct CarDetailView: View {
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(Theme.Colors.textPrimary)
 
-                        #if os(macOS)
+                        #if os(macOS) || os(visionOS)
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(spacing: 8) {
                                 if car.vehicle.hvac {
