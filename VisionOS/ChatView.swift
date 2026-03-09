@@ -105,7 +105,6 @@ struct ChatBubble: View {
 
 struct ChatView: View {
     @Bindable var chat: Chat
-    @Environment(\.dismiss) private var dismiss
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var showConversations = false
@@ -140,20 +139,13 @@ struct ChatView: View {
                     })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    HStack(spacing: 12) {
-                        Button(action: {
-                            Task { await chat.createNewConversation() }
-                        }, label: {
-                            Image(systemName: "plus")
-                                .foregroundColor(Theme.Colors.accent)
-                        })
-                        .keyboardShortcut("n", modifiers: .command)
-                        Button(action: { dismiss() }, label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        })
-                        .keyboardShortcut(.escape, modifiers: [])
-                    }
+                    Button(action: {
+                        Task { await chat.createNewConversation() }
+                    }, label: {
+                        Image(systemName: "plus")
+                            .foregroundColor(Theme.Colors.accent)
+                    })
+                    .keyboardShortcut("n", modifiers: .command)
                 }
             }
             .sheet(isPresented: $showConversations) {
@@ -171,13 +163,7 @@ struct ChatView: View {
                     }
                 }
             }
-        }
-        .overlay {
-            Button("") { dismiss() }
-                .keyboardShortcut("c", modifiers: .command)
-                .frame(width: 0, height: 0)
-                .opacity(0)
-                .accessibilityHidden(true)
+            .task { await chat.syncConversationsPeriodically() }
         }
     }
 

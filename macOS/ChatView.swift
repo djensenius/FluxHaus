@@ -32,6 +32,7 @@ struct ChatView: View {
                 }
             }
         }
+        .task { await chat.syncConversationsPeriodically() }
     }
 
     private var chatSidebar: some View {

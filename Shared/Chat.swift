@@ -315,6 +315,14 @@ struct Conversation: Identifiable, Codable {
 
     // MARK: - Session management
 
+    func syncConversationsPeriodically() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(30))
+            guard !Task.isCancelled else { break }
+            await loadConversations()
+        }
+    }
+
     func loadConversations() async {
         do {
             conversations = try await fetchConversations()
