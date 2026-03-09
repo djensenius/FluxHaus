@@ -200,7 +200,7 @@ struct ChatView: View {
                 .padding(.vertical, 8)
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: chat.messages.count) {
+            .onChange(of: chat.messages.last?.id) {
                 if let last = chat.messages.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
                 }
