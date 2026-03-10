@@ -26,12 +26,14 @@ class LiveActivityManager {
     static let shared = LiveActivityManager()
 
     private var activities: [String: Activity<FluxWidgetAttributes>] = [:]
-    private var pushTokenTasks: [String: Task<Void, Never>] = [:]
+    /// Cached channel IDs fetched from the server.
+    private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
 
     private init() {
         restoreExistingActivities()
         observePushToStartToken()
+        Task { await fetchChannelIds() }
     }
 
     /// Re-adopt activities that iOS kept alive while the app was killed.
@@ -40,7 +42,6 @@ class LiveActivityManager {
             let name = activity.attributes.name
             if activity.activityState == .active || activity.activityState == .stale {
                 activities[name] = activity
-                observePushToken(for: name, activity: activity)
                 logger.info("Restored Live Activity for \(name)")
             }
         }
@@ -59,20 +60,67 @@ class LiveActivityManager {
         }
     }
 
+    /// Fetch broadcast channel IDs from the server for all device types.
+    private func fetchChannelIds() async {
+        let types = ["dishwasher", "washer", "dryer", "broombot", "mopbot"]
+        for type in types {
+            if let channelId = await fetchChannelId(for: type) {
+                channelIds[type] = channelId
+                logger.info("Channel for \(type): \(channelId.prefix(16))...")
+            }
+        }
+    }
+
+    private func fetchChannelId(for activityType: String) async -> String? {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.fluxhaus.io"
+        components.path = "/channels/\(activityType)"
+
+        guard let url = components.url else { return nil }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        if let authHeader = AuthManager.shared.authorizationHeader() {
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        }
+
+        do {
+            let session = URLSession(configuration: .default)
+            let (data, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode == 200,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let channelId = json["channelId"] as? String {
+                return channelId
+            }
+        } catch {
+            logger.error("Failed to fetch channel for \(activityType): \(error)")
+        }
+        return nil
+    }
+
     func reconcile(devices: [WidgetDevice]) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             return
         }
 
-        // Adopt any activities created via push-to-start that we don't track yet
+        // Adopt any activities we don't track yet (e.g. from push-to-start)
         for activity in Activity<FluxWidgetAttributes>.activities {
             let name = activity.attributes.name
             if activities[name] == nil
                 && (activity.activityState == .active || activity.activityState == .stale) {
                 activities[name] = activity
-                observePushToken(for: name, activity: activity)
-                logger.info("Adopted push-started Live Activity for \(name)")
+                logger.info("Adopted Live Activity for \(name)")
             }
+        }
+
+        // Clean up activities that iOS has ended
+        let ended = activities.filter { $0.value.activityState == .ended }
+        for (name, _) in ended {
+            activities.removeValue(forKey: name)
+            logger.info("Cleaned up ended activity: \(name)")
         }
 
         let runningDevices = devices.filter { $0.running }
@@ -103,15 +151,26 @@ class LiveActivityManager {
             staleDate: Date().addingTimeInterval(900)
         )
 
+        let activityType = device.name.lowercased().replacingOccurrences(of: " ", with: "")
+
         do {
-            let activity = try Activity.request(
-                attributes: attributes,
-                content: content,
-                pushType: .token
-            )
+            let activity: Activity<FluxWidgetAttributes>
+            if #available(iOS 18.0, *), let channelId = channelIds[activityType] {
+                activity = try Activity.request(
+                    attributes: attributes,
+                    content: content,
+                    pushType: .channel(channelId)
+                )
+                logger.info("Started Live Activity for \(device.name) on channel")
+            } else {
+                activity = try Activity.request(
+                    attributes: attributes,
+                    content: content,
+                    pushType: .token
+                )
+                logger.info("Started Live Activity for \(device.name) with token")
+            }
             activities[device.name] = activity
-            logger.info("Started Live Activity for \(device.name)")
-            observePushToken(for: device.name, activity: activity)
         } catch {
             logger.error("Failed to start Live Activity for \(device.name): \(error)")
         }
@@ -153,31 +212,7 @@ class LiveActivityManager {
         }
 
         activities.removeValue(forKey: name)
-        pushTokenTasks[name]?.cancel()
-        pushTokenTasks.removeValue(forKey: name)
         logger.info("Ended Live Activity for \(name)")
-    }
-
-    private func observePushToken(for deviceName: String, activity: Activity<FluxWidgetAttributes>) {
-        pushTokenTasks[deviceName]?.cancel()
-        pushTokenTasks[deviceName] = Task {
-            for await tokenData in activity.pushTokenUpdates {
-                let token = tokenData.map { String(format: "%02x", $0) }.joined()
-                logger.info("Push token for \(deviceName): \(token.prefix(8))...")
-                await registerPushToken(token: token, activityType: deviceName.lowercased())
-            }
-        }
-    }
-
-    private func registerPushToken(token: String, activityType: String) async {
-        await postToServer(
-            path: "/push-tokens",
-            body: [
-                "pushToken": token,
-                "activityType": activityType,
-                "deviceName": UIDevice.current.name
-            ]
-        )
     }
 
     private func registerDeviceToken(token: String) async {
