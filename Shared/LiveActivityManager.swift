@@ -64,6 +64,17 @@ class LiveActivityManager {
             return
         }
 
+        // Adopt any activities created via push-to-start that we don't track yet
+        for activity in Activity<FluxWidgetAttributes>.activities {
+            let name = activity.attributes.name
+            if activities[name] == nil
+                && (activity.activityState == .active || activity.activityState == .stale) {
+                activities[name] = activity
+                observePushToken(for: name, activity: activity)
+                logger.info("Adopted push-started Live Activity for \(name)")
+            }
+        }
+
         let runningDevices = devices.filter { $0.running }
         let runningNames = Set(runningDevices.map { $0.name })
 
