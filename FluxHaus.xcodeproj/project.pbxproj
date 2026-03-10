@@ -178,6 +178,10 @@
 		AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000004 /* ChatView.swift */; };
 		AACC4A12682B6F5FB8E31A8D /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
 		AC1754460EA8962B8C79B108 /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
+		AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
+		AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
+		AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD1C7468CA59FAB62BCDD1EC /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
 		B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */; };
 		B250E6A2C157F636EA648473 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
@@ -204,16 +208,13 @@
 		E222079D6E3C7E5941D2D5C0 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		E45053421DDDDCF16D51FBAD /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
 		E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
-AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
-AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
-AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
-AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		EDBA0282938D145D6381768C /* MacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A02EE588AFF8C715B9DEB /* MacApp.swift */; };
 		EE07E20294AB53EAC4703BE6 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
 		EFE1927CBD7F01E5524E63DA /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		F0C99470023B4D8053698472 /* Tests_macOS_SwiftTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */; };
 		F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		F27145294822FFB5FE80E84F /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+		F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */; };
 		FBA9A54858486FCD8D6AD240 /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
 		FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
 		FE6B445E3E47FC883C281562 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
@@ -239,7 +240,6 @@ AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PB
 		WF0001000000000000000004 /* WeatherForecastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = WF0000000000000000000001 /* WeatherForecastView.swift */; };
 		WH0001000000000000000001 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		WH0001000000000000000002 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
-		F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -285,6 +285,7 @@ AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PB
 		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		1B9B78F7F035E29316F494F7 /* ChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		37D0A0000000000000000001 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		54E080FFA20990ACE9D14FB1 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CB3B0423E7608E287483D2 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
@@ -361,13 +362,13 @@ AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PB
 		63DBD7522B954343006603D0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/HealthKit.framework; sourceTree = DEVELOPER_DIR; };
 		63DBD75D2B954931006603D0 /* VisionOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VisionOS.entitlements; sourceTree = "<group>"; };
 		63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplianceDetailView.swift; sourceTree = "<group>"; };
-AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppliancesDetailView.swift; sourceTree = "<group>"; };
 		6BC999E976448F6757BA7155 /* MockDataUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataUITests.swift; sourceTree = "<group>"; };
 		726CDAE4D264490999414676 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		731A02EE588AFF8C715B9DEB /* MacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacApp.swift; sourceTree = "<group>"; };
 		76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_SwiftTesting.swift; sourceTree = "<group>"; };
 		8757ED2EF3E226D6B1548CAE /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tests macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0001000000000000000001 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
 		AA0001000000000000000002 /* Chat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chat.swift; sourceTree = "<group>"; };
@@ -375,8 +376,8 @@ AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileRefere
 		AA0001000000000000000004 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		AC70F639352E9D9252F77D43 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppliancesDetailView.swift; sourceTree = "<group>"; };
 		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
-		37D0A0000000000000000001 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_ViewTests.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
@@ -385,7 +386,6 @@ AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileRefere
 		RM0000000000000000000001 /* RadarMapViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarMapViews.swift; sourceTree = "<group>"; };
 		RO0000000000000000000001 /* RadarOverlayRenderer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarOverlayRenderer.swift; sourceTree = "<group>"; };
 		WF0000000000000000000001 /* WeatherForecastView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherForecastView.swift; sourceTree = "<group>"; };
-		9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -475,7 +475,7 @@ AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileRefere
 			children = (
 				9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */,
 				63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */,
-AD0001000000000000000001 /* AppliancesDetailView.swift */,
+				AD0001000000000000000001 /* AppliancesDetailView.swift */,
 				632CBC7D25870CBB003E4988 /* AppliancesView.swift */,
 				632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */,
 				63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */,
@@ -959,7 +959,7 @@ AD0001000000000000000001 /* AppliancesDetailView.swift */,
 			buildActionMask = 2147483647;
 			files = (
 				E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */,
-AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */,
+				AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				1D0580D31B64ED384590793B /* AppliancesView.swift in Sources */,
 				37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */,
 				6FCFCDBD5CD529EC139A4A95 /* ApplianceViewHelpers.swift in Sources */,
@@ -1030,7 +1030,7 @@ AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				63610D332BB8864F0048B9FF /* CarDetailView.swift in Sources */,
 				6399EA312B9D3671000C8CA4 /* Login.swift in Sources */,
 				63EB92652BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
-AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */,
+				AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				6369A139259984E400888E5D /* WeatherAlertView.swift in Sources */,
 				632CBC7E25870CBB003E4988 /* AppliancesView.swift in Sources */,
 				632CBC7E25870CBB003E4999 /* AppliancesViewExtensions.swift in Sources */,
@@ -1057,7 +1057,7 @@ AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				WF0001000000000000000003 /* WeatherForecastView.swift in Sources */,
 				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
 				37D0A0010000000000000002 /* SuggestionChips.swift in Sources */,
-							F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
+				F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1129,7 +1129,7 @@ AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				63DBD75C2B954486006603D0 /* AppliancesView.swift in Sources */,
 				63DBD75C2B954486006603D1 /* AppliancesViewExtensions.swift in Sources */,
 				63EB92672BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
-AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */,
+				AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				633F094A2BBB8F8F0052C088 /* CarHelper.swift in Sources */,
 				63DBD7542B95447A006603D0 /* HomeConnect.swift in Sources */,
 				63DBD7552B95447A006603D0 /* FluxHausConsts.swift in Sources */,
@@ -1172,7 +1172,7 @@ AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				F0C99470023B4D8053698472 /* Tests_macOS_SwiftTesting.swift in Sources */,
 				B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */,
 				863DE0E082704AD840741003 /* ApplianceDetailView.swift in Sources */,
-AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */,
+				AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */,
 				5E7EE46FF4B2D86974A97228 /* AppliancesView.swift in Sources */,
 				1055B6B9BB3C5FAB335B47EE /* AppliancesViewExtensions.swift in Sources */,
 				EFE1927CBD7F01E5524E63DA /* ApplianceViewHelpers.swift in Sources */,
@@ -1405,7 +1405,7 @@ AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */,
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1438,7 +1438,7 @@ AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */,
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1533,7 +1533,7 @@ AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */,
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1572,7 +1572,7 @@ AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */,
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
