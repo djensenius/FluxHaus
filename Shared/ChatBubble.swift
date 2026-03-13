@@ -7,81 +7,9 @@
 
 import SwiftUI
 
-// MARK: - Bubble shape with tail
+// MARK: - Bubble shape
 
-struct BubbleShape: Shape {
-    let isUser: Bool
-
-    func path(in rect: CGRect) -> Path {
-        let radius: CGFloat = 18
-        let tailSize: CGFloat = 6
-        var path = Path()
-
-        if isUser {
-            // User bubble: tail on bottom-right
-            path.move(to: CGPoint(x: rect.minX + radius, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
-            path.addArc(
-                center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
-                radius: radius, startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false
-            )
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius - tailSize))
-            path.addArc(
-                center: CGPoint(x: rect.maxX - radius, y: rect.maxY - radius - tailSize),
-                radius: radius, startAngle: .degrees(0), endAngle: .degrees(60), clockwise: false
-            )
-            // Tail
-            path.addQuadCurve(
-                to: CGPoint(x: rect.maxX + tailSize - 2, y: rect.maxY),
-                control: CGPoint(x: rect.maxX, y: rect.maxY - 4)
-            )
-            path.addQuadCurve(
-                to: CGPoint(x: rect.maxX - radius, y: rect.maxY - tailSize),
-                control: CGPoint(x: rect.maxX - 4, y: rect.maxY)
-            )
-            path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY - tailSize))
-            path.addArc(
-                center: CGPoint(x: rect.minX + radius, y: rect.maxY - tailSize - radius),
-                radius: radius, startAngle: .degrees(90), endAngle: .degrees(180), clockwise: false
-            )
-            path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
-            path.addArc(
-                center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
-                radius: radius, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false
-            )
-        } else {
-            // Assistant bubble: tail on bottom-left
-            path.move(to: CGPoint(x: rect.minX + radius, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
-            path.addArc(
-                center: CGPoint(x: rect.maxX - radius, y: rect.minY + radius),
-                radius: radius, startAngle: .degrees(-90), endAngle: .degrees(0), clockwise: false
-            )
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - tailSize - radius))
-            path.addArc(
-                center: CGPoint(x: rect.maxX - radius, y: rect.maxY - tailSize - radius),
-                radius: radius, startAngle: .degrees(0), endAngle: .degrees(90), clockwise: false
-            )
-            path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY - tailSize))
-            // Tail
-            path.addQuadCurve(
-                to: CGPoint(x: rect.minX - tailSize + 2, y: rect.maxY),
-                control: CGPoint(x: rect.minX, y: rect.maxY - 4)
-            )
-            path.addQuadCurve(
-                to: CGPoint(x: rect.minX, y: rect.maxY - tailSize - radius),
-                control: CGPoint(x: rect.minX + 4, y: rect.maxY)
-            )
-            path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
-            path.addArc(
-                center: CGPoint(x: rect.minX + radius, y: rect.minY + radius),
-                radius: radius, startAngle: .degrees(180), endAngle: .degrees(270), clockwise: false
-            )
-        }
-        path.closeSubpath()
-        return path
-    }
-}
+private let bubbleRadius: CGFloat = 18
 
 // MARK: - Image thumbnail grid
 
@@ -217,18 +145,18 @@ struct ChatBubble: View {
         } else {
             switch message.role {
             case .user:
-                BubbleShape(isUser: true)
+                RoundedRectangle(cornerRadius: bubbleRadius)
                     .fill(Theme.Colors.accent)
             case .assistant:
                 #if os(visionOS)
-                BubbleShape(isUser: false)
+                RoundedRectangle(cornerRadius: bubbleRadius)
                     .fill(.ultraThinMaterial)
                 #else
-                BubbleShape(isUser: false)
+                RoundedRectangle(cornerRadius: bubbleRadius)
                     .fill(Theme.Colors.secondaryBackground)
                 #endif
             case .error:
-                RoundedRectangle(cornerRadius: 18)
+                RoundedRectangle(cornerRadius: bubbleRadius)
                     .fill(Theme.Colors.error.opacity(0.15))
             }
         }

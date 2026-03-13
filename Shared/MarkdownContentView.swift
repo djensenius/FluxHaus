@@ -130,15 +130,24 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
         }
 
         // Table (pipe-delimited, requires header + separator row)
-        if trimmed.hasPrefix("|"), index + 1 < lines.count {
+        if trimmed.contains("|"), index + 1 < lines.count {
             let nextLine = lines[index + 1].trimmingCharacters(in: .whitespaces)
-            if nextLine.hasPrefix("|") && nextLine.contains("-") {
+            let stripped = nextLine.replacing("|", with: "").replacing("-", with: "")
+                .replacing(":", with: "").replacing(" ", with: "")
+            if nextLine.contains("|") && nextLine.contains("-") && stripped.isEmpty {
                 let headers = parseTableRow(trimmed)
+                guard headers.count > 1 else {
+                    index += 1
+                    // Not a real table, fall through
+                    blocks.append(.paragraph(text: trimmed))
+                    continue
+                }
                 var dataRows: [[String]] = []
                 index += 2 // skip header + separator
                 while index < lines.count {
                     let rowLine = lines[index].trimmingCharacters(in: .whitespaces)
-                    guard rowLine.hasPrefix("|") else { break }
+                    guard rowLine.contains("|") else { break }
+                    guard !rowLine.isEmpty else { break }
                     dataRows.append(parseTableRow(rowLine))
                     index += 1
                 }
@@ -199,6 +208,12 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
                 || pTrimmed.hasPrefix("> ")
                 || pTrimmed.hasPrefix("| ")
                 || pTrimmed.hasPrefix("|")
+                || (pTrimmed.contains("|")
+                    && isLikelyTableRow(
+                        pTrimmed,
+                        nextLine: index + 1 < lines.count
+                            ? lines[index + 1] : nil
+                    ))
                 || pTrimmed.hasPrefix("- ")
                 || pTrimmed.hasPrefix("* ")
                 || pTrimmed.hasPrefix("• ")
@@ -214,6 +229,14 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
     }
 
     return blocks
+}
+
+/// Checks if a line looks like a table header (has pipes and the next line is a separator).
+private func isLikelyTableRow(_ line: String, nextLine: String?) -> Bool {
+    guard let next = nextLine?.trimmingCharacters(in: .whitespaces) else { return false }
+    let stripped = next.replacing("|", with: "").replacing("-", with: "")
+        .replacing(":", with: "").replacing(" ", with: "")
+    return next.contains("|") && next.contains("-") && stripped.isEmpty
 }
 
 /// Splits a pipe-delimited table row into cell strings.
@@ -369,38 +392,38 @@ struct MarkdownContentView: View {
 
     private func tableView(headers: [String], rows: [[String]]) -> some View {
         let columnCount = headers.count
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: columnCount)
 
-        return LazyVGrid(columns: columns, spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
             // Header row
-            ForEach(Array(headers.enumerated()), id: \.offset) { _, header in
-                Text(inlineMarkdown(header))
-                    .font(bodyFont)
-                    .fontWeight(.semibold)
-                    .foregroundColor(textColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(codeBackground.opacity(0.6))
+            HStack(spacing: 0) {
+                ForEach(Array(headers.enumerated()), id: \.offset) { _, header in
+                    Text(inlineMarkdown(header))
+                        .font(bodyFont)
+                        .fontWeight(.semibold)
+                        .foregroundColor(textColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
+            .background(codeBackground.opacity(0.6))
 
-            // Separator
-            ForEach(0..<columnCount, id: \.self) { _ in
-                Divider()
-            }
+            Divider()
 
             // Data rows
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIdx, row in
-                ForEach(0..<columnCount, id: \.self) { colIdx in
-                    let cell = colIdx < row.count ? row[colIdx] : ""
-                    Text(inlineMarkdown(cell))
-                        .font(bodyFont)
-                        .foregroundColor(textColor)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(rowIdx % 2 == 0 ? Color.clear : codeBackground.opacity(0.3))
+                HStack(spacing: 0) {
+                    ForEach(0..<columnCount, id: \.self) { colIdx in
+                        let cell = colIdx < row.count ? row[colIdx] : ""
+                        Text(inlineMarkdown(cell))
+                            .font(bodyFont)
+                            .foregroundColor(textColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
+                .background(rowIdx % 2 == 0 ? Color.clear : codeBackground.opacity(0.3))
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -445,44 +468,31 @@ struct MarkdownContentView: View {
 #if DEBUG
 #Preview {
     ScrollView {
-        VStack(alignment: .leading, spacing: 20) {
-            MarkdownContentView(
-                content: """
-                # Welcome
-                Here is a **bold** statement and some `inline code`.
+        MarkdownContentView(
+            content: """
+            # Welcome
+            Here is a **bold** statement and some `inline code`.
 
-                ## Features
-                - First item with *emphasis*
-                - Second item
-                - Third item
+            ## Features
+            - First item
+            - Second item
 
-                1. Step one
-                2. Step two
-                3. Step three
+            ```swift
+            let x = "Hello"
+            ```
 
-                ```swift
-                let greeting = "Hello, World!"
-                print(greeting)
-                ```
+            > A blockquote.
 
-                > This is a blockquote with some wisdom.
+            | Feature | Status |
+            | --- | --- |
+            | Tables | ✅ Done |
+            | Code | ✅ Done |
 
-                | Feature | Status | Notes |
-                | --- | --- | --- |
-                | Tables | ✅ Done | With alternating rows |
-                | Code blocks | ✅ Done | Syntax label support |
-                | Images | ✅ Done | AsyncImage loading |
-
-                ---
-
-                ![Example image](https://picsum.photos/400/200)
-
-                And a final paragraph.
-                """,
-                role: .assistant
-            )
-            .padding()
-        }
+            And a final paragraph.
+            """,
+            role: .assistant
+        )
+        .padding()
     }
     .background(Theme.Colors.background)
 }

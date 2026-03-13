@@ -16,12 +16,14 @@ struct ChatView: View {
     @State private var pendingImages: [ChatImage] = []
     @State private var showFilePicker = false
 
+    @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
+
     var body: some View {
-        HSplitView {
+        NavigationSplitView(columnVisibility: $sidebarVisibility) {
             chatSidebar
-                .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
+                .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 320)
+        } detail: {
             chatDetail
-                .frame(minWidth: 400)
         }
         .task {
             if chat.conversations.isEmpty {
@@ -47,21 +49,6 @@ struct ChatView: View {
 
     private var chatSidebar: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Conversations")
-                    .font(.headline)
-                Spacer()
-                Button(action: {
-                    Task { await chat.createNewConversation() }
-                }) {
-                    Image(systemName: "plus")
-                }
-                .buttonStyle(.borderless)
-            }
-            .padding(12)
-
-            Divider()
-
             if chat.conversations.isEmpty {
                 Spacer()
                 Text("No conversations")
@@ -79,15 +66,23 @@ struct ChatView: View {
                     }
                 )) {
                     ForEach(chat.conversations) { conv in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(conv.title ?? "Untitled")
-                                .font(Theme.Fonts.bodyMedium)
-                                .lineLimit(1)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(conv.title ?? "Untitled")
+                                    .font(.body.weight(.semibold))
+                                    .lineLimit(1)
+                                Spacer()
+                                Text(formatRelativeDate(conv.updatedAt))
+                                    .font(.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                            }
                             Text("\(conv.messageCount) messages")
-                                .font(Theme.Fonts.caption)
+                                .font(.subheadline)
                                 .foregroundColor(Theme.Colors.textSecondary)
+                                .lineLimit(1)
                         }
                         .tag(conv.id)
+                        .padding(.vertical, 4)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
                     }
@@ -98,9 +93,39 @@ struct ChatView: View {
                         }
                     }
                 }
+                .listStyle(.sidebar)
             }
         }
-        .background(.ultraThinMaterial)
+        .toolbar {
+            ToolbarItem(placement: .automatic) {
+                Button(action: {
+                    Task { await chat.createNewConversation() }
+                }) {
+                    Image(systemName: "square.and.pencil")
+                }
+            }
+        }
+    }
+
+    private func formatRelativeDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: isoString)
+                ?? ISO8601DateFormatter().date(from: isoString) else {
+            return ""
+        }
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            return timeFormatter.string(from: date)
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "MMM d"
+            return dayFormatter.string(from: date)
+        }
     }
 
     // MARK: - Chat detail
