@@ -6,145 +6,53 @@
 //
 
 import SwiftUI
-
-struct ChatBubble: View {
-    let message: ChatMessage
-    let isLastProgress: Bool
-    let isPlaying: Bool
-    let onPlayTapped: () -> Void
-
-    var body: some View {
-        HStack {
-            if message.role == .user {
-                Spacer()
-            }
-            VStack(
-                alignment: message.role == .user ? .trailing : .leading,
-                spacing: 4
-            ) {
-                if message.isProgress {
-                    HStack(spacing: 6) {
-                        if isLastProgress {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.caption2)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                        Text(message.content)
-                            .font(Theme.Fonts.caption)
-                            .italic()
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                } else if message.role == .assistant {
-                    Text(markdownAttributed(message.content))
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(foregroundColor)
-                } else {
-                    Text(message.content)
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(foregroundColor)
-                }
-                if message.isVoice && message.audioData != nil {
-                    Button(action: onPlayTapped, label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: isPlaying
-                                ? "stop.fill" : "play.fill")
-                                .font(Theme.Fonts.caption)
-                            Text(isPlaying ? "Stop" : "Play")
-                                .font(Theme.Fonts.caption)
-                        }
-                        .foregroundColor(playButtonColor)
-                    })
-                }
-            }
-            .padding(message.isProgress ? 8 : 12)
-            .background {
-                if message.isProgress {
-                    Color.clear
-                } else {
-                    switch message.role {
-                    case .user:
-                        AnyView(RoundedRectangle(cornerRadius: 16)
-                            .fill(Theme.Colors.accent))
-                    case .assistant:
-                        AnyView(RoundedRectangle(cornerRadius: 16)
-                            .fill(.ultraThinMaterial))
-                    case .error:
-                        AnyView(RoundedRectangle(cornerRadius: 16)
-                            .fill(Theme.Colors.error.opacity(0.2)))
-                    }
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            if message.role != .user {
-                Spacer()
-            }
-        }
-        .padding(.horizontal)
-    }
-
-    private var foregroundColor: Color {
-        switch message.role {
-        case .user:
-            return .white
-        case .assistant:
-            return Theme.Colors.textPrimary
-        case .error:
-            return Theme.Colors.error
-        }
-    }
-
-    private var playButtonColor: Color {
-        message.role == .user
-            ? Color.white.opacity(0.8)
-            : Theme.Colors.accent
-    }
-}
+import PhotosUI
 
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var showConversations = false
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var pendingImages: [ChatImage] = []
 
     var body: some View {
         NavigationStack {
-        VStack(spacing: 0) {
-            if let error = chat.sessionError {
-                sessionErrorBanner(error)
-            }
-            chatMessages
-            if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
-                SuggestionChipsView { command in
-                    inputText = command
-                    sendMessage()
+            VStack(spacing: 0) {
+                if let error = chat.sessionError {
+                    sessionErrorBanner(error)
                 }
-                .padding(.vertical, 8)
+                chatMessages
+                if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
+                    SuggestionChipsView { command in
+                        inputText = command
+                        sendMessage()
+                    }
+                    .padding(.vertical, 8)
+                }
+                Divider()
+                imagePreviewBar
+                inputBar
             }
-            Divider()
-            inputBar
-        }
-        .scrollContentBackground(.hidden)
-        .navigationTitle(
-            chat.conversationId != nil ? "Assistant" : "New Chat"
-        )
+            .scrollContentBackground(.hidden)
+            .navigationTitle(
+                chat.conversationId != nil ? "Assistant" : "New Chat"
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { showConversations = true }, label: {
+                    Button(action: { showConversations = true }) {
                         Image(systemName: "list.bullet")
                             .foregroundColor(Theme.Colors.accent)
-                    })
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         Task { await chat.createNewConversation() }
-                    }, label: {
+                    }) {
                         Image(systemName: "plus")
                             .foregroundColor(Theme.Colors.accent)
-                    })
+                    }
                     .keyboardShortcut("n", modifiers: .command)
                 }
             }
@@ -165,7 +73,12 @@ struct ChatView: View {
             }
             .task { await chat.syncConversationsPeriodically() }
         }
+        .onChange(of: selectedPhotos) {
+            Task { await loadSelectedPhotos() }
+        }
     }
+
+    // MARK: - Messages
 
     private var chatMessages: some View {
         ZStack {
@@ -181,7 +94,7 @@ struct ChatView: View {
         let convMessages = chat.messages(for: convId)
         return ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: 12) {
                     ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
@@ -208,7 +121,7 @@ struct ChatView: View {
                         .id("loading")
                     }
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
@@ -225,48 +138,96 @@ struct ChatView: View {
         }
     }
 
+    // MARK: - Image preview
+
+    @ViewBuilder
+    private var imagePreviewBar: some View {
+        if !pendingImages.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(pendingImages) { img in
+                        ZStack(alignment: .topTrailing) {
+                            if let data = img.uiImageData, let uiImage = UIImage(data: data) {
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 64, height: 64)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            Button(action: {
+                                pendingImages.removeAll { $0.id == img.id }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.white)
+                                    .shadow(radius: 2)
+                            }
+                            .offset(x: 4, y: -4)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            Divider()
+        }
+    }
+
+    // MARK: - Input bar
+
     private var inputBar: some View {
         Group {
             if chat.isRecording {
                 recordingOverlay
             } else {
-                HStack(spacing: 8) {
+                HStack(spacing: 10) {
                     Button(action: {
                         chat.startRecording()
-                    }, label: {
+                    }) {
                         Image(systemName: "mic.circle.fill")
                             .font(.title)
                             .foregroundColor(Theme.Colors.accent)
-                    })
+                    }
+                    .disabled(chat.isLoading)
+
+                    PhotosPicker(
+                        selection: $selectedPhotos,
+                        maxSelectionCount: 4,
+                        matching: .images
+                    ) {
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.title2)
+                            .foregroundColor(
+                                chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
+                            )
+                    }
                     .disabled(chat.isLoading)
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
-                        .font(Theme.Fonts.bodyMedium)
+                        .font(Theme.Fonts.bodyLarge)
                         .textFieldStyle(.plain)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
                         .submitLabel(.send)
-                        .onSubmit {
-                            sendMessage()
-                        }
-                        .onAppear {
-                            isInputFocused = true
-                        }
+                        .onSubmit { sendMessage() }
+                        .onAppear { isInputFocused = true }
 
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")
-                            .font(.title2)
+                            .font(.system(size: 28))
                     }
-                    .disabled(
-                        inputText.trimmingCharacters(
-                            in: .whitespacesAndNewlines
-                        ).isEmpty || chat.isLoading
-                    )
+                    .disabled(!canSend)
                 }
                 .padding()
             }
         }
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
+    }
+
+    private var canSend: Bool {
+        let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasImages = !pendingImages.isEmpty
+        return (hasText || hasImages) && !chat.isLoading
     }
 
     private var recordingOverlay: some View {
@@ -290,7 +251,7 @@ struct ChatView: View {
             }
 
             Text("Listening…")
-                .font(Theme.Fonts.bodyMedium)
+                .font(Theme.Fonts.bodyLarge)
                 .foregroundColor(Theme.Colors.textSecondary)
 
             Spacer()
@@ -301,11 +262,11 @@ struct ChatView: View {
 
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
-            }, label: {
+            }) {
                 Image(systemName: "stop.circle.fill")
                     .font(.title)
                     .foregroundColor(Theme.Colors.error)
-            })
+            }
         }
         .padding()
     }
@@ -316,10 +277,7 @@ struct ChatView: View {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(Theme.Colors.accent)
                     .frame(width: 3, height: barHeight(for: index))
-                    .animation(
-                        .easeOut(duration: 0.08),
-                        value: chat.audioLevel
-                    )
+                    .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
             }
         }
         .frame(height: 20)
@@ -337,12 +295,27 @@ struct ChatView: View {
         return base
     }
 
+    // MARK: - Actions
+
     private func sendMessage() {
         let text = inputText
+        let images = pendingImages
         inputText = ""
-        Task {
-            await chat.send(text)
+        pendingImages = []
+        selectedPhotos = []
+        Task { await chat.send(text, images: images) }
+    }
+
+    private func loadSelectedPhotos() async {
+        var loaded: [ChatImage] = []
+        for item in selectedPhotos {
+            if let data = try? await item.loadTransferable(type: Data.self) {
+                let mediaType = "image/jpeg"
+                let base64 = data.base64EncodedString()
+                loaded.append(ChatImage(mediaType: mediaType, base64: base64))
+            }
         }
+        pendingImages = loaded
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
@@ -353,16 +326,18 @@ struct ChatView: View {
                 .font(Theme.Fonts.caption)
                 .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
-            Button(action: { chat.sessionError = nil }, label: {
+            Button(action: { chat.sessionError = nil }) {
                 Image(systemName: "xmark")
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
-            })
+            }
         }
         .padding(8)
         .background(Theme.Colors.warning.opacity(0.1))
     }
 }
+
+// MARK: - Conversation list
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
@@ -377,7 +352,7 @@ struct ConversationListView: View {
                             await chat.loadConversation(conv)
                             dismiss()
                         }
-                    }, label: {
+                    }) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(conv.title ?? "Untitled")
                                 .lineLimit(1)
@@ -385,14 +360,12 @@ struct ConversationListView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                    })
+                    }
                 }
                 .onDelete { indexSet in
                     for index in indexSet {
                         let conv = chat.conversations[index]
-                        Task {
-                            await chat.deleteConversation(conv)
-                        }
+                        Task { await chat.deleteConversation(conv) }
                     }
                 }
             }

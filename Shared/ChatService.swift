@@ -13,6 +13,12 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "ChatSe
 struct CommandRequest: Encodable {
     let command: String
     let conversationId: String?
+    let images: [ImagePayload]?
+}
+
+struct ImagePayload: Encodable {
+    let mediaType: String
+    let base64: String
 }
 
 struct CommandResponse: Decodable {
@@ -28,7 +34,8 @@ struct StreamEvent: Decodable {
 
 func streamCommand(
     _ command: String,
-    conversationId: String? = nil
+    conversationId: String? = nil,
+    images: [ChatImage] = []
 ) -> AsyncThrowingStream<StreamEvent, Error> {
     AsyncThrowingStream { continuation in
         Task {
@@ -41,7 +48,14 @@ func streamCommand(
 
                 var request = try await buildAuthRequest(url: url)
                 request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-                let body = CommandRequest(command: command, conversationId: conversationId)
+                let imagePayloads: [ImagePayload]? = images.isEmpty ? nil : images.map {
+                    ImagePayload(mediaType: $0.mediaType, base64: $0.base64)
+                }
+                let body = CommandRequest(
+                    command: command,
+                    conversationId: conversationId,
+                    images: imagePayloads
+                )
                 request.httpBody = try JSONEncoder().encode(body)
 
                 let session = URLSession(configuration: .default)
@@ -249,7 +263,7 @@ func sendCommand(_ command: String, conversationId: String? = nil) async throws 
     let url = components.url!
 
     var request = try await buildAuthRequest(url: url)
-    let body = CommandRequest(command: command, conversationId: conversationId)
+    let body = CommandRequest(command: command, conversationId: conversationId, images: nil)
     let bodyData = try JSONEncoder().encode(body)
     request.httpBody = bodyData
 
