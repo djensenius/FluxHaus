@@ -254,14 +254,10 @@ struct ChatView: View {
                         .id(message.id)
                     }
                     if chat.isLoading {
-                        HStack {
-                            ProgressView()
-                                .controlSize(.small)
-                                .padding(12)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .id("loading")
+                        TypingIndicator()
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .id("loading")
                     }
                 }
                 .padding(.vertical, 12)
