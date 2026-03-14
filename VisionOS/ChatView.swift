@@ -362,6 +362,13 @@ struct ConversationListView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            Task { await chat.deleteConversation(conv) }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
                 .onDelete { indexSet in
                     for index in indexSet {

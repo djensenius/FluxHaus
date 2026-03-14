@@ -106,6 +106,13 @@ struct ChatView: View {
                     conv.id == chat.conversationId
                         ? Theme.Colors.accent.opacity(0.15) : nil
                 )
+                .contextMenu {
+                    Button(role: .destructive) {
+                        Task { await chat.deleteConversation(conv) }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
             }
             .onDelete { indexSet in
                 for index in indexSet {
@@ -453,6 +460,13 @@ struct ConversationListView: View {
                             Text("\(conv.messageCount) messages")
                                 .font(Theme.Fonts.caption)
                                 .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                    }
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            Task { await chat.deleteConversation(conv) }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                 }
