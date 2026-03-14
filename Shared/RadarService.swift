@@ -70,9 +70,10 @@ private struct RadarConfig: Decodable {
     }
 
     private func buildFrames(snapshot: Int) {
-        // 5 past frames at 10-min intervals (50 min history)
+        // Past frames: 2 hours back in 10-min steps
+        // Rainbow.ai: use earlier snapshot timestamp with forecast_time=0
         var past: [RadarFrame] = []
-        for step in stride(from: -5, through: 0, by: 1) {
+        for step in stride(from: -12, through: 0, by: 1) {
             let pastSnapshot = snapshot + (step * 600)
             past.append(RadarFrame(
                 id: past.count, time: pastSnapshot,
@@ -81,9 +82,10 @@ private struct RadarConfig: Decodable {
         }
         pastFrames = past
 
-        // 5 forecast frames at 10-min intervals (50 min ahead)
+        // Forecast frames: up to 4 hours ahead in 10-min steps
+        // Rainbow.ai: use current snapshot with positive forecast_time
         var forecast: [RadarFrame] = []
-        for step in 1...5 {
+        for step in 1...24 {
             let offset = step * 600
             forecast.append(RadarFrame(
                 id: past.count + forecast.count,
@@ -119,34 +121,6 @@ private struct RadarConfig: Decodable {
 
     var latestPastFrame: RadarFrame? { pastFrames.last }
     var allFrames: [RadarFrame] { pastFrames + nowcastFrames }
-
-    /// Human-readable relative time label for a frame (e.g. "1 hr 20 min ago")
-    func relativeLabel(for frame: RadarFrame) -> String {
-        let seconds = frame.time - Int(Date().timeIntervalSince1970)
-        let absMinutes = abs(seconds) / 60
-        if absMinutes < 2 { return "Now" }
-
-        let hours = absMinutes / 60
-        let mins = absMinutes % 60
-        var parts: [String] = []
-        if hours > 0 { parts.append("\(hours) hr") }
-        if mins > 0 { parts.append("\(mins) min") }
-        let timeStr = parts.joined(separator: " ")
-
-        return seconds < 0 ? "\(timeStr) ago" : "in \(timeStr)"
-    }
-
-    /// Forecast confidence (1.0 at now, decreasing linearly to 0.3 at +4 hr)
-    func confidence(for frame: RadarFrame) -> Double {
-        let pastCount = pastFrames.count
-        guard let idx = allFrames.firstIndex(where: { $0.id == frame.id }) else {
-            return 1.0
-        }
-        if idx < pastCount { return 1.0 } // Past = observed data
-        let forecastIdx = idx - pastCount
-        let forecastTotal = max(nowcastFrames.count - 1, 1)
-        return max(0.3, 1.0 - Double(forecastIdx) / Double(forecastTotal) * 0.7)
-    }
 }
 
 private struct RainViewerFallback: Decodable {
