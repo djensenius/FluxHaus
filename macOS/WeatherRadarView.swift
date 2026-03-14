@@ -85,16 +85,17 @@ struct WeatherRadarSheet: View {
                     .monospacedDigit()
                 Spacer()
                 if let frame = currentFrame {
-                    Text(radarService.relativeLabel(for: frame))
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(
-                            frameIndex < radarService.pastFrames.count
-                                ? .secondary : Theme.Colors.accent
-                        )
+                    HStack(spacing: 6) {
+                        confidenceLabel(for: frame)
+                        Text("·").foregroundColor(.secondary)
+                        Text(radarService.relativeLabel(for: frame))
+                            .foregroundColor(
+                                frameIndex < radarService.pastFrames.count
+                                    ? .secondary : Theme.Colors.accent
+                            )
+                    }
+                    .font(.system(size: 13, weight: .medium))
                 }
-            }
-            if let frame = currentFrame, frameIndex >= radarService.pastFrames.count {
-                confidenceLabel(radarService.confidence(for: frame))
             }
             HStack(spacing: 12) {
                 if tilesReady {
@@ -128,14 +129,20 @@ struct WeatherRadarSheet: View {
         .padding()
     }
 
-    private func confidenceLabel(_ value: Double) -> some View {
-        let label = value > 0.7 ? "High confidence"
-            : value > 0.5 ? "Medium confidence" : "Low confidence"
-        let color = value > 0.7 ? Theme.Colors.accent
-            : value > 0.5 ? Theme.Colors.warning : Theme.Colors.error
-        return Text(label)
-            .font(.caption2)
-            .foregroundColor(color)
+    @ViewBuilder
+    private func confidenceLabel(for frame: RadarFrame) -> some View {
+        if frameIndex < radarService.pastFrames.count {
+            Text("Observed")
+                .foregroundColor(.secondary)
+        } else {
+            let value = radarService.confidence(for: frame)
+            let label = value > 0.7 ? "High"
+                : value > 0.5 ? "Medium" : "Low"
+            let color = value > 0.7 ? Theme.Colors.accent
+                : value > 0.5 ? Theme.Colors.warning : Theme.Colors.error
+            Text(label)
+                .foregroundColor(color)
+        }
     }
 
     private var frameTimeLabel: String {
