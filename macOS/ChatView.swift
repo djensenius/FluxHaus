@@ -8,6 +8,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+// swiftlint:disable:next type_body_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
@@ -15,6 +16,8 @@ struct ChatView: View {
     @State private var holdRecordStart: Date?
     @State private var pendingImages: [ChatImage] = []
     @State private var showFilePicker = false
+    @State private var renamingConversation: Conversation?
+    @State private var renameText = ""
 
     var body: some View {
         HStack(spacing: 0) {
@@ -100,11 +103,17 @@ struct ChatView: View {
                         .listRowSeparator(.visible)
                         .contentShape(Rectangle())
                         .contextMenu {
-                            Button(role: .destructive) {
+                            Button(action: {
+                                renameText = conv.title ?? ""
+                                renamingConversation = conv
+                            }, label: {
+                                Label("Rename", systemImage: "pencil")
+                            })
+                            Button(role: .destructive, action: {
                                 Task { await chat.deleteConversation(conv) }
-                            } label: {
+                            }, label: {
                                 Label("Delete", systemImage: "trash")
-                            }
+                            })
                         }
                     }
                     .onDelete { indexSet in
@@ -118,6 +127,24 @@ struct ChatView: View {
             }
         }
         .background(Theme.Colors.background)
+        .alert(
+            "Rename Conversation",
+            isPresented: Binding(
+                get: { renamingConversation != nil },
+                set: { if !$0 { renamingConversation = nil } }
+            )
+        ) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel, action: {
+                renamingConversation = nil
+            })
+            Button("Save", action: {
+                if let conv = renamingConversation {
+                    Task { await chat.renameConversation(conv, to: renameText) }
+                }
+                renamingConversation = nil
+            })
+        }
     }
 
     private func formatRelativeDate(_ isoString: String) -> String {

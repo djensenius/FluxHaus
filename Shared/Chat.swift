@@ -5,6 +5,7 @@
 //  Created by David Jensenius on 2026-03-01.
 //
 
+// swiftlint:disable file_length
 import Foundation
 import AVFoundation
 import SwiftUI
@@ -98,6 +99,7 @@ struct Conversation: Identifiable, Codable {
     private(set) var cachedConversationIds: [String] = []
     private var cachedMessages: [String: [ChatMessage]] = [:]
     private let maxCachedConversations = 5
+    private var manuallyTitledIds: Set<String> = []
 
     var messages: [ChatMessage] {
         get { conversationId.flatMap { cachedMessages[$0] } ?? [] }
@@ -440,8 +442,23 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
+    func renameConversation(_ conv: Conversation, to title: String) async {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        do {
+            try await updateConversationTitle(id: conv.id, title: trimmed)
+            if let index = conversations.firstIndex(where: { $0.id == conv.id }) {
+                conversations[index].title = trimmed
+            }
+            manuallyTitledIds.insert(conv.id)
+        } catch {
+            logger.error("Failed to rename: \(error.localizedDescription)")
+        }
+    }
+
     private func updateTitleIfNeeded() async {
         guard let convId = conversationId else { return }
+        guard !manuallyTitledIds.contains(convId) else { return }
         let userMessages = messages.filter { $0.role == .user }
         let count = userMessages.count
         guard count == 1 || count % 3 == 0 else { return }

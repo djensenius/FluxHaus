@@ -30,6 +30,7 @@ private func formatRelativeDate(_ isoString: String) -> String {
 }
 
 // swiftlint:disable file_length
+// swiftlint:disable:next type_body_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
@@ -40,6 +41,8 @@ struct ChatView: View {
     @State private var holdRecordStart: Date?
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var pendingImages: [ChatImage] = []
+    @State private var renamingConversation: Conversation?
+    @State private var renameText = ""
 
     var body: some View {
         Group {
@@ -69,6 +72,24 @@ struct ChatView: View {
         }
         .onChange(of: selectedPhotos) {
             Task { await loadSelectedPhotos() }
+        }
+        .alert(
+            "Rename Conversation",
+            isPresented: Binding(
+                get: { renamingConversation != nil },
+                set: { if !$0 { renamingConversation = nil } }
+            )
+        ) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel, action: {
+                renamingConversation = nil
+            })
+            Button("Save", action: {
+                if let conv = renamingConversation {
+                    Task { await chat.renameConversation(conv, to: renameText) }
+                }
+                renamingConversation = nil
+            })
         }
     }
 
@@ -136,11 +157,17 @@ struct ChatView: View {
                         ? Theme.Colors.accent.opacity(0.15) : nil
                 )
                 .contextMenu {
-                    Button(role: .destructive) {
+                    Button(action: {
+                        renameText = conv.title ?? ""
+                        renamingConversation = conv
+                    }, label: {
+                        Label("Rename", systemImage: "pencil")
+                    })
+                    Button(role: .destructive, action: {
                         Task { await chat.deleteConversation(conv) }
-                    } label: {
+                    }, label: {
                         Label("Delete", systemImage: "trash")
-                    }
+                    })
                 }
             }
             .onDelete { indexSet in
@@ -467,6 +494,8 @@ struct ChatView: View {
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
+    @State private var renamingConversation: Conversation?
+    @State private var renameText = ""
 
     var body: some View {
         List {
@@ -491,11 +520,17 @@ struct ConversationListView: View {
                     }
                 })
                 .contextMenu {
-                    Button(role: .destructive) {
+                    Button(action: {
+                        renameText = conv.title ?? ""
+                        renamingConversation = conv
+                    }, label: {
+                        Label("Rename", systemImage: "pencil")
+                    })
+                    Button(role: .destructive, action: {
                         Task { await chat.deleteConversation(conv) }
-                    } label: {
+                    }, label: {
                         Label("Delete", systemImage: "trash")
-                    }
+                    })
                 }
             }
             .onDelete { indexSet in
@@ -526,6 +561,24 @@ struct ConversationListView: View {
             }
         }
         .task { await chat.loadConversations() }
+        .alert(
+            "Rename Conversation",
+            isPresented: Binding(
+                get: { renamingConversation != nil },
+                set: { if !$0 { renamingConversation = nil } }
+            )
+        ) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel, action: {
+                renamingConversation = nil
+            })
+            Button("Save", action: {
+                if let conv = renamingConversation {
+                    Task { await chat.renameConversation(conv, to: renameText) }
+                }
+                renamingConversation = nil
+            })
+        }
     }
 }
 
