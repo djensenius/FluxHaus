@@ -96,6 +96,7 @@ struct ChatView: View {
                                 .lineLimit(1)
                         }
                         .tag(conv.id)
+                        .listRowSeparator(.visible)
                         .contentShape(Rectangle())
                         .contextMenu {
                             Button(role: .destructive) {
@@ -112,10 +113,10 @@ struct ChatView: View {
                         }
                     }
                 }
-                .listStyle(.sidebar)
+                .listStyle(.plain)
             }
         }
-        .background(.ultraThinMaterial)
+        .background(Theme.Colors.background)
     }
 
     private func formatRelativeDate(_ isoString: String) -> String {
