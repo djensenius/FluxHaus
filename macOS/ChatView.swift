@@ -196,6 +196,10 @@ struct ChatView: View {
             imagePreviewBar
             inputBar
         }
+        .onDrop(of: ["public.image"], isTargeted: nil) { providers in
+            loadDroppedImages(providers)
+            return true
+        }
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
@@ -444,13 +448,39 @@ struct ChatView: View {
         for url in urls.prefix(4) {
             guard url.startAccessingSecurityScopedResource() else { continue }
             defer { url.stopAccessingSecurityScopedResource() }
-            if let data = try? Data(contentsOf: url) {
-                let ext = url.pathExtension.lowercased()
-                let mediaType = ext == "png" ? "image/png" : "image/jpeg"
-                loaded.append(ChatImage(mediaType: mediaType, base64: data.base64EncodedString()))
+            if let nsImage = NSImage(contentsOf: url),
+               let tiff = nsImage.tiffRepresentation,
+               let bitmap = NSBitmapImageRep(data: tiff),
+               let jpeg = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.85]) {
+                loaded.append(ChatImage(mediaType: "image/jpeg", base64: jpeg.base64EncodedString()))
             }
         }
         pendingImages.append(contentsOf: loaded)
+    }
+
+    private func loadDroppedImages(_ providers: [NSItemProvider]) {
+        for provider in providers.prefix(4)
+        where provider.hasItemConformingToTypeIdentifier("public.image") {
+            provider.loadDataRepresentation(
+                forTypeIdentifier: "public.image"
+            ) { data, _ in
+                guard let data,
+                      let nsImage = NSImage(data: data),
+                      let tiff = nsImage.tiffRepresentation,
+                      let bitmap = NSBitmapImageRep(data: tiff),
+                      let jpeg = bitmap.representation(
+                          using: .jpeg,
+                          properties: [.compressionFactor: 0.85]
+                      ) else { return }
+                let chatImage = ChatImage(
+                    mediaType: "image/jpeg",
+                    base64: jpeg.base64EncodedString()
+                )
+                DispatchQueue.main.async {
+                    pendingImages.append(chatImage)
+                }
+            }
+        }
     }
 }
 
