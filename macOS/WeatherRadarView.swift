@@ -29,7 +29,7 @@ struct WeatherRadarSheet: View {
                     coordinate: coordinate,
                     radarService: radarService,
                     frameIndex: frameIndex,
-                    onPreloadComplete: { tilesReady = true }
+                    onPreloadComplete: { DispatchQueue.main.async { tilesReady = true } }
                 )
                 .frame(minWidth: 500).frame(height: 350)
                 controls

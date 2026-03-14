@@ -382,7 +382,7 @@ struct WeatherDetailView: View {
                     coordinate: locationManager.coordinate,
                     radarService: radarService,
                     frameIndex: frameIndex,
-                    onPreloadComplete: { tilesReady = true }
+                    onPreloadComplete: { DispatchQueue.main.async { tilesReady = true } }
                 )
                 .frame(maxWidth: .infinity).frame(height: 300)
                 .cornerRadius(8).clipped()
