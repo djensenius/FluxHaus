@@ -17,7 +17,12 @@ struct ChatView: View {
     @State private var showFilePicker = false
 
     var body: some View {
-        chatDetail
+        HStack(spacing: 0) {
+            chatSidebar
+                .frame(width: 260)
+            Divider()
+            chatDetail
+        }
         .task {
             if chat.conversations.isEmpty {
                 await chat.loadConversations()
@@ -35,6 +40,102 @@ struct ChatView: View {
             NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
         ) { _ in
             Task { await chat.createNewConversation() }
+        }
+    }
+
+    // MARK: - Sidebar
+
+    private var chatSidebar: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Conversations")
+                    .font(.headline)
+                Spacer()
+                Button(action: {
+                    Task { await chat.createNewConversation() }
+                }, label: {
+                    Image(systemName: "square.and.pencil")
+                })
+                .buttonStyle(.borderless)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            Divider()
+
+            if chat.conversations.isEmpty {
+                ContentUnavailableView(
+                    "No Conversations",
+                    systemImage: "bubble.left.and.bubble.right",
+                    description: Text("Start a new conversation")
+                )
+            } else {
+                List(selection: Binding(
+                    get: { chat.conversationId },
+                    set: { newId in
+                        if let newId,
+                           let conv = chat.conversations.first(where: { $0.id == newId }) {
+                            Task { await chat.loadConversation(conv) }
+                        }
+                    }
+                )) {
+                    ForEach(chat.conversations) { conv in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(conv.title ?? "Untitled")
+                                    .font(.body.weight(.semibold))
+                                    .lineLimit(1)
+                                Spacer()
+                                Text(formatRelativeDate(conv.updatedAt))
+                                    .font(.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                            }
+                            Text("\(conv.messageCount) messages")
+                                .font(.subheadline)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                                .lineLimit(1)
+                        }
+                        .tag(conv.id)
+                        .contentShape(Rectangle())
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                Task { await chat.deleteConversation(conv) }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
+                    }
+                    .onDelete { indexSet in
+                        for index in indexSet {
+                            let conv = chat.conversations[index]
+                            Task { await chat.deleteConversation(conv) }
+                        }
+                    }
+                }
+                .listStyle(.sidebar)
+            }
+        }
+        .background(.ultraThinMaterial)
+    }
+
+    private func formatRelativeDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: isoString)
+                ?? ISO8601DateFormatter().date(from: isoString) else {
+            return ""
+        }
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            return timeFormatter.string(from: date)
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "MMM d"
+            return dayFormatter.string(from: date)
         }
     }
 

@@ -83,58 +83,6 @@ struct ContentView: View {
             }
         }
         .navigationTitle("FluxHaus")
-        .safeAreaInset(edge: .bottom) {
-            if selectedItem == .assistant {
-                conversationList
-            }
-        }
-    }
-
-    private var conversationList: some View {
-        VStack(spacing: 0) {
-            Divider()
-            HStack {
-                Text("Conversations")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.secondary)
-                Spacer()
-                Button(action: {
-                    Task { await chat.createNewConversation() }
-                }, label: {
-                    Image(systemName: "square.and.pencil")
-                        .font(.caption)
-                })
-                .buttonStyle(.borderless)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-
-            List(selection: Binding(
-                get: { chat.conversationId },
-                set: { newId in
-                    if let newId,
-                       let conv = chat.conversations.first(where: { $0.id == newId }) {
-                        Task { await chat.loadConversation(conv) }
-                    }
-                }
-            )) {
-                ForEach(chat.conversations) { conv in
-                    Text(conv.title ?? "Untitled")
-                        .font(.callout)
-                        .lineLimit(1)
-                        .tag(conv.id)
-                        .contextMenu {
-                            Button(role: .destructive, action: {
-                                Task { await chat.deleteConversation(conv) }
-                            }, label: {
-                                Label("Delete", systemImage: "trash")
-                            })
-                        }
-                }
-            }
-            .listStyle(.sidebar)
-            .frame(maxHeight: 200)
-        }
     }
 
     @ViewBuilder
