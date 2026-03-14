@@ -32,6 +32,13 @@ struct WeatherRadarSheet: View {
                 .frame(minWidth: 500).frame(height: 350)
                 controls
                 if let weather {
+                    if let minuteForecast = weather.minuteForecast,
+                       !minuteForecast.isEmpty {
+                        Divider()
+                        PrecipitationTimelineView(
+                            minuteForecast: Array(minuteForecast)
+                        )
+                    }
                     Divider()
                     WeatherForecastSection(weather: weather)
                 }
@@ -48,21 +55,9 @@ struct WeatherRadarSheet: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Weather Radar").font(.headline)
-                if radarService.nowcastFrames.isEmpty {
-                    Label(
-                        "Forecast available when precipitation is active",
-                        systemImage: "cloud.sun"
-                    )
+                Text("Past 2 hours")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                } else {
-                    Label(
-                        "\(radarService.nowcastFrames.count) forecast frames available",
-                        systemImage: "clock.arrow.2.circlepath"
-                    )
-                    .font(.caption)
-                    .foregroundColor(Theme.Colors.accent)
-                }
             }
             Spacer()
             Button("Done") { dismiss() }
@@ -79,19 +74,13 @@ struct WeatherRadarSheet: View {
                 Spacer()
                 Text(relativeTimeLabel)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(
-                        frameIndex < radarService.pastFrames.count
-                            ? .secondary : Theme.Colors.accent
-                    )
+                    .foregroundColor(.secondary)
             }
             HStack(spacing: 12) {
                 Button(action: togglePlay) {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                 }
                 .buttonStyle(.borderless)
-                Text("Past")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
                 Slider(
                     value: Binding(
                         get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },
@@ -100,12 +89,9 @@ struct WeatherRadarSheet: View {
                     in: 0...Double(max(0, radarService.allFrames.count - 1)),
                     step: 1
                 )
-                Text(radarService.nowcastFrames.isEmpty ? "Now" : "Forecast")
+                Text("Now")
                     .font(.caption2)
-                    .foregroundColor(
-                        radarService.nowcastFrames.isEmpty
-                            ? .secondary : Theme.Colors.accent
-                    )
+                    .foregroundColor(.secondary)
             }
         }
         .padding()
@@ -270,5 +256,56 @@ struct WeatherCard: View {
     private var precipitationText: String? {
         guard let forecast = locationManager.forecast else { return nil }
         return WeatherHelpers.precipitationText(from: forecast)
+    }
+}
+
+// MARK: - Precipitation Timeline (next 60 minutes)
+
+struct PrecipitationTimelineView: View {
+    let minuteForecast: [MinuteWeather]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Precipitation — Next Hour", systemImage: "clock.arrow.2.circlepath")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Theme.Colors.textSecondary)
+                .textCase(.uppercase)
+
+            HStack(alignment: .bottom, spacing: 1) {
+                ForEach(Array(minuteForecast.prefix(60).enumerated()), id: \.offset) { _, minute in
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(barColor(for: minute))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: barHeight(for: minute))
+                }
+            }
+            .frame(height: 40)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+
+            HStack {
+                Text("Now")
+                    .font(.caption2).foregroundColor(.secondary)
+                Spacer()
+                Text("+30 min")
+                    .font(.caption2).foregroundColor(.secondary)
+                Spacer()
+                Text("+60 min")
+                    .font(.caption2).foregroundColor(.secondary)
+            }
+        }
+        .padding()
+    }
+
+    private func barHeight(for minute: MinuteWeather) -> CGFloat {
+        let chance = minute.precipitationChance
+        return max(2, CGFloat(chance) * 40)
+    }
+
+    private func barColor(for minute: MinuteWeather) -> Color {
+        let chance = minute.precipitationChance
+        if chance < 0.1 { return Theme.Colors.textSecondary.opacity(0.2) }
+        if chance < 0.4 { return Theme.Colors.accent.opacity(0.5) }
+        if chance < 0.7 { return Theme.Colors.accent.opacity(0.75) }
+        return Theme.Colors.accent
     }
 }

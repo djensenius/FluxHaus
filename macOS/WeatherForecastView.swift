@@ -365,7 +365,7 @@ struct WeatherDetailView: View {
                     .textCase(.uppercase)
                 Spacer()
                 if radarService.nowcastFrames.isEmpty && radarService.isLoaded {
-                    Label("Forecast available when raining", systemImage: "cloud.sun")
+                    Text("Past 2 hours")
                         .font(.caption2).foregroundColor(.secondary)
                 }
             }
