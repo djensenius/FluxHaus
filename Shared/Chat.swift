@@ -99,7 +99,6 @@ struct Conversation: Identifiable, Codable {
     private(set) var cachedConversationIds: [String] = []
     private var cachedMessages: [String: [ChatMessage]] = [:]
     private let maxCachedConversations = 5
-    private var manuallyTitledIds: Set<String> = []
 
     var messages: [ChatMessage] {
         get { conversationId.flatMap { cachedMessages[$0] } ?? [] }
@@ -455,7 +454,6 @@ struct Conversation: Identifiable, Codable {
             if let index = conversations.firstIndex(where: { $0.id == conv.id }) {
                 conversations[index].title = trimmed
             }
-            manuallyTitledIds.insert(conv.id)
         } catch {
             logger.error("Failed to rename: \(error.localizedDescription)")
         }
@@ -463,17 +461,14 @@ struct Conversation: Identifiable, Codable {
 
     private func updateTitleIfNeeded() async {
         guard let convId = conversationId else { return }
-        guard !manuallyTitledIds.contains(convId) else { return }
-        let userMessages = messages.filter { $0.role == .user }
-        let count = userMessages.count
-        guard count == 1 || count % 3 == 0 else { return }
-        guard let latestMessage = userMessages.last?.content else { return }
-        let title = String(latestMessage.prefix(50))
+        // Only auto-title if conversation has no title yet
+        guard let idx = conversations.firstIndex(where: { $0.id == convId }),
+              conversations[idx].title == nil else { return }
+        guard let firstMessage = messages.first(where: { $0.role == .user })?.content else { return }
+        let title = String(firstMessage.prefix(50))
         do {
             try await updateConversationTitle(id: convId, title: title)
-            if let index = conversations.firstIndex(where: { $0.id == convId }) {
-                conversations[index].title = title
-            }
+            conversations[idx].title = title
         } catch {
             logger.error("Failed to update title: \(error.localizedDescription)")
         }
