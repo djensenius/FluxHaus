@@ -24,12 +24,12 @@ class RadarAnimationOverlay: NSObject, MKOverlay {
     }
 }
 
-/// Custom renderer that draws RainViewer tiles from an in-memory
+/// Custom renderer that draws radar tiles from an in-memory
 /// cache. Frame changes use `setFrame()` → `setNeedsDisplay()`
 /// which redraws from cache instantly — no overlay add/remove,
 /// no reloadData(), no MapKit tile-cache involvement.
 class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
-    private let host: String
+    private let urlBuilder: TileURLBuilder
     private var _framePath: String?
     private var cache: [String: CGImage] = [:]
     private var pending: Set<String> = []
@@ -37,11 +37,11 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
 
     init(
         overlay: MKOverlay,
-        host: String,
+        urlBuilder: @escaping TileURLBuilder,
         initialPath: String?,
         overlayAlpha: CGFloat = 0.7
     ) {
-        self.host = host
+        self.urlBuilder = urlBuilder
         self._framePath = initialPath
         super.init(overlay: overlay)
         self.alpha = overlayAlpha
@@ -149,9 +149,7 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
         pending.insert(key)
         lock.unlock()
 
-        let urlStr =
-            "\(host)\(path)/256/\(zoom)/\(col)/\(row)/6/1_1.png"
-        guard let url = URL(string: urlStr) else { return }
+        guard let url = urlBuilder(path, zoom, col, row) else { return }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
             guard let self, let data,
@@ -185,7 +183,7 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
         // World = 2^28 map-pts; tile = 2^(28-z) map-pts
         // Want 256 = 2^(28-z) * scale  →  z = 20 + log2(scale)
         let level = 20 + Int(round(log2(Double(scale))))
-        return min(max(level, 1), 7) // RainViewer range
+        return min(max(level, 1), 10) // Rainbow.ai supports 0-12
     }
 
     private func tileRange(

@@ -5,6 +5,7 @@
 //  Created by Copilot on 2026-03-08.
 //
 
+// swiftlint:disable file_length
 import SwiftUI
 @preconcurrency import WeatherKit
 
@@ -189,6 +190,7 @@ struct WeatherDetailView: View {
                         weatherAlertsCard(alerts: alerts)
                     }
                     radarCard
+                    precipitationTimelineCard(weather: weather)
                     forecastCard(weather: weather)
                 } else {
                     loadingView
@@ -364,9 +366,10 @@ struct WeatherDetailView: View {
                     .foregroundColor(Theme.Colors.textSecondary)
                     .textCase(.uppercase)
                 Spacer()
-                if radarService.nowcastFrames.isEmpty && radarService.isLoaded {
-                    Text("Past 2 hours")
-                        .font(.caption2).foregroundColor(.secondary)
+                if radarService.isLoaded {
+                    Text(radarService.nowcastFrames.isEmpty ? "Past 2 hours" : "Past + Forecast")
+                        .font(.caption2)
+                        .foregroundColor(radarService.nowcastFrames.isEmpty ? .secondary : Theme.Colors.accent)
                 }
             }
             if radarService.isLoaded {
@@ -475,17 +478,30 @@ struct WeatherDetailView: View {
         animationTask = nil
     }
 
-    private func forecastCard(weather: Weather) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            WeatherForecastSection(weather: weather)
+    @ViewBuilder
+    private func precipitationTimelineCard(weather: Weather) -> some View {
+        if let mf = weather.minuteForecast, !mf.isEmpty {
+            PrecipitationTimelineView(minuteForecast: Array(mf))
+                .padding()
+                #if !os(visionOS)
+                .background(Theme.Colors.secondaryBackground)
+                #endif
+                .cornerRadius(12)
+                #if os(visionOS)
+                .glassBackgroundEffect()
+                #endif
         }
-        #if !os(visionOS)
-        .background(Theme.Colors.secondaryBackground)
-        #endif
-        .cornerRadius(12)
-        #if os(visionOS)
-        .glassBackgroundEffect()
-        #endif
+    }
+
+    private func forecastCard(weather: Weather) -> some View {
+        WeatherForecastSection(weather: weather)
+            #if !os(visionOS)
+            .background(Theme.Colors.secondaryBackground)
+            #endif
+            .cornerRadius(12)
+            #if os(visionOS)
+            .glassBackgroundEffect()
+            #endif
     }
 
     private var loadingView: some View {

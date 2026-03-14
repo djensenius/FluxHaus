@@ -62,7 +62,7 @@ struct RadarMapView {
             if overlay is RadarAnimationOverlay {
                 let rdr = RadarAnimationRenderer(
                     overlay: overlay,
-                    host: radarService.host,
+                    urlBuilder: radarService.tileURLBuilder,
                     initialPath: radarService.latestPastFrame?.path,
                     overlayAlpha: 1.0
                 )
@@ -166,7 +166,7 @@ struct InteractiveRadarMapView {
             if overlay is RadarAnimationOverlay {
                 let rdr = RadarAnimationRenderer(
                     overlay: overlay,
-                    host: radarService.host,
+                    urlBuilder: radarService.tileURLBuilder,
                     initialPath: radarService.latestPastFrame?.path
                 )
                 self.renderer = rdr
