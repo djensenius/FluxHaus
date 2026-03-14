@@ -95,6 +95,7 @@ struct ChatView: View {
                                 .foregroundColor(Theme.Colors.textSecondary)
                                 .lineLimit(1)
                         }
+                        .padding(.vertical, 6)
                         .tag(conv.id)
                         .listRowSeparator(.visible)
                         .contentShape(Rectangle())
