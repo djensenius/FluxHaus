@@ -106,6 +106,7 @@ struct InteractiveRadarMapView {
     let coordinate: CLLocationCoordinate2D
     let radarService: RadarService
     let frameIndex: Int
+    var onPreloadComplete: (@Sendable () -> Void)?
 
     @MainActor func buildMap(delegate: MKMapViewDelegate) -> MKMapView {
         let mapView = MKMapView()
@@ -141,10 +142,12 @@ struct InteractiveRadarMapView {
         if !coordinator.hasPreloaded,
            let rdr = coordinator.renderer,
            mapView.frame.width > 0 {
+            let callback = onPreloadComplete
             rdr.preload(
                 frames: frames,
                 visibleRect: mapView.visibleMapRect,
-                viewWidth: mapView.frame.width
+                viewWidth: mapView.frame.width,
+                completion: callback
             )
             coordinator.hasPreloaded = true
         }

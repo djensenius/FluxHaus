@@ -180,6 +180,7 @@ struct WeatherDetailView: View {
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
+    @State private var tilesReady = false
 
     var body: some View {
         ScrollView {
@@ -376,7 +377,8 @@ struct WeatherDetailView: View {
                 InteractiveRadarMapView(
                     coordinate: locationManager.coordinate,
                     radarService: radarService,
-                    frameIndex: frameIndex
+                    frameIndex: frameIndex,
+                    onPreloadComplete: { tilesReady = true }
                 )
                 .frame(maxWidth: .infinity).frame(height: 300)
                 .cornerRadius(8).clipped()
@@ -413,10 +415,15 @@ struct WeatherDetailView: View {
                     )
             }
             HStack(spacing: 10) {
-                Button(action: togglePlay) {
-                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                if tilesReady {
+                    Button(action: togglePlay) {
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    }
+                    .buttonStyle(.borderless)
+                } else {
+                    ProgressView()
+                        .controlSize(.small)
                 }
-                .buttonStyle(.borderless)
                 Slider(
                     value: Binding(
                         get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },

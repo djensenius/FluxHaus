@@ -59,24 +59,38 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
     func preload(
         frames: [RadarFrame],
         visibleRect: MKMapRect,
-        viewWidth: CGFloat
+        viewWidth: CGFloat,
+        completion: (@Sendable () -> Void)? = nil
     ) {
         guard !frames.isEmpty,
               visibleRect.size.width > 0,
-              viewWidth > 0 else { return }
+              viewWidth > 0 else {
+            completion?()
+            return
+        }
         let scale = MKZoomScale(viewWidth / visibleRect.size.width)
         let zoomLvl = zoom(for: scale)
         let range = tileRange(for: visibleRect, zoom: zoomLvl)
-        guard range.count > 0, range.count <= 50 else { return }
+        guard range.count > 0, range.count <= 50 else {
+            completion?()
+            return
+        }
+
+        let group = DispatchGroup()
         for frame in frames {
             for col in range.minCol...range.maxCol {
                 for row in range.minRow...range.maxRow {
+                    group.enter()
                     fetchTile(
                         path: frame.path,
-                        zoom: zoomLvl, col: col, row: row
+                        zoom: zoomLvl, col: col, row: row,
+                        onComplete: { group.leave() }
                     )
                 }
             }
+        }
+        if let completion {
+            group.notify(queue: .main) { completion() }
         }
     }
 
@@ -138,20 +152,26 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
     // MARK: - Tile Fetching
 
     private func fetchTile(
-        path: String, zoom: Int, col: Int, row: Int
+        path: String, zoom: Int, col: Int, row: Int,
+        onComplete: (@Sendable () -> Void)? = nil
     ) {
         let key = cacheKey(path, zoom, col, row)
         lock.lock()
         guard cache[key] == nil, !pending.contains(key) else {
             lock.unlock()
+            onComplete?()
             return
         }
         pending.insert(key)
         lock.unlock()
 
-        guard let url = urlBuilder(path, zoom, col, row) else { return }
+        guard let url = urlBuilder(path, zoom, col, row) else {
+            onComplete?()
+            return
+        }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            defer { onComplete?() }
             guard let self, let data,
                   let src = CGImageSourceCreateWithData(
                       data as CFData, nil),

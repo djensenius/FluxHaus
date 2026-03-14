@@ -18,6 +18,7 @@ struct WeatherRadarSheet: View {
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
+    @State private var tilesReady = false
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -27,7 +28,8 @@ struct WeatherRadarSheet: View {
                 InteractiveRadarMapView(
                     coordinate: coordinate,
                     radarService: radarService,
-                    frameIndex: frameIndex
+                    frameIndex: frameIndex,
+                    onPreloadComplete: { tilesReady = true }
                 )
                 .frame(minWidth: 500).frame(height: 350)
                 controls
@@ -84,10 +86,15 @@ struct WeatherRadarSheet: View {
                     )
             }
             HStack(spacing: 12) {
-                Button(action: togglePlay) {
-                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                if tilesReady {
+                    Button(action: togglePlay) {
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    }
+                    .buttonStyle(.borderless)
+                } else {
+                    ProgressView()
+                        .controlSize(.small)
                 }
-                .buttonStyle(.borderless)
                 Text("Past")
                     .font(.caption2)
                     .foregroundColor(.secondary)
