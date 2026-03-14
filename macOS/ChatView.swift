@@ -18,6 +18,14 @@ struct ChatView: View {
     @State private var showFilePicker = false
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
+    @State private var searchText = ""
+
+    private var filteredConversations: [Conversation] {
+        if searchText.isEmpty { return chat.conversations }
+        return chat.conversations.filter {
+            ($0.title ?? "").localizedCaseInsensitiveContains(searchText)
+        }
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -82,7 +90,7 @@ struct ChatView: View {
                         }
                     }
                 )) {
-                    ForEach(chat.conversations) { conv in
+                    ForEach(filteredConversations) { conv in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(conv.title ?? "Untitled")
@@ -118,12 +126,13 @@ struct ChatView: View {
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let conv = chat.conversations[index]
+                            let conv = filteredConversations[index]
                             Task { await chat.deleteConversation(conv) }
                         }
                     }
                 }
                 .listStyle(.plain)
+                .searchable(text: $searchText, prompt: "Search conversations")
             }
         }
         .background(Theme.Colors.background)
@@ -211,26 +220,24 @@ struct ChatView: View {
     // MARK: - Messages
 
     private var chatMessages: some View {
-        ZStack {
-            ForEach(chat.cachedConversationIds, id: \.self) { convId in
+        Group {
+            if let convId = chat.conversationId {
                 conversationScrollView(for: convId)
-                    .opacity(convId == chat.conversationId ? 1 : 0)
-                    .allowsHitTesting(convId == chat.conversationId)
+                    .id(convId)
             }
         }
     }
 
     private func conversationScrollView(for convId: String) -> some View {
-        ScrollViewReader { proxy in
+        let convMessages = chat.messages(for: convId)
+        return ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    ForEach(chat.messages(for: convId)) { message in
-                        let isLastProgress = message.isProgress
-                            && message.id == chat.messages(for: convId)
-                                .last(where: \.isProgress)?.id
+                    ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
-                            isLastProgress: isLastProgress,
+                            isLastProgress: message.isProgress
+                                && message.id == convMessages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -242,7 +249,7 @@ struct ChatView: View {
                         )
                         .id(message.id)
                     }
-                    if chat.isLoading && convId == chat.conversationId {
+                    if chat.isLoading {
                         HStack {
                             ProgressView()
                                 .controlSize(.small)
@@ -257,13 +264,13 @@ struct ChatView: View {
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: chat.messages(for: convId).last?.id) {
+            .onChange(of: convMessages.last?.id) {
                 DispatchQueue.main.async {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
-                if chat.isLoading && convId == chat.conversationId {
+                if chat.isLoading {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
@@ -336,7 +343,7 @@ struct ChatView: View {
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyLarge)
                         .textFieldStyle(.plain)
-                        .lineLimit(1...5)
+                        .lineLimit(1...10)
                         .focused($isInputFocused)
                         .submitLabel(.send)
                         .onSubmit { sendMessage() }
