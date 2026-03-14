@@ -355,8 +355,14 @@ struct ConversationListView: View {
                         }
                     }) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(conv.title ?? "Untitled")
-                                .lineLimit(1)
+                            HStack {
+                                Text(conv.title ?? "Untitled")
+                                    .lineLimit(1)
+                                Spacer()
+                                Text(formatRelativeDate(conv.updatedAt))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                             Text("\(conv.messageCount) messages")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -394,6 +400,27 @@ struct ConversationListView: View {
                 }
             }
             .task { await chat.loadConversations() }
+        }
+    }
+
+    private func formatRelativeDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: isoString)
+                ?? ISO8601DateFormatter().date(from: isoString) else {
+            return ""
+        }
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            let timeFmt = DateFormatter()
+            timeFmt.dateFormat = "h:mm a"
+            return timeFmt.string(from: date)
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let dayFmt = DateFormatter()
+            dayFmt.dateFormat = "MMM d"
+            return dayFmt.string(from: date)
         }
     }
 }

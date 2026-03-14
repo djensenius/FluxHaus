@@ -93,10 +93,16 @@ struct ChatView: View {
                     Task { await chat.loadConversation(conv) }
                 }) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(conv.title ?? "Untitled")
-                            .font(Theme.Fonts.bodyLarge)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            .lineLimit(1)
+                        HStack {
+                            Text(conv.title ?? "Untitled")
+                                .font(Theme.Fonts.bodyLarge)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .lineLimit(1)
+                            Spacer()
+                            Text(formatRelativeDate(conv.updatedAt))
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
                         Text("\(conv.messageCount) messages")
                             .font(Theme.Fonts.caption)
                             .foregroundColor(Theme.Colors.textSecondary)
@@ -434,6 +440,27 @@ struct ChatView: View {
         }
         pendingImages = loaded
     }
+
+    private func formatRelativeDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: isoString)
+                ?? ISO8601DateFormatter().date(from: isoString) else {
+            return ""
+        }
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            let timeFmt = DateFormatter()
+            timeFmt.dateFormat = "h:mm a"
+            return timeFmt.string(from: date)
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let dayFmt = DateFormatter()
+            dayFmt.dateFormat = "MMM d"
+            return dayFmt.string(from: date)
+        }
+    }
 }
 
 // MARK: - Conversation list
@@ -453,10 +480,16 @@ struct ConversationListView: View {
                         }
                     }) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(conv.title ?? "Untitled")
-                                .font(Theme.Fonts.bodyLarge)
-                                .foregroundColor(Theme.Colors.textPrimary)
-                                .lineLimit(1)
+                            HStack {
+                                Text(conv.title ?? "Untitled")
+                                    .font(Theme.Fonts.bodyLarge)
+                                    .foregroundColor(Theme.Colors.textPrimary)
+                                    .lineLimit(1)
+                                Spacer()
+                                Text(formatRelativeDate(conv.updatedAt))
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                            }
                             Text("\(conv.messageCount) messages")
                                 .font(Theme.Fonts.caption)
                                 .foregroundColor(Theme.Colors.textSecondary)
@@ -494,6 +527,27 @@ struct ConversationListView: View {
                 }
             }
             .task { await chat.loadConversations() }
+        }
+    }
+
+    private func formatRelativeDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: isoString)
+                ?? ISO8601DateFormatter().date(from: isoString) else {
+            return ""
+        }
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            let timeFmt = DateFormatter()
+            timeFmt.dateFormat = "h:mm a"
+            return timeFmt.string(from: date)
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let dayFmt = DateFormatter()
+            dayFmt.dateFormat = "MMM d"
+            return dayFmt.string(from: date)
         }
     }
 }
