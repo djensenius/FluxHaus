@@ -45,12 +45,12 @@ private struct RadarConfig: Decodable {
 
         do {
             var request = URLRequest(url: url)
-            if let authHeader = AuthManager.shared.authorizationHeader() {
-                request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-            } else if let password = WhereWeAre.getPassword() {
-                let credentials = Data("fluxhaus:\(password)".utf8).base64EncodedString()
-                request.setValue("Basic \(credentials)", forHTTPHeaderField: "Authorization")
+            // Only OIDC users get radar forecast — server rejects Basic Auth
+            guard let authHeader = AuthManager.shared.authorizationHeader() else {
+                await fetchRainViewerFallback()
+                return
             }
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
 
             let (data, _) = try await URLSession.shared.data(for: request)
             let config = try JSONDecoder().decode(RadarConfig.self, from: data)
