@@ -56,10 +56,10 @@ struct WeatherRadarSheet: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Weather Radar").font(.headline)
                 if radarService.nowcastFrames.isEmpty {
-                    Text("Past 2 hours")
+                    Text("Past 50 minutes")
                         .font(.caption).foregroundColor(.secondary)
                 } else {
-                    Text("Past 2 hours + 4 hour forecast")
+                    Text("50 min past + 50 min forecast")
                         .font(.caption).foregroundColor(.secondary)
                 }
             }
@@ -76,12 +76,17 @@ struct WeatherRadarSheet: View {
                     .font(.system(size: 14, weight: .medium, design: .rounded))
                     .monospacedDigit()
                 Spacer()
-                Text(relativeTimeLabel)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(
-                        frameIndex < radarService.pastFrames.count
-                            ? .secondary : Theme.Colors.accent
-                    )
+                if let frame = currentFrame {
+                    Text(radarService.relativeLabel(for: frame))
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(
+                            frameIndex < radarService.pastFrames.count
+                                ? .secondary : Theme.Colors.accent
+                        )
+                }
+            }
+            if let frame = currentFrame, frameIndex >= radarService.pastFrames.count {
+                confidenceBar(radarService.confidence(for: frame))
             }
             HStack(spacing: 12) {
                 Button(action: togglePlay) {
@@ -110,6 +115,40 @@ struct WeatherRadarSheet: View {
         .padding()
     }
 
+    private var currentFrame: RadarFrame? {
+        let frames = radarService.allFrames
+        guard frameIndex >= 0, frameIndex < frames.count else { return nil }
+        return frames[frameIndex]
+    }
+
+    private func confidenceBar(_ value: Double) -> some View {
+        HStack(spacing: 6) {
+            Text("Confidence")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color.secondary.opacity(0.2))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(confidenceColor(value))
+                        .frame(width: geo.size.width * value)
+                }
+            }
+            .frame(height: 6)
+            Text("\(Int(value * 100))%")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .monospacedDigit()
+        }
+    }
+
+    private func confidenceColor(_ value: Double) -> Color {
+        if value > 0.7 { return Theme.Colors.accent }
+        if value > 0.5 { return Theme.Colors.warning }
+        return Theme.Colors.error.opacity(0.7)
+    }
+
     private var frameTimeLabel: String {
         let frames = radarService.allFrames
         guard frameIndex >= 0, frameIndex < frames.count else { return "" }
@@ -117,16 +156,6 @@ struct WeatherRadarSheet: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "h:mm a"
         return fmt.string(from: date)
-    }
-
-    private var relativeTimeLabel: String {
-        let frames = radarService.allFrames
-        guard frameIndex >= 0, frameIndex < frames.count else { return "" }
-        let frameTime = Double(frames[frameIndex].time)
-        let minutes = Int((frameTime - Date().timeIntervalSince1970) / 60)
-        if minutes == 0 { return "Now" }
-        let prefix = minutes > 0 ? "+" : ""
-        return "\(prefix)\(minutes) min"
     }
 
     private func togglePlay() {
@@ -137,13 +166,13 @@ struct WeatherRadarSheet: View {
         isPlaying = true
         animationTask = Task { @MainActor in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(400))
+                try? await Task.sleep(for: .milliseconds(300))
                 guard !Task.isCancelled else { break }
                 let total = radarService.allFrames.count
                 guard total > 1 else { break }
                 let next = frameIndex + 1
                 if next >= total {
-                    try? await Task.sleep(for: .seconds(1.5))
+                    try? await Task.sleep(for: .seconds(1))
                     guard !Task.isCancelled else { break }
                     frameIndex = 0
                 } else {
