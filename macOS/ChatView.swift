@@ -232,7 +232,7 @@ struct ChatView: View {
         let convMessages = chat.messages(for: convId)
         return ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 12) {
+                VStack(spacing: 12) {
                     ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,

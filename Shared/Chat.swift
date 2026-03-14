@@ -140,14 +140,17 @@ struct Conversation: Identifiable, Codable {
             let result = try await processStream(
                 streamCommand(trimmed, conversationId: conversationId, images: images)
             )
-            messages.removeAll { $0.isProgress }
-            messages.append(ChatMessage(role: .assistant, content: result.text))
+            // Batch: remove progress + add assistant in one mutation
+            var updated = messages.filter { !$0.isProgress }
+            updated.append(ChatMessage(role: .assistant, content: result.text))
+            messages = updated
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
         } catch {
-            messages.removeAll { $0.isProgress }
+            var updated = messages.filter { !$0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
-            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
+            updated.append(ChatMessage(role: .error, content: error.localizedDescription))
+            messages = updated
         }
 
         isLoading = false
@@ -278,20 +281,22 @@ struct Conversation: Identifiable, Codable {
             let result = try await processStream(
                 streamVoice(audioData: audioData, conversationId: conversationId)
             )
-            messages.removeAll { $0.isProgress }
-            messages.append(ChatMessage(
+            var updated = messages.filter { !$0.isProgress }
+            updated.append(ChatMessage(
                 role: .assistant, content: result.text,
                 audioData: result.audioData, isVoice: true
             ))
+            messages = updated
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
             if let audio = result.audioData {
                 playAudioResponse(data: audio)
             }
         } catch {
-            messages.removeAll { $0.isProgress }
+            var updated = messages.filter { !$0.isProgress }
             logger.error("Voice error: \(error.localizedDescription)")
-            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
+            updated.append(ChatMessage(role: .error, content: error.localizedDescription))
+            messages = updated
         }
 
         isLoading = false
