@@ -5,6 +5,7 @@
 //  Created by Copilot on 2026-03-08.
 //
 
+// swiftlint:disable file_length
 import SwiftUI
 @preconcurrency import WeatherKit
 
@@ -179,6 +180,8 @@ struct WeatherDetailView: View {
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
+    @State private var tilesReady = false
+    @State private var showFullRadar = false
 
     var body: some View {
         ScrollView {
@@ -189,6 +192,7 @@ struct WeatherDetailView: View {
                         weatherAlertsCard(alerts: alerts)
                     }
                     radarCard
+                    precipitationTimelineCard(weather: weather)
                     forecastCard(weather: weather)
                 } else {
                     loadingView
@@ -364,16 +368,21 @@ struct WeatherDetailView: View {
                     .foregroundColor(Theme.Colors.textSecondary)
                     .textCase(.uppercase)
                 Spacer()
-                if radarService.nowcastFrames.isEmpty && radarService.isLoaded {
-                    Text("No active precipitation forecast")
-                        .font(.caption2).foregroundColor(.secondary)
+                if radarService.isLoaded {
+                    Button(action: { showFullRadar = true }, label: {
+                        Label("Expand", systemImage: "arrow.up.left.and.arrow.down.right")
+                            .font(.caption2)
+                            .foregroundColor(Theme.Colors.accent)
+                    })
+                    .buttonStyle(.borderless)
                 }
             }
             if radarService.isLoaded {
                 InteractiveRadarMapView(
                     coordinate: locationManager.coordinate,
                     radarService: radarService,
-                    frameIndex: frameIndex
+                    frameIndex: frameIndex,
+                    onPreloadComplete: { DispatchQueue.main.async { tilesReady = true } }
                 )
                 .frame(maxWidth: .infinity).frame(height: 300)
                 .cornerRadius(8).clipped()
@@ -393,6 +402,35 @@ struct WeatherDetailView: View {
         #if os(visionOS)
         .glassBackgroundEffect()
         #endif
+        .sheet(isPresented: $showFullRadar) {
+            fullRadarSheet
+        }
+    }
+
+    private var fullRadarSheet: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Weather Radar").font(.headline)
+                Spacer()
+                Button("Done") { showFullRadar = false }
+            }
+            .padding()
+            InteractiveRadarMapView(
+                coordinate: locationManager.coordinate,
+                radarService: radarService,
+                frameIndex: frameIndex
+            )
+            radarControls.padding()
+        }
+        #if os(macOS)
+        .frame(minWidth: 700, minHeight: 550)
+        #endif
+    }
+
+    private var currentFrame: RadarFrame? {
+        let frames = radarService.allFrames
+        guard frameIndex >= 0, frameIndex < frames.count else { return nil }
+        return frames[frameIndex]
     }
 
     private var radarControls: some View {
@@ -402,18 +440,29 @@ struct WeatherDetailView: View {
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .monospacedDigit()
                 Spacer()
-                Text(relativeTimeLabel)
+                if let frame = currentFrame {
+                    HStack(spacing: 6) {
+                        confidenceLabel(for: frame)
+                        Text("·").foregroundColor(.secondary)
+                        Text(radarService.relativeLabel(for: frame))
+                            .foregroundColor(
+                                frameIndex < radarService.pastFrames.count
+                                    ? .secondary : Theme.Colors.accent
+                            )
+                    }
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(
-                        frameIndex < radarService.pastFrames.count
-                            ? .secondary : Theme.Colors.accent
-                    )
+                }
             }
             HStack(spacing: 10) {
-                Button(action: togglePlay) {
-                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                if tilesReady {
+                    Button(action: togglePlay) {
+                        Image(systemName: isPlaying ? "pause.fill" : "play.fill")
+                    }
+                    .buttonStyle(.borderless)
+                } else {
+                    ProgressView()
+                        .controlSize(.small)
                 }
-                .buttonStyle(.borderless)
                 Slider(
                     value: Binding(
                         get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },
@@ -426,6 +475,22 @@ struct WeatherDetailView: View {
         }
     }
 
+    @ViewBuilder
+    private func confidenceLabel(for frame: RadarFrame) -> some View {
+        if frameIndex < radarService.pastFrames.count {
+            Text("Observed")
+                .foregroundColor(.secondary)
+        } else {
+            let value = radarService.confidence(for: frame)
+            let label = value > 0.7 ? "High"
+                : value > 0.5 ? "Medium" : "Low"
+            let color = value > 0.7 ? Theme.Colors.accent
+                : value > 0.5 ? Theme.Colors.warning : Theme.Colors.error
+            Text(label)
+                .foregroundColor(color)
+        }
+    }
+
     private var frameTimeLabel: String {
         let frames = radarService.allFrames
         guard frameIndex >= 0, frameIndex < frames.count else { return "" }
@@ -433,16 +498,6 @@ struct WeatherDetailView: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "h:mm a"
         return fmt.string(from: date)
-    }
-
-    private var relativeTimeLabel: String {
-        let frames = radarService.allFrames
-        guard frameIndex >= 0, frameIndex < frames.count else { return "" }
-        let frameTime = Double(frames[frameIndex].time)
-        let minutes = Int((frameTime - Date().timeIntervalSince1970) / 60)
-        if minutes == 0 { return "Now" }
-        let prefix = minutes > 0 ? "+" : ""
-        return "\(prefix)\(minutes) min"
     }
 
     private func togglePlay() {
@@ -475,17 +530,30 @@ struct WeatherDetailView: View {
         animationTask = nil
     }
 
-    private func forecastCard(weather: Weather) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            WeatherForecastSection(weather: weather)
+    @ViewBuilder
+    private func precipitationTimelineCard(weather: Weather) -> some View {
+        if let minuteData = weather.minuteForecast, !minuteData.isEmpty {
+            PrecipitationTimelineView(minuteForecast: Array(minuteData))
+                .padding()
+                #if !os(visionOS)
+                .background(Theme.Colors.secondaryBackground)
+                #endif
+                .cornerRadius(12)
+                #if os(visionOS)
+                .glassBackgroundEffect()
+                #endif
         }
-        #if !os(visionOS)
-        .background(Theme.Colors.secondaryBackground)
-        #endif
-        .cornerRadius(12)
-        #if os(visionOS)
-        .glassBackgroundEffect()
-        #endif
+    }
+
+    private func forecastCard(weather: Weather) -> some View {
+        WeatherForecastSection(weather: weather)
+            #if !os(visionOS)
+            .background(Theme.Colors.secondaryBackground)
+            #endif
+            .cornerRadius(12)
+            #if os(visionOS)
+            .glassBackgroundEffect()
+            #endif
     }
 
     private var loadingView: some View {

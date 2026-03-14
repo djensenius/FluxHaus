@@ -37,6 +37,9 @@ struct MacApp: App {
                         }
                     }
                 }
+                .onOpenURL { url in
+                    handleDeepLink(url)
+                }
         }
         .defaultSize(width: 900, height: 700)
         .commands {
@@ -191,6 +194,16 @@ struct MacApp: App {
             object: nil,
             userInfo: ["section": section]
         )
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        // fluxhaus://assistant, fluxhaus://weather, etc.
+        guard url.scheme == "fluxhaus" else { return }
+        let section = url.host ?? url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard !section.isEmpty else { return }
+        let capitalized = section.prefix(1).uppercased() + section.dropFirst()
+        appLogger.info("Deep link: \(capitalized)")
+        postNavigation(capitalized)
     }
 
     private func handleDataUpdated(_ object: NotificationCenter.Publisher.Output) {

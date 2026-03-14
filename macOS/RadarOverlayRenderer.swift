@@ -24,12 +24,12 @@ class RadarAnimationOverlay: NSObject, MKOverlay {
     }
 }
 
-/// Custom renderer that draws RainViewer tiles from an in-memory
+/// Custom renderer that draws radar tiles from an in-memory
 /// cache. Frame changes use `setFrame()` → `setNeedsDisplay()`
 /// which redraws from cache instantly — no overlay add/remove,
 /// no reloadData(), no MapKit tile-cache involvement.
 class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
-    private let host: String
+    private let urlBuilder: TileURLBuilder
     private var _framePath: String?
     private var cache: [String: CGImage] = [:]
     private var pending: Set<String> = []
@@ -37,11 +37,11 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
 
     init(
         overlay: MKOverlay,
-        host: String,
+        urlBuilder: @escaping TileURLBuilder,
         initialPath: String?,
         overlayAlpha: CGFloat = 0.7
     ) {
-        self.host = host
+        self.urlBuilder = urlBuilder
         self._framePath = initialPath
         super.init(overlay: overlay)
         self.alpha = overlayAlpha
@@ -59,24 +59,38 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
     func preload(
         frames: [RadarFrame],
         visibleRect: MKMapRect,
-        viewWidth: CGFloat
+        viewWidth: CGFloat,
+        completion: (@Sendable () -> Void)? = nil
     ) {
         guard !frames.isEmpty,
               visibleRect.size.width > 0,
-              viewWidth > 0 else { return }
+              viewWidth > 0 else {
+            completion?()
+            return
+        }
         let scale = MKZoomScale(viewWidth / visibleRect.size.width)
         let zoomLvl = zoom(for: scale)
         let range = tileRange(for: visibleRect, zoom: zoomLvl)
-        guard range.count > 0, range.count <= 50 else { return }
+        guard range.count > 0, range.count <= 50 else {
+            completion?()
+            return
+        }
+
+        let group = DispatchGroup()
         for frame in frames {
             for col in range.minCol...range.maxCol {
                 for row in range.minRow...range.maxRow {
+                    group.enter()
                     fetchTile(
                         path: frame.path,
-                        zoom: zoomLvl, col: col, row: row
+                        zoom: zoomLvl, col: col, row: row,
+                        onComplete: { group.leave() }
                     )
                 }
             }
+        }
+        if let completion {
+            group.notify(queue: .main) { completion() }
         }
     }
 
@@ -106,11 +120,39 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
                     drawTile(image, col: col, row: row,
                              zoom: zoomLvl, in: ctx)
                 } else {
+                    // Draw scaled parent tile as placeholder while loading
+                    drawFallbackTile(
+                        path: currentPath, col: col, row: row,
+                        zoom: zoomLvl, in: ctx
+                    )
                     fetchTile(
                         path: currentPath,
                         zoom: zoomLvl, col: col, row: row
                     )
                 }
+            }
+        }
+    }
+
+    /// Draw a cached tile from a lower zoom level, scaled up, as a placeholder.
+    private func drawFallbackTile(
+        path: String, col: Int, row: Int,
+        zoom: Int, in ctx: CGContext
+    ) {
+        // Try parent zoom levels (one level up = 4 tiles merge into 1)
+        for delta in 1...3 {
+            let parentZoom = zoom - delta
+            guard parentZoom >= 1 else { break }
+            let parentCol = col >> delta
+            let parentRow = row >> delta
+            let parentKey = cacheKey(path, parentZoom, parentCol, parentRow)
+            lock.lock()
+            let parentImage = cache[parentKey]
+            lock.unlock()
+            if let parentImage {
+                drawTile(parentImage, col: parentCol, row: parentRow,
+                         zoom: parentZoom, in: ctx)
+                return
             }
         }
     }
@@ -138,22 +180,26 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
     // MARK: - Tile Fetching
 
     private func fetchTile(
-        path: String, zoom: Int, col: Int, row: Int
+        path: String, zoom: Int, col: Int, row: Int,
+        onComplete: (@Sendable () -> Void)? = nil
     ) {
         let key = cacheKey(path, zoom, col, row)
         lock.lock()
         guard cache[key] == nil, !pending.contains(key) else {
             lock.unlock()
+            onComplete?()
             return
         }
         pending.insert(key)
         lock.unlock()
 
-        let urlStr =
-            "\(host)\(path)/256/\(zoom)/\(col)/\(row)/6/1_1.png"
-        guard let url = URL(string: urlStr) else { return }
+        guard let url = urlBuilder(path, zoom, col, row) else {
+            onComplete?()
+            return
+        }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+            defer { onComplete?() }
             guard let self, let data,
                   let src = CGImageSourceCreateWithData(
                       data as CFData, nil),
@@ -185,7 +231,7 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
         // World = 2^28 map-pts; tile = 2^(28-z) map-pts
         // Want 256 = 2^(28-z) * scale  →  z = 20 + log2(scale)
         let level = 20 + Int(round(log2(Double(scale))))
-        return min(max(level, 1), 7) // RainViewer range
+        return min(max(level, 1), 10) // Rainbow.ai supports 0-12
     }
 
     private func tileRange(

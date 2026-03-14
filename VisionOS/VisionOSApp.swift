@@ -131,6 +131,17 @@ struct VisionOSApp: App {
                     }
                 }
             }
+            .onOpenURL { url in
+                guard url.scheme == "fluxhaus" else { return }
+                let section = url.host ?? url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                guard !section.isEmpty else { return }
+                let tab = section.prefix(1).uppercased() + section.dropFirst()
+                NotificationCenter.default.post(
+                    name: Notification.Name("navigateToTab"),
+                    object: nil,
+                    userInfo: ["tab": tab]
+                )
+            }
         }
         .defaultSize(width: 700, height: 1050)
     }

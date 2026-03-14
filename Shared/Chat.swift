@@ -12,11 +12,9 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Chat")
 
+/// Inline markdown rendering for simple text (e.g. user messages, progress labels).
 func markdownAttributed(_ string: String) -> AttributedString {
     var cleaned = string
-        .replacingOccurrences(of: #"^#{1,6}\s+"#, with: "", options: .regularExpression)
-        .replacingOccurrences(of: #"\n#{1,6}\s+"#, with: "\n", options: .regularExpression)
-    // Convert single newlines to hard line breaks (two trailing spaces)
     cleaned = cleaned.replacingOccurrences(of: "\n", with: "  \n")
     let options = AttributedString.MarkdownParsingOptions(
         interpretedSyntax: .inlineOnlyPreservingWhitespace
@@ -30,12 +28,23 @@ enum ChatRole: String {
     case error
 }
 
+struct ChatImage: Identifiable {
+    let id = UUID()
+    let mediaType: String
+    let base64: String
+
+    var uiImageData: Data? {
+        Data(base64Encoded: base64)
+    }
+}
+
 struct ChatMessage: Identifiable {
     let id: UUID
     let role: ChatRole
     let content: String
     let timestamp: Date
     var audioData: Data?
+    var images: [ChatImage]
     var isVoice: Bool
     var isProgress: Bool
     var serverMessageId: String?
@@ -45,6 +54,7 @@ struct ChatMessage: Identifiable {
         content: String,
         timestamp: Date = Date(),
         audioData: Data? = nil,
+        images: [ChatImage] = [],
         isVoice: Bool = false,
         isProgress: Bool = false,
         serverMessageId: String? = nil
@@ -54,6 +64,7 @@ struct ChatMessage: Identifiable {
         self.content = content
         self.timestamp = timestamp
         self.audioData = audioData
+        self.images = images
         self.isVoice = isVoice
         self.isProgress = isProgress
         self.serverMessageId = serverMessageId
@@ -115,17 +126,17 @@ struct Conversation: Identifiable, Codable {
     private var levelTimer: Timer?
     private var isSyncing = false
 
-    func send(_ text: String) async {
+    func send(_ text: String, images: [ChatImage] = []) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
         await ensureConversation()
-        messages.append(ChatMessage(role: .user, content: trimmed))
+        messages.append(ChatMessage(role: .user, content: trimmed, images: images))
         isLoading = true
 
         do {
             let result = try await processStream(
-                streamCommand(trimmed, conversationId: conversationId)
+                streamCommand(trimmed, conversationId: conversationId, images: images)
             )
             messages.removeAll { $0.isProgress }
             messages.append(ChatMessage(role: .assistant, content: result.text))

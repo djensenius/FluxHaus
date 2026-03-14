@@ -6,19 +6,34 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
+    @State private var pendingImages: [ChatImage] = []
+    @State private var showFilePicker = false
+
+    @State private var showSidebar = true
 
     var body: some View {
-        HSplitView {
-            chatSidebar
-                .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
+        HStack(spacing: 0) {
+            if showSidebar {
+                chatSidebar
+                    .frame(width: 260)
+                Divider()
+            }
             chatDetail
-                .frame(minWidth: 400)
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button(action: toggleSidebar) {
+                    Image(systemName: "sidebar.left")
+                }
+                .keyboardShortcut("s", modifiers: [.command, .option])
+            }
         }
         .task {
             if chat.conversations.isEmpty {
@@ -40,6 +55,8 @@ struct ChatView: View {
         }
     }
 
+    // MARK: - Sidebar
+
     private var chatSidebar: some View {
         VStack(spacing: 0) {
             HStack {
@@ -49,44 +66,56 @@ struct ChatView: View {
                 Button(action: {
                     Task { await chat.createNewConversation() }
                 }, label: {
-                    Image(systemName: "plus")
+                    Image(systemName: "square.and.pencil")
                 })
                 .buttonStyle(.borderless)
             }
-            .padding(12)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
 
             Divider()
 
             if chat.conversations.isEmpty {
-                Spacer()
-                Text("No conversations")
-                    .font(Theme.Fonts.bodySmall)
-                    .foregroundColor(Theme.Colors.textSecondary)
-                Spacer()
+                ContentUnavailableView(
+                    "No Conversations",
+                    systemImage: "bubble.left.and.bubble.right",
+                    description: Text("Start a new conversation")
+                )
             } else {
                 List(selection: Binding(
                     get: { chat.conversationId },
                     set: { newId in
                         if let newId,
-                           let conv = chat.conversations.first(
-                            where: { $0.id == newId }
-                           ) {
+                           let conv = chat.conversations.first(where: { $0.id == newId }) {
                             Task { await chat.loadConversation(conv) }
                         }
                     }
                 )) {
                     ForEach(chat.conversations) { conv in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(conv.title ?? "Untitled")
-                                .font(Theme.Fonts.bodyMedium)
-                                .lineLimit(1)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(conv.title ?? "Untitled")
+                                    .font(.body.weight(.semibold))
+                                    .lineLimit(1)
+                                Spacer()
+                                Text(formatRelativeDate(conv.updatedAt))
+                                    .font(.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
+                            }
                             Text("\(conv.messageCount) messages")
-                                .font(Theme.Fonts.caption)
+                                .font(.subheadline)
                                 .foregroundColor(Theme.Colors.textSecondary)
+                                .lineLimit(1)
                         }
                         .tag(conv.id)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                Task { await chat.deleteConversation(conv) }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
@@ -95,10 +124,34 @@ struct ChatView: View {
                         }
                     }
                 }
+                .listStyle(.sidebar)
             }
         }
         .background(.ultraThinMaterial)
     }
+
+    private func formatRelativeDate(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: isoString)
+                ?? ISO8601DateFormatter().date(from: isoString) else {
+            return ""
+        }
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            return timeFormatter.string(from: date)
+        } else if calendar.isDateInYesterday(date) {
+            return "Yesterday"
+        } else {
+            let dayFormatter = DateFormatter()
+            dayFormatter.dateFormat = "MMM d"
+            return dayFormatter.string(from: date)
+        }
+    }
+
+    // MARK: - Chat detail
 
     private var chatDetail: some View {
         VStack(spacing: 0) {
@@ -114,6 +167,7 @@ struct ChatView: View {
                 .padding(.vertical, 8)
             }
             Divider()
+            imagePreviewBar
             inputBar
         }
     }
@@ -137,6 +191,8 @@ struct ChatView: View {
         .background(Theme.Colors.warning.opacity(0.1))
     }
 
+    // MARK: - Messages
+
     private var chatMessages: some View {
         ZStack {
             ForEach(chat.cachedConversationIds, id: \.self) { convId in
@@ -148,15 +204,16 @@ struct ChatView: View {
     }
 
     private func conversationScrollView(for convId: String) -> some View {
-        let convMessages = chat.messages(for: convId)
-        return ScrollViewReader { proxy in
+        ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(convMessages) { message in
+                LazyVStack(spacing: 12) {
+                    ForEach(chat.messages(for: convId)) { message in
+                        let isLastProgress = message.isProgress
+                            && message.id == chat.messages(for: convId)
+                                .last(where: \.isProgress)?.id
                         ChatBubble(
                             message: message,
-                            isLastProgress: message.isProgress
-                                && message.id == convMessages.last(where: \.isProgress)?.id,
+                            isLastProgress: isLastProgress,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -179,11 +236,11 @@ struct ChatView: View {
                         .id("loading")
                     }
                 }
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: convMessages.last?.id) {
+            .onChange(of: chat.messages(for: convId).last?.id) {
                 DispatchQueue.main.async {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
@@ -196,6 +253,44 @@ struct ChatView: View {
         }
     }
 
+    // MARK: - Image preview
+
+    @ViewBuilder
+    private var imagePreviewBar: some View {
+        if !pendingImages.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(pendingImages) { img in
+                        ZStack(alignment: .topTrailing) {
+                            if let data = img.uiImageData, let nsImage = NSImage(data: data) {
+                                Image(nsImage: nsImage)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 56, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            Button(action: {
+                                pendingImages.removeAll { $0.id == img.id }
+                            }, label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .shadow(radius: 2)
+                            })
+                            .buttonStyle(.plain)
+                            .offset(x: 4, y: -4)
+                        }
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            }
+            Divider()
+        }
+    }
+
+    // MARK: - Input bar
+
     private var inputBar: some View {
         Group {
             if chat.isRecording {
@@ -204,8 +299,25 @@ struct ChatView: View {
                 HStack(spacing: 8) {
                     micButton
 
+                    Button(action: { showFilePicker = true }, label: {
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.title3)
+                            .foregroundColor(
+                                chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
+                            )
+                    })
+                    .buttonStyle(.plain)
+                    .disabled(chat.isLoading)
+                    .fileImporter(
+                        isPresented: $showFilePicker,
+                        allowedContentTypes: [.image],
+                        allowsMultipleSelection: true
+                    ) { result in
+                        loadFilePickerImages(result)
+                    }
+
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
-                        .font(Theme.Fonts.bodyMedium)
+                        .font(Theme.Fonts.bodyLarge)
                         .textFieldStyle(.plain)
                         .lineLimit(1...5)
                         .focused($isInputFocused)
@@ -215,21 +327,11 @@ struct ChatView: View {
 
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(
-                                inputText.trimmingCharacters(
-                                    in: .whitespacesAndNewlines
-                                ).isEmpty
-                                ? Theme.Colors.textSecondary
-                                : Theme.Colors.accent
-                            )
+                            .font(.system(size: 24))
+                            .foregroundColor(canSend ? Theme.Colors.accent : Theme.Colors.textSecondary)
                     }
                     .buttonStyle(.plain)
-                    .disabled(
-                        inputText.trimmingCharacters(
-                            in: .whitespacesAndNewlines
-                        ).isEmpty || chat.isLoading
-                    )
+                    .disabled(!canSend)
                 }
                 .padding(10)
             }
@@ -237,32 +339,30 @@ struct ChatView: View {
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
     }
 
+    private var canSend: Bool {
+        let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasImages = !pendingImages.isEmpty
+        return (hasText || hasImages) && !chat.isLoading
+    }
+
     private var micButton: some View {
         Image(systemName: "mic.circle.fill")
             .font(.title2)
             .foregroundColor(
-                chat.isLoading
-                ? Theme.Colors.textSecondary
-                : Theme.Colors.accent
+                chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
             )
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
-                        guard holdRecordStart == nil,
-                              !chat.isLoading else { return }
+                        guard holdRecordStart == nil, !chat.isLoading else { return }
                         holdRecordStart = Date()
                         chat.startRecording()
                     }
                     .onEnded { _ in
-                        guard let start = holdRecordStart else {
-                            return
-                        }
+                        guard let start = holdRecordStart else { return }
                         holdRecordStart = nil
-                        let held = Date().timeIntervalSince(start)
-                        if held > 0.3 {
-                            Task {
-                                await chat.stopRecordingAndSend()
-                            }
+                        if Date().timeIntervalSince(start) > 0.3 {
+                            Task { await chat.stopRecordingAndSend() }
                         }
                     }
             )
@@ -304,93 +404,35 @@ struct ChatView: View {
         .padding(10)
     }
 
+    // MARK: - Actions
+
+    private func toggleSidebar() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showSidebar.toggle()
+        }
+    }
+
     private func sendMessage() {
         let text = inputText
+        let images = pendingImages
         inputText = ""
-        Task { await chat.send(text) }
+        pendingImages = []
+        Task { await chat.send(text, images: images) }
     }
-}
 
-struct ChatBubble: View {
-    let message: ChatMessage
-    let isLastProgress: Bool
-    let isPlaying: Bool
-    let onPlayTapped: () -> Void
-
-    var body: some View {
-        HStack {
-            if message.role == .user { Spacer(minLength: 60) }
-            VStack(
-                alignment: message.role == .user ? .trailing : .leading,
-                spacing: 4
-            ) {
-                if message.isProgress {
-                    HStack(spacing: 6) {
-                        if isLastProgress {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.caption2)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                        Text(message.content)
-                            .font(Theme.Fonts.caption)
-                            .italic()
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                } else if message.role == .assistant {
-                    Text(markdownAttributed(message.content))
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(foregroundColor)
-                        .textSelection(.enabled)
-                } else {
-                    Text(message.content)
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(foregroundColor)
-                        .textSelection(.enabled)
-                }
-                if message.isVoice && message.audioData != nil {
-                    Button(action: onPlayTapped, label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                                .font(Theme.Fonts.caption)
-                            Text(isPlaying ? "Stop" : "Play")
-                                .font(Theme.Fonts.caption)
-                        }
-                        .foregroundColor(playButtonColor)
-                    })
-                    .buttonStyle(.plain)
-                }
+    private func loadFilePickerImages(_ result: Result<[URL], Error>) {
+        guard case .success(let urls) = result else { return }
+        var loaded: [ChatImage] = []
+        for url in urls.prefix(4) {
+            guard url.startAccessingSecurityScopedResource() else { continue }
+            defer { url.stopAccessingSecurityScopedResource() }
+            if let data = try? Data(contentsOf: url) {
+                let ext = url.pathExtension.lowercased()
+                let mediaType = ext == "png" ? "image/png" : "image/jpeg"
+                loaded.append(ChatImage(mediaType: mediaType, base64: data.base64EncodedString()))
             }
-            .padding(message.isProgress ? 6 : 10)
-            .background(message.isProgress ? Color.clear : backgroundColor)
-            .cornerRadius(12)
-            if message.role != .user { Spacer(minLength: 60) }
         }
-        .padding(.horizontal)
-    }
-
-    private var backgroundColor: Color {
-        switch message.role {
-        case .user: return Theme.Colors.accent
-        case .assistant: return Theme.Colors.secondaryBackground
-        case .error: return Theme.Colors.error.opacity(0.2)
-        }
-    }
-
-    private var foregroundColor: Color {
-        switch message.role {
-        case .user: return Theme.Colors.background
-        case .assistant: return Theme.Colors.textPrimary
-        case .error: return Theme.Colors.error
-        }
-    }
-
-    private var playButtonColor: Color {
-        message.role == .user
-            ? Theme.Colors.background.opacity(0.8)
-            : Theme.Colors.accent
+        pendingImages.append(contentsOf: loaded)
     }
 }
 
