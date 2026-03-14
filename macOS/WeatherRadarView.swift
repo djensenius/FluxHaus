@@ -49,8 +49,19 @@ struct WeatherRadarSheet: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Weather Radar").font(.headline)
                 if radarService.nowcastFrames.isEmpty {
-                    Text("Forecast unavailable — no active precipitation")
-                        .font(.caption2).foregroundColor(.secondary)
+                    Label(
+                        "Forecast available when precipitation is active",
+                        systemImage: "cloud.sun"
+                    )
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                } else {
+                    Label(
+                        "\(radarService.nowcastFrames.count) forecast frames available",
+                        systemImage: "clock.arrow.2.circlepath"
+                    )
+                    .font(.caption)
+                    .foregroundColor(Theme.Colors.accent)
                 }
             }
             Spacer()
@@ -78,6 +89,9 @@ struct WeatherRadarSheet: View {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                 }
                 .buttonStyle(.borderless)
+                Text("Past")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
                 Slider(
                     value: Binding(
                         get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },
@@ -86,6 +100,12 @@ struct WeatherRadarSheet: View {
                     in: 0...Double(max(0, radarService.allFrames.count - 1)),
                     step: 1
                 )
+                Text(radarService.nowcastFrames.isEmpty ? "Now" : "Forecast")
+                    .font(.caption2)
+                    .foregroundColor(
+                        radarService.nowcastFrames.isEmpty
+                            ? .secondary : Theme.Colors.accent
+                    )
             }
         }
         .padding()
