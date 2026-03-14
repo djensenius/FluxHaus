@@ -48,13 +48,13 @@ struct ChatView: View {
     // MARK: - Sidebar
 
     private var chatSidebar: some View {
-        VStack(spacing: 0) {
+        Group {
             if chat.conversations.isEmpty {
-                Spacer()
-                Text("No conversations")
-                    .font(Theme.Fonts.bodySmall)
-                    .foregroundColor(Theme.Colors.textSecondary)
-                Spacer()
+                ContentUnavailableView(
+                    "No Conversations",
+                    systemImage: "bubble.left.and.bubble.right",
+                    description: Text("Start a new conversation")
+                )
             } else {
                 List(selection: Binding(
                     get: { chat.conversationId },
@@ -82,8 +82,6 @@ struct ChatView: View {
                                 .lineLimit(1)
                         }
                         .tag(conv.id)
-                        .padding(.vertical, 4)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                         .contentShape(Rectangle())
                     }
                     .onDelete { indexSet in
@@ -93,7 +91,6 @@ struct ChatView: View {
                         }
                     }
                 }
-                .listStyle(.sidebar)
             }
         }
         .toolbar {
