@@ -98,13 +98,29 @@ func queryFlux(password: String) {
             handleUnauthorized(password: password)
             return
         }
+        authRetryCount = 0
         handleQueryFluxResponse(data: data, error: error, password: password)
     }
     task.resume()
 }
 
+private nonisolated(unsafe) var authRetryCount = 0
+
 private func handleUnauthorized(password: String) {
     if AuthManager.shared.getAccessToken() != nil {
+        guard authRetryCount < 1 else {
+            authRetryCount = 0
+            logger.error("handleUnauthorized: still 401 after refresh — giving up")
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Session expired. Please sign in again."]
+                )
+            }
+            return
+        }
+        authRetryCount += 1
         logger.debug("handleUnauthorized: 401 with OIDC token, requesting refresh")
         Task { @MainActor in
             let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
@@ -112,6 +128,7 @@ private func handleUnauthorized(password: String) {
                 logger.debug("handleUnauthorized: refresh succeeded, retrying queryFlux")
                 queryFlux(password: password)
             } else {
+                authRetryCount = 0
                 logger.error("handleUnauthorized: refresh FAILED — will retry on next poll")
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
