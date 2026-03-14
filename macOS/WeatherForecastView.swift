@@ -181,6 +181,7 @@ struct WeatherDetailView: View {
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
     @State private var tilesReady = false
+    @State private var showFullRadar = false
 
     var body: some View {
         ScrollView {
@@ -368,9 +369,12 @@ struct WeatherDetailView: View {
                     .textCase(.uppercase)
                 Spacer()
                 if radarService.isLoaded {
-                    Text(radarService.nowcastFrames.isEmpty ? "Past 2 hours" : "Past + Forecast")
-                        .font(.caption2)
-                        .foregroundColor(radarService.nowcastFrames.isEmpty ? .secondary : Theme.Colors.accent)
+                    Button(action: { showFullRadar = true }) {
+                        Label("Expand", systemImage: "arrow.up.left.and.arrow.down.right")
+                            .font(.caption2)
+                            .foregroundColor(Theme.Colors.accent)
+                    }
+                    .buttonStyle(.borderless)
                 }
             }
             if radarService.isLoaded {
@@ -397,6 +401,29 @@ struct WeatherDetailView: View {
         .cornerRadius(12)
         #if os(visionOS)
         .glassBackgroundEffect()
+        #endif
+        .sheet(isPresented: $showFullRadar) {
+            fullRadarSheet
+        }
+    }
+
+    private var fullRadarSheet: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Weather Radar").font(.headline)
+                Spacer()
+                Button("Done") { showFullRadar = false }
+            }
+            .padding()
+            InteractiveRadarMapView(
+                coordinate: locationManager.coordinate,
+                radarService: radarService,
+                frameIndex: frameIndex
+            )
+            radarControls.padding()
+        }
+        #if os(macOS)
+        .frame(minWidth: 700, minHeight: 550)
         #endif
     }
 
@@ -505,8 +532,8 @@ struct WeatherDetailView: View {
 
     @ViewBuilder
     private func precipitationTimelineCard(weather: Weather) -> some View {
-        if let mf = weather.minuteForecast, !mf.isEmpty {
-            PrecipitationTimelineView(minuteForecast: Array(mf))
+        if let minuteData = weather.minuteForecast, !minuteData.isEmpty {
+            PrecipitationTimelineView(minuteForecast: Array(minuteData))
                 .padding()
                 #if !os(visionOS)
                 .background(Theme.Colors.secondaryBackground)

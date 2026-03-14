@@ -91,15 +91,16 @@ struct ChatView: View {
     }
 
     private func conversationScrollView(for convId: String) -> some View {
-        let convMessages = chat.messages(for: convId)
-        return ScrollViewReader { proxy in
+        ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(spacing: 12) {
-                    ForEach(convMessages) { message in
+                    ForEach(chat.messages(for: convId)) { message in
+                        let isLastProgress = message.isProgress
+                            && message.id == chat.messages(for: convId)
+                                .last(where: \.isProgress)?.id
                         ChatBubble(
                             message: message,
-                            isLastProgress: message.isProgress
-                                && message.id == convMessages.last(where: \.isProgress)?.id,
+                            isLastProgress: isLastProgress,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -125,7 +126,7 @@ struct ChatView: View {
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: convMessages.last?.id) {
+            .onChange(of: chat.messages(for: convId).last?.id) {
                 DispatchQueue.main.async {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }

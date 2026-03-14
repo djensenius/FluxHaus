@@ -120,11 +120,39 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
                     drawTile(image, col: col, row: row,
                              zoom: zoomLvl, in: ctx)
                 } else {
+                    // Draw scaled parent tile as placeholder while loading
+                    drawFallbackTile(
+                        path: currentPath, col: col, row: row,
+                        zoom: zoomLvl, in: ctx
+                    )
                     fetchTile(
                         path: currentPath,
                         zoom: zoomLvl, col: col, row: row
                     )
                 }
+            }
+        }
+    }
+
+    /// Draw a cached tile from a lower zoom level, scaled up, as a placeholder.
+    private func drawFallbackTile(
+        path: String, col: Int, row: Int,
+        zoom: Int, in ctx: CGContext
+    ) {
+        // Try parent zoom levels (one level up = 4 tiles merge into 1)
+        for delta in 1...3 {
+            let parentZoom = zoom - delta
+            guard parentZoom >= 1 else { break }
+            let parentCol = col >> delta
+            let parentRow = row >> delta
+            let parentKey = cacheKey(path, parentZoom, parentCol, parentRow)
+            lock.lock()
+            let parentImage = cache[parentKey]
+            lock.unlock()
+            if let parentImage {
+                drawTile(parentImage, col: parentCol, row: parentRow,
+                         zoom: parentZoom, in: ctx)
+                return
             }
         }
     }

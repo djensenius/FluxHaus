@@ -161,6 +161,12 @@ struct FluxHausApp: App {
                     }
                 }
             }
+            .onOpenURL { url in
+                guard url.scheme == "fluxhaus" else { return }
+                let section = url.host ?? url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                guard !section.isEmpty else { return }
+                postNavigation(section.prefix(1).uppercased() + section.dropFirst())
+            }
         }
         .commands {
             CommandGroup(replacing: .newItem) {
