@@ -94,7 +94,7 @@ struct WeatherRadarSheet: View {
                 }
             }
             if let frame = currentFrame, frameIndex >= radarService.pastFrames.count {
-                confidenceBar(radarService.confidence(for: frame))
+                confidenceLabel(radarService.confidence(for: frame))
             }
             HStack(spacing: 12) {
                 if tilesReady {
@@ -128,26 +128,14 @@ struct WeatherRadarSheet: View {
         .padding()
     }
 
-    private func confidenceBar(_ value: Double) -> some View {
-        HStack(spacing: 6) {
-            Text("Confidence")
-                .font(.caption2).foregroundColor(.secondary)
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(Color.secondary.opacity(0.2))
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(value > 0.7 ? Theme.Colors.accent
-                              : value > 0.5 ? Theme.Colors.warning
-                              : Theme.Colors.error.opacity(0.7))
-                        .frame(width: geo.size.width * value)
-                }
-            }
-            .frame(height: 6)
-            Text("\(Int(value * 100))%")
-                .font(.caption2).foregroundColor(.secondary)
-                .monospacedDigit()
-        }
+    private func confidenceLabel(_ value: Double) -> some View {
+        let label = value > 0.7 ? "High confidence"
+            : value > 0.5 ? "Medium confidence" : "Low confidence"
+        let color = value > 0.7 ? Theme.Colors.accent
+            : value > 0.5 ? Theme.Colors.warning : Theme.Colors.error
+        return Text(label)
+            .font(.caption2)
+            .foregroundColor(color)
     }
 
     private var frameTimeLabel: String {
