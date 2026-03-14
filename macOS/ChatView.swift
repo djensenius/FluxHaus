@@ -109,6 +109,13 @@ struct ChatView: View {
                         }
                         .tag(conv.id)
                         .contentShape(Rectangle())
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                Task { await chat.deleteConversation(conv) }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
