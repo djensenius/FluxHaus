@@ -400,6 +400,12 @@ struct WeatherDetailView: View {
         #endif
     }
 
+    private var currentFrame: RadarFrame? {
+        let frames = radarService.allFrames
+        guard frameIndex >= 0, frameIndex < frames.count else { return nil }
+        return frames[frameIndex]
+    }
+
     private var radarControls: some View {
         VStack(spacing: 6) {
             HStack {
@@ -407,12 +413,17 @@ struct WeatherDetailView: View {
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .monospacedDigit()
                 Spacer()
-                Text(relativeTimeLabel)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(
-                        frameIndex < radarService.pastFrames.count
-                            ? .secondary : Theme.Colors.accent
-                    )
+                if let frame = currentFrame {
+                    Text(radarService.relativeLabel(for: frame))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(
+                            frameIndex < radarService.pastFrames.count
+                                ? .secondary : Theme.Colors.accent
+                        )
+                }
+            }
+            if let frame = currentFrame, frameIndex >= radarService.pastFrames.count {
+                confidenceBar(radarService.confidence(for: frame))
             }
             HStack(spacing: 10) {
                 if tilesReady {
@@ -436,6 +447,28 @@ struct WeatherDetailView: View {
         }
     }
 
+    private func confidenceBar(_ value: Double) -> some View {
+        HStack(spacing: 6) {
+            Text("Confidence")
+                .font(.caption2).foregroundColor(.secondary)
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(Color.secondary.opacity(0.2))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(value > 0.7 ? Theme.Colors.accent
+                              : value > 0.5 ? Theme.Colors.warning
+                              : Theme.Colors.error.opacity(0.7))
+                        .frame(width: geo.size.width * value)
+                }
+            }
+            .frame(height: 6)
+            Text("\(Int(value * 100))%")
+                .font(.caption2).foregroundColor(.secondary)
+                .monospacedDigit()
+        }
+    }
+
     private var frameTimeLabel: String {
         let frames = radarService.allFrames
         guard frameIndex >= 0, frameIndex < frames.count else { return "" }
@@ -443,16 +476,6 @@ struct WeatherDetailView: View {
         let fmt = DateFormatter()
         fmt.dateFormat = "h:mm a"
         return fmt.string(from: date)
-    }
-
-    private var relativeTimeLabel: String {
-        let frames = radarService.allFrames
-        guard frameIndex >= 0, frameIndex < frames.count else { return "" }
-        let frameTime = Double(frames[frameIndex].time)
-        let minutes = Int((frameTime - Date().timeIntervalSince1970) / 60)
-        if minutes == 0 { return "Now" }
-        let prefix = minutes > 0 ? "+" : ""
-        return "\(prefix)\(minutes) min"
     }
 
     private func togglePlay() {

@@ -121,6 +121,34 @@ private struct RadarConfig: Decodable {
 
     var latestPastFrame: RadarFrame? { pastFrames.last }
     var allFrames: [RadarFrame] { pastFrames + nowcastFrames }
+
+    /// Human-readable relative time (e.g. "1 hr 20 min ago", "in 30 min")
+    func relativeLabel(for frame: RadarFrame) -> String {
+        let seconds = frame.time - Int(Date().timeIntervalSince1970)
+        let absMinutes = abs(seconds) / 60
+        if absMinutes < 2 { return "Now" }
+
+        let hours = absMinutes / 60
+        let mins = absMinutes % 60
+        var parts: [String] = []
+        if hours > 0 { parts.append("\(hours) hr") }
+        if mins > 0 { parts.append("\(mins) min") }
+        let timeStr = parts.joined(separator: " ")
+
+        return seconds < 0 ? "\(timeStr) ago" : "in \(timeStr)"
+    }
+
+    /// Forecast confidence: 1.0 for past (observed), decreasing for forecast
+    func confidence(for frame: RadarFrame) -> Double {
+        guard let idx = allFrames.firstIndex(where: { $0.id == frame.id }) else {
+            return 1.0
+        }
+        let pastCount = pastFrames.count
+        if idx < pastCount { return 1.0 }
+        let forecastIdx = idx - pastCount
+        let total = max(nowcastFrames.count - 1, 1)
+        return max(0.3, 1.0 - Double(forecastIdx) / Double(total) * 0.7)
+    }
 }
 
 private struct RainViewerFallback: Decodable {
