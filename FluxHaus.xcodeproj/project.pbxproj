@@ -211,6 +211,10 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		C5CEC5CCBE620D65D2B1C9BC /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		C623C52748905A66CF3956EB /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
+		CB0002000000000000000001 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
+		CB0002000000000000000002 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
+		CB0002000000000000000003 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
+		CB0002000000000000000004 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		D170D5FEA1F77CDDD5473F1B /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
 		D4CF7F9BD9DD51C77C6AB4C9 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9B78F7F035E29316F494F7 /* ChatView.swift */; };
 		D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8757ED2EF3E226D6B1548CAE /* SettingsView.swift */; };
@@ -237,6 +241,14 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		FE6B445E3E47FC883C281562 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		FFD5C7DCE9B4284348280B90 /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
+		MD0002000000000000000001 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
+		MD0002000000000000000002 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
+		MD0002000000000000000003 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
+		MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
+		PT0001000000000000000001 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
+		PT0001000000000000000002 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
+		PT0001000000000000000003 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
+		PT0001000000000000000004 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
 		RD0003000000000000000001 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
 		RD0003000000000000000002 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
 		RD0003000000000000000003 /* RadarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = RD0001000000000000000001 /* RadarService.swift */; };
@@ -401,7 +413,10 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
 		C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_ViewTests.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
+		CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
+		MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
+		PT0000000000000000000001 /* PrecipitationTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrecipitationTimelineView.swift; sourceTree = "<group>"; };
 		RD0001000000000000000001 /* RadarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarService.swift; sourceTree = "<group>"; };
 		RD0002000000000000000001 /* WeatherRadarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherRadarView.swift; sourceTree = "<group>"; };
 		RM0000000000000000000001 /* RadarMapViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarMapViews.swift; sourceTree = "<group>"; };
@@ -538,6 +553,8 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 				TI0000000000000000000001 /* TypingIndicator.swift */,
 CB0001000000000000000001 /* ChatBubble.swift */,
 MD0001000000000000000001 /* MarkdownContentView.swift */,
+				CB0001000000000000000001 /* ChatBubble.swift */,
+				MD0001000000000000000001 /* MarkdownContentView.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -1030,6 +1047,8 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				TI0001000000000000000001 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000001 /* ChatBubble.swift in Sources */,
 MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
+				CB0002000000000000000001 /* ChatBubble.swift in Sources */,
+				MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				RD0003000000000000000001 /* RadarService.swift in Sources */,
 				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */,
@@ -1090,6 +1109,8 @@ MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000002 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000002 /* ChatBubble.swift in Sources */,
 MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
+				CB0002000000000000000002 /* ChatBubble.swift in Sources */,
+				MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1184,6 +1205,8 @@ MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000003 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000003 /* ChatBubble.swift in Sources */,
 MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
+				CB0002000000000000000003 /* ChatBubble.swift in Sources */,
+				MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1254,6 +1277,8 @@ MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000004 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000004 /* ChatBubble.swift in Sources */,
 MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
+				CB0002000000000000000004 /* ChatBubble.swift in Sources */,
+				MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 				RD0003000000000000000004 /* RadarService.swift in Sources */,
 				RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */,
@@ -1446,7 +1471,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1479,7 +1504,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1574,7 +1599,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1613,7 +1638,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1650,7 +1675,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1688,7 +1713,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1787,7 +1812,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -1827,7 +1852,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8;
+				MARKETING_VERSION = 1.8.2;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
