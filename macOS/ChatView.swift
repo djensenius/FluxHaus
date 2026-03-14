@@ -16,14 +16,27 @@ struct ChatView: View {
     @State private var pendingImages: [ChatImage] = []
     @State private var showFilePicker = false
 
-    @State private var sidebarVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var showSidebar = true
 
     var body: some View {
-        NavigationSplitView(columnVisibility: $sidebarVisibility) {
-            chatSidebar
-                .navigationSplitViewColumnWidth(min: 200, ideal: 250, max: 320)
-        } detail: {
+        HStack(spacing: 0) {
+            if showSidebar {
+                chatSidebar
+                    .frame(width: 260)
+                Divider()
+            }
             chatDetail
+        }
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showSidebar.toggle()
+                    }
+                }) {
+                    Image(systemName: "sidebar.left")
+                }
+            }
         }
         .task {
             if chat.conversations.isEmpty {
@@ -48,7 +61,23 @@ struct ChatView: View {
     // MARK: - Sidebar
 
     private var chatSidebar: some View {
-        Group {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Conversations")
+                    .font(.headline)
+                Spacer()
+                Button(action: {
+                    Task { await chat.createNewConversation() }
+                }) {
+                    Image(systemName: "square.and.pencil")
+                }
+                .buttonStyle(.borderless)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            Divider()
+
             if chat.conversations.isEmpty {
                 ContentUnavailableView(
                     "No Conversations",
@@ -91,17 +120,10 @@ struct ChatView: View {
                         }
                     }
                 }
+                .listStyle(.sidebar)
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(action: {
-                    Task { await chat.createNewConversation() }
-                }) {
-                    Image(systemName: "square.and.pencil")
-                }
-            }
-        }
+        .background(.ultraThinMaterial)
     }
 
     private func formatRelativeDate(_ isoString: String) -> String {
