@@ -65,9 +65,9 @@ struct ChatView: View {
                 Spacer()
                 Button(action: {
                     Task { await chat.createNewConversation() }
-                }) {
+                }, label: {
                     Image(systemName: "square.and.pencil")
-                }
+                })
                 .buttonStyle(.borderless)
             }
             .padding(.horizontal, 12)
@@ -180,11 +180,11 @@ struct ChatView: View {
                 .font(Theme.Fonts.caption)
                 .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
-            Button(action: { chat.sessionError = nil }) {
+            Button(action: { chat.sessionError = nil }, label: {
                 Image(systemName: "xmark")
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
-            }
+            })
             .buttonStyle(.plain)
         }
         .padding(8)
@@ -271,12 +271,12 @@ struct ChatView: View {
                             }
                             Button(action: {
                                 pendingImages.removeAll { $0.id == img.id }
-                            }) {
+                            }, label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.system(size: 16))
                                     .foregroundColor(.white)
                                     .shadow(radius: 2)
-                            }
+                            })
                             .buttonStyle(.plain)
                             .offset(x: 4, y: -4)
                         }
@@ -299,13 +299,13 @@ struct ChatView: View {
                 HStack(spacing: 8) {
                     micButton
 
-                    Button(action: { showFilePicker = true }) {
+                    Button(action: { showFilePicker = true }, label: {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(.title3)
                             .foregroundColor(
                                 chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
                             )
-                    }
+                    })
                     .buttonStyle(.plain)
                     .disabled(chat.isLoading)
                     .fileImporter(
@@ -394,11 +394,11 @@ struct ChatView: View {
             Spacer()
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
-            }) {
+            }, label: {
                 Image(systemName: "stop.circle.fill")
                     .font(.title2)
                     .foregroundColor(Theme.Colors.error)
-            }
+            })
             .buttonStyle(.plain)
         }
         .padding(10)

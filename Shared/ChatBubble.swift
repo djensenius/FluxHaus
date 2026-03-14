@@ -182,7 +182,10 @@ struct ChatBubble: View {
             ChatBubble(
                 message: ChatMessage(
                     role: .assistant,
-                    content: "## Current Weather\n\nIt's **22°C** and sunny.\n\n- UV Index: High\n- Wind: 15 km/h\n\n```\nForecast: Clear skies all day\n```"
+                    content: """
+                    ## Current Weather\n\nIt's **22°C** and sunny.
+                    - UV Index: High\n- Wind: 15 km/h
+                    """
                 ),
                 isLastProgress: false,
                 isPlaying: false,

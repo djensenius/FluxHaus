@@ -369,11 +369,11 @@ struct WeatherDetailView: View {
                     .textCase(.uppercase)
                 Spacer()
                 if radarService.isLoaded {
-                    Button(action: { showFullRadar = true }) {
+                    Button(action: { showFullRadar = true }, label: {
                         Label("Expand", systemImage: "arrow.up.left.and.arrow.down.right")
                             .font(.caption2)
                             .foregroundColor(Theme.Colors.accent)
-                    }
+                    })
                     .buttonStyle(.borderless)
                 }
             }

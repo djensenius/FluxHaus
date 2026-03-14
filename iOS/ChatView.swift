@@ -8,12 +8,35 @@
 import SwiftUI
 import PhotosUI
 
+private func formatRelativeDate(_ isoString: String) -> String {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    guard let date = formatter.date(from: isoString)
+            ?? ISO8601DateFormatter().date(from: isoString) else {
+        return ""
+    }
+    let calendar = Calendar.current
+    if calendar.isDateInToday(date) {
+        let timeFmt = DateFormatter()
+        timeFmt.dateFormat = "h:mm a"
+        return timeFmt.string(from: date)
+    } else if calendar.isDateInYesterday(date) {
+        return "Yesterday"
+    } else {
+        let dayFmt = DateFormatter()
+        dayFmt.dateFormat = "MMM d"
+        return dayFmt.string(from: date)
+    }
+}
+
+// swiftlint:disable file_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showConversations = false
+    @State private var compactNavPath: [String] = []
     @State private var holdRecordStart: Date?
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var pendingImages: [ChatImage] = []
@@ -60,27 +83,26 @@ struct ChatView: View {
     }
 
     private var compactLayout: some View {
-        NavigationStack {
-            chatDetail
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button(action: { showConversations = true }) {
-                            Image(systemName: "list.bullet")
-                                .foregroundColor(Theme.Colors.accent)
+        NavigationStack(path: $compactNavPath) {
+            ConversationListView(chat: chat)
+                .navigationDestination(for: String.self) { _ in
+                    chatDetail
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button(action: {
+                                    Task { await chat.createNewConversation() }
+                                }, label: {
+                                    Image(systemName: "plus")
+                                        .foregroundColor(Theme.Colors.accent)
+                                })
+                            }
                         }
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: {
-                            Task { await chat.createNewConversation() }
-                        }) {
-                            Image(systemName: "plus")
-                                .foregroundColor(Theme.Colors.accent)
-                        }
-                    }
                 }
-                .sheet(isPresented: $showConversations) {
-                    ConversationListView(chat: chat)
-                }
+        }
+        .onChange(of: chat.conversationId) {
+            if chat.conversationId != nil && compactNavPath.isEmpty {
+                compactNavPath = ["chat"]
+            }
         }
     }
 
@@ -91,7 +113,7 @@ struct ChatView: View {
             ForEach(chat.conversations) { conv in
                 Button(action: {
                     Task { await chat.loadConversation(conv) }
-                }) {
+                }, label: {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(conv.title ?? "Untitled")
@@ -107,7 +129,7 @@ struct ChatView: View {
                             .font(Theme.Fonts.caption)
                             .foregroundColor(Theme.Colors.textSecondary)
                     }
-                }
+                })
                 .listRowBackground(
                     conv.id == chat.conversationId
                         ? Theme.Colors.accent.opacity(0.15) : nil
@@ -132,10 +154,10 @@ struct ChatView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
                     Task { await chat.createNewConversation() }
-                }) {
+                }, label: {
                     Image(systemName: "plus")
                         .foregroundColor(Theme.Colors.accent)
-                }
+                })
             }
         }
         .overlay {
@@ -176,11 +198,11 @@ struct ChatView: View {
                 .font(Theme.Fonts.caption)
                 .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
-            Button(action: { chat.sessionError = nil }) {
+            Button(action: { chat.sessionError = nil }, label: {
                 Image(systemName: "xmark")
                     .font(.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
-            }
+            })
         }
         .padding(8)
         .background(Theme.Colors.warning.opacity(0.1))
@@ -266,12 +288,12 @@ struct ChatView: View {
                             }
                             Button(action: {
                                 pendingImages.removeAll { $0.id == img.id }
-                            }) {
+                            }, label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.system(size: 18))
                                     .foregroundColor(.white)
                                     .shadow(radius: 2)
-                            }
+                            })
                             .offset(x: 4, y: -4)
                         }
                     }
@@ -385,11 +407,11 @@ struct ChatView: View {
             Spacer()
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
-            }) {
+            }, label: {
                 Image(systemName: "stop.circle.fill")
                     .font(.title)
                     .foregroundColor(Theme.Colors.error)
-            }
+            })
         }
         .padding()
     }
@@ -440,115 +462,69 @@ struct ChatView: View {
         }
         pendingImages = loaded
     }
-
-    private func formatRelativeDate(_ isoString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: isoString)
-                ?? ISO8601DateFormatter().date(from: isoString) else {
-            return ""
-        }
-        let calendar = Calendar.current
-        if calendar.isDateInToday(date) {
-            let timeFmt = DateFormatter()
-            timeFmt.dateFormat = "h:mm a"
-            return timeFmt.string(from: date)
-        } else if calendar.isDateInYesterday(date) {
-            return "Yesterday"
-        } else {
-            let dayFmt = DateFormatter()
-            dayFmt.dateFormat = "MMM d"
-            return dayFmt.string(from: date)
-        }
-    }
 }
-
-// MARK: - Conversation list
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(chat.conversations) { conv in
-                    Button(action: {
-                        Task {
-                            await chat.loadConversation(conv)
-                            dismiss()
-                        }
-                    }) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(conv.title ?? "Untitled")
-                                    .font(Theme.Fonts.bodyLarge)
-                                    .foregroundColor(Theme.Colors.textPrimary)
-                                    .lineLimit(1)
-                                Spacer()
-                                Text(formatRelativeDate(conv.updatedAt))
-                                    .font(Theme.Fonts.caption)
-                                    .foregroundColor(Theme.Colors.textSecondary)
-                            }
-                            Text("\(conv.messageCount) messages")
+        List {
+            ForEach(chat.conversations) { conv in
+                Button(action: {
+                    Task { await chat.loadConversation(conv) }
+                }, label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(conv.title ?? "Untitled")
+                                .font(Theme.Fonts.bodyLarge)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .lineLimit(1)
+                            Spacer()
+                            Text(formatRelativeDate(conv.updatedAt))
                                 .font(Theme.Fonts.caption)
                                 .foregroundColor(Theme.Colors.textSecondary)
                         }
+                        Text("\(conv.messageCount) messages")
+                            .font(Theme.Fonts.caption)
+                            .foregroundColor(Theme.Colors.textSecondary)
                     }
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            Task { await chat.deleteConversation(conv) }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                }
-                .onDelete { indexSet in
-                    for index in indexSet {
-                        let conv = chat.conversations[index]
+                })
+                .contextMenu {
+                    Button(role: .destructive) {
                         Task { await chat.deleteConversation(conv) }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
                     }
                 }
             }
-            .navigationTitle("Conversations")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    let conv = chat.conversations[index]
+                    Task { await chat.deleteConversation(conv) }
                 }
             }
-            .overlay {
-                if chat.conversations.isEmpty {
-                    ContentUnavailableView(
-                        "No Conversations",
-                        systemImage: "bubble.left.and.bubble.right",
-                        description: Text("Start a new conversation")
-                    )
-                }
+        }
+        .navigationTitle("Conversations")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    Task { await chat.createNewConversation() }
+                }, label: {
+                    Image(systemName: "square.and.pencil")
+                        .foregroundColor(Theme.Colors.accent)
+                })
             }
-            .task { await chat.loadConversations() }
         }
-    }
-
-    private func formatRelativeDate(_ isoString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: isoString)
-                ?? ISO8601DateFormatter().date(from: isoString) else {
-            return ""
+        .overlay {
+            if chat.conversations.isEmpty {
+                ContentUnavailableView(
+                    "No Conversations",
+                    systemImage: "bubble.left.and.bubble.right",
+                    description: Text("Start a new conversation")
+                )
+            }
         }
-        let calendar = Calendar.current
-        if calendar.isDateInToday(date) {
-            let timeFmt = DateFormatter()
-            timeFmt.dateFormat = "h:mm a"
-            return timeFmt.string(from: date)
-        } else if calendar.isDateInYesterday(date) {
-            return "Yesterday"
-        } else {
-            let dayFmt = DateFormatter()
-            dayFmt.dateFormat = "MMM d"
-            return dayFmt.string(from: date)
-        }
+        .task { await chat.loadConversations() }
     }
 }
 

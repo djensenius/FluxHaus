@@ -36,8 +36,8 @@ enum MarkdownBlock: Identifiable {
     }
 }
 
-/// Parses a markdown string into an array of block elements.
-// swiftlint:disable:next cyclomatic_complexity
+// Parses a markdown string into an array of block elements.
+// swiftlint:disable:next cyclomatic_complexity function_body_length
 func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
     var blocks: [MarkdownBlock] = []
     let lines = markdown.components(separatedBy: "\n")
@@ -275,6 +275,7 @@ struct MarkdownContentView: View {
     }
 
     @ViewBuilder
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     private func blockView(for block: MarkdownBlock) -> some View {
         switch block {
         case .heading(let level, let text):

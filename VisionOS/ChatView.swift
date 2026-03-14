@@ -41,18 +41,18 @@ struct ChatView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { showConversations = true }) {
+                    Button(action: { showConversations = true }, label: {
                         Image(systemName: "list.bullet")
                             .foregroundColor(Theme.Colors.accent)
-                    }
+                    })
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
                         Task { await chat.createNewConversation() }
-                    }) {
+                    }, label: {
                         Image(systemName: "plus")
                             .foregroundColor(Theme.Colors.accent)
-                    }
+                    })
                     .keyboardShortcut("n", modifiers: .command)
                 }
             }
@@ -157,12 +157,12 @@ struct ChatView: View {
                             }
                             Button(action: {
                                 pendingImages.removeAll { $0.id == img.id }
-                            }) {
+                            }, label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.system(size: 18))
                                     .foregroundColor(.white)
                                     .shadow(radius: 2)
-                            }
+                            })
                             .offset(x: 4, y: -4)
                         }
                     }
@@ -184,11 +184,11 @@ struct ChatView: View {
                 HStack(spacing: 10) {
                     Button(action: {
                         chat.startRecording()
-                    }) {
+                    }, label: {
                         Image(systemName: "mic.circle.fill")
                             .font(.title)
                             .foregroundColor(Theme.Colors.accent)
-                    }
+                    })
                     .disabled(chat.isLoading)
 
                     PhotosPicker(
@@ -263,11 +263,11 @@ struct ChatView: View {
 
             Button(action: {
                 Task { await chat.stopRecordingAndSend() }
-            }) {
+            }, label: {
                 Image(systemName: "stop.circle.fill")
                     .font(.title)
                     .foregroundColor(Theme.Colors.error)
-            }
+            })
         }
         .padding()
     }
@@ -327,11 +327,11 @@ struct ChatView: View {
                 .font(Theme.Fonts.caption)
                 .foregroundColor(Theme.Colors.textSecondary)
             Spacer()
-            Button(action: { chat.sessionError = nil }) {
+            Button(action: { chat.sessionError = nil }, label: {
                 Image(systemName: "xmark")
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
-            }
+            })
         }
         .padding(8)
         .background(Theme.Colors.warning.opacity(0.1))
@@ -353,7 +353,7 @@ struct ConversationListView: View {
                             await chat.loadConversation(conv)
                             dismiss()
                         }
-                    }) {
+                    }, label: {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(conv.title ?? "Untitled")
@@ -367,7 +367,7 @@ struct ConversationListView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                    }
+                    })
                     .contextMenu {
                         Button(role: .destructive) {
                             Task { await chat.deleteConversation(conv) }
