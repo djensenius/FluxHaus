@@ -29,13 +29,10 @@ struct ChatView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigation) {
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        showSidebar.toggle()
-                    }
-                }) {
+                Button(action: toggleSidebar) {
                     Image(systemName: "sidebar.left")
                 }
+                .keyboardShortcut("s", modifiers: [.command, .option])
             }
         }
         .task {
@@ -400,6 +397,12 @@ struct ChatView: View {
     }
 
     // MARK: - Actions
+
+    private func toggleSidebar() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showSidebar.toggle()
+        }
+    }
 
     private func sendMessage() {
         let text = inputText
