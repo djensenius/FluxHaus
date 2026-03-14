@@ -71,17 +71,19 @@ private struct RadarConfig: Decodable {
 
     private func buildFrames(snapshot: Int) {
         // Past frames: 2 hours back in 10-min steps
+        // Rainbow.ai: use earlier snapshot timestamp with forecast_time=0
         var past: [RadarFrame] = []
         for step in stride(from: -12, through: 0, by: 1) {
-            let offset = step * 600
+            let pastSnapshot = snapshot + (step * 600)
             past.append(RadarFrame(
-                id: past.count, time: snapshot + offset,
-                path: "\(snapshot)/\(offset)"
+                id: past.count, time: pastSnapshot,
+                path: "\(pastSnapshot)/0"
             ))
         }
         pastFrames = past
 
         // Forecast frames: up to 4 hours ahead in 10-min steps
+        // Rainbow.ai: use current snapshot with positive forecast_time
         var forecast: [RadarFrame] = []
         for step in 1...24 {
             let offset = step * 600
