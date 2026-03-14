@@ -87,6 +87,7 @@ struct ChatView: View {
             ConversationListView(chat: chat)
                 .navigationDestination(for: String.self) { _ in
                     chatDetail
+                        .toolbarVisibility(.hidden, for: .tabBar)
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button(action: {
