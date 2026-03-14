@@ -19,8 +19,12 @@ struct RadarFrame: Identifiable {
 /// URL builder for radar tiles: (framePath, zoom, col, row) -> URL?
 typealias TileURLBuilder = (String, Int, Int, Int) -> URL?
 
-struct RainbowSnapshot: Decodable {
+/// Response from FluxHaus server's /api/radar/config endpoint.
+/// Server fetches Rainbow.ai snapshot and returns tile URL template.
+private struct RadarConfig: Decodable {
     let snapshot: Int
+    let tileBase: String // e.g. "https://api.rainbow.ai/tiles/v1/precip"
+    let tileQuery: String // e.g. "token=ACTUAL_KEY"
 }
 
 @MainActor
@@ -30,55 +34,64 @@ struct RainbowSnapshot: Decodable {
     var isLoaded = false
     private(set) var tileURLBuilder: TileURLBuilder = { _, _, _, _ in nil }
 
-    private let apiKey: String = "YOUR_RAINBOW_API_KEY"
-    private let baseURL = "https://api.rainbow.ai/tiles/v1"
-
     func fetchFrames() async {
-        guard let url = URL(string: "\(baseURL)/snapshot?token=\(apiKey)") else {
-            return
-        }
+        // Fetch radar config from FluxHaus server (key stays server-side)
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.fluxhaus.io"
+        components.path = "/api/radar/config"
+
+        guard let url = components.url else { return }
+
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode(RainbowSnapshot.self, from: data)
-            let snapshot = response.snapshot
-            let base = baseURL
-            let key = apiKey
+            var request = URLRequest(url: url)
+            if let authHeader = AuthManager.shared.authorizationHeader() {
+                request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+            } else if let password = WhereWeAre.getPassword() {
+                let credentials = Data("fluxhaus:\(password)".utf8).base64EncodedString()
+                request.setValue("Basic \(credentials)", forHTTPHeaderField: "Authorization")
+            }
+
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let config = try JSONDecoder().decode(RadarConfig.self, from: data)
+            let base = config.tileBase
+            let query = config.tileQuery
 
             tileURLBuilder = { path, zoom, col, row in
-                URL(string: "\(base)/precip/\(path)/\(zoom)/\(col)/\(row)?token=\(key)")
+                URL(string: "\(base)/\(path)/\(zoom)/\(col)/\(row)?\(query)")
             }
 
-            // Past frames: 2 hours back in 10-min steps
-            var past: [RadarFrame] = []
-            for step in stride(from: -12, through: 0, by: 1) {
-                let offset = step * 600
-                let frameTime = snapshot + offset
-                past.append(RadarFrame(
-                    id: past.count,
-                    time: frameTime,
-                    path: "\(snapshot)/\(offset)"
-                ))
-            }
-            pastFrames = past
-
-            // Forecast frames: up to 4 hours ahead in 10-min steps
-            var forecast: [RadarFrame] = []
-            for step in 1...24 {
-                let offset = step * 600
-                let frameTime = snapshot + offset
-                forecast.append(RadarFrame(
-                    id: past.count + forecast.count,
-                    time: frameTime,
-                    path: "\(snapshot)/\(offset)"
-                ))
-            }
-            nowcastFrames = forecast
+            buildFrames(snapshot: config.snapshot)
             isLoaded = true
         } catch {
-            logger.error("Rainbow.ai fetch failed: \(error.localizedDescription)")
-            // Fallback to RainViewer (past only)
+            logger.error("Radar config fetch failed: \(error.localizedDescription)")
             await fetchRainViewerFallback()
         }
+    }
+
+    private func buildFrames(snapshot: Int) {
+        // Past frames: 2 hours back in 10-min steps
+        var past: [RadarFrame] = []
+        for step in stride(from: -12, through: 0, by: 1) {
+            let offset = step * 600
+            past.append(RadarFrame(
+                id: past.count, time: snapshot + offset,
+                path: "\(snapshot)/\(offset)"
+            ))
+        }
+        pastFrames = past
+
+        // Forecast frames: up to 4 hours ahead in 10-min steps
+        var forecast: [RadarFrame] = []
+        for step in 1...24 {
+            let offset = step * 600
+            forecast.append(RadarFrame(
+                id: past.count + forecast.count,
+                time: snapshot + offset,
+                path: "\(snapshot)/\(offset)"
+            ))
+        }
+        nowcastFrames = forecast
     }
 
     private func fetchRainViewerFallback() async {
