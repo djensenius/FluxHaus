@@ -5,6 +5,7 @@
 //  Created by David Jensenius on 2026-03-01.
 //
 
+// swiftlint:disable file_length
 import Foundation
 import AVFoundation
 import SwiftUI
@@ -138,14 +139,17 @@ struct Conversation: Identifiable, Codable {
             let result = try await processStream(
                 streamCommand(trimmed, conversationId: conversationId, images: images)
             )
-            messages.removeAll { $0.isProgress }
-            messages.append(ChatMessage(role: .assistant, content: result.text))
+            // Batch: remove progress + add assistant in one mutation
+            var updated = messages.filter { !$0.isProgress }
+            updated.append(ChatMessage(role: .assistant, content: result.text))
+            messages = updated
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
         } catch {
-            messages.removeAll { $0.isProgress }
+            var updated = messages.filter { !$0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
-            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
+            updated.append(ChatMessage(role: .error, content: error.localizedDescription))
+            messages = updated
         }
 
         isLoading = false
@@ -276,20 +280,22 @@ struct Conversation: Identifiable, Codable {
             let result = try await processStream(
                 streamVoice(audioData: audioData, conversationId: conversationId)
             )
-            messages.removeAll { $0.isProgress }
-            messages.append(ChatMessage(
+            var updated = messages.filter { !$0.isProgress }
+            updated.append(ChatMessage(
                 role: .assistant, content: result.text,
                 audioData: result.audioData, isVoice: true
             ))
+            messages = updated
             updateMessageCount(by: 2)
             await updateTitleIfNeeded()
             if let audio = result.audioData {
                 playAudioResponse(data: audio)
             }
         } catch {
-            messages.removeAll { $0.isProgress }
+            var updated = messages.filter { !$0.isProgress }
             logger.error("Voice error: \(error.localizedDescription)")
-            messages.append(ChatMessage(role: .error, content: error.localizedDescription))
+            updated.append(ChatMessage(role: .error, content: error.localizedDescription))
+            messages = updated
         }
 
         isLoading = false
@@ -440,18 +446,29 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
+    func renameConversation(_ conv: Conversation, to title: String) async {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        do {
+            try await updateConversationTitle(id: conv.id, title: trimmed)
+            if let index = conversations.firstIndex(where: { $0.id == conv.id }) {
+                conversations[index].title = trimmed
+            }
+        } catch {
+            logger.error("Failed to rename: \(error.localizedDescription)")
+        }
+    }
+
     private func updateTitleIfNeeded() async {
         guard let convId = conversationId else { return }
-        let userMessages = messages.filter { $0.role == .user }
-        let count = userMessages.count
-        guard count == 1 || count % 3 == 0 else { return }
-        guard let latestMessage = userMessages.last?.content else { return }
-        let title = String(latestMessage.prefix(50))
+        // Only auto-title if conversation has no title yet
+        guard let idx = conversations.firstIndex(where: { $0.id == convId }),
+              conversations[idx].title == nil else { return }
+        guard let firstMessage = messages.first(where: { $0.role == .user })?.content else { return }
+        let title = String(firstMessage.prefix(50))
         do {
             try await updateConversationTitle(id: convId, title: title)
-            if let index = conversations.firstIndex(where: { $0.id == convId }) {
-                conversations[index].title = title
-            }
+            conversations[idx].title = title
         } catch {
             logger.error("Failed to update title: \(error.localizedDescription)")
         }

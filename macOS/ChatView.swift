@@ -8,6 +8,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+// swiftlint:disable:next type_body_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
@@ -15,25 +16,23 @@ struct ChatView: View {
     @State private var holdRecordStart: Date?
     @State private var pendingImages: [ChatImage] = []
     @State private var showFilePicker = false
+    @State private var renamingConversation: Conversation?
+    @State private var renameText = ""
+    @State private var searchText = ""
 
-    @State private var showSidebar = true
+    private var filteredConversations: [Conversation] {
+        if searchText.isEmpty { return chat.conversations }
+        return chat.conversations.filter {
+            ($0.title ?? "").localizedCaseInsensitiveContains(searchText)
+        }
+    }
 
     var body: some View {
         HStack(spacing: 0) {
-            if showSidebar {
-                chatSidebar
-                    .frame(width: 260)
-                Divider()
-            }
+            chatSidebar
+                .frame(width: 260)
+            Divider()
             chatDetail
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button(action: toggleSidebar) {
-                    Image(systemName: "sidebar.left")
-                }
-                .keyboardShortcut("s", modifiers: [.command, .option])
-            }
         }
         .task {
             if chat.conversations.isEmpty {
@@ -91,7 +90,7 @@ struct ChatView: View {
                         }
                     }
                 )) {
-                    ForEach(chat.conversations) { conv in
+                    ForEach(filteredConversations) { conv in
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(conv.title ?? "Untitled")
@@ -107,27 +106,54 @@ struct ChatView: View {
                                 .foregroundColor(Theme.Colors.textSecondary)
                                 .lineLimit(1)
                         }
+                        .padding(.vertical, 6)
                         .tag(conv.id)
+                        .listRowSeparator(.visible)
                         .contentShape(Rectangle())
                         .contextMenu {
-                            Button(role: .destructive) {
+                            Button(action: {
+                                renameText = conv.title ?? ""
+                                renamingConversation = conv
+                            }, label: {
+                                Label("Rename", systemImage: "pencil")
+                            })
+                            Button(role: .destructive, action: {
                                 Task { await chat.deleteConversation(conv) }
-                            } label: {
+                            }, label: {
                                 Label("Delete", systemImage: "trash")
-                            }
+                            })
                         }
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let conv = chat.conversations[index]
+                            let conv = filteredConversations[index]
                             Task { await chat.deleteConversation(conv) }
                         }
                     }
                 }
-                .listStyle(.sidebar)
+                .listStyle(.plain)
+                .searchable(text: $searchText, prompt: "Search conversations")
             }
         }
-        .background(.ultraThinMaterial)
+        .background(Theme.Colors.background)
+        .alert(
+            "Rename Conversation",
+            isPresented: Binding(
+                get: { renamingConversation != nil },
+                set: { if !$0 { renamingConversation = nil } }
+            )
+        ) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel, action: {
+                renamingConversation = nil
+            })
+            Button("Save", action: {
+                if let conv = renamingConversation {
+                    Task { await chat.renameConversation(conv, to: renameText) }
+                }
+                renamingConversation = nil
+            })
+        }
     }
 
     private func formatRelativeDate(_ isoString: String) -> String {
@@ -170,6 +196,10 @@ struct ChatView: View {
             imagePreviewBar
             inputBar
         }
+        .onDrop(of: ["public.image"], isTargeted: nil) { providers in
+            loadDroppedImages(providers)
+            return true
+        }
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
@@ -194,26 +224,24 @@ struct ChatView: View {
     // MARK: - Messages
 
     private var chatMessages: some View {
-        ZStack {
-            ForEach(chat.cachedConversationIds, id: \.self) { convId in
+        Group {
+            if let convId = chat.conversationId {
                 conversationScrollView(for: convId)
-                    .opacity(convId == chat.conversationId ? 1 : 0)
-                    .allowsHitTesting(convId == chat.conversationId)
+                    .id(convId)
             }
         }
     }
 
     private func conversationScrollView(for convId: String) -> some View {
-        ScrollViewReader { proxy in
+        let convMessages = chat.messages(for: convId)
+        return ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(chat.messages(for: convId)) { message in
-                        let isLastProgress = message.isProgress
-                            && message.id == chat.messages(for: convId)
-                                .last(where: \.isProgress)?.id
+                VStack(spacing: 12) {
+                    ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
-                            isLastProgress: isLastProgress,
+                            isLastProgress: message.isProgress
+                                && message.id == convMessages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -225,28 +253,24 @@ struct ChatView: View {
                         )
                         .id(message.id)
                     }
-                    if chat.isLoading && convId == chat.conversationId {
-                        HStack {
-                            ProgressView()
-                                .controlSize(.small)
-                                .padding(12)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .id("loading")
+                    if chat.isLoading {
+                        TypingIndicator()
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .id("loading")
                     }
                 }
                 .padding(.vertical, 12)
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: chat.messages(for: convId).last?.id) {
+            .onChange(of: convMessages.last?.id) {
                 DispatchQueue.main.async {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
-                if chat.isLoading && convId == chat.conversationId {
+                if chat.isLoading {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
@@ -319,7 +343,7 @@ struct ChatView: View {
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyLarge)
                         .textFieldStyle(.plain)
-                        .lineLimit(1...5)
+                        .lineLimit(1...10)
                         .focused($isInputFocused)
                         .submitLabel(.send)
                         .onSubmit { sendMessage() }
@@ -406,12 +430,6 @@ struct ChatView: View {
 
     // MARK: - Actions
 
-    private func toggleSidebar() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            showSidebar.toggle()
-        }
-    }
-
     private func sendMessage() {
         let text = inputText
         let images = pendingImages
@@ -426,13 +444,39 @@ struct ChatView: View {
         for url in urls.prefix(4) {
             guard url.startAccessingSecurityScopedResource() else { continue }
             defer { url.stopAccessingSecurityScopedResource() }
-            if let data = try? Data(contentsOf: url) {
-                let ext = url.pathExtension.lowercased()
-                let mediaType = ext == "png" ? "image/png" : "image/jpeg"
-                loaded.append(ChatImage(mediaType: mediaType, base64: data.base64EncodedString()))
+            if let nsImage = NSImage(contentsOf: url),
+               let tiff = nsImage.tiffRepresentation,
+               let bitmap = NSBitmapImageRep(data: tiff),
+               let jpeg = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.85]) {
+                loaded.append(ChatImage(mediaType: "image/jpeg", base64: jpeg.base64EncodedString()))
             }
         }
         pendingImages.append(contentsOf: loaded)
+    }
+
+    private func loadDroppedImages(_ providers: [NSItemProvider]) {
+        for provider in providers.prefix(4)
+        where provider.hasItemConformingToTypeIdentifier("public.image") {
+            provider.loadDataRepresentation(
+                forTypeIdentifier: "public.image"
+            ) { data, _ in
+                guard let data,
+                      let nsImage = NSImage(data: data),
+                      let tiff = nsImage.tiffRepresentation,
+                      let bitmap = NSBitmapImageRep(data: tiff),
+                      let jpeg = bitmap.representation(
+                          using: .jpeg,
+                          properties: [.compressionFactor: 0.85]
+                      ) else { return }
+                let chatImage = ChatImage(
+                    mediaType: "image/jpeg",
+                    base64: jpeg.base64EncodedString()
+                )
+                DispatchQueue.main.async {
+                    pendingImages.append(chatImage)
+                }
+            }
+        }
     }
 }
 

@@ -30,6 +30,7 @@ private func formatRelativeDate(_ isoString: String) -> String {
 }
 
 // swiftlint:disable file_length
+// swiftlint:disable:next type_body_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
@@ -40,6 +41,8 @@ struct ChatView: View {
     @State private var holdRecordStart: Date?
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var pendingImages: [ChatImage] = []
+    @State private var renamingConversation: Conversation?
+    @State private var renameText = ""
 
     var body: some View {
         Group {
@@ -70,6 +73,24 @@ struct ChatView: View {
         .onChange(of: selectedPhotos) {
             Task { await loadSelectedPhotos() }
         }
+        .alert(
+            "Rename Conversation",
+            isPresented: Binding(
+                get: { renamingConversation != nil },
+                set: { if !$0 { renamingConversation = nil } }
+            )
+        ) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel, action: {
+                renamingConversation = nil
+            })
+            Button("Save", action: {
+                if let conv = renamingConversation {
+                    Task { await chat.renameConversation(conv, to: renameText) }
+                }
+                renamingConversation = nil
+            })
+        }
     }
 
     // MARK: - Layouts
@@ -87,6 +108,7 @@ struct ChatView: View {
             ConversationListView(chat: chat)
                 .navigationDestination(for: String.self) { _ in
                     chatDetail
+                        .toolbarVisibility(.hidden, for: .tabBar)
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button(action: {
@@ -135,11 +157,17 @@ struct ChatView: View {
                         ? Theme.Colors.accent.opacity(0.15) : nil
                 )
                 .contextMenu {
-                    Button(role: .destructive) {
+                    Button(action: {
+                        renameText = conv.title ?? ""
+                        renamingConversation = conv
+                    }, label: {
+                        Label("Rename", systemImage: "pencil")
+                    })
+                    Button(role: .destructive, action: {
                         Task { await chat.deleteConversation(conv) }
-                    } label: {
+                    }, label: {
                         Label("Delete", systemImage: "trash")
-                    }
+                    })
                 }
             }
             .onDelete { indexSet in
@@ -211,26 +239,24 @@ struct ChatView: View {
     // MARK: - Messages
 
     private var chatMessages: some View {
-        ZStack {
-            ForEach(chat.cachedConversationIds, id: \.self) { convId in
+        Group {
+            if let convId = chat.conversationId {
                 conversationScrollView(for: convId)
-                    .opacity(convId == chat.conversationId ? 1 : 0)
-                    .allowsHitTesting(convId == chat.conversationId)
+                    .id(convId)
             }
         }
     }
 
     private func conversationScrollView(for convId: String) -> some View {
-        ScrollViewReader { proxy in
+        let convMessages = chat.messages(for: convId)
+        return ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(chat.messages(for: convId)) { message in
-                        let isLastProgress = message.isProgress
-                            && message.id == chat.messages(for: convId)
-                                .last(where: \.isProgress)?.id
+                VStack(spacing: 12) {
+                    ForEach(convMessages) { message in
                         ChatBubble(
                             message: message,
-                            isLastProgress: isLastProgress,
+                            isLastProgress: message.isProgress
+                                && message.id == convMessages.last(where: \.isProgress)?.id,
                             isPlaying: chat.playingMessageId == message.id,
                             onPlayTapped: {
                                 if chat.playingMessageId == message.id {
@@ -242,27 +268,24 @@ struct ChatView: View {
                         )
                         .id(message.id)
                     }
-                    if chat.isLoading && convId == chat.conversationId {
-                        HStack {
-                            ProgressView()
-                                .padding(12)
-                            Spacer()
-                        }
-                        .padding(.horizontal)
-                        .id("loading")
+                    if chat.isLoading {
+                        TypingIndicator()
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .id("loading")
                     }
                 }
                 .padding(.vertical, 12)
                 Color.clear.frame(height: 1).id("bottom")
             }
             .defaultScrollAnchor(.bottom)
-            .onChange(of: chat.messages(for: convId).last?.id) {
+            .onChange(of: convMessages.last?.id) {
                 DispatchQueue.main.async {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
             .onChange(of: chat.isLoading) {
-                if chat.isLoading && convId == chat.conversationId {
+                if chat.isLoading {
                     proxy.scrollTo("bottom", anchor: .bottom)
                 }
             }
@@ -319,7 +342,7 @@ struct ChatView: View {
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyLarge)
                         .textFieldStyle(.plain)
-                        .lineLimit(1...5)
+                        .lineLimit(1...10)
                         .focused($isInputFocused)
                         .submitLabel(.send)
                         .onSubmit { sendMessage() }
@@ -466,10 +489,20 @@ struct ChatView: View {
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
+    @State private var renamingConversation: Conversation?
+    @State private var renameText = ""
+    @State private var searchText = ""
+
+    private var filteredConversations: [Conversation] {
+        if searchText.isEmpty { return chat.conversations }
+        return chat.conversations.filter {
+            ($0.title ?? "").localizedCaseInsensitiveContains(searchText)
+        }
+    }
 
     var body: some View {
         List {
-            ForEach(chat.conversations) { conv in
+            ForEach(filteredConversations) { conv in
                 Button(action: {
                     Task { await chat.loadConversation(conv) }
                 }, label: {
@@ -490,20 +523,27 @@ struct ConversationListView: View {
                     }
                 })
                 .contextMenu {
-                    Button(role: .destructive) {
+                    Button(action: {
+                        renameText = conv.title ?? ""
+                        renamingConversation = conv
+                    }, label: {
+                        Label("Rename", systemImage: "pencil")
+                    })
+                    Button(role: .destructive, action: {
                         Task { await chat.deleteConversation(conv) }
-                    } label: {
+                    }, label: {
                         Label("Delete", systemImage: "trash")
-                    }
+                    })
                 }
             }
             .onDelete { indexSet in
                 for index in indexSet {
-                    let conv = chat.conversations[index]
+                    let conv = filteredConversations[index]
                     Task { await chat.deleteConversation(conv) }
                 }
             }
         }
+        .searchable(text: $searchText, prompt: "Search conversations")
         .navigationTitle("Conversations")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -525,6 +565,24 @@ struct ConversationListView: View {
             }
         }
         .task { await chat.loadConversations() }
+        .alert(
+            "Rename Conversation",
+            isPresented: Binding(
+                get: { renamingConversation != nil },
+                set: { if !$0 { renamingConversation = nil } }
+            )
+        ) {
+            TextField("Title", text: $renameText)
+            Button("Cancel", role: .cancel, action: {
+                renamingConversation = nil
+            })
+            Button("Save", action: {
+                if let conv = renamingConversation {
+                    Task { await chat.renameConversation(conv, to: renameText) }
+                }
+                renamingConversation = nil
+            })
+        }
     }
 }
 
