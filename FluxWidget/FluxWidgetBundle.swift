@@ -14,6 +14,7 @@ struct FluxWidgetBundle: WidgetBundle {
         FluxWidget()
         FluxWidgetOtherSmall()
         #if os(iOS)
+        FluxWidgetMultiLiveActivity()
         FluxWidgetLiveActivity()
         #endif
     }

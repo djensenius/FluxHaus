@@ -18,10 +18,325 @@ struct FluxWidgetAttributes: ActivityAttributes {
     var name: String
 }
 
+struct FluxWidgetMultiAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var devices: [WidgetDevice]
+    }
+
+    var name: String
+}
+
+// MARK: - Consolidated Multi-Device Live Activity
+
+struct FluxWidgetMultiLiveActivity: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: FluxWidgetMultiAttributes.self) { context in
+            // Lock screen/banner UI — adapts to device count
+            let devices = context.state.devices
+            if devices.isEmpty {
+                allDoneView
+            } else if devices.count == 1, let device = devices.first {
+                singleDeviceLockScreen(device: device)
+                    .padding(16)
+                    .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
+            } else {
+                multiDeviceLockScreen(devices: devices)
+                    .padding(16)
+                    .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
+            }
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    expandedLeading(devices: context.state.devices)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    expandedTrailing(devices: context.state.devices)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    expandedBottom(devices: context.state.devices)
+                }
+            } compactLeading: {
+                compactLeadingView(devices: context.state.devices)
+            } compactTrailing: {
+                compactTrailingView(devices: context.state.devices)
+            } minimal: {
+                minimalView(devices: context.state.devices)
+            }
+            .widgetURL(URL(string: "fluxhaus://appliances"))
+        }
+        .supplementalActivityFamilies([.small, .medium])
+    }
+
+    // MARK: - Lock Screen Views
+
+    private var allDoneView: some View {
+        HStack {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title3)
+                .foregroundStyle(.green)
+            Text("All Done")
+                .font(.headline)
+            Spacer()
+        }
+        .padding(16)
+        .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
+    }
+
+    private func singleDeviceLockScreen(device: WidgetDevice) -> some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: device.icon)
+                    .font(.title3)
+                    .foregroundStyle(tintColor(for: device.name))
+                Text(device.name)
+                    .font(.headline)
+                if let program = device.programName {
+                    Text(program)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                if isRobot(device.name) {
+                    Text("Cleaning")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } else if !device.shortText.isEmpty {
+                    Text(device.shortText)
+                        .font(.headline)
+                        .monospacedDigit()
+                        .foregroundStyle(tintColor(for: device.name))
+                }
+            }
+            deviceProgressBar(device: device)
+        }
+    }
+
+    private func multiDeviceLockScreen(devices: [WidgetDevice]) -> some View {
+        VStack(spacing: 10) {
+            ForEach(Array(devices.prefix(5).enumerated()), id: \.element.name) { _, device in
+                HStack(spacing: 8) {
+                    Image(systemName: device.icon)
+                        .font(.caption)
+                        .foregroundStyle(tintColor(for: device.name))
+                        .frame(width: 20)
+                    Text(device.name)
+                        .font(.subheadline)
+                        .lineLimit(1)
+                    if isRobot(device.name) {
+                        if let battery = device.battery {
+                            Spacer()
+                            ProgressView(value: Double(battery) / 100.0)
+                                .progressViewStyle(.linear)
+                                .tint(batteryColor(level: battery))
+                                .frame(maxWidth: 80)
+                            Text("\(battery)%")
+                                .font(.caption2)
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Spacer()
+                        ProgressView(value: Double(device.progress) / 100.0)
+                            .progressViewStyle(.linear)
+                            .tint(tintColor(for: device.name))
+                            .frame(maxWidth: 80)
+                        Text(device.shortText)
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44, alignment: .trailing)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func deviceProgressBar(device: WidgetDevice) -> some View {
+        if isRobot(device.name) {
+            if let battery = device.battery {
+                HStack(spacing: 6) {
+                    Image(systemName: batteryIcon(level: battery))
+                        .font(.caption)
+                    ProgressView(value: Double(battery) / 100.0)
+                        .progressViewStyle(.linear)
+                        .tint(batteryColor(level: battery))
+                    Text("\(battery)%")
+                        .font(.caption)
+                        .monospacedDigit()
+                }
+                .foregroundStyle(.secondary)
+            }
+        } else if device.running {
+            HStack(spacing: 6) {
+                ProgressView(value: Double(device.progress) / 100.0)
+                    .progressViewStyle(.linear)
+                    .tint(tintColor(for: device.name))
+                Text("\(device.progress)%")
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32, alignment: .trailing)
+            }
+        }
+    }
+
+    // MARK: - Dynamic Island
+
+    private func expandedLeading(devices: [WidgetDevice]) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if devices.count == 1, let device = devices.first {
+                Image(systemName: device.icon)
+                    .font(.title2)
+                    .foregroundStyle(tintColor(for: device.name))
+                Text(device.name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: -4) {
+                    ForEach(Array(devices.prefix(3).enumerated()), id: \.element.name) { _, device in
+                        Image(systemName: device.icon)
+                            .font(.caption)
+                            .foregroundStyle(tintColor(for: device.name))
+                            .padding(4)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
+                }
+                Text("\(devices.count) running")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func expandedTrailing(devices: [WidgetDevice]) -> some View {
+        VStack(alignment: .trailing, spacing: 4) {
+            if devices.count == 1, let device = devices.first {
+                if isRobot(device.name) {
+                    if let battery = device.battery {
+                        Text("\(battery)%")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .monospacedDigit()
+                    }
+                } else {
+                    Text(device.shortText)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .monospacedDigit()
+                    if let program = device.programName {
+                        Text(program)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                // Show the device closest to finishing
+                if let soonest = devices.filter({ !isRobot($0.name) }).max(by: { $0.progress < $1.progress }) {
+                    Text(soonest.shortText)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .monospacedDigit()
+                    Text(soonest.name)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
+    private func expandedBottom(devices: [WidgetDevice]) -> some View {
+        VStack(spacing: 6) {
+            ForEach(Array(devices.prefix(4).enumerated()), id: \.element.name) { _, device in
+                HStack(spacing: 6) {
+                    Image(systemName: device.icon)
+                        .font(.caption2)
+                        .foregroundStyle(tintColor(for: device.name))
+                        .frame(width: 16)
+                    if isRobot(device.name) {
+                        if let battery = device.battery {
+                            ProgressView(value: Double(battery) / 100.0)
+                                .progressViewStyle(.linear)
+                                .tint(batteryColor(level: battery))
+                            Text("\(battery)%")
+                                .font(.caption2)
+                                .monospacedDigit()
+                        }
+                    } else {
+                        ProgressView(value: Double(device.progress) / 100.0)
+                            .progressViewStyle(.linear)
+                            .tint(tintColor(for: device.name))
+                        Text(device.shortText)
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func compactLeadingView(devices: [WidgetDevice]) -> some View {
+        if devices.count == 1, let device = devices.first {
+            Image(systemName: device.icon)
+                .foregroundStyle(tintColor(for: device.name))
+        } else {
+            HStack(spacing: -2) {
+                ForEach(Array(devices.prefix(2).enumerated()), id: \.element.name) { _, device in
+                    Image(systemName: device.icon)
+                        .font(.caption2)
+                        .foregroundStyle(tintColor(for: device.name))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func compactTrailingView(devices: [WidgetDevice]) -> some View {
+        if devices.count == 1, let device = devices.first {
+            if isRobot(device.name) {
+                if let battery = device.battery {
+                    Text("\(battery)%")
+                        .font(.caption)
+                } else {
+                    Text("")
+                }
+            } else if device.shortText.hasSuffix("m") {
+                Text(device.shortText)
+                    .font(.caption)
+                    .foregroundStyle(tintColor(for: device.name))
+            } else {
+                ProgressView(value: Double(device.progress) / 100.0)
+                    .progressViewStyle(.circular)
+                    .tint(tintColor(for: device.name))
+            }
+        } else {
+            Text("\(devices.count)")
+                .font(.caption)
+                .fontWeight(.semibold)
+        }
+    }
+
+    @ViewBuilder
+    private func minimalView(devices: [WidgetDevice]) -> some View {
+        if devices.count == 1, let device = devices.first {
+            Image(systemName: device.icon)
+                .foregroundStyle(tintColor(for: device.name))
+        } else {
+            Image(systemName: "house.fill")
+                .foregroundStyle(Color.accentColor)
+        }
+    }
+}
+
+// MARK: - Legacy Single Device Live Activity (kept for backward compat)
+
 struct FluxWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FluxWidgetAttributes.self) { context in
-            // Lock screen/banner UI
             let device = context.state.device
             VStack(spacing: 8) {
                 HStack {
@@ -86,101 +401,28 @@ struct FluxWidgetLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Image(systemName: context.state.device.icon)
-                            .font(.title2)
-                            .foregroundStyle(tintColor(for: context.state.device.name))
-
-                        Text(context.state.device.name)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.top, 4)
+                    Text("")
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        if isRobot(context.state.device.name) {
-                            if let battery = context.state.device.battery {
-                                Text("\(battery)%")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .monospacedDigit()
-                                Image(systemName: batteryIcon(level: battery))
-                                    .font(.caption)
-                                    .foregroundStyle(batteryColor(level: battery))
-                            }
-                        } else {
-                            Text(context.state.device.shortText)
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .monospacedDigit()
-                            if let program = context.state.device.programName {
-                                Text(program)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                    .padding(.top, 4)
+                    Text("")
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    if isRobot(context.state.device.name) {
-                        VStack(spacing: 6) {
-                            if let battery = context.state.device.battery {
-                                ProgressView(value: Double(battery) / 100.0)
-                                    .progressViewStyle(.linear)
-                                    .tint(batteryColor(level: battery))
-                            }
-                            HStack {
-                                Text("Cleaning")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                            }
-                        }
-                    } else {
-                        VStack(spacing: 6) {
-                            ProgressView(value: Double(context.state.device.progress) / 100.0)
-                                .progressViewStyle(.linear)
-                                .tint(tintColor(for: context.state.device.name))
-                            HStack {
-                                Text("\(context.state.device.progress)%")
-                                    .font(.caption)
-                                    .monospacedDigit()
-                                Spacer()
-                                Text(context.state.device.trailingText)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    Text("")
                 }
             } compactLeading: {
                 Image(systemName: context.state.device.icon)
                     .foregroundStyle(tintColor(for: context.state.device.name))
             } compactTrailing: {
-                if isRobot(context.state.device.name) {
-                    if let battery = context.state.device.battery {
-                        Text("\(battery)%")
-                            .font(.caption)
-                    }
-                } else if context.state.device.shortText.hasSuffix("m") {
-                    Text(context.state.device.shortText)
-                        .font(.caption)
-                        .foregroundStyle(tintColor(for: context.state.device.name))
-                } else {
-                    ProgressView(value: Double(context.state.device.progress) / 100.0)
-                        .progressViewStyle(.circular)
-                        .tint(tintColor(for: context.state.device.name))
-                }
+                Text("")
             } minimal: {
                 Image(systemName: context.state.device.icon)
                     .foregroundStyle(tintColor(for: context.state.device.name))
             }
-            .widgetURL(URL(string: "fluxhaus://appliances"))
         }
     }
 }
+
+// MARK: - Helpers
 
 private func tintColor(for deviceName: String) -> Color {
     switch deviceName {
@@ -215,286 +457,148 @@ private func batteryIcon(level: Int) -> String {
     }
 }
 
-extension FluxWidgetAttributes {
-    fileprivate static var preview: FluxWidgetAttributes { FluxWidgetAttributes(name: "World") }
-}
+// MARK: - Preview Data
 
-extension FluxWidgetAttributes.ContentState {
-    // MARK: - Dishwasher States
-    fileprivate static var dishwasherRunning: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Dishwasher",
-                progress: 50,
-                icon: "dishwasher",
-                trailingText: "Eco50 ⋅ 59m",
-                shortText: "59m",
-                running: true,
-                programName: "Eco50"
-            )
-        )
-    }
-
-    fileprivate static var dishwasherEarly: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Dishwasher",
-                progress: 10,
-                icon: "dishwasher",
-                trailingText: "Intensiv70 ⋅ 1h 45m",
-                shortText: "1h 45m",
-                running: true,
-                programName: "Intensiv70"
-            )
-        )
-    }
-
-    fileprivate static var dishwasherAlmostDone: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Dishwasher",
-                progress: 92,
-                icon: "dishwasher",
-                trailingText: "Quick45 ⋅ 4m",
-                shortText: "4m",
-                running: true,
-                programName: "Quick45"
-            )
-        )
-    }
-
-    fileprivate static var dishwasherFinished: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Dishwasher",
-                progress: 0,
-                icon: "dishwasher",
-                trailingText: "",
-                shortText: "",
-                running: false
-            )
-        )
-    }
-
-    // MARK: - Washer States
-    fileprivate static var washerRunning: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Washer",
-                progress: 35,
-                icon: "washer",
-                trailingText: "Cottons ⋅ 1h 12m",
-                shortText: "1h 12m",
-                running: true,
-                programName: "Cottons"
-            )
-        )
-    }
-
-    // MARK: - Dryer States
-    fileprivate static var dryerRunning: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Dryer",
-                progress: 25,
-                icon: "dryer",
-                trailingText: "Cotton ⋅ 45m",
-                shortText: "45m",
-                running: true,
-                programName: "Cotton"
-            )
-        )
-    }
-
-    fileprivate static var dryerAlmostDone: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "Dryer",
-                progress: 88,
-                icon: "dryer",
-                trailingText: "Cotton ⋅ 8m",
-                shortText: "8m",
-                running: true,
-                programName: "Cotton"
-            )
-        )
-    }
-
-    // MARK: - Robot States
-    fileprivate static var broomBotCleaning: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "BroomBot",
-                progress: 75,
-                icon: "fan",
-                trailingText: "Cleaning",
-                shortText: "Cleaning",
-                running: true,
-                battery: 75
-            )
-        )
-    }
-
-    fileprivate static var broomBotLowBattery: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "BroomBot",
-                progress: 40,
-                icon: "fan",
-                trailingText: "Cleaning",
-                shortText: "Cleaning",
-                running: true,
-                battery: 12
-            )
-        )
-    }
-
-    fileprivate static var mopBotCleaning: FluxWidgetAttributes.ContentState {
-        FluxWidgetAttributes.ContentState(
-            device: WidgetDevice(
-                name: "MopBot",
-                progress: 30,
-                icon: "humidifier.and.droplets",
-                trailingText: "Cleaning",
-                shortText: "Cleaning",
-                running: true,
-                battery: 90
-            )
-        )
+extension FluxWidgetMultiAttributes {
+    fileprivate static var preview: FluxWidgetMultiAttributes {
+        FluxWidgetMultiAttributes(name: "Appliances")
     }
 }
 
-// MARK: - Lock Screen / Banner Previews
+extension FluxWidgetMultiAttributes.ContentState {
+    fileprivate static var singleDishwasher: FluxWidgetMultiAttributes.ContentState {
+        FluxWidgetMultiAttributes.ContentState(devices: [
+            WidgetDevice(
+                name: "Dishwasher", progress: 50, icon: "dishwasher",
+                trailingText: "Eco50 ⋅ 59m", shortText: "59m",
+                running: true, programName: "Eco50"
+            )
+        ])
+    }
 
-#Preview("Lock Screen: Dishwasher Running", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherRunning
+    fileprivate static var twoDevices: FluxWidgetMultiAttributes.ContentState {
+        FluxWidgetMultiAttributes.ContentState(devices: [
+            WidgetDevice(
+                name: "Dishwasher", progress: 50, icon: "dishwasher",
+                trailingText: "Eco50 ⋅ 59m", shortText: "59m",
+                running: true, programName: "Eco50"
+            ),
+            WidgetDevice(
+                name: "Washer", progress: 35, icon: "washer",
+                trailingText: "Cottons ⋅ 1h 12m", shortText: "1h 12m",
+                running: true, programName: "Cottons"
+            )
+        ])
+    }
+
+    fileprivate static var threeDevices: FluxWidgetMultiAttributes.ContentState {
+        FluxWidgetMultiAttributes.ContentState(devices: [
+            WidgetDevice(
+                name: "Dishwasher", progress: 92, icon: "dishwasher",
+                trailingText: "Quick45 ⋅ 4m", shortText: "4m",
+                running: true, programName: "Quick45"
+            ),
+            WidgetDevice(
+                name: "Dryer", progress: 25, icon: "dryer",
+                trailingText: "Cotton ⋅ 45m", shortText: "45m",
+                running: true, programName: "Cotton"
+            ),
+            WidgetDevice(
+                name: "BroomBot", progress: 75, icon: "fan",
+                trailingText: "Cleaning", shortText: "Cleaning",
+                running: true, battery: 75
+            )
+        ])
+    }
+
+    fileprivate static var allRunning: FluxWidgetMultiAttributes.ContentState {
+        FluxWidgetMultiAttributes.ContentState(devices: [
+            WidgetDevice(
+                name: "Dishwasher", progress: 40, icon: "dishwasher",
+                trailingText: "Intensiv70 ⋅ 1h 20m", shortText: "1h 20m",
+                running: true, programName: "Intensiv70"
+            ),
+            WidgetDevice(
+                name: "Washer", progress: 60, icon: "washer",
+                trailingText: "Cottons ⋅ 30m", shortText: "30m",
+                running: true, programName: "Cottons"
+            ),
+            WidgetDevice(
+                name: "Dryer", progress: 88, icon: "dryer",
+                trailingText: "Cotton ⋅ 8m", shortText: "8m",
+                running: true, programName: "Cotton"
+            ),
+            WidgetDevice(
+                name: "BroomBot", progress: 50, icon: "fan",
+                trailingText: "Cleaning", shortText: "Cleaning",
+                running: true, battery: 50
+            ),
+            WidgetDevice(
+                name: "MopBot", progress: 30, icon: "humidifier.and.droplets",
+                trailingText: "Cleaning", shortText: "Cleaning",
+                running: true, battery: 90
+            )
+        ])
+    }
 }
 
-#Preview("Lock Screen: Dishwasher Early", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+// MARK: - Consolidated Previews
+
+#Preview("Lock Screen: Single Dishwasher", as: .content, using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherEarly
+    FluxWidgetMultiAttributes.ContentState.singleDishwasher
 }
 
-#Preview("Lock Screen: Dishwasher Almost Done", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Lock Screen: Two Devices", as: .content, using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherAlmostDone
+    FluxWidgetMultiAttributes.ContentState.twoDevices
 }
 
-#Preview("Lock Screen: Dishwasher Finished", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Lock Screen: Three Devices", as: .content, using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherFinished
+    FluxWidgetMultiAttributes.ContentState.threeDevices
 }
 
-#Preview("Lock Screen: Washer", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Lock Screen: All Running", as: .content, using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.washerRunning
+    FluxWidgetMultiAttributes.ContentState.allRunning
 }
 
-#Preview("Lock Screen: Dryer", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Expanded: Two Devices", as: .dynamicIsland(.expanded), using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.dryerRunning
+    FluxWidgetMultiAttributes.ContentState.twoDevices
 }
 
-#Preview("Lock Screen: BroomBot", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Expanded: Three Devices", as: .dynamicIsland(.expanded), using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.broomBotCleaning
+    FluxWidgetMultiAttributes.ContentState.threeDevices
 }
 
-#Preview("Lock Screen: BroomBot Low Battery", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Compact: Single", as: .dynamicIsland(.compact), using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.broomBotLowBattery
+    FluxWidgetMultiAttributes.ContentState.singleDishwasher
 }
 
-#Preview("Lock Screen: MopBot", as: .content, using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Compact: Multiple", as: .dynamicIsland(.compact), using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.mopBotCleaning
+    FluxWidgetMultiAttributes.ContentState.twoDevices
 }
 
-// MARK: - Dynamic Island Expanded Previews
-
-#Preview("Expanded: Dishwasher Running", as: .dynamicIsland(.expanded), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
+#Preview("Minimal: Multiple", as: .dynamicIsland(.minimal), using: FluxWidgetMultiAttributes.preview) {
+    FluxWidgetMultiLiveActivity()
 } contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherRunning
+    FluxWidgetMultiAttributes.ContentState.threeDevices
 }
 
-#Preview("Expanded: Dishwasher Almost Done", as: .dynamicIsland(.expanded), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherAlmostDone
-}
-
-#Preview("Expanded: Washer", as: .dynamicIsland(.expanded), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.washerRunning
-}
-
-#Preview("Expanded: Dryer", as: .dynamicIsland(.expanded), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dryerRunning
-}
-
-#Preview("Expanded: BroomBot", as: .dynamicIsland(.expanded), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.broomBotCleaning
-}
-
-#Preview("Expanded: BroomBot Low Battery", as: .dynamicIsland(.expanded), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.broomBotLowBattery
-}
-
-// MARK: - Dynamic Island Compact Previews
-
-#Preview("Compact: Dishwasher", as: .dynamicIsland(.compact), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherRunning
-}
-
-#Preview("Compact: Dishwasher > 1h", as: .dynamicIsland(.compact), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherEarly
-}
-
-#Preview("Compact: Dryer", as: .dynamicIsland(.compact), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dryerRunning
-}
-
-#Preview("Compact: BroomBot", as: .dynamicIsland(.compact), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.broomBotCleaning
-}
-
-// MARK: - Dynamic Island Minimal Previews
-
-#Preview("Minimal: Dishwasher", as: .dynamicIsland(.minimal), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.dishwasherRunning
-}
-
-#Preview("Minimal: BroomBot", as: .dynamicIsland(.minimal), using: FluxWidgetAttributes.preview) {
-    FluxWidgetLiveActivity()
-} contentStates: {
-    FluxWidgetAttributes.ContentState.broomBotCleaning
-}
+// MARK: - Supplemental (CarPlay) Previews
+// Note: CarPlay supplemental activity previews require Xcode 27+.
+// The supplementalActivityFamilies modifier is applied to the widget configuration above.
 #endif

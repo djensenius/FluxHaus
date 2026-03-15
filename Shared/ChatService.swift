@@ -393,7 +393,7 @@ func createConversation() async throws -> Conversation {
     let url = components.url!
 
     var request = try await buildAuthRequest(url: url)
-    let bodyData = try JSONEncoder().encode(["title": "New conversation"])
+    let bodyData = try JSONEncoder().encode([:] as [String: String])
     request.httpBody = bodyData
 
     let session = URLSession(configuration: .default)
@@ -487,4 +487,38 @@ func deleteConversationRequest(id: String) async throws {
        http.statusCode != 204 && http.statusCode != 200 {
         throw ChatServiceError.serverError("Delete failed (\(http.statusCode))")
     }
+}
+
+struct GenerateTitleResponse: Decodable {
+    let title: String
+}
+
+func generateConversationTitle(id: String) async throws -> String {
+    var components = URLComponents()
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/conversations/\(id)/generate-title"
+    let url = components.url!
+
+    var request = try await buildAuthRequest(url: url)
+    request.httpBody = try JSONEncoder().encode([:] as [String: String])
+
+    let session = URLSession(configuration: .default)
+    var (data, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (data, response) = try await handleUnauthorizedRetry(
+            url: url, body: Data(), session: session
+        )
+    }
+
+    if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+        if let err = try? JSONDecoder().decode(CommandError.self, from: data) {
+            throw ChatServiceError.serverError(err.error)
+        }
+        throw ChatServiceError.serverError("Failed to generate title (\(http.statusCode))")
+    }
+
+    let result = try JSONDecoder().decode(GenerateTitleResponse.self, from: data)
+    return result.title
 }

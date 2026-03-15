@@ -423,8 +423,12 @@ struct Conversation: Identifiable, Codable {
             cachedMessages.removeValue(forKey: conv.id)
             cachedConversationIds.removeAll { $0 == conv.id }
             if conversationId == conv.id {
-                conversationId = nil
-                await ensureConversation()
+                // Select next available conversation instead of creating a new one
+                if let next = conversations.first {
+                    await loadConversation(next)
+                } else {
+                    conversationId = nil
+                }
             }
         } catch {
             logger.error("Failed to delete conversation: \(error.localizedDescription)")
@@ -461,16 +465,23 @@ struct Conversation: Identifiable, Codable {
 
     private func updateTitleIfNeeded() async {
         guard let convId = conversationId else { return }
-        // Only auto-title if conversation has no title yet
         guard let idx = conversations.firstIndex(where: { $0.id == convId }),
-              conversations[idx].title == nil else { return }
-        guard let firstMessage = messages.first(where: { $0.role == .user })?.content else { return }
-        let title = String(firstMessage.prefix(50))
+              conversations[idx].title == nil || conversations[idx].title == "New conversation" else { return }
+
+        // Ask the server to generate a title using AI
         do {
-            try await updateConversationTitle(id: convId, title: title)
+            let title = try await generateConversationTitle(id: convId)
             conversations[idx].title = title
         } catch {
-            logger.error("Failed to update title: \(error.localizedDescription)")
+            // Fallback: use first user message truncated
+            guard let firstMessage = messages.first(where: { $0.role == .user })?.content else { return }
+            let title = String(firstMessage.prefix(50))
+            do {
+                try await updateConversationTitle(id: convId, title: title)
+                conversations[idx].title = title
+            } catch {
+                logger.error("Failed to update title: \(error.localizedDescription)")
+            }
         }
     }
 

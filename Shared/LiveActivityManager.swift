@@ -21,16 +21,31 @@ struct FluxWidgetAttributes: ActivityAttributes {
     var name: String
 }
 
+struct FluxWidgetMultiAttributes: ActivityAttributes {
+    public struct ContentState: Codable, Hashable {
+        var devices: [WidgetDevice]
+    }
+
+    var name: String
+}
+
 @MainActor
 class LiveActivityManager {
     static let shared = LiveActivityManager()
 
-    private var activities: [String: Activity<FluxWidgetAttributes>] = [:]
+    /// The single consolidated Live Activity
+    private var consolidatedActivity: Activity<FluxWidgetMultiAttributes>?
     /// Cached channel IDs fetched from the server.
     private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
 
+    /// User's subscription preferences (which device types to show)
+    var subscribedDeviceTypes: Set<String> = Set(["Dishwasher", "Washer", "Dryer", "BroomBot", "MopBot"]) {
+        didSet { saveSubscriptionPreferences() }
+    }
+
     private init() {
+        loadSubscriptionPreferences()
         restoreExistingActivities()
         observePushToStartToken()
         Task { await fetchChannelIds() }
@@ -38,11 +53,22 @@ class LiveActivityManager {
 
     /// Re-adopt activities that iOS kept alive while the app was killed.
     private func restoreExistingActivities() {
-        for activity in Activity<FluxWidgetAttributes>.activities {
-            let name = activity.attributes.name
+        // Restore consolidated activities
+        for activity in Activity<FluxWidgetMultiAttributes>.activities {
             if activity.activityState == .active || activity.activityState == .stale {
-                activities[name] = activity
-                logger.info("Restored Live Activity for \(name)")
+                consolidatedActivity = activity
+                logger.info("Restored consolidated Live Activity")
+                break
+            }
+        }
+
+        // End any legacy single-device activities
+        for activity in Activity<FluxWidgetAttributes>.activities {
+            if activity.activityState == .active || activity.activityState == .stale {
+                Task {
+                    await activity.end(nil, dismissalPolicy: .immediate)
+                }
+                logger.info("Ended legacy single-device activity: \(activity.attributes.name)")
             }
         }
     }
@@ -51,9 +77,9 @@ class LiveActivityManager {
     private func observePushToStartToken() {
         if #available(iOS 17.2, *) {
             pushToStartTask = Task {
-                for await tokenData in Activity<FluxWidgetAttributes>.pushToStartTokenUpdates {
+                for await tokenData in Activity<FluxWidgetMultiAttributes>.pushToStartTokenUpdates {
                     let token = tokenData.map { String(format: "%02x", $0) }.joined()
-                    logger.info("Push-to-start token: \(token.prefix(8))...")
+                    logger.info("Push-to-start token (multi): \(token.prefix(8))...")
                     await registerDeviceToken(token: token)
                 }
             }
@@ -62,7 +88,7 @@ class LiveActivityManager {
 
     /// Fetch broadcast channel IDs from the server for all device types.
     private func fetchChannelIds() async {
-        let types = ["dishwasher", "washer", "dryer", "broombot", "mopbot"]
+        let types = ["dishwasher", "washer", "dryer", "broombot", "mopbot", "consolidated"]
         for type in types {
             if let channelId = await fetchChannelId(for: type) {
                 channelIds[type] = channelId
@@ -106,78 +132,83 @@ class LiveActivityManager {
             return
         }
 
-        // Adopt any activities we don't track yet (e.g. from push-to-start)
-        for activity in Activity<FluxWidgetAttributes>.activities {
-            let name = activity.attributes.name
-            if activities[name] == nil
-                && (activity.activityState == .active || activity.activityState == .stale) {
-                activities[name] = activity
-                logger.info("Adopted Live Activity for \(name)")
+        // End any legacy single-device activities that might still be around
+        for activity in Activity<FluxWidgetAttributes>.activities
+        where activity.activityState == .active || activity.activityState == .stale {
+            Task { await activity.end(nil, dismissalPolicy: .immediate) }
+        }
+
+        // Adopt consolidated activity from push-to-start if we don't track it
+        if consolidatedActivity == nil {
+            for activity in Activity<FluxWidgetMultiAttributes>.activities {
+                if activity.activityState == .active || activity.activityState == .stale {
+                    consolidatedActivity = activity
+                    logger.info("Adopted consolidated Live Activity")
+                    break
+                }
             }
         }
 
-        // Clean up activities that iOS has ended
-        let ended = activities.filter { $0.value.activityState == .ended }
-        for (name, _) in ended {
-            activities.removeValue(forKey: name)
-            logger.info("Cleaned up ended activity: \(name)")
+        // Clean up if consolidated activity was ended by iOS
+        if let activity = consolidatedActivity, activity.activityState == .ended {
+            consolidatedActivity = nil
+            logger.info("Cleaned up ended consolidated activity")
         }
 
-        let runningDevices = devices.filter { $0.running }
-        let runningNames = Set(runningDevices.map { $0.name })
+        // Filter by subscription preferences
+        let runningDevices = devices.filter { $0.running && subscribedDeviceTypes.contains($0.name) }
 
-        // End activities for devices that are no longer running
-        for (name, activity) in activities where !runningNames.contains(name) {
-            let device = devices.first { $0.name == name }
-            endActivity(name: name, activity: activity, finalDevice: device)
-        }
-
-        // Start or update activities for running devices
-        for device in runningDevices {
-            if let activity = activities[device.name] {
-                updateActivity(activity: activity, device: device)
-            } else {
-                startActivity(device: device)
+        if runningDevices.isEmpty {
+            // End the consolidated activity
+            if let activity = consolidatedActivity {
+                endConsolidatedActivity(activity: activity)
             }
+        } else if let activity = consolidatedActivity {
+            // Update existing consolidated activity
+            updateConsolidatedActivity(activity: activity, devices: runningDevices)
+        } else {
+            // Start a new consolidated activity
+            startConsolidatedActivity(devices: runningDevices)
         }
     }
 
-    private func startActivity(device: WidgetDevice) {
-        let attributes = FluxWidgetAttributes(name: device.name)
-        let state = FluxWidgetAttributes.ContentState(device: device)
+    private func startConsolidatedActivity(devices: [WidgetDevice]) {
+        let attributes = FluxWidgetMultiAttributes(name: "Appliances")
+        let state = FluxWidgetMultiAttributes.ContentState(devices: devices)
 
         let content = ActivityContent(
             state: state,
             staleDate: Date().addingTimeInterval(900)
         )
 
-        let activityType = device.name.lowercased().replacingOccurrences(of: " ", with: "")
-
         do {
-            let activity: Activity<FluxWidgetAttributes>
-            if #available(iOS 18.0, *), let channelId = channelIds[activityType] {
+            let activity: Activity<FluxWidgetMultiAttributes>
+            if #available(iOS 18.0, *), let channelId = channelIds["consolidated"] {
                 activity = try Activity.request(
                     attributes: attributes,
                     content: content,
                     pushType: .channel(channelId)
                 )
-                logger.info("Started Live Activity for \(device.name) on channel")
+                logger.info("Started consolidated Live Activity on channel (\(devices.count) devices)")
             } else {
                 activity = try Activity.request(
                     attributes: attributes,
                     content: content,
                     pushType: .token
                 )
-                logger.info("Started Live Activity for \(device.name) with token")
+                logger.info("Started consolidated Live Activity with token (\(devices.count) devices)")
             }
-            activities[device.name] = activity
+            consolidatedActivity = activity
         } catch {
-            logger.error("Failed to start Live Activity for \(device.name): \(error)")
+            logger.error("Failed to start consolidated Live Activity: \(error)")
         }
     }
 
-    private func updateActivity(activity: Activity<FluxWidgetAttributes>, device: WidgetDevice) {
-        let state = FluxWidgetAttributes.ContentState(device: device)
+    private func updateConsolidatedActivity(
+        activity: Activity<FluxWidgetMultiAttributes>,
+        devices: [WidgetDevice]
+    ) {
+        let state = FluxWidgetMultiAttributes.ContentState(devices: devices)
         let content = ActivityContent(
             state: state,
             staleDate: Date().addingTimeInterval(900)
@@ -188,20 +219,8 @@ class LiveActivityManager {
         }
     }
 
-    private func endActivity(
-        name: String,
-        activity: Activity<FluxWidgetAttributes>,
-        finalDevice: WidgetDevice?
-    ) {
-        let device = finalDevice ?? WidgetDevice(
-            name: name,
-            progress: 0,
-            icon: iconForDevice(name),
-            trailingText: "Done",
-            shortText: "Done",
-            running: false
-        )
-        let state = FluxWidgetAttributes.ContentState(device: device)
+    private func endConsolidatedActivity(activity: Activity<FluxWidgetMultiAttributes>) {
+        let state = FluxWidgetMultiAttributes.ContentState(devices: [])
         let content = ActivityContent(
             state: state,
             staleDate: Date()
@@ -211,8 +230,58 @@ class LiveActivityManager {
             await activity.end(content, dismissalPolicy: .default)
         }
 
-        activities.removeValue(forKey: name)
-        logger.info("Ended Live Activity for \(name)")
+        consolidatedActivity = nil
+        logger.info("Ended consolidated Live Activity")
+    }
+
+    // MARK: - Subscription Preferences
+
+    private func loadSubscriptionPreferences() {
+        if let saved = UserDefaults.standard.stringArray(forKey: "liveActivitySubscriptions") {
+            subscribedDeviceTypes = Set(saved)
+        }
+    }
+
+    private func saveSubscriptionPreferences() {
+        UserDefaults.standard.set(Array(subscribedDeviceTypes), forKey: "liveActivitySubscriptions")
+        // Sync to server
+        Task { await syncSubscriptionsToServer() }
+    }
+
+    private func syncSubscriptionsToServer() async {
+        let deviceTypes = Array(subscribedDeviceTypes).map { $0.lowercased().replacingOccurrences(of: " ", with: "") }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.fluxhaus.io"
+        components.path = "/push-tokens/subscriptions"
+
+        guard let url = components.url else { return }
+
+        let csrfToken = await fetchCsrfToken()
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        if let authHeader = AuthManager.shared.authorizationHeader() {
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        }
+        if let csrfToken = csrfToken {
+            request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+        }
+
+        do {
+            let body = ["deviceTypes": deviceTypes]
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            let session = URLSession(configuration: .default)
+            let (_, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                logger.info("Synced subscriptions to server")
+            }
+        } catch {
+            logger.error("Failed to sync subscriptions: \(error)")
+        }
     }
 
     private func registerDeviceToken(token: String) async {
@@ -255,17 +324,6 @@ class LiveActivityManager {
             }
         } catch {
             logger.error("Failed to register token at \(path): \(error)")
-        }
-    }
-
-    private func iconForDevice(_ name: String) -> String {
-        switch name {
-        case "Dishwasher": return "dishwasher"
-        case "Washer": return "washer"
-        case "Dryer": return "dryer"
-        case "BroomBot": return "fan"
-        case "MopBot": return "humidifier.and.droplets"
-        default: return "house"
         }
     }
 }

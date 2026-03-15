@@ -57,11 +57,11 @@ struct ChatView: View {
                 await chat.loadConversations()
             }
             if chat.conversationId == nil {
-                if chat.conversations.isEmpty {
-                    await chat.createNewConversation()
-                } else if let first = chat.conversations.first {
+                if let first = chat.conversations.first {
                     await chat.loadConversation(first)
                 }
+                // Only create if there are truly no conversations
+                // (ensureConversation will be called on first send)
             }
         }
         .task { await chat.syncConversationsPeriodically() }
@@ -124,6 +124,8 @@ struct ChatView: View {
         .onChange(of: chat.conversationId) {
             if chat.conversationId != nil && compactNavPath.isEmpty {
                 compactNavPath = ["chat"]
+            } else if chat.conversationId == nil && !compactNavPath.isEmpty {
+                compactNavPath = []
             }
         }
     }
