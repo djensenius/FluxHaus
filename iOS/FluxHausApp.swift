@@ -12,6 +12,9 @@ import os
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    /// Store APNs device token for deferred registration
+    static var pendingApnsToken: String?
+
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -26,6 +29,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         let token = deviceToken.map { String(format: "%02x", $0) }.joined()
         appLogger.info("Registered for remote notifications: \(token.prefix(8))...")
+        AppDelegate.pendingApnsToken = token
+        Task { await AppDelegate.registerApnsTokenIfReady() }
     }
 
     func application(
@@ -33,6 +38,48 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
         appLogger.error("Failed to register for remote notifications: \(error)")
+    }
+
+    /// Register the stored APNs token with the server. Called on token receipt and after auth.
+    static func registerApnsTokenIfReady() async {
+        guard let token = pendingApnsToken,
+              AuthManager.shared.authorizationHeader() != nil else { return }
+
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.fluxhaus.io"
+        components.path = "/push-tokens/apns"
+
+        guard let url = components.url else { return }
+
+        let csrfToken = await fetchCsrfToken()
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        if let authHeader = AuthManager.shared.authorizationHeader() {
+            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
+        }
+        if let csrfToken = csrfToken {
+            request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
+        }
+
+        do {
+            let body: [String: String] = [
+                "token": token,
+                "deviceName": await UIDevice.current.name
+            ]
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            let session = URLSession(configuration: .default)
+            let (_, response) = try await session.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                pendingApnsToken = nil
+                appLogger.info("APNs token registered with server")
+            }
+        } catch {
+            appLogger.error("Failed to register APNs token: \(error)")
+        }
     }
 }
 
@@ -70,6 +117,8 @@ struct FluxHausApp: App {
                                     )
                                     fluxHausConsts.setConfig(config: config)
                                 }
+                                // Register APNs token now that auth is available
+                                Task { await AppDelegate.registerApnsTokenIfReady() }
                             }
 
                             if ((object.userInfo?["homeConnectComplete"]) != nil) == true {
