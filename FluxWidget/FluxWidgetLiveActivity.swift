@@ -70,12 +70,13 @@ struct FluxWidgetMultiLiveActivity: Widget {
     // MARK: - Lock Screen Views
 
     private var allDoneView: some View {
-        HStack {
+        HStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.title3)
+                .font(.title)
                 .foregroundStyle(.green)
             Text("All Done")
-                .font(.headline)
+                .font(.title3)
+                .fontWeight(.medium)
             Spacer()
         }
         .padding(16)
@@ -83,13 +84,14 @@ struct FluxWidgetMultiLiveActivity: Widget {
     }
 
     private func singleDeviceLockScreen(device: WidgetDevice) -> some View {
-        VStack(spacing: 8) {
-            HStack {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
                 Image(systemName: device.icon)
-                    .font(.title3)
+                    .font(.title2)
                     .foregroundStyle(tintColor(for: device.name))
                 Text(device.name)
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
                 if let program = device.programName {
                     Text(program)
                         .font(.subheadline)
@@ -102,7 +104,8 @@ struct FluxWidgetMultiLiveActivity: Widget {
                         .foregroundStyle(.secondary)
                 } else if !device.shortText.isEmpty {
                     Text(device.shortText)
-                        .font(.headline)
+                        .font(.title3)
+                        .fontWeight(.semibold)
                         .monospacedDigit()
                         .foregroundStyle(tintColor(for: device.name))
                 }
@@ -112,15 +115,16 @@ struct FluxWidgetMultiLiveActivity: Widget {
     }
 
     private func multiDeviceLockScreen(devices: [WidgetDevice]) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             ForEach(Array(devices.prefix(5).enumerated()), id: \.element.name) { _, device in
-                HStack(spacing: 8) {
+                HStack(spacing: 10) {
                     Image(systemName: device.icon)
-                        .font(.caption)
+                        .font(.body)
                         .foregroundStyle(tintColor(for: device.name))
-                        .frame(width: 20)
+                        .frame(width: 24)
                     Text(device.name)
                         .font(.subheadline)
+                        .fontWeight(.medium)
                         .lineLimit(1)
                     if isRobot(device.name) {
                         if let battery = device.battery {
@@ -128,9 +132,9 @@ struct FluxWidgetMultiLiveActivity: Widget {
                             ProgressView(value: Double(battery) / 100.0)
                                 .progressViewStyle(.linear)
                                 .tint(batteryColor(level: battery))
-                                .frame(maxWidth: 80)
+                                .frame(maxWidth: 100)
                             Text("\(battery)%")
-                                .font(.caption2)
+                                .font(.caption)
                                 .monospacedDigit()
                                 .foregroundStyle(.secondary)
                         }
@@ -139,12 +143,12 @@ struct FluxWidgetMultiLiveActivity: Widget {
                         ProgressView(value: Double(device.progress) / 100.0)
                             .progressViewStyle(.linear)
                             .tint(tintColor(for: device.name))
-                            .frame(maxWidth: 80)
+                            .frame(maxWidth: 100)
                         Text(device.shortText)
-                            .font(.caption2)
+                            .font(.caption)
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
-                            .frame(width: 44, alignment: .trailing)
+                            .frame(width: 48, alignment: .trailing)
                     }
                 }
             }
@@ -155,28 +159,28 @@ struct FluxWidgetMultiLiveActivity: Widget {
     private func deviceProgressBar(device: WidgetDevice) -> some View {
         if isRobot(device.name) {
             if let battery = device.battery {
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     Image(systemName: batteryIcon(level: battery))
-                        .font(.caption)
+                        .font(.subheadline)
                     ProgressView(value: Double(battery) / 100.0)
                         .progressViewStyle(.linear)
                         .tint(batteryColor(level: battery))
                     Text("\(battery)%")
-                        .font(.caption)
+                        .font(.subheadline)
                         .monospacedDigit()
                 }
                 .foregroundStyle(.secondary)
             }
         } else if device.running {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ProgressView(value: Double(device.progress) / 100.0)
                     .progressViewStyle(.linear)
                     .tint(tintColor(for: device.name))
                 Text("\(device.progress)%")
-                    .font(.caption)
+                    .font(.subheadline)
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
-                    .frame(width: 32, alignment: .trailing)
+                    .frame(width: 36, alignment: .trailing)
             }
         }
     }
@@ -187,18 +191,18 @@ struct FluxWidgetMultiLiveActivity: Widget {
         VStack(alignment: .leading, spacing: 4) {
             if devices.count == 1, let device = devices.first {
                 Image(systemName: device.icon)
-                    .font(.title2)
+                    .font(.title)
                     .foregroundStyle(tintColor(for: device.name))
                 Text(device.name)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                HStack(spacing: -4) {
+                HStack(spacing: 2) {
                     ForEach(Array(devices.prefix(3).enumerated()), id: \.element.name) { _, device in
                         Image(systemName: device.icon)
-                            .font(.caption)
+                            .font(.subheadline)
                             .foregroundStyle(tintColor(for: device.name))
-                            .padding(4)
+                            .padding(5)
                             .background(.ultraThinMaterial, in: Circle())
                     }
                 }
@@ -248,20 +252,20 @@ struct FluxWidgetMultiLiveActivity: Widget {
     }
 
     private func expandedBottom(devices: [WidgetDevice]) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             ForEach(Array(devices.prefix(4).enumerated()), id: \.element.name) { _, device in
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     Image(systemName: device.icon)
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(tintColor(for: device.name))
-                        .frame(width: 16)
+                        .frame(width: 20)
                     if isRobot(device.name) {
                         if let battery = device.battery {
                             ProgressView(value: Double(battery) / 100.0)
                                 .progressViewStyle(.linear)
                                 .tint(batteryColor(level: battery))
                             Text("\(battery)%")
-                                .font(.caption2)
+                                .font(.caption)
                                 .monospacedDigit()
                         }
                     } else {
@@ -269,7 +273,7 @@ struct FluxWidgetMultiLiveActivity: Widget {
                             .progressViewStyle(.linear)
                             .tint(tintColor(for: device.name))
                         Text(device.shortText)
-                            .font(.caption2)
+                            .font(.caption)
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
@@ -282,12 +286,13 @@ struct FluxWidgetMultiLiveActivity: Widget {
     private func compactLeadingView(devices: [WidgetDevice]) -> some View {
         if devices.count == 1, let device = devices.first {
             Image(systemName: device.icon)
+                .font(.body)
                 .foregroundStyle(tintColor(for: device.name))
         } else {
-            HStack(spacing: -2) {
+            HStack(spacing: 2) {
                 ForEach(Array(devices.prefix(2).enumerated()), id: \.element.name) { _, device in
                     Image(systemName: device.icon)
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(tintColor(for: device.name))
                 }
             }
@@ -300,13 +305,15 @@ struct FluxWidgetMultiLiveActivity: Widget {
             if isRobot(device.name) {
                 if let battery = device.battery {
                     Text("\(battery)%")
-                        .font(.caption)
+                        .font(.body)
+                        .monospacedDigit()
                 } else {
                     Text("")
                 }
-            } else if device.shortText.hasSuffix("m") {
+            } else if device.shortText.hasSuffix("m") || device.shortText.contains("h") {
                 Text(device.shortText)
-                    .font(.caption)
+                    .font(.body)
+                    .monospacedDigit()
                     .foregroundStyle(tintColor(for: device.name))
             } else {
                 ProgressView(value: Double(device.progress) / 100.0)
@@ -315,7 +322,7 @@ struct FluxWidgetMultiLiveActivity: Widget {
             }
         } else {
             Text("\(devices.count)")
-                .font(.caption)
+                .font(.body)
                 .fontWeight(.semibold)
         }
     }
@@ -324,9 +331,11 @@ struct FluxWidgetMultiLiveActivity: Widget {
     private func minimalView(devices: [WidgetDevice]) -> some View {
         if devices.count == 1, let device = devices.first {
             Image(systemName: device.icon)
+                .font(.body)
                 .foregroundStyle(tintColor(for: device.name))
         } else {
             Image(systemName: "house.fill")
+                .font(.body)
                 .foregroundStyle(Color.accentColor)
         }
     }
