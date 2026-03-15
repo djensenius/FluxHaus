@@ -433,7 +433,7 @@ struct FluxWidgetLiveActivity: Widget {
 
 // MARK: - Helpers
 
-private func tintColor(for deviceName: String) -> Color {
+func tintColor(for deviceName: String) -> Color {
     switch deviceName {
     case "Dishwasher": return .blue
     case "Washer": return .cyan
@@ -444,7 +444,7 @@ private func tintColor(for deviceName: String) -> Color {
     }
 }
 
-private func batteryColor(level: Int) -> Color {
+func batteryColor(level: Int) -> Color {
     switch level {
     case 0..<20: return .red
     case 20..<40: return .orange
@@ -452,11 +452,11 @@ private func batteryColor(level: Int) -> Color {
     }
 }
 
-private func isRobot(_ name: String) -> Bool {
+func isRobot(_ name: String) -> Bool {
     name == "BroomBot" || name == "MopBot"
 }
 
-private func batteryIcon(level: Int) -> String {
+func batteryIcon(level: Int) -> String {
     switch level {
     case 0..<15: return "battery.0percent"
     case 15..<40: return "battery.25percent"
@@ -465,149 +465,4 @@ private func batteryIcon(level: Int) -> String {
     default: return "battery.100percent"
     }
 }
-
-// MARK: - Preview Data
-
-extension FluxWidgetMultiAttributes {
-    fileprivate static var preview: FluxWidgetMultiAttributes {
-        FluxWidgetMultiAttributes(name: "Appliances")
-    }
-}
-
-extension FluxWidgetMultiAttributes.ContentState {
-    fileprivate static var singleDishwasher: FluxWidgetMultiAttributes.ContentState {
-        FluxWidgetMultiAttributes.ContentState(devices: [
-            WidgetDevice(
-                name: "Dishwasher", progress: 50, icon: "dishwasher",
-                trailingText: "Eco50 ⋅ 59m", shortText: "59m",
-                running: true, programName: "Eco50"
-            )
-        ])
-    }
-
-    fileprivate static var twoDevices: FluxWidgetMultiAttributes.ContentState {
-        FluxWidgetMultiAttributes.ContentState(devices: [
-            WidgetDevice(
-                name: "Dishwasher", progress: 50, icon: "dishwasher",
-                trailingText: "Eco50 ⋅ 59m", shortText: "59m",
-                running: true, programName: "Eco50"
-            ),
-            WidgetDevice(
-                name: "Washer", progress: 35, icon: "washer",
-                trailingText: "Cottons ⋅ 1h 12m", shortText: "1h 12m",
-                running: true, programName: "Cottons"
-            )
-        ])
-    }
-
-    fileprivate static var threeDevices: FluxWidgetMultiAttributes.ContentState {
-        FluxWidgetMultiAttributes.ContentState(devices: [
-            WidgetDevice(
-                name: "Dishwasher", progress: 92, icon: "dishwasher",
-                trailingText: "Quick45 ⋅ 4m", shortText: "4m",
-                running: true, programName: "Quick45"
-            ),
-            WidgetDevice(
-                name: "Dryer", progress: 25, icon: "dryer",
-                trailingText: "Cotton ⋅ 45m", shortText: "45m",
-                running: true, programName: "Cotton"
-            ),
-            WidgetDevice(
-                name: "BroomBot", progress: 75, icon: "fan",
-                trailingText: "Cleaning", shortText: "Cleaning",
-                running: true, battery: 75
-            )
-        ])
-    }
-
-    fileprivate static var allRunning: FluxWidgetMultiAttributes.ContentState {
-        FluxWidgetMultiAttributes.ContentState(devices: [
-            WidgetDevice(
-                name: "Dishwasher", progress: 40, icon: "dishwasher",
-                trailingText: "Intensiv70 ⋅ 1h 20m", shortText: "1h 20m",
-                running: true, programName: "Intensiv70"
-            ),
-            WidgetDevice(
-                name: "Washer", progress: 60, icon: "washer",
-                trailingText: "Cottons ⋅ 30m", shortText: "30m",
-                running: true, programName: "Cottons"
-            ),
-            WidgetDevice(
-                name: "Dryer", progress: 88, icon: "dryer",
-                trailingText: "Cotton ⋅ 8m", shortText: "8m",
-                running: true, programName: "Cotton"
-            ),
-            WidgetDevice(
-                name: "BroomBot", progress: 50, icon: "fan",
-                trailingText: "Cleaning", shortText: "Cleaning",
-                running: true, battery: 50
-            ),
-            WidgetDevice(
-                name: "MopBot", progress: 30, icon: "humidifier.and.droplets",
-                trailingText: "Cleaning", shortText: "Cleaning",
-                running: true, battery: 90
-            )
-        ])
-    }
-}
-
-// MARK: - Consolidated Previews
-
-#Preview("Lock Screen: Single Dishwasher", as: .content, using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.singleDishwasher
-}
-
-#Preview("Lock Screen: Two Devices", as: .content, using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.twoDevices
-}
-
-#Preview("Lock Screen: Three Devices", as: .content, using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.threeDevices
-}
-
-#Preview("Lock Screen: All Running", as: .content, using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.allRunning
-}
-
-#Preview("Expanded: Two Devices", as: .dynamicIsland(.expanded), using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.twoDevices
-}
-
-#Preview("Expanded: Three Devices", as: .dynamicIsland(.expanded), using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.threeDevices
-}
-
-#Preview("Compact: Single", as: .dynamicIsland(.compact), using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.singleDishwasher
-}
-
-#Preview("Compact: Multiple", as: .dynamicIsland(.compact), using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.twoDevices
-}
-
-#Preview("Minimal: Multiple", as: .dynamicIsland(.minimal), using: FluxWidgetMultiAttributes.preview) {
-    FluxWidgetMultiLiveActivity()
-} contentStates: {
-    FluxWidgetMultiAttributes.ContentState.threeDevices
-}
-
-// MARK: - Supplemental (CarPlay) Previews
-// Note: CarPlay supplemental activity previews require Xcode 27+.
-// The supplementalActivityFamilies modifier is applied to the widget configuration above.
 #endif
