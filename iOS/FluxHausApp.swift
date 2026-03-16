@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import UserNotifications
 import os
 
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
@@ -19,7 +20,20 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        application.registerForRemoteNotifications()
+        // Request notification permission — required for push notifications and live activities
+        UNUserNotificationCenter.current().requestAuthorization(
+            options: [.alert, .sound, .badge]
+        ) { granted, error in
+            if let error = error {
+                appLogger.error("Notification authorization error: \(error)")
+            }
+            appLogger.info("Notification authorization granted: \(granted)")
+            if granted {
+                DispatchQueue.main.async {
+                    application.registerForRemoteNotifications()
+                }
+            }
+        }
         return true
     }
 

@@ -13,7 +13,7 @@ import SwiftUI
 
 // MARK: - Legacy Single Device Live Activity
 
-struct FluxWidgetLiveActivity: Widget {
+struct FluxWidgetLiveActivityLegacy: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FluxWidgetAttributes.self) { context in
             let device = context.state.device
