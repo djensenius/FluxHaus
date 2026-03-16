@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedTab = "home"
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -30,6 +31,22 @@ struct ContentView: View {
             weatherTab
                 .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
                 .tag("weather")
+            if horizontalSizeClass == .regular {
+                scenesTab
+                    .tabItem { Label("Scenes", systemImage: "lightbulb.fill") }
+                    .tag("scenes")
+            }
+            appliancesTab
+                .tabItem { Label("Appliances", systemImage: "washer.fill") }
+                .tag("appliances")
+            carTab
+                .tabItem { Label("Car", systemImage: "car.fill") }
+                .tag("car")
+            if horizontalSizeClass == .regular {
+                robotsTab
+                    .tabItem { Label("Robots", systemImage: "fan.fill") }
+                    .tag("robots")
+            }
             if authManager.isOIDC {
                 ChatView(chat: chat)
                     .tabItem {
@@ -37,12 +54,6 @@ struct ContentView: View {
                     }
                     .tag("assistant")
             }
-            carTab
-                .tabItem { Label("Car", systemImage: "car.fill") }
-                .tag("car")
-            appliancesTab
-                .tabItem { Label("Appliances", systemImage: "washer.fill") }
-                .tag("appliances")
         }
         .tabViewStyle(.sidebarAdaptable)
         .onReceive(
@@ -91,6 +102,14 @@ struct ContentView: View {
 
     private var carTab: some View {
         CarDetailView(car: car, locationManager: locationManager)
+    }
+
+    private var scenesTab: some View {
+        SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
+    }
+
+    private var robotsTab: some View {
+        RobotsListView(robots: robots)
     }
 
     private var appliancesTab: some View {

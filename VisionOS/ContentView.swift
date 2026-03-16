@@ -32,6 +32,18 @@ struct ContentView: View {
             weatherTab
                 .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
                 .tag("Weather")
+            SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
+                .tabItem { Label("Scenes", systemImage: "lightbulb.fill") }
+                .tag("Scenes")
+            appliancesTab
+                .tabItem { Label("Appliances", systemImage: "washer.fill") }
+                .tag("Appliances")
+            carTab
+                .tabItem { Label("Car", systemImage: "car.fill") }
+                .tag("Car")
+            RobotsListView(robots: robots)
+                .tabItem { Label("Robots", systemImage: "fan.fill") }
+                .tag("Robots")
             if authManager.isOIDC {
                 ChatView(chat: chat)
                     .tabItem {
@@ -39,12 +51,6 @@ struct ContentView: View {
                     }
                     .tag("Assistant")
             }
-            carTab
-                .tabItem { Label("Car", systemImage: "car.fill") }
-                .tag("Car")
-            appliancesTab
-                .tabItem { Label("Appliances", systemImage: "washer.fill") }
-                .tag("Appliances")
         }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToTab"))

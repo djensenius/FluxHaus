@@ -123,6 +123,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		637BC62B2C5BDA7F00E7884E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB62C44391E00E62C09 /* SwiftUI.framework */; };
 		637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
 		637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
+		D402DD36EF6240BBA92FBDBB /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
 		637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
 		637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
 		637BC6362C5BDA8000E7884E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
@@ -184,9 +185,11 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		9D14B888828F5291C3A1B2D5 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		0EBB163D8B0C468A99FB9F63 /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		A1319CBC6B75067B33D60A3B /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		A833D279DDED4F415801541F /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		16D5F398E31F40DA85FCEADF /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		AA0002000000000000000001 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
 		AA0002000000000000000002 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
 		AA0003000000000000000001 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
@@ -206,6 +209,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		B894A7B443EB0DAA9E9BC45B /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
 		BA938AC82C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		5D4730DE346F4F3096732C83 /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		C26CB6CAACD7386DAA031965 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		C34D4AD44612F44CC7E6D464 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E37BE77DA97D1A7B4F3394 /* ContentView.swift */; };
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
@@ -225,6 +229,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		DB78985D9FBB18D56EADFDCE /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		DCC9A3A03C9AF7C96040469C /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
 		DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
+		225311E8D0A34FE1A853BFA7 /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		E0FFED608140DA7EB6F6D326 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		E222079D6E3C7E5941D2D5C0 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		E45053421DDDDCF16D51FBAD /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
@@ -368,6 +373,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 		637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetBundle.swift; sourceTree = "<group>"; };
 		637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivity.swift; sourceTree = "<group>"; };
+		41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivityLegacy.swift; sourceTree = "<group>"; };
 		637BC6312C5BDA8000E7884E /* FluxWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidget.swift; sourceTree = "<group>"; };
 		637BC6332C5BDA8000E7884E /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
 		637BC6352C5BDA8000E7884E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -413,6 +419,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
 		C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_ViewTests.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
+		023E1C2F41844A628251CE04 /* RobotsListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotsListView.swift; sourceTree = "<group>"; };
 		CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
 		MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
@@ -548,6 +555,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 				RD0001000000000000000001 /* RadarService.swift */,
 				RM0000000000000000000001 /* RadarMapViews.swift */,
 				C6709013ABF8AA633E63B128 /* SceneView.swift */,
+				023E1C2F41844A628251CE04 /* RobotsListView.swift */,
 				37D0A0000000000000000001 /* SuggestionChips.swift */,
 				PT0000000000000000000001 /* PrecipitationTimelineView.swift */,
 				TI0000000000000000000001 /* TypingIndicator.swift */,
@@ -661,6 +669,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 			children = (
 				637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */,
 				637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */,
+				41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */,
 				637BC6312C5BDA8000E7884E /* FluxWidget.swift */,
 				637BC6332C5BDA8000E7884E /* AppIntent.swift */,
 				637BC6352C5BDA8000E7884E /* Assets.xcassets */,
@@ -1042,6 +1051,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */,
 				76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */,
 				A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */,
+				0EBB163D8B0C468A99FB9F63 /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000001 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000001 /* PrecipitationTimelineView.swift in Sources */,
 				TI0001000000000000000001 /* TypingIndicator.swift in Sources */,
@@ -1104,6 +1114,7 @@ MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				RO0001000000000000000003 /* RadarOverlayRenderer.swift in Sources */,
 				WF0001000000000000000003 /* WeatherForecastView.swift in Sources */,
 				DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */,
+				225311E8D0A34FE1A853BFA7 /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000002 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000002 /* PrecipitationTimelineView.swift in Sources */,
 				TI0001000000000000000002 /* TypingIndicator.swift in Sources */,
@@ -1151,6 +1162,7 @@ MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */,
 				637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */,
 				637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */,
+				D402DD36EF6240BBA92FBDBB /* FluxWidgetLiveActivityLegacy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1200,6 +1212,7 @@ MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				RO0001000000000000000004 /* RadarOverlayRenderer.swift in Sources */,
 				WF0001000000000000000004 /* WeatherForecastView.swift in Sources */,
 				A833D279DDED4F415801541F /* SceneView.swift in Sources */,
+				16D5F398E31F40DA85FCEADF /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000003 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000003 /* PrecipitationTimelineView.swift in Sources */,
 				TI0001000000000000000003 /* TypingIndicator.swift in Sources */,
@@ -1272,6 +1285,7 @@ MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
 				94150B7CEBCFBDF569235F89 /* SettingsView.swift in Sources */,
 				5C3861FC78328082D3079690 /* SceneService.swift in Sources */,
 				BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */,
+				5D4730DE346F4F3096732C83 /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000004 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000004 /* PrecipitationTimelineView.swift in Sources */,
 				TI0001000000000000000004 /* TypingIndicator.swift in Sources */,
