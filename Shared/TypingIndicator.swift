@@ -41,8 +41,10 @@ struct TypingIndicator: View {
 
     private func startAnimation() {
         Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
-            withAnimation {
-                phase = (phase + 1) % 3
+            Task { @MainActor in
+                withAnimation {
+                    phase = (phase + 1) % 3
+                }
             }
         }
     }

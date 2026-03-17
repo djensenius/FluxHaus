@@ -370,16 +370,17 @@ struct ChatView: View {
     }
 
     private var photoPickerButton: some View {
-        PhotosPicker(
+        let isLoading = chat.isLoading
+        return PhotosPicker(
             selection: $selectedPhotos,
             maxSelectionCount: 4,
             matching: .images
         ) {
             Image(systemName: "photo.on.rectangle.angled")
                 .font(.title2)
-                .foregroundColor(chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent)
+                .foregroundColor(isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent)
         }
-        .disabled(chat.isLoading)
+        .disabled(isLoading)
     }
 
     private var micButton: some View {

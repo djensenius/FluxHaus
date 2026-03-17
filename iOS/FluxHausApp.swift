@@ -80,9 +80,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
 
         do {
+            let name = await MainActor.run { UIDevice.current.name }
             let body: [String: String] = [
                 "token": token,
-                "deviceName": await UIDevice.current.name
+                "deviceName": name
             ]
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             let session = URLSession(configuration: .default)

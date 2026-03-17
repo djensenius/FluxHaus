@@ -215,10 +215,6 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		C5CEC5CCBE620D65D2B1C9BC /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		C623C52748905A66CF3956EB /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
-		CB0002000000000000000001 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
-		CB0002000000000000000002 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
-		CB0002000000000000000003 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
-		CB0002000000000000000004 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		D170D5FEA1F77CDDD5473F1B /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
 		D4CF7F9BD9DD51C77C6AB4C9 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9B78F7F035E29316F494F7 /* ChatView.swift */; };
 		D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8757ED2EF3E226D6B1548CAE /* SettingsView.swift */; };
@@ -246,10 +242,6 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		FE6B445E3E47FC883C281562 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		FFD5C7DCE9B4284348280B90 /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
-		MD0002000000000000000001 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
-		MD0002000000000000000002 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
-		MD0002000000000000000003 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
-		MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
 		PT0001000000000000000001 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
 		PT0001000000000000000002 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
 		PT0001000000000000000003 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
@@ -509,8 +501,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 				63DBD7452B954216006603D0 /* VisionOSTests */,
 				637BC62C2C5BDA8000E7884E /* FluxWidget */,
 				632CBC2C258682C9003E4988 /* Products */,
-				632CBC6625868365003E4988 /* Frameworks */,
-			);
+				632CBC6625868365003E4988 /* Frameworks */,);
 			sourceTree = "<group>";
 		};
 		632CBC23258682C8003E4988 /* Shared */ = {
@@ -560,10 +551,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 				PT0000000000000000000001 /* PrecipitationTimelineView.swift */,
 				TI0000000000000000000001 /* TypingIndicator.swift */,
 CB0001000000000000000001 /* ChatBubble.swift */,
-MD0001000000000000000001 /* MarkdownContentView.swift */,
-				CB0001000000000000000001 /* ChatBubble.swift */,
-				MD0001000000000000000001 /* MarkdownContentView.swift */,
-			);
+MD0001000000000000000001 /* MarkdownContentView.swift */,);
 			path = Shared;
 			sourceTree = "<group>";
 		};
@@ -576,8 +564,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				63DBD7422B954216006603D0 /* VisionOSTests.xctest */,
 				637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */,
 				54E080FFA20990ACE9D14FB1 /* FluxHaus.app */,
-				A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */,
-			);
+				A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */,);
 			name = Products;
 			sourceTree = "<group>";
 		};
@@ -587,8 +574,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				632CBC24258682C8003E4988 /* FluxHausApp.swift */,
 				AA0001000000000000000003 /* ChatView.swift */,
 				635BD6742B9E030E009CEEA9 /* ContentView.swift */,
-				632CBC2E258682C9003E4988 /* Info.plist */,
-			);
+				632CBC2E258682C9003E4988 /* Info.plist */,);
 			path = iOS;
 			sourceTree = "<group>";
 		};
@@ -607,8 +593,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */,
 				731A02EE588AFF8C715B9DEB /* MacApp.swift */,
 				76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */,
-				8757ED2EF3E226D6B1548CAE /* SettingsView.swift */,
-			);
+				8757ED2EF3E226D6B1548CAE /* SettingsView.swift */,);
 			path = macOS;
 			sourceTree = "<group>";
 		};
@@ -618,8 +603,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				632CBC3F258682C9003E4988 /* Tests_iOS.swift */,
 				634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */,
 				6BC999E976448F6757BA7155 /* MockDataUITests.swift */,
-				632CBC41258682C9003E4988 /* Info.plist */,
-			);
+				632CBC41258682C9003E4988 /* Info.plist */,);
 			path = "Tests iOS";
 			sourceTree = "<group>";
 		};
@@ -629,8 +613,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				632CBC4A258682C9003E4988 /* Tests_macOS.swift */,
 				77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */,
 				C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */,
-				632CBC4C258682C9003E4988 /* Info.plist */,
-			);
+				632CBC4C258682C9003E4988 /* Info.plist */,);
 			path = "Tests macOS";
 			sourceTree = "<group>";
 		};
@@ -645,8 +628,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				63A39FB42C44391E00E62C09 /* WidgetKit.framework */,
 				63A39FB62C44391E00E62C09 /* SwiftUI.framework */,
 				D064384394F50320A7808D6A /* OS X */,
-				0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */,
-			);
+				0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */,);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
@@ -659,8 +641,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				634056D12E47FFC2001F8278 /* QueryFluxTests.swift */,
 				634056D22E47FFC2001F8278 /* SharedTests.swift */,
 				634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */,
-				634056D42E47FFC2001F8278 /* WidgetTests.swift */,
-			);
+				634056D42E47FFC2001F8278 /* WidgetTests.swift */,);
 			path = SharedTests;
 			sourceTree = "<group>";
 		};
@@ -673,8 +654,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				637BC6312C5BDA8000E7884E /* FluxWidget.swift */,
 				637BC6332C5BDA8000E7884E /* AppIntent.swift */,
 				637BC6352C5BDA8000E7884E /* Assets.xcassets */,
-				637BC6372C5BDA8000E7884E /* Info.plist */,
-			);
+				637BC6372C5BDA8000E7884E /* Info.plist */,);
 			path = FluxWidget;
 			sourceTree = "<group>";
 		};
@@ -687,40 +667,35 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				63DBD7362B954215006603D0 /* ContentView.swift */,
 				63DBD7382B954216006603D0 /* Assets.xcassets */,
 				63DBD73D2B954216006603D0 /* Info.plist */,
-				63DBD73A2B954216006603D0 /* Preview Content */,
-			);
+				63DBD73A2B954216006603D0 /* Preview Content */,);
 			path = VisionOS;
 			sourceTree = "<group>";
 		};
 		63DBD7302B954215006603D0 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				63DBD7312B954215006603D0 /* RealityKitContent */,
-			);
+				63DBD7312B954215006603D0 /* RealityKitContent */,);
 			path = Packages;
 			sourceTree = "<group>";
 		};
 		63DBD73A2B954216006603D0 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				63DBD73B2B954216006603D0 /* Preview Assets.xcassets */,
-			);
+				63DBD73B2B954216006603D0 /* Preview Assets.xcassets */,);
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		63DBD7452B954216006603D0 /* VisionOSTests */ = {
 			isa = PBXGroup;
 			children = (
-				63DBD7462B954216006603D0 /* VisionOSTests.swift */,
-			);
+				63DBD7462B954216006603D0 /* VisionOSTests.swift */,);
 			path = VisionOSTests;
 			sourceTree = "<group>";
 		};
 		D064384394F50320A7808D6A /* OS X */ = {
 			isa = PBXGroup;
 			children = (
-				AC70F639352E9D9252F77D43 /* Cocoa.framework */,
-			);
+				AC70F639352E9D9252F77D43 /* Cocoa.framework */,);
 			name = "OS X";
 			sourceTree = "<group>";
 		};
@@ -1057,8 +1032,6 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				TI0001000000000000000001 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000001 /* ChatBubble.swift in Sources */,
 MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
-				CB0002000000000000000001 /* ChatBubble.swift in Sources */,
-				MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				RD0003000000000000000001 /* RadarService.swift in Sources */,
 				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */,
@@ -1120,8 +1093,6 @@ MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000002 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000002 /* ChatBubble.swift in Sources */,
 MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
-				CB0002000000000000000002 /* ChatBubble.swift in Sources */,
-				MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1218,8 +1189,6 @@ MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000003 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000003 /* ChatBubble.swift in Sources */,
 MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
-				CB0002000000000000000003 /* ChatBubble.swift in Sources */,
-				MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1291,8 +1260,6 @@ MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000004 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000004 /* ChatBubble.swift in Sources */,
 MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
-				CB0002000000000000000004 /* ChatBubble.swift in Sources */,
-				MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
 				RD0003000000000000000004 /* RadarService.swift in Sources */,
 				RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */,
