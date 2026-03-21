@@ -532,7 +532,8 @@ struct WeatherDetailView: View {
 
     @ViewBuilder
     private func precipitationTimelineCard(weather: Weather) -> some View {
-        if let minuteData = weather.minuteForecast, !minuteData.isEmpty {
+        if let minuteData = weather.minuteForecast, !minuteData.isEmpty,
+           PrecipitationTimelineView.hasPrecipitation(Array(minuteData)) {
             PrecipitationTimelineView(minuteForecast: Array(minuteData))
                 .padding()
                 #if !os(visionOS)

@@ -11,6 +11,11 @@ import SwiftUI
 struct PrecipitationTimelineView: View {
     let minuteForecast: [MinuteWeather]
 
+    /// Returns true if any precipitation is expected in the next hour.
+    static func hasPrecipitation(_ forecast: [MinuteWeather]) -> Bool {
+        forecast.prefix(60).contains { $0.precipitationIntensity.value > 0.01 }
+    }
+
     private var minutes: [MinuteWeather] {
         Array(minuteForecast.prefix(60))
     }
