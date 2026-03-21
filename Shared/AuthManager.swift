@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  AuthManager.swift
 //  FluxHaus
@@ -311,7 +312,12 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         guard getAccessToken() != nil else { return false }
         if isTokenExpiringSoon() {
             logger.debug("ensureValidToken: token expiring soon, refreshing proactively")
-            return await refreshTokenIfNeeded()
+            let success = await refreshTokenIfNeeded()
+            if !success {
+                logger.error("ensureValidToken: refresh failed — signing out")
+                await MainActor.run { signOut() }
+            }
+            return success
         }
         return true
     }

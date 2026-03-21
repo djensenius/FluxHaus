@@ -132,11 +132,12 @@ private func handleUnauthorized(password: String) {
                 queryFlux(password: password)
             } else {
                 authRetryCount = 0
-                logger.error("handleUnauthorized: refresh FAILED — will retry on next poll")
+                logger.error("handleUnauthorized: refresh FAILED — signing out")
+                AuthManager.shared.signOut()
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
-                    userInfo: ["loginError": "Session expired. Please sign in again."]
+                    userInfo: ["keysFailed": true]
                 )
             }
         }
