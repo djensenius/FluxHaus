@@ -35,7 +35,8 @@ struct WeatherRadarSheet: View {
                 controls
                 if let weather {
                     if let minuteForecast = weather.minuteForecast,
-                       !minuteForecast.isEmpty {
+                       !minuteForecast.isEmpty,
+                       PrecipitationTimelineView.hasPrecipitation(Array(minuteForecast)) {
                         Divider()
                         PrecipitationTimelineView(
                             minuteForecast: Array(minuteForecast)
