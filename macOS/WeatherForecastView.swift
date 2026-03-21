@@ -194,6 +194,7 @@ struct WeatherDetailView: View {
                     radarCard
                     precipitationTimelineCard(weather: weather)
                     forecastCard(weather: weather)
+                    weatherAttribution
                 } else {
                     loadingView
                 }
@@ -555,6 +556,17 @@ struct WeatherDetailView: View {
             #if os(visionOS)
             .glassBackgroundEffect()
             #endif
+    }
+
+    private var weatherAttribution: some View {
+        Link(
+            " Weather",
+            destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
+        )
+        .font(Theme.Fonts.caption)
+        .foregroundColor(Theme.Colors.textSecondary)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.top, 4)
     }
 
     private var loadingView: some View {
