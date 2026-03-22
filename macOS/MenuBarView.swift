@@ -90,7 +90,7 @@ struct MenuBarView: View {
                             ? Theme.Colors.success
                             : Theme.Colors.warning
                     )
-                    .font(.caption)
+                    .font(Theme.Fonts.caption)
                 }
             })
         }

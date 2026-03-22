@@ -46,7 +46,7 @@ struct HomeKitView: View {
                 Button(action: {}, label: {
                     HStack {
                         Text("Active")
-                            .font(.subheadline)
+                            .font(Theme.Fonts.bodySmall)
                             .frame(width: 100)
                     }
                     .frame(width: 120, height: 50, alignment: .center)
@@ -62,7 +62,7 @@ struct HomeKitView: View {
                 Button(action: {}, label: {
                     HStack {
                         Text("Inactive")
-                            .font(.subheadline)
+                            .font(Theme.Fonts.bodySmall)
                             .frame(width: 100)
                     }
                     .frame(width: 120, height: 50, alignment: .center)

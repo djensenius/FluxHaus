@@ -24,8 +24,8 @@ struct LoadingView: View {
                     .fontWeight(.bold)
                 if let error = error {
                     Text(error)
-                        .foregroundStyle(.red)
-                        .font(.subheadline)
+                        .foregroundStyle(Theme.Colors.error)
+                        .font(Theme.Fonts.bodySmall)
                 }
                 VStack(spacing: 16) {
                     Button(action: signInWithOIDC) {

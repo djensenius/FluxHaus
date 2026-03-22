@@ -188,8 +188,8 @@ struct CarDetailView: View {
                                     Text("Turn Climate Off")
                                         .frame(maxWidth: .infinity)
                                         .padding()
-                                        .background(Color.red.opacity(0.2))
-                                        .foregroundColor(.red)
+                                        .background(Theme.Colors.error.opacity(0.2))
+                                        .foregroundColor(Theme.Colors.error)
                                         .cornerRadius(8)
                                 })
                                 .disabled(self.buttonsDisabled)
@@ -441,7 +441,7 @@ struct CarClimateView: View {
                 .disabled(buttonsDisabled)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .listRowBackground(Theme.Colors.accent)
-                .foregroundColor(.white)
+                .foregroundColor(Theme.Colors.textPrimary)
             }
         }
         .navigationTitle("Climate Control")

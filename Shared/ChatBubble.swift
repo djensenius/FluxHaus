@@ -125,7 +125,7 @@ struct ChatBubble: View {
         Button(action: onPlayTapped) {
             HStack(spacing: 4) {
                 Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                    .font(.caption)
+                    .font(Theme.Fonts.caption)
                 Text(isPlaying ? "Stop" : "Play")
                     .font(Theme.Fonts.caption)
             }

@@ -89,7 +89,7 @@ struct PrecipitationTimelineView: View {
                 Text("+60m")
             }
             .font(.caption2)
-            .foregroundColor(.secondary)
+            .foregroundColor(Theme.Colors.textSecondary)
         }
     }
 
