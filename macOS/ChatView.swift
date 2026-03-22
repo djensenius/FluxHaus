@@ -60,7 +60,8 @@ struct ChatView: View {
         VStack(spacing: 0) {
             HStack {
                 Text("Conversations")
-                    .font(.headline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .fontWeight(.semibold)
                 Spacer()
                 Button(action: {
                     Task { await chat.createNewConversation() }
@@ -94,15 +95,15 @@ struct ChatView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Text(conv.title ?? "Untitled")
-                                    .font(.body.weight(.semibold))
+                                    .font(Theme.Fonts.bodyMedium.weight(.semibold))
                                     .lineLimit(1)
                                 Spacer()
                                 Text(formatRelativeDate(conv.updatedAt))
-                                    .font(.caption)
+                                    .font(Theme.Fonts.caption)
                                     .foregroundColor(Theme.Colors.textSecondary)
                             }
                             Text("\(conv.messageCount) messages")
-                                .font(.subheadline)
+                                .font(Theme.Fonts.bodySmall)
                                 .foregroundColor(Theme.Colors.textSecondary)
                                 .lineLimit(1)
                         }
@@ -325,7 +326,7 @@ struct ChatView: View {
 
                     Button(action: { showFilePicker = true }, label: {
                         Image(systemName: "photo.on.rectangle.angled")
-                            .font(.title3)
+                            .font(Theme.Fonts.headerLarge())
                             .foregroundColor(
                                 chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
                             )
@@ -371,7 +372,7 @@ struct ChatView: View {
 
     private var micButton: some View {
         Image(systemName: "mic.circle.fill")
-            .font(.title2)
+            .font(Theme.Fonts.headerLarge())
             .foregroundColor(
                 chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
             )
@@ -420,7 +421,7 @@ struct ChatView: View {
                 Task { await chat.stopRecordingAndSend() }
             }, label: {
                 Image(systemName: "stop.circle.fill")
-                    .font(.title2)
+                    .font(Theme.Fonts.headerLarge())
                     .foregroundColor(Theme.Colors.error)
             })
             .buttonStyle(.plain)

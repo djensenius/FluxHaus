@@ -38,15 +38,16 @@ struct SettingsView: View {
                     .font(.largeTitle)
                     .foregroundColor(Theme.Colors.success)
                 Text("Signed In")
-                    .font(.headline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .fontWeight(.semibold)
                 if AuthManager.shared.getAccessToken() != nil {
                     Text("Authenticated via OIDC")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(Theme.Fonts.bodySmall)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 } else {
                     Text("Demo mode")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(Theme.Fonts.bodySmall)
+                        .foregroundColor(Theme.Colors.textSecondary)
                 }
                 Button("Sign Out") {
                     AuthManager.shared.signOut()
@@ -59,9 +60,10 @@ struct SettingsView: View {
             } else {
                 Image(systemName: "xmark.circle.fill")
                     .font(.largeTitle)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Theme.Colors.textSecondary)
                 Text("Not Signed In")
-                    .font(.headline)
+                    .font(Theme.Fonts.bodyMedium)
+                    .fontWeight(.semibold)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -51,8 +51,8 @@ struct LoginView: View {
 
             if let error = errorMessage {
                 Text(error)
-                    .foregroundStyle(.red)
-                    .font(.subheadline)
+                    .foregroundStyle(Theme.Colors.error)
+                    .font(Theme.Fonts.bodySmall)
             }
 
             VStack(spacing: 12) {

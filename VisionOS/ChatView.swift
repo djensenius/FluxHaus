@@ -181,7 +181,7 @@ struct ChatView: View {
                         chat.startRecording()
                     }, label: {
                         Image(systemName: "mic.circle.fill")
-                            .font(.title)
+                            .font(Theme.Fonts.headerXL())
                             .foregroundColor(Theme.Colors.accent)
                     })
                     .disabled(chat.isLoading)
@@ -192,7 +192,7 @@ struct ChatView: View {
                         matching: .images
                     ) {
                         Image(systemName: "photo.on.rectangle.angled")
-                            .font(.title2)
+                            .font(Theme.Fonts.headerLarge())
                             .foregroundColor(
                                 chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
                             )
@@ -238,7 +238,7 @@ struct ChatView: View {
                     .frame(width: 36, height: 36)
                     .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
                 Image(systemName: "mic.fill")
-                    .font(.title3)
+                    .font(Theme.Fonts.headerLarge())
                     .foregroundColor(Theme.Colors.accent)
             }
             .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
@@ -260,7 +260,7 @@ struct ChatView: View {
                 Task { await chat.stopRecordingAndSend() }
             }, label: {
                 Image(systemName: "stop.circle.fill")
-                    .font(.title)
+                    .font(Theme.Fonts.headerXL())
                     .foregroundColor(Theme.Colors.error)
             })
         }
@@ -365,12 +365,12 @@ struct ConversationListView: View {
                                     .lineLimit(1)
                                 Spacer()
                                 Text(formatRelativeDate(conv.updatedAt))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(Theme.Fonts.caption)
+                                    .foregroundColor(Theme.Colors.textSecondary)
                             }
                             Text("\(conv.messageCount) messages")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.textSecondary)
                         }
                     })
                     .contextMenu {

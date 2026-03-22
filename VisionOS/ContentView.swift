@@ -70,7 +70,7 @@ struct ContentView: View {
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
-                        .font(.title)
+                        .font(Theme.Fonts.headerXL())
                         .padding(.leading)
                     Spacer()
                 }

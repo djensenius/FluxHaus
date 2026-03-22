@@ -21,13 +21,13 @@ struct HourlyForecastRow: View {
                     let hour = weather.hourlyForecast[index]
                     VStack(spacing: 6) {
                         Text(hourLabel(for: hour.date, index: index))
-                            .font(.system(size: 11, weight: .medium))
+                            .font(Theme.Fonts.bodySmall)
                             .foregroundColor(Theme.Colors.textSecondary)
                         Image(systemName: WeatherHelpers.icon(for: hour.condition))
                             .symbolRenderingMode(.multicolor)
                             .font(.system(size: 18))
                         Text(WeatherHelpers.formatTemp(hour.temperature.value))
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(Theme.Fonts.bodyMedium).fontWeight(.semibold)
                             .foregroundColor(Theme.Colors.textPrimary)
                         if hour.precipitationChance > 0.05 {
                             Text("\(Int(hour.precipitationChance * 100))%")
@@ -68,27 +68,38 @@ struct DailyForecastList: View {
     }
 
     private func dailyRow(day: DayWeather, index: Int) -> some View {
-        HStack {
-            Text(dayLabel(for: day.date, index: index))
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Theme.Colors.textPrimary)
-                .frame(width: 44, alignment: .leading)
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(dayLabel(for: day.date, index: index))
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
+                Text(dateLabel(for: day.date, index: index))
+                    .font(Theme.Fonts.bodySmall)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+            .frame(width: 60, alignment: .leading)
             Image(systemName: WeatherHelpers.icon(for: day.condition))
                 .symbolRenderingMode(.multicolor)
-                .font(.system(size: 16))
-                .frame(width: 28)
+                .font(.system(size: 20))
+                .frame(width: 30)
             precipBadge(chance: day.precipitationChance)
                 .frame(width: 40)
             Spacer()
             tempBar(low: day.lowTemperature.value, high: day.highTemperature.value)
         }
-        .padding(.horizontal).padding(.vertical, 6)
+        .padding(.horizontal).padding(.vertical, 8)
     }
 
     private func dayLabel(for date: Date, index: Int) -> String {
         if index == 0 { return "Today" }
         let fmt = DateFormatter()
-        fmt.dateFormat = "EEE"
+        fmt.dateFormat = "EEEE"
+        return fmt.string(from: date)
+    }
+
+    private func dateLabel(for date: Date, index: Int) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM d"
         return fmt.string(from: date)
     }
 
@@ -96,7 +107,7 @@ struct DailyForecastList: View {
         Group {
             if chance > 0.05 {
                 Text("\(Int(chance * 100))%")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Theme.Fonts.bodySmall)
                     .foregroundColor(Theme.Colors.info)
             } else {
                 Text("")
@@ -112,9 +123,9 @@ struct DailyForecastList: View {
 
         return HStack(spacing: 6) {
             Text(WeatherHelpers.formatTemp(low))
-                .font(.system(size: 12))
+                .font(Theme.Fonts.bodySmall)
                 .foregroundColor(Theme.Colors.textSecondary)
-                .frame(width: 32, alignment: .trailing)
+                .frame(width: 34, alignment: .trailing)
             GeometryReader { geo in
                 let totalW = geo.size.width
                 let startFrac = (low - minTemp) / range
@@ -136,9 +147,9 @@ struct DailyForecastList: View {
             }
             .frame(width: 80, height: 16)
             Text(WeatherHelpers.formatTemp(high))
-                .font(.system(size: 12, weight: .medium))
+                .font(Theme.Fonts.bodySmall.weight(.medium))
                 .foregroundColor(Theme.Colors.textPrimary)
-                .frame(width: 32, alignment: .leading)
+                .frame(width: 34, alignment: .leading)
         }
     }
 
@@ -165,7 +176,7 @@ struct WeatherForecastSection: View {
 
     private func sectionHeader(_ title: String, icon: String) -> some View {
         Label(title, systemImage: icon)
-            .font(.system(size: 12, weight: .semibold))
+            .font(Theme.Fonts.bodySmall).fontWeight(.semibold)
             .foregroundColor(Theme.Colors.textSecondary)
             .textCase(.uppercase)
             .padding(.horizontal)
@@ -267,35 +278,59 @@ struct WeatherDetailView: View {
         #endif
     }
 
+    @State private var showDetailedWeather = false
+
     private func detailsGrid(weather: Weather) -> some View {
         let cur = weather.currentWeather
         let today = weather.dailyForecast.first
-        let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
-        return LazyVGrid(columns: columns, spacing: 12) {
-            detailItem(icon: "thermometer.medium", label: "Feels Like",
-                       value: WeatherHelpers.formatTemp(cur.apparentTemperature.value))
-            detailItem(icon: "humidity", label: "Humidity", value: "\(Int(cur.humidity * 100))%")
-            detailItem(icon: "sun.max.trianglebadge.exclamationmark", label: "UV Index",
-                       value: "\(cur.uvIndex.value)")
-            detailItem(icon: "wind", label: "Wind",
-                       value: WeatherHelpers.formatSpeed(cur.wind.speed.value))
-            detailItem(icon: "drop.deviating", label: "Dew Point",
-                       value: WeatherHelpers.formatTemp(cur.dewPoint.value))
-            detailItem(icon: "eye", label: "Visibility",
-                       value: formatDistance(cur.visibility.value))
-            detailItem(icon: "gauge.with.dots.needle.33percent", label: "Pressure",
-                       value: formatPressure(cur.pressure.value))
-            detailItem(icon: "location.north.line", label: "Wind Dir",
-                       value: compassDirection(cur.wind.direction.value))
-            if let today = today {
-                detailItem(icon: "sunrise", label: "Sunrise",
-                           value: formatTime(today.sun.sunrise))
-                detailItem(icon: "sunset", label: "Sunset",
-                           value: formatTime(today.sun.sunset))
-                detailItem(icon: "moon", label: "Moon",
-                           value: moonPhaseText(today.moon.phase))
-                detailItem(icon: "wind.circle", label: "Gusts",
-                           value: WeatherHelpers.formatSpeed(cur.wind.gust?.value ?? 0))
+        let columns = [GridItem(.flexible()), GridItem(.flexible()),
+                       GridItem(.flexible()), GridItem(.flexible())]
+        return VStack(spacing: 12) {
+            LazyVGrid(columns: columns, spacing: 12) {
+                detailItem(icon: "thermometer.medium", label: "Feels Like",
+                           value: WeatherHelpers.formatTemp(cur.apparentTemperature.value))
+                detailItem(icon: "humidity", label: "Humidity",
+                           value: "\(Int(cur.humidity * 100))%")
+                detailItem(icon: "sun.max.trianglebadge.exclamationmark", label: "UV Index",
+                           value: "\(cur.uvIndex.value)")
+                detailItem(icon: "wind", label: "Wind",
+                           value: WeatherHelpers.formatSpeed(cur.wind.speed.value))
+            }
+
+            if showDetailedWeather {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    detailItem(icon: "drop.deviating", label: "Dew Point",
+                               value: WeatherHelpers.formatTemp(cur.dewPoint.value))
+                    detailItem(icon: "eye", label: "Visibility",
+                               value: formatDistance(cur.visibility.value))
+                    detailItem(icon: "gauge.with.dots.needle.33percent", label: "Pressure",
+                               value: formatPressure(cur.pressure.value))
+                    detailItem(icon: "location.north.line", label: "Wind Dir",
+                               value: compassDirection(cur.wind.direction.value))
+                    if let today = today {
+                        detailItem(icon: "sunrise", label: "Sunrise",
+                                   value: formatTime(today.sun.sunrise))
+                        detailItem(icon: "sunset", label: "Sunset",
+                                   value: formatTime(today.sun.sunset))
+                        detailItem(icon: "moon", label: "Moon",
+                                   value: moonPhaseText(today.moon.phase))
+                        detailItem(icon: "wind.circle", label: "Gusts",
+                                   value: WeatherHelpers.formatSpeed(cur.wind.gust?.value ?? 0))
+                    }
+                }
+            }
+
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showDetailedWeather.toggle()
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(showDetailedWeather ? "Less" : "More")
+                    Image(systemName: showDetailedWeather ? "chevron.up" : "chevron.down")
+                }
+                .font(Theme.Fonts.caption)
+                .foregroundColor(Theme.Colors.accent)
             }
         }
     }
@@ -339,7 +374,7 @@ struct WeatherDetailView: View {
 
     private func detailItem(icon: String, label: String, value: String) -> some View {
         VStack(spacing: 2) {
-            Image(systemName: icon).font(.caption).foregroundColor(Theme.Colors.textSecondary)
+            Image(systemName: icon).font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
             Text(value).font(Theme.Fonts.bodySmall).foregroundColor(Theme.Colors.textPrimary)
             Text(label).font(.system(size: 9)).foregroundColor(Theme.Colors.textSecondary)
         }
@@ -351,7 +386,7 @@ struct WeatherDetailView: View {
     private func weatherAlertsCard(alerts: [WeatherAlert]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Weather Alerts", systemImage: "exclamationmark.triangle.fill")
-                .font(.system(size: 12, weight: .semibold))
+                .font(Theme.Fonts.bodySmall).fontWeight(.semibold)
                 .foregroundColor(Theme.Colors.error)
                 .textCase(.uppercase)
                 .padding(.horizontal)
@@ -379,7 +414,7 @@ struct WeatherDetailView: View {
                         }
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.caption).foregroundColor(Theme.Colors.textSecondary)
+                            .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
                     }
                     .padding(.horizontal).padding(.vertical, 6)
                 }
@@ -423,7 +458,7 @@ struct WeatherDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("Radar", systemImage: "antenna.radiowaves.left.and.right")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Theme.Fonts.bodySmall).fontWeight(.semibold)
                     .foregroundColor(Theme.Colors.textSecondary)
                     .textCase(.uppercase)
                 Spacer()
@@ -469,7 +504,7 @@ struct WeatherDetailView: View {
     private var fullRadarSheet: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Weather Radar").font(.headline)
+                Text("Weather Radar").font(Theme.Fonts.bodyMedium).fontWeight(.semibold)
                 Spacer()
                 Button("Done") { showFullRadar = false }
             }
@@ -496,20 +531,20 @@ struct WeatherDetailView: View {
         VStack(spacing: 6) {
             HStack {
                 Text(frameTimeLabel)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(Theme.Fonts.bodyMedium)
                     .monospacedDigit()
                 Spacer()
                 if let frame = currentFrame {
                     HStack(spacing: 6) {
                         confidenceLabel(for: frame)
-                        Text("·").foregroundColor(.secondary)
+                        Text("·").foregroundColor(Theme.Colors.textSecondary)
                         Text(radarService.relativeLabel(for: frame))
                             .foregroundColor(
                                 frameIndex < radarService.pastFrames.count
-                                    ? .secondary : Theme.Colors.accent
+                                    ? Theme.Colors.textSecondary : Theme.Colors.accent
                             )
                     }
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Theme.Fonts.bodySmall)
                 }
             }
             HStack(spacing: 10) {
@@ -538,7 +573,7 @@ struct WeatherDetailView: View {
     private func confidenceLabel(for frame: RadarFrame) -> some View {
         if frameIndex < radarService.pastFrames.count {
             Text("Observed")
-                .foregroundColor(.secondary)
+                .foregroundColor(Theme.Colors.textSecondary)
         } else {
             let value = radarService.confidence(for: frame)
             let label = value > 0.7 ? "High"

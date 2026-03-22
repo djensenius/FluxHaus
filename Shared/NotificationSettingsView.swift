@@ -30,10 +30,11 @@ struct NotificationSettingsSection: View {
                 Label {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Live Activities Disabled")
-                            .font(.headline)
+                            .font(Theme.Fonts.bodyMedium)
+                            .fontWeight(.semibold)
                         Text("Enable in Settings → FluxHaus → Live Activities")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(Theme.Fonts.caption)
+                            .foregroundStyle(Theme.Colors.textSecondary)
                     }
                 } icon: {
                     Image(systemName: "exclamationmark.triangle.fill")

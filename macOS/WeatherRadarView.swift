@@ -57,13 +57,13 @@ struct WeatherRadarSheet: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Weather Radar").font(.headline)
+                Text("Weather Radar").font(Theme.Fonts.bodyMedium).fontWeight(.semibold)
                 if radarService.nowcastFrames.isEmpty {
                     Text("Past 2 hours")
-                        .font(.caption).foregroundColor(.secondary)
+                        .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
                 } else {
                     Text("Past 2 hours + 4 hour forecast")
-                        .font(.caption).foregroundColor(.secondary)
+                        .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
                 }
             }
             Spacer()
@@ -88,11 +88,11 @@ struct WeatherRadarSheet: View {
                 if let frame = currentFrame {
                     HStack(spacing: 6) {
                         confidenceLabel(for: frame)
-                        Text("·").foregroundColor(.secondary)
+                        Text("·").foregroundColor(Theme.Colors.textSecondary)
                         Text(radarService.relativeLabel(for: frame))
                             .foregroundColor(
                                 frameIndex < radarService.pastFrames.count
-                                    ? .secondary : Theme.Colors.accent
+                                    ? Theme.Colors.textSecondary : Theme.Colors.accent
                             )
                     }
                     .font(.system(size: 13, weight: .medium))
@@ -110,7 +110,7 @@ struct WeatherRadarSheet: View {
                 }
                 Text("Past")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Theme.Colors.textSecondary)
                 Slider(
                     value: Binding(
                         get: { Double(min(frameIndex, max(0, radarService.allFrames.count - 1))) },
@@ -123,7 +123,7 @@ struct WeatherRadarSheet: View {
                     .font(.caption2)
                     .foregroundColor(
                         radarService.nowcastFrames.isEmpty
-                            ? .secondary : Theme.Colors.accent
+                            ? Theme.Colors.textSecondary : Theme.Colors.accent
                     )
             }
         }
@@ -134,7 +134,7 @@ struct WeatherRadarSheet: View {
     private func confidenceLabel(for frame: RadarFrame) -> some View {
         if frameIndex < radarService.pastFrames.count {
             Text("Observed")
-                .foregroundColor(.secondary)
+                .foregroundColor(Theme.Colors.textSecondary)
         } else {
             let value = radarService.confidence(for: frame)
             let label = value > 0.7 ? "High"
