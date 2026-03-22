@@ -93,7 +93,7 @@ struct DailyForecastList: View {
     private func dayLabel(for date: Date, index: Int) -> String {
         if index == 0 { return "Today" }
         let fmt = DateFormatter()
-        fmt.dateFormat = "EEEE"
+        fmt.dateFormat = "EEE"
         return fmt.string(from: date)
     }
 
