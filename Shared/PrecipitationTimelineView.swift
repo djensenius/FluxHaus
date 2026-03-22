@@ -20,6 +20,20 @@ struct PrecipitationTimelineView: View {
         Array(minuteForecast.prefix(60))
     }
 
+    private var smoothedValues: [Double] {
+        let raw = minutes.map { $0.precipitationIntensity.value }
+        guard raw.count > 2 else { return raw }
+        var result = [Double](repeating: 0, count: raw.count)
+        let window = 3
+        for idx in raw.indices {
+            let lower = max(0, idx - window)
+            let upper = min(raw.count - 1, idx + window)
+            let slice = raw[lower...upper]
+            result[idx] = slice.reduce(0, +) / Double(slice.count)
+        }
+        return result
+    }
+
     private var maxIntensity: Double {
         max(minutes.map { $0.precipitationIntensity.value }.max() ?? 0, 0.5)
     }
@@ -33,7 +47,7 @@ struct PrecipitationTimelineView: View {
             ZStack(alignment: .bottom) {
                 // Area chart
                 PrecipitationShape(
-                    values: minutes.map { $0.precipitationIntensity.value },
+                    values: smoothedValues,
                     maxValue: maxIntensity
                 )
                 .fill(
@@ -49,7 +63,7 @@ struct PrecipitationTimelineView: View {
 
                 // Line on top
                 PrecipitationLine(
-                    values: minutes.map { $0.precipitationIntensity.value },
+                    values: smoothedValues,
                     maxValue: maxIntensity
                 )
                 .stroke(Theme.Colors.accent, lineWidth: 2)

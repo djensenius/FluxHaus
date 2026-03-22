@@ -129,6 +129,7 @@ class LiveActivityManager {
 
     func reconcile(devices: [WidgetDevice]) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            logger.warning("Live Activities are disabled — check Settings → FluxHaus → Live Activities")
             return
         }
 
