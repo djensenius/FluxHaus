@@ -9,8 +9,7 @@
 import SwiftUI
 import ActivityKit
 
-struct NotificationSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
+struct NotificationSettingsSection: View {
     @State private var subscribedTypes: Set<String> = LiveActivityManager.shared.subscribedDeviceTypes
 
     private let deviceTypes: [(name: String, icon: String)] = [
@@ -26,46 +25,35 @@ struct NotificationSettingsView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            List {
-                if !activitiesEnabled {
-                    Section {
-                        Label {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Live Activities Disabled")
-                                    .font(.headline)
-                                Text("Enable in Settings → FluxHaus → Live Activities")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        } icon: {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                        }
+        if !activitiesEnabled {
+            Section {
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Live Activities Disabled")
+                            .font(.headline)
+                        Text("Enable in Settings → FluxHaus → Live Activities")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.yellow)
                 }
+            }
+        }
 
-                Section {
-                    ForEach(deviceTypes, id: \.name) { device in
-                        Toggle(isOn: binding(for: device.name)) {
-                            Label(device.name, systemImage: device.icon)
-                        }
-                        .tint(Theme.Colors.accent)
-                        .disabled(!activitiesEnabled)
-                    }
-                } header: {
-                    Text("Live Activity Notifications")
-                } footer: {
-                    Text("Choose which devices show Live Activities on your Lock Screen and Dynamic Island.")
+        Section {
+            ForEach(deviceTypes, id: \.name) { device in
+                Toggle(isOn: binding(for: device.name)) {
+                    Label(device.name, systemImage: device.icon)
                 }
+                .tint(Theme.Colors.accent)
+                .disabled(!activitiesEnabled)
             }
-            .navigationTitle("Notifications")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
+        } header: {
+            Text("Live Activity & Push Notifications")
+        } footer: {
+            Text("Choose which devices show Live Activities and send push notifications when finished.")
         }
     }
 
@@ -81,6 +69,41 @@ struct NotificationSettingsView: View {
                 LiveActivityManager.shared.subscribedDeviceTypes = subscribedTypes
             }
         )
+    }
+}
+
+struct SettingsView: View {
+    var body: some View {
+        List {
+            NotificationSettingsSection()
+
+            Section {
+                Button(role: .destructive) {
+                    AuthManager.shared.signOut()
+                    NotificationCenter.default.post(
+                        name: Notification.Name.logout,
+                        object: nil,
+                        userInfo: ["logout": true]
+                    )
+                } label: {
+                    Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                }
+            }
+
+            Section {
+                Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
+                    Label {
+                        Text("Weather data provided by \(Image(systemName: "apple.logo")) Weather")
+                    } icon: {
+                        Image(systemName: "cloud.sun")
+                    }
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                }
+            } header: {
+                Text("About")
+            }
+        }
+        .navigationTitle("Settings")
     }
 }
 #endif

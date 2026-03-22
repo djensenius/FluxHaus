@@ -52,6 +52,7 @@ struct ContentView: View {
             detailView
         }
         .frame(minWidth: 800, minHeight: 600)
+        .background { keyboardShortcuts }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
         ) { notification in
@@ -83,6 +84,20 @@ struct ContentView: View {
             }
         }
         .navigationTitle("FluxHaus")
+    }
+
+    private var keyboardShortcuts: some View {
+        Group {
+            Button("") { selectedItem = .dashboard }.keyboardShortcut("1")
+            Button("") { selectedItem = .weather }.keyboardShortcut("2")
+            Button("") { selectedItem = .scenes }.keyboardShortcut("3")
+            Button("") { selectedItem = .appliances }.keyboardShortcut("4")
+            Button("") { selectedItem = .car }.keyboardShortcut("5")
+            Button("") { selectedItem = .robots }.keyboardShortcut("6")
+            Button("") { selectedItem = .assistant }.keyboardShortcut("7")
+        }
+        .frame(width: 0, height: 0)
+        .opacity(0)
     }
 
     @ViewBuilder
