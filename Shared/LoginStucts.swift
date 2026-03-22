@@ -191,6 +191,35 @@ public enum DishWasherProgram: String, Codable {
     case steamFresh = "SteamFresh"
     case maximumCleaning = "MaximumCleaning"
     case mixedLoad = "MixedLoad"
+
+    public var displayName: String {
+        switch self {
+        case .preRinse: return "Pre-Rinse"
+        case .auto1: return "Auto 1"
+        case .auto2: return "Auto 2"
+        case .auto3: return "Auto 3"
+        case .eco50: return "Eco 50°"
+        case .quick45: return "Quick 45'"
+        case .intensiv70: return "Intensive 70°"
+        case .normal65: return "Normal 65°"
+        case .glas40: return "Glass 40°"
+        case .glassCare: return "Glass Care"
+        case .nightWash: return "Night Wash"
+        case .quick65: return "Quick 65'"
+        case .normal45: return "Normal 45°"
+        case .intensiv45: return "Intensive 45°"
+        case .autoHalfLoad: return "Auto Half Load"
+        case .intensivPower: return "Intensive Power"
+        case .magicDaily: return "Magic Daily"
+        case .super60: return "Super 60°"
+        case .kurz60: return "Short 60'"
+        case .expressSparkle65: return "Express Sparkle 65°"
+        case .machineCare: return "Machine Care"
+        case .steamFresh: return "Steam Fresh"
+        case .maximumCleaning: return "Maximum Cleaning"
+        case .mixedLoad: return "Mixed Load"
+        }
+    }
 }
 
 public enum OperationState: String, Codable {

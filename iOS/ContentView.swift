@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedTab = "home"
+    @State private var showNotificationSettings = false
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
@@ -56,6 +57,18 @@ struct ContentView: View {
             }
         }
         .tabViewStyle(.sidebarAdaptable)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showNotificationSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+            }
+        }
+        .sheet(isPresented: $showNotificationSettings) {
+            NotificationSettingsView()
+        }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
         ) { notification in
@@ -123,10 +136,9 @@ struct ContentView: View {
 
     private var footer: some View {
         HStack {
-            Link(
-                "Weather provided by  Weather",
-                destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
-            )
+            Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
+                Text("Weather data provided by \(Image(systemName: "apple.logo")) Weather")
+            }
             .font(Theme.Fonts.caption)
             .foregroundColor(Theme.Colors.textSecondary)
             .padding([.bottom, .leading])

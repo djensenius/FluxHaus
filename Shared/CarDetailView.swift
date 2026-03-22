@@ -88,6 +88,14 @@ struct CarDetailView: View {
                         }
 
                         HStack(spacing: 16) {
+                            if car.vehicle.locked {
+                                Label("Locked", systemImage: "lock.fill")
+                                    .foregroundColor(Theme.Colors.success)
+                            } else {
+                                Label("Unlocked", systemImage: "lock.open.fill")
+                                    .foregroundColor(Theme.Colors.error)
+                            }
+
                             if car.vehicle.trunkOpen {
                                 Label("Trunk open", systemImage: "car.circle.fill")
                                     .foregroundColor(Theme.Colors.error)
@@ -479,12 +487,6 @@ struct CarClimateView: View {
             try? await Task.sleep(nanoseconds: 1 * 1_000_000_000)
             self.presentationMode.wrappedValue.dismiss()
         }
-
-        // Resync logic is handled in CarDetailView listeners usually,
-        // but here we just fire the action.
-        // We might want to trigger the resync polling here too if we want to be safe,
-        // but since we dismiss, the parent view's poll might pick it up if it was active,
-        // or we just rely on the server delay.
 
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 5 * 1_000_000_000)

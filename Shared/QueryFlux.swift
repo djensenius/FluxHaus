@@ -353,9 +353,10 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
 
     let dishwasherMinutes = (fluxData.dishwasher?.remainingTime ?? 0) / 60
     let dishWasherReminingTime = formatTimeRemaining(minutes: dishwasherMinutes)
+    let dishwasherDisplayName = fluxData.dishwasher?.activeProgram?.displayName
     var dishwasherTrailingText = dishWasherReminingTime
-    if fluxData.dishwasher != nil && fluxData.dishwasher?.activeProgram != nil {
-        dishwasherTrailingText = "\(fluxData.dishwasher?.activeProgram?.rawValue ?? "") ⋅ \(dishwasherTrailingText)"
+    if let programName = dishwasherDisplayName {
+        dishwasherTrailingText = "\(programName) ⋅ \(dishwasherTrailingText)"
     }
     if fluxData.dishwasher != nil && fluxData.dishwasher?.operationState.rawValue != "Run" {
         dishwasherTrailingText = fluxData.dishwasher!.operationState.rawValue + " ⋅ \(dishwasherTrailingText)"
@@ -370,7 +371,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 trailingText: "",
                 shortText: "",
                 running: false,
-                programName: fluxData.dishwasher?.activeProgram?.rawValue
+                programName: dishwasherDisplayName
             )
         )
     } else {
@@ -382,7 +383,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 trailingText: dishwasherTrailingText,
                 shortText: dishWasherReminingTime,
                 running: fluxData.dishwasher?.programProgress ?? 0 > 0,
-                programName: fluxData.dishwasher?.activeProgram?.rawValue
+                programName: dishwasherDisplayName
             )
         )
     }

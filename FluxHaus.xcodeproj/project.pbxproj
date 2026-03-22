@@ -200,6 +200,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		AC1754460EA8962B8C79B108 /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
 		AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
+		NS0002000000000000000001 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = NS0001000000000000000001 /* NotificationSettingsView.swift */; };
 		AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD1C7468CA59FAB62BCDD1EC /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
@@ -415,6 +416,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 		CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
 		MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
+		NS0001000000000000000001 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		PT0000000000000000000001 /* PrecipitationTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrecipitationTimelineView.swift; sourceTree = "<group>"; };
 		RD0001000000000000000001 /* RadarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarService.swift; sourceTree = "<group>"; };
 		RD0002000000000000000001 /* WeatherRadarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherRadarView.swift; sourceTree = "<group>"; };
@@ -551,7 +553,8 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 				PT0000000000000000000001 /* PrecipitationTimelineView.swift */,
 				TI0000000000000000000001 /* TypingIndicator.swift */,
 CB0001000000000000000001 /* ChatBubble.swift */,
-MD0001000000000000000001 /* MarkdownContentView.swift */,);
+MD0001000000000000000001 /* MarkdownContentView.swift */,
+				NS0001000000000000000001 /* NotificationSettingsView.swift */,);
 			path = Shared;
 			sourceTree = "<group>";
 		};
@@ -1093,6 +1096,7 @@ MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				TI0001000000000000000002 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000002 /* ChatBubble.swift in Sources */,
 MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
+				NS0002000000000000000001 /* NotificationSettingsView.swift in Sources */,
 				F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

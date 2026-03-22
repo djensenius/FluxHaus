@@ -174,6 +174,7 @@ struct WeatherForecastSection: View {
 
 // MARK: - Weather Detail View (Sidebar Section)
 
+// swiftlint:disable:next type_body_length
 struct WeatherDetailView: View {
     @ObservedObject var locationManager: LocationManager
     var radarService: RadarService
@@ -268,14 +269,71 @@ struct WeatherDetailView: View {
 
     private func detailsGrid(weather: Weather) -> some View {
         let cur = weather.currentWeather
-        return HStack(spacing: 16) {
-            detailItem(icon: "thermometer.medium", label: "Feels like",
+        let today = weather.dailyForecast.first
+        let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+        return LazyVGrid(columns: columns, spacing: 12) {
+            detailItem(icon: "thermometer.medium", label: "Feels Like",
                        value: WeatherHelpers.formatTemp(cur.apparentTemperature.value))
             detailItem(icon: "humidity", label: "Humidity", value: "\(Int(cur.humidity * 100))%")
-            detailItem(icon: "sun.max.trianglebadge.exclamationmark", label: "UV",
+            detailItem(icon: "sun.max.trianglebadge.exclamationmark", label: "UV Index",
                        value: "\(cur.uvIndex.value)")
             detailItem(icon: "wind", label: "Wind",
                        value: WeatherHelpers.formatSpeed(cur.wind.speed.value))
+            detailItem(icon: "drop.deviating", label: "Dew Point",
+                       value: WeatherHelpers.formatTemp(cur.dewPoint.value))
+            detailItem(icon: "eye", label: "Visibility",
+                       value: formatDistance(cur.visibility.value))
+            detailItem(icon: "gauge.with.dots.needle.33percent", label: "Pressure",
+                       value: formatPressure(cur.pressure.value))
+            detailItem(icon: "location.north.line", label: "Wind Dir",
+                       value: compassDirection(cur.wind.direction.value))
+            if let today = today {
+                detailItem(icon: "sunrise", label: "Sunrise",
+                           value: formatTime(today.sun.sunrise))
+                detailItem(icon: "sunset", label: "Sunset",
+                           value: formatTime(today.sun.sunset))
+                detailItem(icon: "moon", label: "Moon",
+                           value: moonPhaseText(today.moon.phase))
+                detailItem(icon: "wind.circle", label: "Gusts",
+                           value: WeatherHelpers.formatSpeed(cur.wind.gust?.value ?? 0))
+            }
+        }
+    }
+
+    private func formatDistance(_ meters: Double) -> String {
+        let kilometers = meters / 1000
+        return String(format: "%.0f km", kilometers)
+    }
+
+    private func formatPressure(_ hPa: Double) -> String {
+        String(format: "%.0f hPa", hPa)
+    }
+
+    private func compassDirection(_ degrees: Double) -> String {
+        let directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                          "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+        let idx = Int(round(degrees / 22.5)) % 16
+        return directions[idx]
+    }
+
+    private func formatTime(_ date: Date?) -> String {
+        guard let date = date else { return "--" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+
+    private func moonPhaseText(_ phase: MoonPhase) -> String {
+        switch phase {
+        case .new: return "New"
+        case .waxingCrescent: return "Waxing Crescent"
+        case .firstQuarter: return "First Quarter"
+        case .waxingGibbous: return "Waxing Gibbous"
+        case .full: return "Full"
+        case .waningGibbous: return "Waning Gibbous"
+        case .lastQuarter: return "Last Quarter"
+        case .waningCrescent: return "Waning Crescent"
+        @unknown default: return "Unknown"
         }
     }
 
@@ -559,10 +617,9 @@ struct WeatherDetailView: View {
     }
 
     private var weatherAttribution: some View {
-        Link(
-            " Weather",
-            destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!
-        )
+        Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
+            Text("Weather data provided by \(Image(systemName: "apple.logo")) Weather")
+        }
         .font(Theme.Fonts.caption)
         .foregroundColor(Theme.Colors.textSecondary)
         .frame(maxWidth: .infinity, alignment: .center)
