@@ -21,54 +21,53 @@ struct ContentView: View {
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedTab = "home"
-    @State private var showNotificationSettings = false
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var tabCustomization = TabViewCustomization()
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            homeTab
-                .tabItem { Label("Home", systemImage: "house.fill") }
-                .tag("home")
-            weatherTab
-                .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
-                .tag("weather")
-            if horizontalSizeClass == .regular {
-                scenesTab
-                    .tabItem { Label("Scenes", systemImage: "lightbulb.fill") }
-                    .tag("scenes")
+            Tab("Home", systemImage: "house.fill", value: "home") {
+                homeTab
             }
-            appliancesTab
-                .tabItem { Label("Appliances", systemImage: "washer.fill") }
-                .tag("appliances")
-            carTab
-                .tabItem { Label("Car", systemImage: "car.fill") }
-                .tag("car")
-            if horizontalSizeClass == .regular {
-                robotsTab
-                    .tabItem { Label("Robots", systemImage: "fan.fill") }
-                    .tag("robots")
+            .customizationID("home")
+            Tab("Weather", systemImage: "cloud.sun.fill", value: "weather") {
+                weatherTab
             }
+            .customizationID("weather")
             if authManager.isOIDC {
-                ChatView(chat: chat)
-                    .tabItem {
-                        Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
-                    }
-                    .tag("assistant")
+                Tab("Assistant", systemImage: "bubble.left.and.bubble.right.fill", value: "assistant") {
+                    ChatView(chat: chat)
+                }
+                .customizationID("assistant")
             }
+            Tab("Car", systemImage: "car.fill", value: "car") {
+                carTab
+            }
+            .customizationID("car")
+            TabSection {
+                Tab("Appliances", systemImage: "washer.fill", value: "appliances") {
+                    appliancesTab
+                }
+                .customizationID("appliances")
+                Tab("Scenes", systemImage: "lightbulb.fill", value: "scenes") {
+                    scenesTab
+                }
+                .customizationID("scenes")
+                Tab("Robots", systemImage: "fan.fill", value: "robots") {
+                    robotsTab
+                }
+                .customizationID("robots")
+                Tab("Settings", systemImage: "gearshape", value: "settings") {
+                    settingsTab
+                }
+                .customizationID("settings")
+            } header: {
+                Label("More", systemImage: "ellipsis")
+            }
+            .customizationID("more")
         }
         .tabViewStyle(.sidebarAdaptable)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showNotificationSettings = true
-                } label: {
-                    Image(systemName: "gearshape")
-                }
-            }
-        }
-        .sheet(isPresented: $showNotificationSettings) {
-            NotificationSettingsView()
-        }
+        .tabViewCustomization($tabCustomization)
+        .background { tabKeyboardShortcuts }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
         ) { notification in
@@ -144,21 +143,28 @@ struct ContentView: View {
             .padding([.bottom, .leading])
 
             Spacer()
-
-            Button(action: {
-                AuthManager.shared.signOut()
-                NotificationCenter.default.post(
-                    name: Notification.Name.logout,
-                    object: nil,
-                    userInfo: ["logout": true]
-                )
-            }, label: {
-                Text("Logout")
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.accent)
-            })
-            .padding([.bottom, .trailing])
         }
+    }
+
+    private var settingsTab: some View {
+        NavigationStack {
+            SettingsView()
+        }
+    }
+
+    private var tabKeyboardShortcuts: some View {
+        Group {
+            Button("") { selectedTab = "home" }.keyboardShortcut("1")
+            Button("") { selectedTab = "weather" }.keyboardShortcut("2")
+            Button("") { selectedTab = "assistant" }.keyboardShortcut("3")
+            Button("") { selectedTab = "car" }.keyboardShortcut("4")
+            Button("") { selectedTab = "appliances" }.keyboardShortcut("5")
+            Button("") { selectedTab = "scenes" }.keyboardShortcut("6")
+            Button("") { selectedTab = "robots" }.keyboardShortcut("7")
+            Button("") { selectedTab = "settings" }.keyboardShortcut("8")
+        }
+        .frame(width: 0, height: 0)
+        .opacity(0)
     }
 }
 

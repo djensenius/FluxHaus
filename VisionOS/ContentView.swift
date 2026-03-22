@@ -52,6 +52,7 @@ struct ContentView: View {
                     .tag("Assistant")
             }
         }
+        .background { visionKeyboardShortcuts }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToTab"))
         ) { notification in
@@ -106,6 +107,20 @@ struct ContentView: View {
             apiResponse: apiResponse,
             robots: robots
         )
+    }
+
+    private var visionKeyboardShortcuts: some View {
+        Group {
+            Button("") { selectedTab = "Home" }.keyboardShortcut("1")
+            Button("") { selectedTab = "Weather" }.keyboardShortcut("2")
+            Button("") { selectedTab = "Scenes" }.keyboardShortcut("3")
+            Button("") { selectedTab = "Appliances" }.keyboardShortcut("4")
+            Button("") { selectedTab = "Car" }.keyboardShortcut("5")
+            Button("") { selectedTab = "Robots" }.keyboardShortcut("6")
+            Button("") { selectedTab = "Assistant" }.keyboardShortcut("7")
+        }
+        .frame(width: 0, height: 0)
+        .opacity(0)
     }
 }
 
