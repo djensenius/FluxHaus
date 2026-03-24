@@ -54,6 +54,26 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         appLogger.error("Failed to register for remote notifications: \(error)")
     }
 
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        appLogger.info("Received background remote notification")
+
+        // When woken by a silent push, refresh data and update Live Activities
+        guard AuthManager.shared.isSignedIn else {
+            completionHandler(.noData)
+            return
+        }
+
+        Task {
+            _ = await AuthManager.shared.ensureValidToken()
+            queryFlux(password: WhereWeAre.getPassword() ?? "")
+            completionHandler(.newData)
+        }
+    }
+
     /// Register the stored APNs token with the server. Called on token receipt and after auth.
     static func registerApnsTokenIfReady() async {
         guard let token = pendingApnsToken,

@@ -35,6 +35,8 @@ class LiveActivityManager {
 
     /// The single consolidated Live Activity
     private var consolidatedActivity: Activity<FluxWidgetMultiAttributes>?
+    /// Task observing push token updates for the consolidated activity
+    private var activityPushTokenTask: Task<Void, Never>?
     /// Cached channel IDs fetched from the server.
     private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
@@ -57,6 +59,7 @@ class LiveActivityManager {
         for activity in Activity<FluxWidgetMultiAttributes>.activities {
             if activity.activityState == .active || activity.activityState == .stale {
                 consolidatedActivity = activity
+                observeActivityPushToken(activity: activity)
                 logger.info("Restored consolidated Live Activity")
                 break
             }
@@ -71,6 +74,34 @@ class LiveActivityManager {
                 logger.info("Ended legacy single-device activity: \(activity.attributes.name)")
             }
         }
+
+        // End any stale/dismissed activities that are lingering
+        for activity in Activity<FluxWidgetMultiAttributes>.activities
+        where activity.activityState == .dismissed || activity.activityState == .ended {
+            // Nothing to end — just don't adopt them
+        }
+    }
+
+    /// Observe and forward the per-activity push token so the server can send direct updates.
+    private func observeActivityPushToken(activity: Activity<FluxWidgetMultiAttributes>) {
+        activityPushTokenTask?.cancel()
+        activityPushTokenTask = Task {
+            for await tokenData in activity.pushTokenUpdates {
+                let token = tokenData.map { String(format: "%02x", $0) }.joined()
+                logger.info("Activity push token: \(token.prefix(8))...")
+                await registerActivityToken(token: token)
+            }
+        }
+    }
+
+    private func registerActivityToken(token: String) async {
+        await postToServer(
+            path: "/push-tokens/activity",
+            body: [
+                "activityToken": token,
+                "deviceName": UIDevice.current.name
+            ]
+        )
     }
 
     /// Observe the push-to-start token so the server can start activities remotely.
@@ -147,27 +178,35 @@ class LiveActivityManager {
         return nil
     }
 
-    func reconcile(devices: [WidgetDevice]) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            logger.warning("Live Activities are disabled — check Settings → FluxHaus → Live Activities")
-            return
-        }
-
+    /// Clean up ended/dismissed activities and adopt any push-to-started ones.
+    private func cleanupAndAdoptActivities() {
         // End any legacy single-device activities that might still be around
         for activity in Activity<FluxWidgetAttributes>.activities
         where activity.activityState == .active || activity.activityState == .stale {
             Task { await activity.end(nil, dismissalPolicy: .immediate) }
         }
 
+        // Clean up stale/ended/dismissed consolidated activities to unblock push-to-start
+        if let activity = consolidatedActivity {
+            switch activity.activityState {
+            case .ended, .dismissed:
+                consolidatedActivity = nil
+                activityPushTokenTask?.cancel()
+                activityPushTokenTask = nil
+                logger.info("Cleaned up ended/dismissed consolidated activity")
+            default:
+                break
+            }
+        }
+
         // Adopt consolidated activity from push-to-start if we don't track it
-        if consolidatedActivity == nil || consolidatedActivity?.activityState == .ended {
-            consolidatedActivity = nil
-            for activity in Activity<FluxWidgetMultiAttributes>.activities {
-                if activity.activityState == .active || activity.activityState == .stale {
-                    consolidatedActivity = activity
-                    logger.info("Adopted consolidated Live Activity")
-                    break
-                }
+        if consolidatedActivity == nil {
+            for activity in Activity<FluxWidgetMultiAttributes>.activities
+            where activity.activityState == .active || activity.activityState == .stale {
+                consolidatedActivity = activity
+                observeActivityPushToken(activity: activity)
+                logger.info("Adopted consolidated Live Activity")
+                break
             }
         }
 
@@ -178,12 +217,15 @@ class LiveActivityManager {
             Task { await activity.end(nil, dismissalPolicy: .immediate) }
             logger.info("Ended duplicate consolidated activity")
         }
+    }
 
-        // Clean up if consolidated activity was ended by iOS
-        if let activity = consolidatedActivity, activity.activityState == .ended {
-            consolidatedActivity = nil
-            logger.info("Cleaned up ended consolidated activity")
+    func reconcile(devices: [WidgetDevice]) {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            logger.warning("Live Activities are disabled — check Settings → FluxHaus → Live Activities")
+            return
         }
+
+        cleanupAndAdoptActivities()
 
         // Filter by subscription preferences
         let runningDevices = devices.filter { $0.running && subscribedDeviceTypes.contains($0.name) }
@@ -231,6 +273,7 @@ class LiveActivityManager {
                 logger.info("Started consolidated Live Activity with token (\(devices.count) devices)")
             }
             consolidatedActivity = activity
+            observeActivityPushToken(activity: activity)
         } catch {
             logger.error("Failed to start consolidated Live Activity: \(error)")
         }
@@ -252,6 +295,9 @@ class LiveActivityManager {
     }
 
     private func endConsolidatedActivity(activity: Activity<FluxWidgetMultiAttributes>) {
+        activityPushTokenTask?.cancel()
+        activityPushTokenTask = nil
+
         Task {
             await activity.end(nil, dismissalPolicy: .immediate)
         }
