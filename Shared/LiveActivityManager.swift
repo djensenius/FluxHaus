@@ -80,10 +80,30 @@ class LiveActivityManager {
                 for await tokenData in Activity<FluxWidgetMultiAttributes>.pushToStartTokenUpdates {
                     let token = tokenData.map { String(format: "%02x", $0) }.joined()
                     logger.info("Push-to-start token (multi): \(token.prefix(8))...")
-                    await registerDeviceToken(token: token)
+                    pendingPushToStartToken = token
+                    await registerPushToStartTokenWhenReady()
                 }
             }
         }
+    }
+
+    /// Stored token waiting for auth to become available.
+    private var pendingPushToStartToken: String?
+
+    /// Register the push-to-start token, retrying until auth is available.
+    private func registerPushToStartTokenWhenReady() async {
+        guard let token = pendingPushToStartToken else { return }
+        guard AuthManager.shared.authorizationHeader() != nil else {
+            logger.info("Auth not ready — deferring push-to-start token registration")
+            return
+        }
+        await registerDeviceToken(token: token)
+        pendingPushToStartToken = nil
+    }
+
+    /// Called when auth becomes available to retry any pending registration.
+    func retryPendingTokenRegistration() {
+        Task { await registerPushToStartTokenWhenReady() }
     }
 
     /// Fetch broadcast channel IDs from the server for all device types.
@@ -308,15 +328,18 @@ class LiveActivityManager {
 
         guard let url = components.url else { return }
 
+        guard let authHeader = AuthManager.shared.authorizationHeader() else {
+            logger.warning("No auth header available — skipping POST to \(path)")
+            return
+        }
+
         let csrfToken = await fetchCsrfToken()
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        if let authHeader = AuthManager.shared.authorizationHeader() {
-            request.setValue(authHeader, forHTTPHeaderField: "Authorization")
-        }
+        request.setValue(authHeader, forHTTPHeaderField: "Authorization")
         if let csrfToken = csrfToken {
             request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
         }
@@ -325,8 +348,12 @@ class LiveActivityManager {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
             let session = URLSession(configuration: .default)
             let (_, response) = try await session.data(for: request)
-            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                logger.info("Registered token at \(path)")
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    logger.info("Registered token at \(path)")
+                } else {
+                    logger.error("Server returned \(httpResponse.statusCode) for \(path)")
+                }
             }
         } catch {
             logger.error("Failed to register token at \(path): \(error)")
