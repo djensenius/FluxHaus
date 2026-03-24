@@ -41,7 +41,10 @@ struct ApplianceDetailView: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             if appliance.timeRunning != 0 {
-                                Label("Running for \(appliance.timeRunning) minutes", systemImage: "timer")
+                                Label(
+                                    "Running for \(formatDurationMinutes(appliance.timeRunning))",
+                                    systemImage: "timer"
+                                )
                                     .font(Theme.Fonts.bodyMedium)
                                     .foregroundColor(Theme.Colors.textPrimary)
                             }
@@ -51,8 +54,9 @@ struct ApplianceDetailView: View {
                                     .font(Theme.Fonts.bodyMedium)
                                     .foregroundColor(Theme.Colors.textSecondary)
                             } else {
+                                let remaining = formatDurationMinutes(appliance.timeRemaining)
                                 Label(
-                                    "Finishing in \(appliance.timeRemaining) minutes at \(appliance.timeFinish)",
+                                    "Finishing in \(remaining) at \(appliance.timeFinish)",
                                     systemImage: "hourglass"
                                 )
                                     .font(Theme.Fonts.bodyMedium)

@@ -31,19 +31,8 @@ struct FluxWidgetMultiAttributes: ActivityAttributes {
 struct FluxWidgetMultiLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FluxWidgetMultiAttributes.self) { context in
-            // Lock screen/banner UI — adapts to device count
-            let devices = context.state.devices
-            if devices.isEmpty {
-                allDoneView
-            } else if devices.count == 1, let device = devices.first {
-                singleDeviceLockScreen(device: device)
-                    .padding(16)
-                    .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
-            } else {
-                multiDeviceLockScreen(devices: devices)
-                    .padding(16)
-                    .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
-            }
+            // Lock screen/banner UI — adapts to device count and platform
+            FluxWidgetMultiContent(devices: context.state.devices)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -68,6 +57,9 @@ struct FluxWidgetMultiLiveActivity: Widget {
     }
 
     // MARK: - Lock Screen Views
+
+    // Phone lock screen views are in FluxWidgetWatchViews.swift
+    // (PhoneSingleDeviceView, PhoneMultiDeviceView, phoneDeviceProgressBar)
 
     private var allDoneView: some View {
         HStack(spacing: 10) {
