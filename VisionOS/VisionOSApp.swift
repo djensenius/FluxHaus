@@ -128,6 +128,7 @@ struct VisionOSApp: App {
                 if newPhase == .active && AuthManager.shared.isSignedIn {
                     Task {
                         _ = await AuthManager.shared.ensureValidToken()
+                        queryFlux(password: WhereWeAre.getPassword() ?? "")
                     }
                 }
             }

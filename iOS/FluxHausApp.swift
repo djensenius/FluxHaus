@@ -224,6 +224,9 @@ struct FluxHausApp: App {
                 if newPhase == .active {
                     Task {
                         _ = await AuthManager.shared.ensureValidToken()
+                        if AuthManager.shared.isSignedIn {
+                            queryFlux(password: WhereWeAre.getPassword() ?? "")
+                        }
                     }
                 }
             }
