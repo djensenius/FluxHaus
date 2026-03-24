@@ -329,22 +329,31 @@ struct WidgetDevice: Codable, Equatable, Hashable {
 }
 
 /// Format a time remaining value (in minutes) as a human-readable string.
-/// Under 60 minutes: "30m". 60+ minutes: formatted finish time like "3:45 PM".
+/// Under 60 minutes: "30m". 60+ minutes: "2h 36m".
 func formatTimeRemaining(minutes: Int) -> String {
     if minutes < 60 {
         return "\(minutes)m"
     }
+    let hours = minutes / 60
+    let remainingMinutes = minutes % 60
+    if remainingMinutes == 0 {
+        return "\(hours)h"
+    }
+    return "\(hours)h \(remainingMinutes)m"
+}
 
-    let currentDate = Date()
-    let finishTime = Calendar.current.date(
-        byAdding: .minute,
-        value: minutes,
-        to: currentDate
-    ) ?? currentDate
-    let formatter = DateFormatter()
-    formatter.timeStyle = .short
-    formatter.dateFormat = .none
-    return formatter.string(from: finishTime)
+/// Format a duration in minutes for display in appliance views.
+/// Under 60 minutes: "30 min". 60+ minutes: "2h 36 min".
+func formatDurationMinutes(_ minutes: Int) -> String {
+    if minutes < 60 {
+        return "\(minutes) min"
+    }
+    let hours = minutes / 60
+    let remainingMinutes = minutes % 60
+    if remainingMinutes == 0 {
+        return "\(hours)h"
+    }
+    return "\(hours)h \(remainingMinutes) min"
 }
 
 // swiftlint:disable:next function_body_length

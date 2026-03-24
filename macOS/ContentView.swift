@@ -203,7 +203,7 @@ struct AppliancesMacView: View {
                 if appliance.inUse {
                     if appliance.timeRunning > 0 {
                         Label(
-                            "Running for \(appliance.timeRunning) min",
+                            "Running for \(formatDurationMinutes(appliance.timeRunning))",
                             systemImage: "timer"
                         )
                         .font(Theme.Fonts.bodyMedium)
@@ -211,7 +211,7 @@ struct AppliancesMacView: View {
                     }
                     if appliance.timeRemaining > 0 {
                         Label(
-                            "Done in \(appliance.timeRemaining) min · \(appliance.timeFinish)",
+                            "Done in \(formatDurationMinutes(appliance.timeRemaining)) · \(appliance.timeFinish)",
                             systemImage: "hourglass"
                         )
                         .font(Theme.Fonts.bodyMedium)

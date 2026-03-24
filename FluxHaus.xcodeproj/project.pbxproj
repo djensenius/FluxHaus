@@ -123,6 +123,7 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		637BC62B2C5BDA7F00E7884E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB62C44391E00E62C09 /* SwiftUI.framework */; };
 		637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
 		637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
+		DA526145341C4A909E252425 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
 		D402DD36EF6240BBA92FBDBB /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
 		637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
 		637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
@@ -366,6 +367,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 		637BC6292C5BDA7F00E7884E /* FluxWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetBundle.swift; sourceTree = "<group>"; };
 		637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivity.swift; sourceTree = "<group>"; };
+		0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetWatchViews.swift; sourceTree = "<group>"; };
 		41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivityLegacy.swift; sourceTree = "<group>"; };
 		637BC6312C5BDA8000E7884E /* FluxWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidget.swift; sourceTree = "<group>"; };
 		637BC6332C5BDA8000E7884E /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
@@ -653,6 +655,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 			children = (
 				637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */,
 				637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */,
+				0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */,
 				41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */,
 				637BC6312C5BDA8000E7884E /* FluxWidget.swift */,
 				637BC6332C5BDA8000E7884E /* AppIntent.swift */,
@@ -1137,6 +1140,7 @@ MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */,
 				637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */,
 				637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */,
+				DA526145341C4A909E252425 /* FluxWidgetWatchViews.swift in Sources */,
 				D402DD36EF6240BBA92FBDBB /* FluxWidgetLiveActivityLegacy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

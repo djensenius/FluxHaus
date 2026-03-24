@@ -194,10 +194,7 @@ extension Appliances {
         if tAppliance[index].inUse == false {
             return "Off"
         }
-        if tAppliance[index].timeRemaining > 60 {
-            return tAppliance[index].timeFinish
-        }
-        return "\(tAppliance[index].timeRemaining)m"
+        return formatTimeRemaining(minutes: tAppliance[index].timeRemaining)
     }
 
     func getTimeRemaining(type: String, index: Int) -> String {

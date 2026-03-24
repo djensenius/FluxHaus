@@ -218,12 +218,12 @@ extension DashboardView {
             VStack(alignment: .leading, spacing: 8) {
                 if appliance.inUse {
                     if appliance.timeRunning > 0 {
-                        Label("Running for \(appliance.timeRunning) min", systemImage: "timer")
+                        Label("Running for \(formatDurationMinutes(appliance.timeRunning))", systemImage: "timer")
                             .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
                     }
                     if appliance.timeRemaining > 0 {
                         Label(
-                            "Done in \(appliance.timeRemaining) min · \(appliance.timeFinish)",
+                            "Done in \(formatDurationMinutes(appliance.timeRemaining)) · \(appliance.timeFinish)",
                             systemImage: "hourglass"
                         ).font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
                     }

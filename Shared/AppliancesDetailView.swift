@@ -239,7 +239,7 @@ struct AppliancesDetailView: View {
                     let finishTime = finishTimeString(minutesRemaining: minutes)
                     detailRow(
                         label: "Time Remaining",
-                        value: "\(minutes) min (done ~\(finishTime))",
+                        value: "\(formatDurationMinutes(minutes)) (done ~\(finishTime))",
                         icon: "hourglass"
                     )
                 }
@@ -289,7 +289,7 @@ struct AppliancesDetailView: View {
                 if let running = wdm.timeRunning, running > 0 {
                     detailRow(
                         label: "Running For",
-                        value: "\(running) min",
+                        value: formatDurationMinutes(running),
                         icon: "timer"
                     )
                 }
@@ -298,7 +298,7 @@ struct AppliancesDetailView: View {
                     let finishTime = finishTimeString(minutesRemaining: remaining)
                     detailRow(
                         label: "Time Remaining",
-                        value: "\(remaining) min (done ~\(finishTime))",
+                        value: "\(formatDurationMinutes(remaining)) (done ~\(finishTime))",
                         icon: "hourglass"
                     )
                 }
