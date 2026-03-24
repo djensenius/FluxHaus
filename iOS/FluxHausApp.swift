@@ -134,6 +134,8 @@ struct FluxHausApp: App {
                                 }
                                 // Register APNs token now that auth is available
                                 Task { await AppDelegate.registerApnsTokenIfReady() }
+                                // Retry any deferred push-to-start token registration
+                                LiveActivityManager.shared.retryPendingTokenRegistration()
                             }
 
                             if ((object.userInfo?["homeConnectComplete"]) != nil) == true {
