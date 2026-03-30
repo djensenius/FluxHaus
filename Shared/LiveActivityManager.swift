@@ -48,13 +48,15 @@ class LiveActivityManager {
 
     private init() {
         loadSubscriptionPreferences()
-        restoreExistingActivities()
         observePushToStartToken()
-        Task { await fetchChannelIds() }
+        Task {
+            await restoreExistingActivities()
+            await fetchChannelIds()
+        }
     }
 
     /// Re-adopt activities that iOS kept alive while the app was killed.
-    private func restoreExistingActivities() {
+    private func restoreExistingActivities() async {
         // Restore consolidated activities
         for activity in Activity<FluxWidgetMultiAttributes>.activities {
             if activity.activityState == .active || activity.activityState == .stale {
@@ -68,17 +70,9 @@ class LiveActivityManager {
         // End any legacy single-device activities
         for activity in Activity<FluxWidgetAttributes>.activities {
             if activity.activityState == .active || activity.activityState == .stale {
-                Task {
-                    await activity.end(nil, dismissalPolicy: .immediate)
-                }
+                await activity.end(nil, dismissalPolicy: .immediate)
                 logger.info("Ended legacy single-device activity: \(activity.attributes.name)")
             }
-        }
-
-        // End any stale/dismissed activities that are lingering
-        for activity in Activity<FluxWidgetMultiAttributes>.activities
-        where activity.activityState == .dismissed || activity.activityState == .ended {
-            // Nothing to end — just don't adopt them
         }
     }
 
@@ -179,11 +173,11 @@ class LiveActivityManager {
     }
 
     /// Clean up ended/dismissed activities and adopt any push-to-started ones.
-    private func cleanupAndAdoptActivities() {
+    private func cleanupAndAdoptActivities() async {
         // End any legacy single-device activities that might still be around
         for activity in Activity<FluxWidgetAttributes>.activities
         where activity.activityState == .active || activity.activityState == .stale {
-            Task { await activity.end(nil, dismissalPolicy: .immediate) }
+            await activity.end(nil, dismissalPolicy: .immediate)
         }
 
         // Clean up stale/ended/dismissed consolidated activities to unblock push-to-start
@@ -214,18 +208,18 @@ class LiveActivityManager {
         for activity in Activity<FluxWidgetMultiAttributes>.activities
         where activity.id != consolidatedActivity?.id
             && (activity.activityState == .active || activity.activityState == .stale) {
-            Task { await activity.end(nil, dismissalPolicy: .immediate) }
+            await activity.end(nil, dismissalPolicy: .immediate)
             logger.info("Ended duplicate consolidated activity")
         }
     }
 
-    func reconcile(devices: [WidgetDevice]) {
+    func reconcile(devices: [WidgetDevice]) async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             logger.warning("Live Activities are disabled — check Settings → FluxHaus → Live Activities")
             return
         }
 
-        cleanupAndAdoptActivities()
+        await cleanupAndAdoptActivities()
 
         // Filter by subscription preferences
         let runningDevices = devices.filter { $0.running && subscribedDeviceTypes.contains($0.name) }
@@ -233,12 +227,12 @@ class LiveActivityManager {
         if runningDevices.isEmpty {
             // End the consolidated activity — immediate dismiss, no lingering
             if let activity = consolidatedActivity {
-                endConsolidatedActivity(activity: activity)
+                await endConsolidatedActivity(activity: activity)
             }
         } else if let activity = consolidatedActivity,
                   activity.activityState == .active || activity.activityState == .stale {
             // Update existing consolidated activity
-            updateConsolidatedActivity(activity: activity, devices: runningDevices)
+            await updateConsolidatedActivity(activity: activity, devices: runningDevices)
         } else {
             // Start a new consolidated activity (only if none exists)
             consolidatedActivity = nil
@@ -282,25 +276,21 @@ class LiveActivityManager {
     private func updateConsolidatedActivity(
         activity: Activity<FluxWidgetMultiAttributes>,
         devices: [WidgetDevice]
-    ) {
+    ) async {
         let state = FluxWidgetMultiAttributes.ContentState(devices: devices)
         let content = ActivityContent(
             state: state,
             staleDate: Date().addingTimeInterval(900)
         )
 
-        Task {
-            await activity.update(content)
-        }
+        await activity.update(content)
     }
 
-    private func endConsolidatedActivity(activity: Activity<FluxWidgetMultiAttributes>) {
+    private func endConsolidatedActivity(activity: Activity<FluxWidgetMultiAttributes>) async {
         activityPushTokenTask?.cancel()
         activityPushTokenTask = nil
 
-        Task {
-            await activity.end(nil, dismissalPolicy: .immediate)
-        }
+        await activity.end(nil, dismissalPolicy: .immediate)
 
         consolidatedActivity = nil
         logger.info("Ended consolidated Live Activity (immediate dismiss)")

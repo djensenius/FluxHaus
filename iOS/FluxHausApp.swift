@@ -315,7 +315,7 @@ struct FluxHausApp: App {
     func updateLiveActivities(response: LoginResponse) {
         let fluxData = convertLoginResponseToAppData(response: response)
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
-        LiveActivityManager.shared.reconcile(devices: devices)
+        Task { await LiveActivityManager.shared.reconcile(devices: devices) }
     }
 
     private func postNavigation(_ section: String) {
