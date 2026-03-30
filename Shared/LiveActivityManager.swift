@@ -226,13 +226,13 @@ class LiveActivityManager {
 
         if runningDevices.isEmpty {
             // End the consolidated activity — immediate dismiss, no lingering
-            if let activity = consolidatedActivity {
-                await endConsolidatedActivity(activity: activity)
+            if consolidatedActivity != nil {
+                await endConsolidatedActivity()
             }
         } else if let activity = consolidatedActivity,
                   activity.activityState == .active || activity.activityState == .stale {
             // Update existing consolidated activity
-            await updateConsolidatedActivity(activity: activity, devices: runningDevices)
+            await updateConsolidatedActivity(devices: runningDevices)
         } else {
             // Start a new consolidated activity (only if none exists)
             consolidatedActivity = nil
@@ -274,9 +274,9 @@ class LiveActivityManager {
     }
 
     private func updateConsolidatedActivity(
-        activity: Activity<FluxWidgetMultiAttributes>,
         devices: [WidgetDevice]
     ) async {
+        guard let activity = consolidatedActivity else { return }
         let state = FluxWidgetMultiAttributes.ContentState(devices: devices)
         let content = ActivityContent(
             state: state,
@@ -286,7 +286,8 @@ class LiveActivityManager {
         await activity.update(content)
     }
 
-    private func endConsolidatedActivity(activity: Activity<FluxWidgetMultiAttributes>) async {
+    private func endConsolidatedActivity() async {
+        guard let activity = consolidatedActivity else { return }
         activityPushTokenTask?.cancel()
         activityPushTokenTask = nil
 
