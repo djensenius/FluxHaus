@@ -283,7 +283,8 @@ class LiveActivityManager {
             staleDate: Date().addingTimeInterval(900)
         )
 
-        await activity.update(content)
+        nonisolated(unsafe) let activityRef = activity
+        await activityRef.update(content)
     }
 
     private func endConsolidatedActivity() async {
@@ -291,7 +292,8 @@ class LiveActivityManager {
         activityPushTokenTask?.cancel()
         activityPushTokenTask = nil
 
-        await activity.end(nil, dismissalPolicy: .immediate)
+        nonisolated(unsafe) let activityRef = activity
+        await activityRef.end(nil, dismissalPolicy: .immediate)
 
         consolidatedActivity = nil
         logger.info("Ended consolidated Live Activity (immediate dismiss)")
