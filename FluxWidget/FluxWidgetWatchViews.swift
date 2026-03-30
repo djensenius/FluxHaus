@@ -219,7 +219,7 @@ func phoneDeviceProgressBar(device: WidgetDevice) -> some View {
                 Image(systemName: batteryIcon(level: battery))
                     .font(.subheadline)
                 ProgressView(value: Double(battery) / 100.0)
-                    .progressViewStyle(.linear)
+                    .progressViewStyle(LinearProgressViewStyle())
                     .tint(batteryColor(level: battery))
                 Text("\(battery)%")
                     .font(.subheadline)
@@ -230,7 +230,7 @@ func phoneDeviceProgressBar(device: WidgetDevice) -> some View {
     } else if device.running {
         HStack(spacing: 8) {
             ProgressView(value: Double(device.progress) / 100.0)
-                .progressViewStyle(.linear)
+                .progressViewStyle(LinearProgressViewStyle())
                 .tint(tintColor(for: device.name))
             Text("\(device.progress)%")
                 .font(.subheadline)

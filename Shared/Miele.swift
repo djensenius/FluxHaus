@@ -63,7 +63,7 @@ class Miele: ObservableObject {
             timeRemaining: mApps.timeRemaining ?? 0,
             timeFinish: formatedTime,
             step: mApps.step?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
-            programName: programName!,
+            programName: programName ?? "",
             inUse: inUse
         )
         setAppliance(appliance: appliance)
