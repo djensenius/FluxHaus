@@ -53,6 +53,38 @@ private func inlineMarkdown(_ text: String) -> AttributedString {
     return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
 }
 
+// MARK: - Link-aware text (macOS)
+
+#if os(macOS)
+/// Wraps `Text(attributed)` and pushes `NSCursor.pointingHand` while the
+/// pointer is over the view, but only when the AttributedString contains at
+/// least one link run.  This gives the correct cursor feedback without
+/// requiring a full `NSTextView` wrapper.
+private struct LinkCursorText: View {
+    let attributed: AttributedString
+    let font: Font
+    let color: Color
+
+    private var hasLinks: Bool {
+        attributed.runs.contains { $0.link != nil }
+    }
+
+    var body: some View {
+        let base = Text(attributed)
+            .font(font)
+            .foregroundColor(color)
+            .fixedSize(horizontal: false, vertical: true)
+        if hasLinks {
+            base.onHover { hovering in
+                if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+            }
+        } else {
+            base
+        }
+    }
+}
+#endif
+
 // MARK: - Block views
 
 struct MarkdownContentView: View {
@@ -97,10 +129,14 @@ struct MarkdownContentView: View {
                 .padding(.top, level <= 2 ? 4 : 2)
 
         case .paragraph(let text):
+            #if os(macOS)
+            LinkCursorText(attributed: inlineMarkdown(text), font: bodyFont, color: textColor)
+            #else
             Text(inlineMarkdown(text))
                 .font(bodyFont)
                 .foregroundColor(textColor)
                 .fixedSize(horizontal: false, vertical: true)
+            #endif
 
         case .bulletList(let items):
             VStack(alignment: .leading, spacing: 6) {
@@ -109,10 +145,14 @@ struct MarkdownContentView: View {
                         Text("•")
                             .font(bodyFont)
                             .foregroundColor(textColor.opacity(0.6))
+                        #if os(macOS)
+                        LinkCursorText(attributed: inlineMarkdown(item), font: bodyFont, color: textColor)
+                        #else
                         Text(inlineMarkdown(item))
                             .font(bodyFont)
                             .foregroundColor(textColor)
                             .fixedSize(horizontal: false, vertical: true)
+                        #endif
                     }
                 }
             }
@@ -125,10 +165,14 @@ struct MarkdownContentView: View {
                             .font(bodyFont)
                             .foregroundColor(textColor.opacity(0.6))
                             .frame(minWidth: 20, alignment: .trailing)
+                        #if os(macOS)
+                        LinkCursorText(attributed: inlineMarkdown(item), font: bodyFont, color: textColor)
+                        #else
                         Text(inlineMarkdown(item))
                             .font(bodyFont)
                             .foregroundColor(textColor)
                             .fixedSize(horizontal: false, vertical: true)
+                        #endif
                     }
                 }
             }
