@@ -7,243 +7,26 @@
 
 import SwiftUI
 
-// MARK: - Block-level markdown parser
+// MARK: - Blocks cache
 
-/// Represents a parsed block of markdown content.
-enum MarkdownBlock: Identifiable {
-    case heading(level: Int, text: String)
-    case paragraph(text: String)
-    case bulletList(items: [String])
-    case numberedList(items: [String])
-    case codeBlock(language: String?, code: String)
-    case image(alt: String, url: String)
-    case blockquote(text: String)
-    case table(headers: [String], rows: [[String]])
-    case thematicBreak
+/// Global cache for parsed markdown blocks.
+/// `parseMarkdownBlocks` is intentionally run on a background thread (via
+/// `Task.detached`) and results are stored here keyed by `content.hashValue`.
+/// O(1) Int key means cache lookups are always fast regardless of content size.
+@MainActor
+private final class MarkdownBlocksCache {
+    static let shared = MarkdownBlocksCache()
+    private var storage: [Int: [MarkdownBlock]] = [:]
+    private let maxEntries = 500
 
-    var id: String {
-        switch self {
-        case .heading(_, let text): return "h-\(text.hashValue)"
-        case .paragraph(let text): return "p-\(text.hashValue)"
-        case .bulletList(let items): return "ul-\(items.hashValue)"
-        case .numberedList(let items): return "ol-\(items.hashValue)"
-        case .codeBlock(_, let code): return "code-\(code.hashValue)"
-        case .image(_, let url): return "img-\(url.hashValue)"
-        case .blockquote(let text): return "bq-\(text.hashValue)"
-        case .table(let headers, let rows): return "tbl-\(headers.hashValue)-\(rows.hashValue)"
-        case .thematicBreak: return "hr-\(UUID().uuidString)"
-        }
+    /// Returns cached blocks if available (O(1), no parsing).
+    func cached(for key: Int) -> [MarkdownBlock]? { storage[key] }
+
+    /// Stores parsed blocks for a given key.
+    func store(_ blocks: [MarkdownBlock], for key: Int) {
+        if storage.count >= maxEntries { storage.removeAll() }
+        storage[key] = blocks
     }
-}
-
-// Parses a markdown string into an array of block elements.
-// swiftlint:disable:next cyclomatic_complexity function_body_length
-func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
-    var blocks: [MarkdownBlock] = []
-    let lines = markdown.components(separatedBy: "\n")
-    var index = 0
-
-    while index < lines.count {
-        let line = lines[index]
-        let trimmed = line.trimmingCharacters(in: .whitespaces)
-
-        // Empty line — skip
-        if trimmed.isEmpty {
-            index += 1
-            continue
-        }
-
-        // Thematic break
-        if trimmed.allSatisfy({ $0 == "-" || $0 == "*" || $0 == "_" || $0 == " " })
-            && trimmed.filter({ $0 != " " }).count >= 3
-            && Set(trimmed.filter({ $0 != " " })).count == 1 {
-            blocks.append(.thematicBreak)
-            index += 1
-            continue
-        }
-
-        // Heading
-        if let match = trimmed.range(of: #"^(#{1,6})\s+(.+)$"#, options: .regularExpression) {
-            let full = String(trimmed[match])
-            let hashCount = full.prefix(while: { $0 == "#" }).count
-            let text = String(full.drop(while: { $0 == "#" }).dropFirst()) // drop space
-            blocks.append(.heading(level: hashCount, text: text))
-            index += 1
-            continue
-        }
-
-        // Fenced code block
-        if trimmed.hasPrefix("```") {
-            let language = String(trimmed.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-            var codeLines: [String] = []
-            index += 1
-            while index < lines.count {
-                if lines[index].trimmingCharacters(in: .whitespaces).hasPrefix("```") {
-                    index += 1
-                    break
-                }
-                codeLines.append(lines[index])
-                index += 1
-            }
-            blocks.append(.codeBlock(
-                language: language.isEmpty ? nil : language,
-                code: codeLines.joined(separator: "\n")
-            ))
-            continue
-        }
-
-        // Image (standalone line)
-        if let imgMatch = trimmed.range(
-            of: #"^!\[([^\]]*)\]\(([^)]+)\)$"#,
-            options: .regularExpression
-        ) {
-            let full = String(trimmed[imgMatch])
-            let altStart = full.index(full.startIndex, offsetBy: 2)
-            let altEnd = full.range(of: "]")!.lowerBound
-            let urlStart = full.range(of: "(")!.upperBound
-            let urlEnd = full.index(full.endIndex, offsetBy: -1)
-            let alt = String(full[altStart..<altEnd])
-            let url = String(full[urlStart..<urlEnd])
-            blocks.append(.image(alt: alt, url: url))
-            index += 1
-            continue
-        }
-
-        // Blockquote
-        if trimmed.hasPrefix("> ") || trimmed == ">" {
-            var quoteLines: [String] = []
-            while index < lines.count {
-                let qLine = lines[index].trimmingCharacters(in: .whitespaces)
-                if qLine.hasPrefix("> ") {
-                    quoteLines.append(String(qLine.dropFirst(2)))
-                } else if qLine == ">" {
-                    quoteLines.append("")
-                } else if qLine.isEmpty && !quoteLines.isEmpty {
-                    break
-                } else {
-                    break
-                }
-                index += 1
-            }
-            blocks.append(.blockquote(text: quoteLines.joined(separator: "\n")))
-            continue
-        }
-
-        // Table (pipe-delimited, requires header + separator row)
-        if trimmed.contains("|"), index + 1 < lines.count {
-            let nextLine = lines[index + 1].trimmingCharacters(in: .whitespaces)
-            let stripped = nextLine.replacing("|", with: "").replacing("-", with: "")
-                .replacing(":", with: "").replacing(" ", with: "")
-            if nextLine.contains("|") && nextLine.contains("-") && stripped.isEmpty {
-                let headers = parseTableRow(trimmed)
-                guard headers.count > 1 else {
-                    index += 1
-                    // Not a real table, fall through
-                    blocks.append(.paragraph(text: trimmed))
-                    continue
-                }
-                var dataRows: [[String]] = []
-                index += 2 // skip header + separator
-                while index < lines.count {
-                    let rowLine = lines[index].trimmingCharacters(in: .whitespaces)
-                    guard rowLine.contains("|") else { break }
-                    guard !rowLine.isEmpty else { break }
-                    dataRows.append(parseTableRow(rowLine))
-                    index += 1
-                }
-                blocks.append(.table(headers: headers, rows: dataRows))
-                continue
-            }
-        }
-
-        // Bullet list
-        if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
-            var items: [String] = []
-            while index < lines.count {
-                let lLine = lines[index].trimmingCharacters(in: .whitespaces)
-                if lLine.hasPrefix("- ") || lLine.hasPrefix("* ") || lLine.hasPrefix("• ") {
-                    items.append(String(lLine.dropFirst(2)))
-                } else if lLine.isEmpty {
-                    break
-                } else if lLine.hasPrefix("  ") && !items.isEmpty {
-                    // Continuation of previous item
-                    items[items.count - 1] += " " + lLine.trimmingCharacters(in: .whitespaces)
-                } else {
-                    break
-                }
-                index += 1
-            }
-            if !items.isEmpty { blocks.append(.bulletList(items: items)) }
-            continue
-        }
-
-        // Numbered list
-        if trimmed.range(of: #"^\d+[.)]\s+"#, options: .regularExpression) != nil {
-            var items: [String] = []
-            while index < lines.count {
-                let lLine = lines[index].trimmingCharacters(in: .whitespaces)
-                if let range = lLine.range(of: #"^\d+[.)]\s+"#, options: .regularExpression) {
-                    items.append(String(lLine[range.upperBound...]))
-                } else if lLine.isEmpty {
-                    break
-                } else if lLine.hasPrefix("  ") && !items.isEmpty {
-                    items[items.count - 1] += " " + lLine.trimmingCharacters(in: .whitespaces)
-                } else {
-                    break
-                }
-                index += 1
-            }
-            if !items.isEmpty { blocks.append(.numberedList(items: items)) }
-            continue
-        }
-
-        // Paragraph — collect consecutive non-blank, non-special lines
-        var paraLines: [String] = []
-        while index < lines.count {
-            let pLine = lines[index]
-            let pTrimmed = pLine.trimmingCharacters(in: .whitespaces)
-            if pTrimmed.isEmpty
-                || pTrimmed.hasPrefix("#")
-                || pTrimmed.hasPrefix("```")
-                || pTrimmed.hasPrefix("> ")
-                || pTrimmed.hasPrefix("| ")
-                || pTrimmed.hasPrefix("|")
-                || (pTrimmed.contains("|")
-                    && isLikelyTableRow(
-                        pTrimmed,
-                        nextLine: index + 1 < lines.count
-                            ? lines[index + 1] : nil
-                    ))
-                || pTrimmed.hasPrefix("- ")
-                || pTrimmed.hasPrefix("* ")
-                || pTrimmed.hasPrefix("• ")
-                || pTrimmed.range(of: #"^\d+[.)]\s+"#, options: .regularExpression) != nil {
-                break
-            }
-            paraLines.append(pTrimmed)
-            index += 1
-        }
-        if !paraLines.isEmpty {
-            blocks.append(.paragraph(text: paraLines.joined(separator: " ")))
-        }
-    }
-
-    return blocks
-}
-
-/// Checks if a line looks like a table header (has pipes and the next line is a separator).
-private func isLikelyTableRow(_ line: String, nextLine: String?) -> Bool {
-    guard let next = nextLine?.trimmingCharacters(in: .whitespaces) else { return false }
-    let stripped = next.replacing("|", with: "").replacing("-", with: "")
-        .replacing(":", with: "").replacing(" ", with: "")
-    return next.contains("|") && next.contains("-") && stripped.isEmpty
-}
-
-/// Splits a pipe-delimited table row into cell strings.
-private func parseTableRow(_ row: String) -> [String] {
-    row.split(separator: "|", omittingEmptySubsequences: false)
-        .map { $0.trimmingCharacters(in: .whitespaces) }
-        .filter { !$0.isEmpty }
 }
 
 // MARK: - Inline markdown rendering
@@ -262,15 +45,48 @@ struct MarkdownContentView: View {
     let content: String
     let role: ChatRole
 
-    private var blocks: [MarkdownBlock] {
-        parseMarkdownBlocks(content)
+    /// Parsed blocks — nil until the background parse completes.
+    /// Parsing is dispatched to a detached Task so the main thread is never blocked,
+    /// even for very large AI responses (10 MB+).
+    @State private var parsedBlocks: [MarkdownBlock]?
+
+    init(content: String, role: ChatRole) {
+        self.content = content
+        self.role = role
+        // Check cache synchronously (O(1) Int lookup) — no parsing on init.
+        let key = content.hashValue
+        let cached = MarkdownBlocksCache.shared.cached(for: key)
+        self._parsedBlocks = State(initialValue: cached)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ForEach(blocks) { block in
-                blockView(for: block)
+        Group {
+            if let blocks = parsedBlocks {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(blocks) { block in
+                        blockView(for: block)
+                    }
+                }
+            } else {
+                // Show raw text instantly while background parse runs.
+                Text(content)
+                    .textSelection(.enabled)
             }
+        }
+        .task(id: content) {
+            let key = content.hashValue
+            // Double-check cache in case another view already parsed this content.
+            if MarkdownBlocksCache.shared.cached(for: key) != nil {
+                parsedBlocks = MarkdownBlocksCache.shared.cached(for: key)
+                return
+            }
+            // Parse on a background thread — never block the main thread.
+            let snapshot = content
+            let result = await Task.detached(priority: .userInitiated) {
+                parseMarkdownBlocks(snapshot)
+            }.value
+            MarkdownBlocksCache.shared.store(result, for: key)
+            parsedBlocks = result
         }
     }
 
