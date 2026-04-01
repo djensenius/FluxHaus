@@ -8,7 +8,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-// swiftlint:disable:next type_body_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
@@ -19,6 +18,21 @@ struct ChatView: View {
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
     @State private var searchText = ""
+    // Tracks whether suggestion chips should be visible. Updated only when
+    // isLoading or conversationId changes — NOT on every streaming token —
+    // so that chatDetail never reads chat.messages during streaming.
+    // Reading chat.messages in chatDetail causes the entire ChatView (including
+    // the NSTextView-backed multi-line TextField) to re-render on every token,
+    // which triggers _NSDetectedLayoutRecursion on macOS.
+    @State private var showSuggestions = false
+
+    private func updateShowSuggestions() {
+        guard let convId = chat.conversationId else { showSuggestions = false; return }
+        if chat.isLoading { showSuggestions = false; return }
+        let lastReal = chat.messages(for: convId).last(where: { !$0.isProgress })
+        let newVal = lastReal == nil || lastReal?.role == .assistant
+        showSuggestions = newVal
+    }
 
     private var filteredConversations: [Conversation] {
         if searchText.isEmpty { return chat.conversations }
@@ -47,6 +61,8 @@ struct ChatView: View {
             }
         }
         .task { await chat.syncConversationsPeriodically() }
+        .onChange(of: chat.isLoading) { updateShowSuggestions() }
+        .onChange(of: chat.conversationId) { updateShowSuggestions() }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
         ) { _ in
@@ -186,7 +202,7 @@ struct ChatView: View {
                 sessionErrorBanner(error)
             }
             chatMessages
-            if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
+            if showSuggestions {
                 SuggestionChipsView { command in
                     inputText = command
                     sendMessage()
@@ -227,53 +243,7 @@ struct ChatView: View {
     private var chatMessages: some View {
         Group {
             if let convId = chat.conversationId {
-                conversationScrollView(for: convId)
-                    .id(convId)
-            }
-        }
-    }
-
-    private func conversationScrollView(for convId: String) -> some View {
-        let convMessages = chat.messages(for: convId)
-        return ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(convMessages) { message in
-                        ChatBubble(
-                            message: message,
-                            isLastProgress: message.isProgress
-                                && message.id == convMessages.last(where: \.isProgress)?.id,
-                            isPlaying: chat.playingMessageId == message.id,
-                            onPlayTapped: {
-                                if chat.playingMessageId == message.id {
-                                    chat.stopPlayback()
-                                } else {
-                                    chat.playAudio(for: message)
-                                }
-                            }
-                        )
-                        .id(message.id)
-                    }
-                    if chat.isLoading {
-                        TypingIndicator()
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .id("loading")
-                    }
-                }
-                .padding(.vertical, 12)
-                Color.clear.frame(height: 1).id("bottom")
-            }
-            .defaultScrollAnchor(.bottom)
-            .onChange(of: convMessages.last?.id) {
-                DispatchQueue.main.async {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
-            }
-            .onChange(of: chat.isLoading) {
-                if chat.isLoading {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
+                ConversationScrollView(convId: convId, chat: chat)
             }
         }
     }
@@ -348,7 +318,9 @@ struct ChatView: View {
                         .focused($isInputFocused)
                         .submitLabel(.send)
                         .onSubmit { sendMessage() }
-                        .onAppear { isInputFocused = true }
+                        // Do NOT auto-focus on macOS: activating the NSTextView field
+                        // editor while streaming triggers ViewBridge XPC and can
+                        // contribute to _NSDetectedLayoutRecursion.
 
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")

@@ -394,6 +394,9 @@ struct Conversation: Identifiable, Codable {
 
     func loadConversation(_ conv: Conversation) async {
         touchConversation(conv.id)
+        // Yield before mutating state so any in-progress layout cycle on the
+        // calling side (e.g. List selection highlight) can finish first.
+        await Task.yield()
         conversationId = conv.id
         if cachedMessages[conv.id] != nil {
             return

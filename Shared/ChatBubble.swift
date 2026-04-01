@@ -79,7 +79,9 @@ struct ChatBubble: View {
                     progressContent
                 } else if message.role == .assistant {
                     MarkdownContentView(content: message.content, role: .assistant)
+                        #if !os(macOS)
                         .textSelection(.enabled)
+                        #endif
                 } else if message.role == .error {
                     Text(message.content)
                         .font(Theme.Fonts.bodyLarge)
@@ -109,7 +111,11 @@ struct ChatBubble: View {
     private var progressContent: some View {
         HStack(spacing: 8) {
             if isLastProgress {
+                #if os(macOS)
+                SwiftUISpinner()
+                #else
                 ProgressView().controlSize(.small)
+                #endif
             } else {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption2)

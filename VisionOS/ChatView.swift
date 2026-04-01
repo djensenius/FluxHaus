@@ -15,6 +15,14 @@ struct ChatView: View {
     @State private var showConversations = false
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var pendingImages: [ChatImage] = []
+    @State private var showSuggestions = false
+
+    private func updateShowSuggestions() {
+        guard let convId = chat.conversationId else { showSuggestions = false; return }
+        if chat.isLoading { showSuggestions = false; return }
+        let lastReal = chat.messages(for: convId).last(where: { !$0.isProgress })
+        showSuggestions = lastReal == nil || lastReal?.role == .assistant
+    }
 
     var body: some View {
         NavigationStack {
@@ -23,7 +31,7 @@ struct ChatView: View {
                     sessionErrorBanner(error)
                 }
                 chatMessages
-                if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
+                if showSuggestions {
                     SuggestionChipsView { command in
                         inputText = command
                         sendMessage()
@@ -72,6 +80,8 @@ struct ChatView: View {
                 }
             }
             .task { await chat.syncConversationsPeriodically() }
+            .onChange(of: chat.isLoading) { updateShowSuggestions() }
+            .onChange(of: chat.conversationId) { updateShowSuggestions() }
         }
         .onChange(of: selectedPhotos) {
             Task { await loadSelectedPhotos() }
@@ -83,53 +93,7 @@ struct ChatView: View {
     private var chatMessages: some View {
         Group {
             if let convId = chat.conversationId {
-                conversationScrollView(for: convId)
-                    .id(convId)
-            }
-        }
-    }
-
-    private func conversationScrollView(for convId: String) -> some View {
-        let convMessages = chat.messages(for: convId)
-        return ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(convMessages) { message in
-                        ChatBubble(
-                            message: message,
-                            isLastProgress: message.isProgress
-                                && message.id == convMessages.last(where: \.isProgress)?.id,
-                            isPlaying: chat.playingMessageId == message.id,
-                            onPlayTapped: {
-                                if chat.playingMessageId == message.id {
-                                    chat.stopPlayback()
-                                } else {
-                                    chat.playAudio(for: message)
-                                }
-                            }
-                        )
-                        .id(message.id)
-                    }
-                    if chat.isLoading {
-                        TypingIndicator()
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .id("loading")
-                    }
-                }
-                .padding(.vertical, 12)
-                Color.clear.frame(height: 1).id("bottom")
-            }
-            .defaultScrollAnchor(.bottom)
-            .onChange(of: convMessages.last?.id) {
-                DispatchQueue.main.async {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
-            }
-            .onChange(of: chat.isLoading) {
-                if chat.isLoading {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
+                ConversationScrollView(convId: convId, chat: chat)
             }
         }
     }

@@ -36,6 +36,10 @@
 		PT0001000000000000000002 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
 		PT0001000000000000000003 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
 		PT0001000000000000000004 /* PrecipitationTimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PT0000000000000000000001 /* PrecipitationTimelineView.swift */; };
+		CSV0001000000000000000001 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
+		CSV0001000000000000000002 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
+		CSV0001000000000000000003 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
+		CSV0001000000000000000004 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
 		TI0001000000000000000001 /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = TI0000000000000000000001 /* TypingIndicator.swift */; };
 		TI0001000000000000000002 /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = TI0000000000000000000001 /* TypingIndicator.swift */; };
 		TI0001000000000000000003 /* TypingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = TI0000000000000000000001 /* TypingIndicator.swift */; };
@@ -48,6 +52,10 @@ MD0002000000000000000001 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 MD0002000000000000000002 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
 MD0002000000000000000003 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
 MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
+MP0002000000000000000001 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
+MP0002000000000000000002 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
+MP0002000000000000000003 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
+MP0002000000000000000004 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
 
 		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
@@ -315,9 +323,11 @@ MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBX
 		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		37D0A0000000000000000001 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		PT0000000000000000000001 /* PrecipitationTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrecipitationTimelineView.swift; sourceTree = "<group>"; };
+		CSV0000000000000000000001 /* ConversationScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationScrollView.swift; sourceTree = "<group>"; };
 		TI0000000000000000000001 /* TypingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingIndicator.swift; sourceTree = "<group>"; };
 CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
+MP0001000000000000000001 /* MarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownParser.swift; sourceTree = "<group>"; };
 		54E080FFA20990ACE9D14FB1 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CB3B0423E7608E287483D2 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
@@ -418,6 +428,7 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 		CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
 		MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
+		MP0001000000000000000001 /* MarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownParser.swift; sourceTree = "<group>"; };
 		NS0001000000000000000001 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
 		PT0000000000000000000001 /* PrecipitationTimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrecipitationTimelineView.swift; sourceTree = "<group>"; };
 		RD0001000000000000000001 /* RadarService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RadarService.swift; sourceTree = "<group>"; };
@@ -553,9 +564,11 @@ MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReferen
 				023E1C2F41844A628251CE04 /* RobotsListView.swift */,
 				37D0A0000000000000000001 /* SuggestionChips.swift */,
 				PT0000000000000000000001 /* PrecipitationTimelineView.swift */,
+				CSV0000000000000000000001 /* ConversationScrollView.swift */,
 				TI0000000000000000000001 /* TypingIndicator.swift */,
 CB0001000000000000000001 /* ChatBubble.swift */,
 MD0001000000000000000001 /* MarkdownContentView.swift */,
+MP0001000000000000000001 /* MarkdownParser.swift */,
 				NS0001000000000000000001 /* NotificationSettingsView.swift */,);
 			path = Shared;
 			sourceTree = "<group>";
@@ -1035,9 +1048,11 @@ MD0001000000000000000001 /* MarkdownContentView.swift */,
 				0EBB163D8B0C468A99FB9F63 /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000001 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000001 /* PrecipitationTimelineView.swift in Sources */,
+				CSV0001000000000000000001 /* ConversationScrollView.swift in Sources */,
 				TI0001000000000000000001 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000001 /* ChatBubble.swift in Sources */,
 MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
+MP0002000000000000000001 /* MarkdownParser.swift in Sources */,
 				RD0003000000000000000001 /* RadarService.swift in Sources */,
 				RD0004000000000000000001 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000001 /* RadarOverlayRenderer.swift in Sources */,
@@ -1096,9 +1111,11 @@ MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
 				225311E8D0A34FE1A853BFA7 /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000002 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000002 /* PrecipitationTimelineView.swift in Sources */,
+				CSV0001000000000000000002 /* ConversationScrollView.swift in Sources */,
 				TI0001000000000000000002 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000002 /* ChatBubble.swift in Sources */,
 MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
+MP0002000000000000000002 /* MarkdownParser.swift in Sources */,
 				NS0002000000000000000001 /* NotificationSettingsView.swift in Sources */,
 				F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */,
 			);
@@ -1194,9 +1211,11 @@ MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
 				16D5F398E31F40DA85FCEADF /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000003 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000003 /* PrecipitationTimelineView.swift in Sources */,
+				CSV0001000000000000000003 /* ConversationScrollView.swift in Sources */,
 				TI0001000000000000000003 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000003 /* ChatBubble.swift in Sources */,
 MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
+MP0002000000000000000003 /* MarkdownParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1265,9 +1284,11 @@ MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
 				5D4730DE346F4F3096732C83 /* RobotsListView.swift in Sources */,
 				37D0A0010000000000000004 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000004 /* PrecipitationTimelineView.swift in Sources */,
+				CSV0001000000000000000004 /* ConversationScrollView.swift in Sources */,
 				TI0001000000000000000004 /* TypingIndicator.swift in Sources */,
 CB0002000000000000000004 /* ChatBubble.swift in Sources */,
 MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
+MP0002000000000000000004 /* MarkdownParser.swift in Sources */,
 				RD0003000000000000000004 /* RadarService.swift in Sources */,
 				RD0004000000000000000002 /* WeatherRadarView.swift in Sources */,
 				RO0001000000000000000002 /* RadarOverlayRenderer.swift in Sources */,

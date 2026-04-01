@@ -30,7 +30,6 @@ private func formatRelativeDate(_ isoString: String) -> String {
 }
 
 // swiftlint:disable file_length
-// swiftlint:disable:next type_body_length
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
@@ -43,6 +42,14 @@ struct ChatView: View {
     @State private var pendingImages: [ChatImage] = []
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
+    @State private var showSuggestions = false
+
+    private func updateShowSuggestions() {
+        guard let convId = chat.conversationId else { showSuggestions = false; return }
+        if chat.isLoading { showSuggestions = false; return }
+        let lastReal = chat.messages(for: convId).last(where: { !$0.isProgress })
+        showSuggestions = lastReal == nil || lastReal?.role == .assistant
+    }
 
     var body: some View {
         Group {
@@ -65,6 +72,8 @@ struct ChatView: View {
             }
         }
         .task { await chat.syncConversationsPeriodically() }
+        .onChange(of: chat.isLoading) { updateShowSuggestions() }
+        .onChange(of: chat.conversationId) { updateShowSuggestions() }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
         ) { _ in
@@ -207,7 +216,7 @@ struct ChatView: View {
         VStack(spacing: 0) {
             if let error = chat.sessionError { sessionErrorBanner(error) }
             chatMessages
-            if chat.messages.isEmpty || chat.messages.last?.role == .assistant {
+            if showSuggestions {
                 SuggestionChipsView { inputText = $0; sendMessage() }
                     .padding(.vertical, 8)
             }
@@ -243,55 +252,8 @@ struct ChatView: View {
     private var chatMessages: some View {
         Group {
             if let convId = chat.conversationId {
-                conversationScrollView(for: convId)
-                    .id(convId)
+                ConversationScrollView(convId: convId, chat: chat)
             }
-        }
-    }
-
-    private func conversationScrollView(for convId: String) -> some View {
-        let convMessages = chat.messages(for: convId)
-        return ScrollViewReader { proxy in
-            ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(convMessages) { message in
-                        ChatBubble(
-                            message: message,
-                            isLastProgress: message.isProgress
-                                && message.id == convMessages.last(where: \.isProgress)?.id,
-                            isPlaying: chat.playingMessageId == message.id,
-                            onPlayTapped: {
-                                if chat.playingMessageId == message.id {
-                                    chat.stopPlayback()
-                                } else {
-                                    chat.playAudio(for: message)
-                                }
-                            }
-                        )
-                        .id(message.id)
-                    }
-                    if chat.isLoading {
-                        TypingIndicator()
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .id("loading")
-                    }
-                }
-                .padding(.vertical, 12)
-                Color.clear.frame(height: 1).id("bottom")
-            }
-            .defaultScrollAnchor(.bottom)
-            .onChange(of: convMessages.last?.id) {
-                DispatchQueue.main.async {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
-            }
-            .onChange(of: chat.isLoading) {
-                if chat.isLoading {
-                    proxy.scrollTo("bottom", anchor: .bottom)
-                }
-            }
-            .scrollDismissesKeyboard(.interactively)
         }
     }
 
