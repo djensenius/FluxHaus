@@ -13,15 +13,23 @@ struct PrecipitationTimelineView: View {
 
     /// Returns true if any precipitation is expected in the next hour.
     static func hasPrecipitation(_ forecast: [MinuteWeather]) -> Bool {
-        forecast.prefix(60).contains { $0.precipitationIntensity.value > 0.01 }
+        forecast.prefix(60).contains {
+            $0.precipitationIntensity.value > 0.01 || $0.precipitationChance > 0
+        }
     }
 
     private var minutes: [MinuteWeather] {
         Array(minuteForecast.prefix(60))
     }
 
+    /// Prefer intensity when available; fall back to chance as a relative value.
+    private func chartValue(for minute: MinuteWeather) -> Double {
+        let intensity = minute.precipitationIntensity.value
+        return intensity > 0.01 ? intensity : minute.precipitationChance * 0.5
+    }
+
     private var smoothedValues: [Double] {
-        let raw = minutes.map { $0.precipitationIntensity.value }
+        let raw = minutes.map { chartValue(for: $0) }
         guard raw.count > 2 else { return raw }
         var result = [Double](repeating: 0, count: raw.count)
         let window = 3
@@ -35,7 +43,7 @@ struct PrecipitationTimelineView: View {
     }
 
     private var maxIntensity: Double {
-        max(minutes.map { $0.precipitationIntensity.value }.max() ?? 0, 0.5)
+        max(minutes.map { chartValue(for: $0) }.max() ?? 0, 0.5)
     }
 
     var body: some View {
@@ -93,22 +101,20 @@ struct PrecipitationTimelineView: View {
         }
     }
 
+    private func hasPrecip(_ minute: MinuteWeather) -> Bool {
+        minute.precipitationIntensity.value > 0.01 || minute.precipitationChance > 0
+    }
+
     private var summaryText: String {
-        let isRainingNow = minutes.first.map {
-            $0.precipitationIntensity.value > 0.01
-        } ?? false
+        let isRainingNow = minutes.first.map { hasPrecip($0) } ?? false
 
         if isRainingNow {
-            if let stopIdx = minutes.firstIndex(where: {
-                $0.precipitationIntensity.value < 0.01
-            }) {
+            if let stopIdx = minutes.firstIndex(where: { !hasPrecip($0) }) {
                 return "Rain stopping in \(stopIdx) min"
             }
             return intensityWord + " rain for the next hour"
         } else {
-            if let startIdx = minutes.firstIndex(where: {
-                $0.precipitationIntensity.value > 0.01
-            }) {
+            if let startIdx = minutes.firstIndex(where: { hasPrecip($0) }) {
                 return "Rain starting in \(startIdx) min"
             }
             return "No rain expected this hour"
@@ -116,7 +122,7 @@ struct PrecipitationTimelineView: View {
     }
 
     private var intensityWord: String {
-        let peak = minutes.map { $0.precipitationIntensity.value }.max() ?? 0
+        let peak = minutes.map { chartValue(for: $0) }.max() ?? 0
         if peak < 2.5 { return "Light" }
         if peak < 7.5 { return "Moderate" }
         return "Heavy"
