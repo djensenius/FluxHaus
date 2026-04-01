@@ -7,6 +7,25 @@
 
 import SwiftUI
 
+/// Pure-SwiftUI rotating spinner used on macOS in place of NSProgressIndicator,
+/// which can trigger layoutSubtreeIfNeeded recursion inside ScrollView.
+struct SwiftUISpinner: View {
+    @State private var isAnimating = false
+
+    var body: some View {
+        Circle()
+            .trim(from: 0.1, to: 0.9)
+            .stroke(Theme.Colors.textSecondary.opacity(0.7), lineWidth: 1.5)
+            .frame(width: 12, height: 12)
+            .rotationEffect(.degrees(isAnimating ? 360 : 0))
+            .animation(
+                .linear(duration: 0.8).repeatForever(autoreverses: false),
+                value: isAnimating
+            )
+            .onAppear { isAnimating = true }
+    }
+}
+
 /// Animated typing indicator with three pulsing dots,
 /// styled like iMessage in the app's Catppuccin theme.
 struct TypingIndicator: View {
@@ -36,12 +55,9 @@ struct TypingIndicator: View {
             )
             Spacer(minLength: 48)
         }
-        .onAppear { startAnimation() }
-    }
-
-    private func startAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { _ in
-            Task { @MainActor in
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(0.6))
                 withAnimation {
                     phase = (phase + 1) % 3
                 }
