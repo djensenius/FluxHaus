@@ -29,6 +29,20 @@ private final class MarkdownBlocksCache {
     }
 }
 
+/// Pre-warms the markdown blocks cache for a list of content strings.
+/// Call this when loading a conversation so that `MarkdownContentView` finds
+/// cache hits immediately, avoiding any main-thread parse on first render.
+func warmMarkdownCache(for contents: [String]) {
+    Task.detached(priority: .userInitiated) {
+        for content in contents {
+            let key = content.hashValue
+            if await MarkdownBlocksCache.shared.cached(for: key) != nil { continue }
+            let result = parseMarkdownBlocks(content)
+            await MarkdownBlocksCache.shared.store(result, for: key)
+        }
+    }
+}
+
 // MARK: - Inline markdown rendering
 
 /// Renders inline markdown (bold, italic, code, links) as AttributedString.
@@ -45,39 +59,20 @@ struct MarkdownContentView: View {
     let content: String
     let role: ChatRole
 
-    /// Parsed blocks — nil until the background parse completes.
-    /// Parsing is dispatched to a detached Task so the main thread is never blocked,
-    /// even for very large AI responses (10 MB+).
-    @State private var parsedBlocks: [MarkdownBlock]?
-
-    init(content: String, role: ChatRole) {
-        self.content = content
-        self.role = role
-        // Check cache synchronously (O(1) Int lookup) — no parsing on init.
-        let key = content.hashValue
-        let cached = MarkdownBlocksCache.shared.cached(for: key)
-        self._parsedBlocks = State(initialValue: cached)
-    }
+    /// Starts empty; populated asynchronously via `.task` so the main thread is
+    /// never blocked by `parseMarkdownBlocks`, even for very large AI responses.
+    @State private var parsedBlocks: [MarkdownBlock] = []
 
     var body: some View {
-        Group {
-            if let blocks = parsedBlocks {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(blocks) { block in
-                        blockView(for: block)
-                    }
-                }
-            } else {
-                // Show raw text instantly while background parse runs.
-                Text(content)
-                    .textSelection(.enabled)
+        VStack(alignment: .leading, spacing: 10) {
+            ForEach(parsedBlocks) { block in
+                blockView(for: block)
             }
         }
         .task(id: content) {
             let key = content.hashValue
-            // Double-check cache in case another view already parsed this content.
-            if MarkdownBlocksCache.shared.cached(for: key) != nil {
-                parsedBlocks = MarkdownBlocksCache.shared.cached(for: key)
+            if let cached = MarkdownBlocksCache.shared.cached(for: key) {
+                parsedBlocks = cached
                 return
             }
             // Parse on a background thread — never block the main thread.

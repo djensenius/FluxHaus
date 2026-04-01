@@ -52,6 +52,8 @@ struct ConversationScrollView: View {
         }
         .scrollPosition($scrollPosition)
         .task(id: convId) {
+            // Pre-warm the markdown cache so MarkdownContentView finds hits immediately.
+            warmMarkdownCache(for: convMessages.map(\.content))
             scrollPosition = ScrollPosition()
             try? await Task.sleep(for: .milliseconds(32))
             scrollPosition.scrollTo(edge: .bottom)
