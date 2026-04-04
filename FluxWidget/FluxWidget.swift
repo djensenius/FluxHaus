@@ -270,6 +270,44 @@ struct SingleView: View {
     }
 }
 
+struct AccessoryRectangularView: View {
+    var items: [WidgetDevice]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(items.prefix(3).enumerated()), id: \.offset) { _, item in
+                HStack(spacing: 6) {
+                    Image(systemName: item.icon)
+                        .font(.caption)
+                        .frame(width: 16)
+                    if isRobot(item.name) {
+                        if let battery = item.battery {
+                            ProgressView(value: Double(battery) / 100.0)
+                                .progressViewStyle(.linear)
+                                .tint(batteryColor(level: battery))
+                            Text("\(battery)%")
+                                .font(.caption)
+                                .monospacedDigit()
+                        }
+                    } else if item.progress > 0 {
+                        ProgressView(value: Double(item.progress) / 100.0)
+                            .progressViewStyle(.linear)
+                            .tint(tintColor(for: item.name))
+                        Text(item.shortText)
+                            .font(.caption)
+                            .monospacedDigit()
+                    } else {
+                        Text(item.running ? item.trailingText : "\(item.name) off")
+                            .font(.caption)
+                            .lineLimit(1)
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct FluxWidgetEntryView: View {
     var entry: Provider.Entry
     var grid = false
@@ -292,7 +330,7 @@ struct FluxWidgetEntryView: View {
         case .accessoryCircular:
             SingleView(item: entry.widgetDevices[0], multipleLines: false)
         case .accessoryRectangular:
-            DeviceListView(limit: 1, items: entry.widgetDevices)
+            AccessoryRectangularView(items: entry.widgetDevices)
         case .accessoryInline:
             InlineView(item: entry.widgetDevices[0])
         default:
