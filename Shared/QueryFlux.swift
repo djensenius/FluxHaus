@@ -405,9 +405,14 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     }
 
     let washerReminingTime = formatTimeRemaining(minutes: fluxData.washer?.timeRemaining ?? 0)
-    var washerTrailingText = "\(fluxData.washer?.programName ?? "") ⋅ \(washerReminingTime)"
-    if fluxData.washer != nil && fluxData.washer?.status != "In use" {
-        washerTrailingText = fluxData.washer!.status! + " ⋅ \(washerTrailingText)"
+    var washerTrailingText = washerReminingTime
+    if let programName = fluxData.washer?.programName,
+       !programName.trimmingCharacters(in: .whitespaces).isEmpty {
+        washerTrailingText = "\(programName.trimmingCharacters(in: .whitespaces)) ⋅ \(washerTrailingText)"
+    }
+    if fluxData.washer != nil && fluxData.washer?.status != "In use",
+       let status = fluxData.washer?.status {
+        washerTrailingText = "\(status) ⋅ \(washerTrailingText)"
     }
 
     returnValue.append(
@@ -429,9 +434,14 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         dryerProgress = Int(Double(dryerTimeRunning) / Double(dryerTimeRemaining + dryerTimeRunning) * 100)
     }
     let dryerReminingTime = formatTimeRemaining(minutes: fluxData.dryer?.timeRemaining ?? 0)
-    var dryerTrailingText = "\(fluxData.dryer?.programName ?? "") ⋅ \(dryerReminingTime)"
-    if fluxData.dryer != nil && fluxData.dryer?.status != "In use" {
-        dryerTrailingText = fluxData.dryer!.status! + " ⋅ \(dryerTrailingText)"
+    var dryerTrailingText = dryerReminingTime
+    if let programName = fluxData.dryer?.programName,
+       !programName.trimmingCharacters(in: .whitespaces).isEmpty {
+        dryerTrailingText = "\(programName.trimmingCharacters(in: .whitespaces)) ⋅ \(dryerTrailingText)"
+    }
+    if fluxData.dryer != nil && fluxData.dryer?.status != "In use",
+       let status = fluxData.dryer?.status {
+        dryerTrailingText = "\(status) ⋅ \(dryerTrailingText)"
     }
 
     returnValue.append(

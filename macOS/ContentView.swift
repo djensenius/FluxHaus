@@ -217,15 +217,21 @@ struct AppliancesMacView: View {
                         .font(Theme.Fonts.bodyMedium)
                         .foregroundColor(Theme.Colors.textPrimary)
                     }
-                    if !appliance.programName.isEmpty {
-                        Text("Program: \(appliance.programName)")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textSecondary)
+                    if !appliance.programName.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Label(
+                            appliance.programName.trimmingCharacters(in: .whitespaces),
+                            systemImage: "list.bullet"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     }
-                    if !appliance.step.isEmpty {
-                        Text("Step: \(appliance.step)")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textSecondary)
+                    if !appliance.step.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Label(
+                            appliance.step.trimmingCharacters(in: .whitespaces),
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     }
                 } else {
                     Label("Off", systemImage: "power.circle")
