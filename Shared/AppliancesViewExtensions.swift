@@ -129,11 +129,14 @@ extension Appliances {
             return ""
         }
         if tAppliance.count > index && tAppliance[index].programName != "" {
-            let step = tAppliance[index].step
-            let programName = tAppliance[index].programName.trimmingCharacters(in: NSCharacterSet.whitespaces)
+            let step = formatApplianceProgramName(tAppliance[index].step)
+            let programName = formatApplianceProgramName(tAppliance[index].programName)
+            if step.isEmpty {
+                return programName
+            }
             return "\(step) (\(programName))"
         } else if tAppliance.count > index {
-            return "\(tAppliance[index].step)"
+            return formatApplianceProgramName(tAppliance[index].step)
         }
         return ""
     }
@@ -168,7 +171,7 @@ extension Appliances {
     func getMopBotText() -> String {
         var text = ""
         if robots.mopBot.running == true && robots.mopBot.timeStarted != nil {
-            text = "Started \(getCarTime(strDate: robots.mopBot.timeStarted!)) "
+            text = "Started \(relativeTimeString(from: robots.mopBot.timeStarted!)) "
         }
         if robots.mopBot.batteryLevel != nil && robots.mopBot.batteryLevel! < 100 {
             text += robots.mopBot.charging! ?
@@ -180,7 +183,7 @@ extension Appliances {
     func getBroomBotText() -> String {
         var text = ""
         if robots.broomBot.running == true && robots.broomBot.timeStarted != nil {
-            text = "Started \(getCarTime(strDate: robots.broomBot.timeStarted!)) "
+            text = "Started \(relativeTimeString(from: robots.broomBot.timeStarted!)) "
         }
         if robots.broomBot.batteryLevel != nil && robots.broomBot.batteryLevel! < 100 {
             text += robots.broomBot.charging! ?

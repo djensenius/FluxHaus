@@ -88,7 +88,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Car").font(Theme.Fonts.headerLarge()).foregroundColor(Theme.Colors.textPrimary)
             VStack(alignment: .leading, spacing: 8) {
-                Text("EV Data Updated \(getCarTime(strDate: car.vehicle.evStatusTimestamp))")
+                Text("EV Data Updated \(relativeTimeString(from: car.vehicle.evStatusTimestamp))")
                     .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
                 Text("Battery: \(car.vehicle.batteryLevel)%, \(car.vehicle.distance) km")
                     .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
@@ -163,10 +163,10 @@ struct DashboardView: View {
                         .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.error)
                 }
                 if robot.running == true, let started = robot.timeStarted {
-                    Text("Started \(getCarTime(strDate: started))")
+                    Text("Started \(relativeTimeString(from: started))")
                         .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
                 }
-                Text("Updated \(getCarTime(strDate: robot.timestamp))")
+                Text("Updated \(relativeTimeString(from: robot.timestamp))")
                     .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
             }
             Divider()

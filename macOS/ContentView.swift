@@ -217,15 +217,21 @@ struct AppliancesMacView: View {
                         .font(Theme.Fonts.bodyMedium)
                         .foregroundColor(Theme.Colors.textPrimary)
                     }
-                    if !appliance.programName.isEmpty {
-                        Text("Program: \(appliance.programName)")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textSecondary)
+                    if !appliance.programName.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Label(
+                            formatApplianceProgramName(appliance.programName),
+                            systemImage: "list.bullet"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     }
-                    if !appliance.step.isEmpty {
-                        Text("Step: \(appliance.step)")
-                            .font(Theme.Fonts.bodyMedium)
-                            .foregroundColor(Theme.Colors.textSecondary)
+                    if !appliance.step.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Label(
+                            formatApplianceProgramName(appliance.step),
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textSecondary)
                     }
                 } else {
                     Label("Off", systemImage: "power.circle")
@@ -318,14 +324,14 @@ struct RobotsMacView: View {
                 if robot.running == true,
                    let started = robot.timeStarted {
                     Text(
-                        "Started \(getCarTime(strDate: started))"
+                        "Started \(relativeTimeString(from: started))"
                     )
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
                 }
 
                 Text(
-                    "Updated \(getCarTime(strDate: robot.timestamp))"
+                    "Updated \(relativeTimeString(from: robot.timestamp))"
                 )
                 .font(Theme.Fonts.caption)
                 .foregroundColor(Theme.Colors.textSecondary)

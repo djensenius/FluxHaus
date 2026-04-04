@@ -48,8 +48,11 @@ struct RobotDetailView: View {
                                     .font(Theme.Fonts.bodyMedium)
                                     .foregroundColor(Theme.Colors.success)
                             } else if robot.running == true {
+                                let startedTime = relativeTimeString(
+                                    from: robot.timeStarted ?? robot.timestamp
+                                )
                                 Label(
-                                    "Cleaning started \(getCarTime(strDate: robot.timestamp))",
+                                    "Cleaning started \(startedTime)",
                                     systemImage: "fan.fill"
                                 )
                                     .font(Theme.Fonts.bodyMedium)
@@ -68,7 +71,7 @@ struct RobotDetailView: View {
                                     .foregroundColor(Theme.Colors.textSecondary)
                             }
 
-                            Text("Data Updated \(getCarTime(strDate: robot.timestamp))")
+                            Text("Data Updated \(relativeTimeString(from: robot.timestamp))")
                                 .font(Theme.Fonts.caption)
                                 .foregroundColor(Theme.Colors.textSecondary)
                         }
