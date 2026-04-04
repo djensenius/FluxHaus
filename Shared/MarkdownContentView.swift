@@ -43,16 +43,6 @@ func warmMarkdownCache(for contents: [String]) {
     }
 }
 
-// MARK: - Inline markdown rendering
-
-/// Renders inline markdown (bold, italic, code, links) as AttributedString.
-private func inlineMarkdown(_ text: String) -> AttributedString {
-    let options = AttributedString.MarkdownParsingOptions(
-        interpretedSyntax: .inlineOnlyPreservingWhitespace
-    )
-    return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
-}
-
 // MARK: - Link-aware text (macOS)
 
 #if os(macOS)
@@ -97,7 +87,7 @@ struct MarkdownContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(parsedBlocks) { block in
+            ForEach(Array(parsedBlocks.enumerated()), id: \.offset) { _, block in
                 blockView(for: block)
             }
         }
@@ -122,7 +112,7 @@ struct MarkdownContentView: View {
     private func blockView(for block: MarkdownBlock) -> some View {
         switch block {
         case .heading(let level, let text):
-            Text(inlineMarkdown(text))
+            Text(text)
                 .font(headingFont(level: level))
                 .fontWeight(.semibold)
                 .foregroundColor(textColor)
@@ -130,9 +120,9 @@ struct MarkdownContentView: View {
 
         case .paragraph(let text):
             #if os(macOS)
-            LinkCursorText(attributed: inlineMarkdown(text), font: bodyFont, color: textColor)
+            LinkCursorText(attributed: text, font: bodyFont, color: textColor)
             #else
-            Text(inlineMarkdown(text))
+            Text(text)
                 .font(bodyFont)
                 .foregroundColor(textColor)
                 .fixedSize(horizontal: false, vertical: true)
@@ -146,9 +136,9 @@ struct MarkdownContentView: View {
                             .font(bodyFont)
                             .foregroundColor(textColor.opacity(0.6))
                         #if os(macOS)
-                        LinkCursorText(attributed: inlineMarkdown(item), font: bodyFont, color: textColor)
+                        LinkCursorText(attributed: item, font: bodyFont, color: textColor)
                         #else
-                        Text(inlineMarkdown(item))
+                        Text(item)
                             .font(bodyFont)
                             .foregroundColor(textColor)
                             .fixedSize(horizontal: false, vertical: true)
@@ -166,9 +156,9 @@ struct MarkdownContentView: View {
                             .foregroundColor(textColor.opacity(0.6))
                             .frame(minWidth: 20, alignment: .trailing)
                         #if os(macOS)
-                        LinkCursorText(attributed: inlineMarkdown(item), font: bodyFont, color: textColor)
+                        LinkCursorText(attributed: item, font: bodyFont, color: textColor)
                         #else
-                        Text(inlineMarkdown(item))
+                        Text(item)
                             .font(bodyFont)
                             .foregroundColor(textColor)
                             .fixedSize(horizontal: false, vertical: true)
@@ -226,7 +216,7 @@ struct MarkdownContentView: View {
                 RoundedRectangle(cornerRadius: 1.5)
                     .fill(Theme.Colors.accent.opacity(0.5))
                     .frame(width: 3)
-                Text(inlineMarkdown(text))
+                Text(text)
                     .font(bodyFont)
                     .foregroundColor(textColor.opacity(0.85))
                     .italic()
@@ -246,14 +236,14 @@ struct MarkdownContentView: View {
 
     // MARK: - Table view
 
-    private func tableView(headers: [String], rows: [[String]]) -> some View {
+    private func tableView(headers: [AttributedString], rows: [[AttributedString]]) -> some View {
         let columnCount = headers.count
 
         return VStack(alignment: .leading, spacing: 0) {
             // Header row
             HStack(spacing: 0) {
                 ForEach(Array(headers.enumerated()), id: \.offset) { _, header in
-                    Text(inlineMarkdown(header))
+                    Text(header)
                         .font(bodyFont)
                         .fontWeight(.semibold)
                         .foregroundColor(textColor)
@@ -270,8 +260,8 @@ struct MarkdownContentView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { rowIdx, row in
                 HStack(spacing: 0) {
                     ForEach(0..<columnCount, id: \.self) { colIdx in
-                        let cell = colIdx < row.count ? row[colIdx] : ""
-                        Text(inlineMarkdown(cell))
+                        let cell = colIdx < row.count ? row[colIdx] : AttributedString()
+                        Text(cell)
                             .font(bodyFont)
                             .foregroundColor(textColor)
                             .padding(.horizontal, 10)

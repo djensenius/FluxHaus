@@ -9,31 +9,30 @@ import Foundation
 
 // MARK: - Block-level markdown parser
 
+/// Parses inline markdown (bold, italic, code, links) into an AttributedString.
+/// This is called from `parseMarkdownBlocks` on a background thread so that
+/// `AttributedString(markdown:)` — which is not free — never runs on the main thread.
+func inlineMarkdown(_ text: String) -> AttributedString {
+    let options = AttributedString.MarkdownParsingOptions(
+        interpretedSyntax: .inlineOnlyPreservingWhitespace
+    )
+    return (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
+}
+
 /// Represents a parsed block of markdown content.
-enum MarkdownBlock: Identifiable {
-    case heading(level: Int, text: String)
-    case paragraph(text: String)
-    case bulletList(items: [String])
-    case numberedList(items: [String])
+/// Text fields store pre-computed `AttributedString` values so that
+/// `MarkdownContentView.blockView` can render them directly without any
+/// additional parsing work on the main thread.
+enum MarkdownBlock {
+    case heading(level: Int, text: AttributedString)
+    case paragraph(text: AttributedString)
+    case bulletList(items: [AttributedString])
+    case numberedList(items: [AttributedString])
     case codeBlock(language: String?, code: String)
     case image(alt: String, url: String)
-    case blockquote(text: String)
-    case table(headers: [String], rows: [[String]])
+    case blockquote(text: AttributedString)
+    case table(headers: [AttributedString], rows: [[AttributedString]])
     case thematicBreak
-
-    var id: String {
-        switch self {
-        case .heading(_, let text): return "h-\(text.hashValue)"
-        case .paragraph(let text): return "p-\(text.hashValue)"
-        case .bulletList(let items): return "ul-\(items.hashValue)"
-        case .numberedList(let items): return "ol-\(items.hashValue)"
-        case .codeBlock(_, let code): return "code-\(code.hashValue)"
-        case .image(_, let url): return "img-\(url.hashValue)"
-        case .blockquote(let text): return "bq-\(text.hashValue)"
-        case .table(let headers, let rows): return "tbl-\(headers.hashValue)-\(rows.hashValue)"
-        case .thematicBreak: return "hr-\(UUID().uuidString)"
-        }
-    }
 }
 
 // Parses a markdown string into an array of block elements.
@@ -62,7 +61,7 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
 
         // Heading
         if let (level, text) = parseHeading(trimmed) {
-            blocks.append(.heading(level: level, text: text))
+            blocks.append(.heading(level: level, text: inlineMarkdown(text)))
             index += 1
             continue
         }
@@ -86,7 +85,6 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
             continue
         }
 
-        // Image (standalone line): ![alt](url)
         if let (alt, url) = parseImage(trimmed) {
             blocks.append(.image(alt: alt, url: url))
             index += 1
@@ -103,7 +101,7 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
                 } else { break }
                 index += 1
             }
-            blocks.append(.blockquote(text: quoteLines.joined(separator: "\n")))
+            blocks.append(.blockquote(text: inlineMarkdown(quoteLines.joined(separator: "\n"))))
             continue
         }
 
@@ -114,59 +112,59 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
                 let headers = parseTableRow(trimmed)
                 guard headers.count > 1 else {
                     index += 1
-                    blocks.append(.paragraph(text: trimmed))
+                    blocks.append(.paragraph(text: inlineMarkdown(trimmed)))
                     continue
                 }
-                var dataRows: [[String]] = []
+                var dataRows: [[AttributedString]] = []
                 index += 2
                 while index < lines.count {
                     let rowLine = lines[index].trimmingCharacters(in: .whitespaces)
                     guard rowLine.contains("|"), !rowLine.isEmpty else { break }
-                    dataRows.append(parseTableRow(rowLine))
+                    dataRows.append(parseTableRow(rowLine).map(inlineMarkdown))
                     index += 1
                 }
-                blocks.append(.table(headers: headers, rows: dataRows))
+                blocks.append(.table(headers: headers.map(inlineMarkdown), rows: dataRows))
                 continue
             }
         }
 
         // Bullet list
         if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
-            var items: [String] = []
+            var rawItems: [String] = []
             while index < lines.count {
                 let lLine = lines[index].trimmingCharacters(in: .whitespaces)
                 if lLine.hasPrefix("- ") || lLine.hasPrefix("* ") || lLine.hasPrefix("• ") {
-                    items.append(String(lLine.dropFirst(2)))
+                    rawItems.append(String(lLine.dropFirst(2)))
                 } else if lLine.isEmpty {
                     break
-                } else if lLine.hasPrefix("  ") && !items.isEmpty {
-                    items[items.count - 1] += " " + lLine.trimmingCharacters(in: .whitespaces)
+                } else if lLine.hasPrefix("  ") && !rawItems.isEmpty {
+                    rawItems[rawItems.count - 1] += " " + lLine.trimmingCharacters(in: .whitespaces)
                 } else {
                     break
                 }
                 index += 1
             }
-            if !items.isEmpty { blocks.append(.bulletList(items: items)) }
+            if !rawItems.isEmpty { blocks.append(.bulletList(items: rawItems.map(inlineMarkdown))) }
             continue
         }
 
         // Numbered list
         if parseNumberedListPrefix(trimmed) != nil {
-            var items: [String] = []
+            var rawItems: [String] = []
             while index < lines.count {
                 let lLine = lines[index].trimmingCharacters(in: .whitespaces)
                 if let afterPrefix = parseNumberedListPrefix(lLine) {
-                    items.append(String(lLine[afterPrefix...]))
+                    rawItems.append(String(lLine[afterPrefix...]))
                 } else if lLine.isEmpty {
                     break
-                } else if lLine.hasPrefix("  ") && !items.isEmpty {
-                    items[items.count - 1] += " " + lLine.trimmingCharacters(in: .whitespaces)
+                } else if lLine.hasPrefix("  ") && !rawItems.isEmpty {
+                    rawItems[rawItems.count - 1] += " " + lLine.trimmingCharacters(in: .whitespaces)
                 } else {
                     break
                 }
                 index += 1
             }
-            if !items.isEmpty { blocks.append(.numberedList(items: items)) }
+            if !rawItems.isEmpty { blocks.append(.numberedList(items: rawItems.map(inlineMarkdown))) }
             continue
         }
 
@@ -187,7 +185,7 @@ func parseMarkdownBlocks(_ markdown: String) -> [MarkdownBlock] {
             index += 1
         }
         if !paraLines.isEmpty {
-            blocks.append(.paragraph(text: paraLines.joined(separator: " ")))
+            blocks.append(.paragraph(text: inlineMarkdown(paraLines.joined(separator: " "))))
         }
     }
 
