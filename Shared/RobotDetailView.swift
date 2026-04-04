@@ -49,7 +49,7 @@ struct RobotDetailView: View {
                                     .foregroundColor(Theme.Colors.success)
                             } else if robot.running == true {
                                 Label(
-                                    "Cleaning started \(getCarTime(strDate: robot.timestamp))",
+                                    "Cleaning started \(getCarTime(strDate: robot.timeStarted ?? robot.timestamp))",
                                     systemImage: "fan.fill"
                                 )
                                     .font(Theme.Fonts.bodyMedium)
