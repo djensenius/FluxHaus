@@ -336,7 +336,8 @@ func formatTimeRemaining(minutes: Int) -> String {
     }
     let finishDate = Date().addingTimeInterval(Double(minutes) * 60)
     let formatter = DateFormatter()
-    formatter.dateFormat = "h:mm a"
+    formatter.timeStyle = .short
+    formatter.dateStyle = .none
     return formatter.string(from: finishDate)
 }
 
