@@ -167,43 +167,53 @@ struct PhoneMultiDeviceView: View {
     let devices: [WidgetDevice]
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             ForEach(
-                Array(devices.prefix(5).enumerated()),
+                Array(devices.prefix(3).enumerated()),
                 id: \.element.name
             ) { _, device in
-                HStack(spacing: 10) {
-                    Image(systemName: device.icon)
-                        .font(.body)
-                        .foregroundStyle(tintColor(for: device.name))
-                        .frame(width: 24)
-                    Text(device.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
+                VStack(spacing: 4) {
+                    HStack(spacing: 8) {
+                        Image(systemName: device.icon)
+                            .font(.subheadline)
+                            .foregroundStyle(tintColor(for: device.name))
+                            .frame(width: 20)
+                        Text(device.name)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .lineLimit(1)
+                        if let program = device.programName {
+                            Text(program)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        if isRobot(device.name) {
+                            if let battery = device.battery {
+                                Text("\(battery)%")
+                                    .font(.subheadline)
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            Text(device.shortText)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .monospacedDigit()
+                                .foregroundStyle(tintColor(for: device.name))
+                        }
+                    }
                     if isRobot(device.name) {
                         if let battery = device.battery {
-                            Spacer()
                             ProgressView(value: Double(battery) / 100.0)
                                 .progressViewStyle(.linear)
                                 .tint(batteryColor(level: battery))
-                                .frame(maxWidth: 100)
-                            Text("\(battery)%")
-                                .font(.caption)
-                                .monospacedDigit()
-                                .foregroundStyle(.secondary)
                         }
                     } else {
-                        Spacer()
                         ProgressView(value: Double(device.progress) / 100.0)
                             .progressViewStyle(.linear)
                             .tint(tintColor(for: device.name))
-                            .frame(maxWidth: 100)
-                        Text(device.shortText)
-                            .font(.caption)
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                            .frame(width: 48, alignment: .trailing)
                     }
                 }
             }
