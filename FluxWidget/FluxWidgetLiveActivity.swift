@@ -302,7 +302,7 @@ struct FluxWidgetMultiLiveActivity: Widget {
                 } else {
                     Text("")
                 }
-            } else if device.shortText.hasSuffix("m") || device.shortText.contains("h") {
+            } else if !device.shortText.isEmpty {
                 Text(device.shortText)
                     .font(.body)
                     .monospacedDigit()
@@ -396,7 +396,7 @@ extension FluxWidgetMultiAttributes.ContentState {
             ),
             WidgetDevice(
                 name: "Washer", progress: 35, icon: "washer",
-                trailingText: "Cottons ⋅ 1h 12m", shortText: "1h 12m",
+                trailingText: "Cottons ⋅ 3:45 PM", shortText: "3:45 PM",
                 running: true, programName: "Cottons"
             )
         ])

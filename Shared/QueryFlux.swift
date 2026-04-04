@@ -334,12 +334,10 @@ func formatTimeRemaining(minutes: Int) -> String {
     if minutes < 60 {
         return "\(minutes)m"
     }
-    let hours = minutes / 60
-    let remainingMinutes = minutes % 60
-    if remainingMinutes == 0 {
-        return "\(hours)h"
-    }
-    return "\(hours)h \(remainingMinutes)m"
+    let finishDate = Date().addingTimeInterval(Double(minutes) * 60)
+    let formatter = DateFormatter()
+    formatter.dateFormat = "h:mm a"
+    return formatter.string(from: finishDate)
 }
 
 /// Format a duration in minutes for display in appliance views.
