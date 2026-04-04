@@ -38,7 +38,7 @@ struct CarDetailView: View {
                             .foregroundColor(Theme.Colors.textPrimary)
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("EV Data Updated \(getCarTime(strDate: car.vehicle.evStatusTimestamp))")
+                            Text("EV Data Updated \(relativeTimeString(from: car.vehicle.evStatusTimestamp))")
                                 .font(Theme.Fonts.caption)
                                 .foregroundColor(Theme.Colors.textSecondary)
                             Text("Battery: \(car.vehicle.batteryLevel)%, \(car.vehicle.distance) km")

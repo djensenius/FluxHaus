@@ -109,7 +109,7 @@ struct AppliancesDetailView: View {
                 detailRow(label: "Bin", value: "Full", icon: "trash.fill", color: Theme.Colors.warning)
             }
             if isActive, let started = robot.timeStarted, !started.isEmpty {
-                detailRow(label: "Started", value: getCarTime(strDate: started), icon: "clock")
+                detailRow(label: "Started", value: relativeTimeString(from: started), icon: "clock")
             }
         }
     }

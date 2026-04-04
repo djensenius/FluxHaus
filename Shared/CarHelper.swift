@@ -7,7 +7,7 @@
 
 import Foundation
 
-func getCarTime(strDate: String) -> String {
+func relativeTimeString(from strDate: String) -> String {
     let dateFormatter = DateFormatter()
     dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
 

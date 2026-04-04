@@ -50,6 +50,8 @@ func carDetails(car: Car) -> String {
     if car.vehicle.hvac { text += "Climate on | " }
 
     if car.vehicle.distance != 0 { text += "Range \(car.vehicle.distance) km | " }
-    if car.vehicle.evStatusTimestamp != "" { text += "Updated \(getCarTime(strDate: car.vehicle.evStatusTimestamp))" }
+    if car.vehicle.evStatusTimestamp != "" {
+        text += "Updated \(relativeTimeString(from: car.vehicle.evStatusTimestamp))"
+    }
     return text
 }

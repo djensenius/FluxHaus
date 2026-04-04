@@ -324,14 +324,14 @@ struct RobotsMacView: View {
                 if robot.running == true,
                    let started = robot.timeStarted {
                     Text(
-                        "Started \(getCarTime(strDate: started))"
+                        "Started \(relativeTimeString(from: started))"
                     )
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
                 }
 
                 Text(
-                    "Updated \(getCarTime(strDate: robot.timestamp))"
+                    "Updated \(relativeTimeString(from: robot.timestamp))"
                 )
                 .font(Theme.Fonts.caption)
                 .foregroundColor(Theme.Colors.textSecondary)
