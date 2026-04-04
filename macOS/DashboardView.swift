@@ -163,7 +163,7 @@ struct DashboardView: View {
                         .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.error)
                 }
                 if robot.running == true, let started = robot.timeStarted {
-                    Text("Started \(relativeTimeString(from: started))")
+                    Text("Started at \(clockTimeString(from: started))")
                         .font(Theme.Fonts.caption).foregroundColor(Theme.Colors.textSecondary)
                 }
                 Text("Updated \(relativeTimeString(from: robot.timestamp))")
