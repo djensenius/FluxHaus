@@ -272,7 +272,7 @@ struct AppliancesDetailView: View {
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Program",
-                        value: programName.trimmingCharacters(in: .whitespaces),
+                        value: formatApplianceProgramName(programName),
                         icon: "list.bullet"
                     )
                 }
@@ -281,7 +281,7 @@ struct AppliancesDetailView: View {
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Step",
-                        value: step.trimmingCharacters(in: .whitespaces),
+                        value: formatApplianceProgramName(step),
                         icon: "arrow.triangle.2.circlepath"
                     )
                 }
@@ -314,7 +314,7 @@ struct AppliancesDetailView: View {
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Program",
-                        value: programName.trimmingCharacters(in: .whitespaces),
+                        value: formatApplianceProgramName(programName),
                         icon: "list.bullet"
                     )
                 }
@@ -323,7 +323,7 @@ struct AppliancesDetailView: View {
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Step",
-                        value: step.trimmingCharacters(in: .whitespaces),
+                        value: formatApplianceProgramName(step),
                         icon: "arrow.triangle.2.circlepath"
                     )
                 }

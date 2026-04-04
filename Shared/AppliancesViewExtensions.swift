@@ -129,11 +129,14 @@ extension Appliances {
             return ""
         }
         if tAppliance.count > index && tAppliance[index].programName != "" {
-            let step = tAppliance[index].step
-            let programName = tAppliance[index].programName.trimmingCharacters(in: NSCharacterSet.whitespaces)
+            let step = formatApplianceProgramName(tAppliance[index].step)
+            let programName = formatApplianceProgramName(tAppliance[index].programName)
+            if step.isEmpty {
+                return programName
+            }
             return "\(step) (\(programName))"
         } else if tAppliance.count > index {
-            return "\(tAppliance[index].step)"
+            return formatApplianceProgramName(tAppliance[index].step)
         }
         return ""
     }

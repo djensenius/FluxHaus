@@ -18,6 +18,17 @@ struct Appliance {
     let inUse: Bool
 }
 
+/// Formats raw appliance program/step strings from the API into title-cased display strings.
+/// Converts underscores to spaces and applies title-case capitalization.
+/// e.g. "main_wash (normal)" → "Main Wash (Normal)"
+func formatApplianceProgramName(_ raw: String) -> String {
+    let trimmed = raw.trimmingCharacters(in: .whitespaces)
+    guard !trimmed.isEmpty else { return trimmed }
+    return trimmed
+        .replacingOccurrences(of: "_", with: " ")
+        .capitalized
+}
+
 @MainActor
 func getDeviceIcon(battery: Battery) -> Image {
     if battery.model == .iPad {
