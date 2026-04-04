@@ -282,17 +282,21 @@ struct AccessoryRectangularView: View {
                         .frame(width: 16)
                     if isRobot(item.name) {
                         if let battery = item.battery {
-                            ProgressView(value: Double(battery) / 100.0)
-                                .progressViewStyle(.linear)
-                                .tint(batteryColor(level: battery))
+                            Gauge(value: Double(battery) / 100.0) {
+                                EmptyView()
+                            }
+                            .gaugeStyle(.accessoryLinearCapacity)
+                            .tint(batteryColor(level: battery))
                             Text("\(battery)%")
                                 .font(.caption)
                                 .monospacedDigit()
                         }
                     } else if item.progress > 0 {
-                        ProgressView(value: Double(item.progress) / 100.0)
-                            .progressViewStyle(.linear)
-                            .tint(tintColor(for: item.name))
+                        Gauge(value: Double(item.progress) / 100.0) {
+                            EmptyView()
+                        }
+                        .gaugeStyle(.accessoryLinearCapacity)
+                        .tint(tintColor(for: item.name))
                         Text(item.shortText)
                             .font(.caption)
                             .monospacedDigit()
