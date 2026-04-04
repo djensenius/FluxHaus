@@ -206,14 +206,18 @@ struct PhoneMultiDeviceView: View {
                     }
                     if isRobot(device.name) {
                         if let battery = device.battery {
-                            ProgressView(value: Double(battery) / 100.0)
-                                .progressViewStyle(.linear)
-                                .tint(batteryColor(level: battery))
+                            Gauge(value: Double(battery) / 100.0) {
+                                EmptyView()
+                            }
+                            .gaugeStyle(.accessoryLinearCapacity)
+                            .tint(batteryColor(level: battery))
                         }
                     } else {
-                        ProgressView(value: Double(device.progress) / 100.0)
-                            .progressViewStyle(.linear)
-                            .tint(tintColor(for: device.name))
+                        Gauge(value: Double(device.progress) / 100.0) {
+                            EmptyView()
+                        }
+                        .gaugeStyle(.accessoryLinearCapacity)
+                        .tint(tintColor(for: device.name))
                     }
                 }
             }
