@@ -49,6 +49,7 @@ struct SettingsView: View {
             let normalized = QuickChatShortcut.fromStored(quickChatShortcutRawValue).rawValue
             if normalized != quickChatShortcutRawValue {
                 quickChatShortcutRawValue = normalized
+                return
             }
             NotificationCenter.default.post(name: .quickChatShortcutChanged, object: nil)
         }

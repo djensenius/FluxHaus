@@ -231,8 +231,8 @@ struct ChatView: View {
 
 }
 
-private extension ChatView {
-    func formatRelativeDate(_ isoString: String) -> String {
+extension ChatView {
+    private func formatRelativeDate(_ isoString: String) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         guard let date = formatter.date(from: isoString)
@@ -253,7 +253,7 @@ private extension ChatView {
         }
     }
 
-    var chatDetail: some View {
+    private var chatDetail: some View {
         VStack(spacing: 0) {
             if let error = chat.sessionError {
                 sessionErrorBanner(error)
@@ -276,7 +276,7 @@ private extension ChatView {
         }
     }
 
-    func sessionErrorBanner(_ error: String) -> some View {
+    private func sessionErrorBanner(_ error: String) -> some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(Theme.Colors.warning)
@@ -295,7 +295,7 @@ private extension ChatView {
         .background(Theme.Colors.warning.opacity(0.1))
     }
 
-    var chatMessages: some View {
+    private var chatMessages: some View {
         Group {
             if let convId = chat.conversationId {
                 ConversationScrollView(convId: convId, chat: chat)
@@ -304,7 +304,7 @@ private extension ChatView {
     }
 
     @ViewBuilder
-    var imagePreviewBar: some View {
+    private var imagePreviewBar: some View {
         if !pendingImages.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -337,7 +337,7 @@ private extension ChatView {
         }
     }
 
-    var inputBar: some View {
+    private var inputBar: some View {
         Group {
             if chat.isRecording {
                 recordingOverlay
@@ -387,13 +387,13 @@ private extension ChatView {
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
     }
 
-    var canSend: Bool {
+    private var canSend: Bool {
         let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasImages = !pendingImages.isEmpty
         return (hasText || hasImages) && !chat.isLoading
     }
 
-    var micButton: some View {
+    private var micButton: some View {
         Image(systemName: "mic.circle.fill")
             .font(Theme.Fonts.headerLarge())
             .foregroundColor(
@@ -417,7 +417,7 @@ private extension ChatView {
             .allowsHitTesting(!chat.isLoading)
     }
 
-    var recordingOverlay: some View {
+    private var recordingOverlay: some View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
@@ -452,7 +452,7 @@ private extension ChatView {
         .padding(10)
     }
 
-    func sendMessage() {
+    private func sendMessage() {
         let text = inputText
         let images = pendingImages
         inputText = ""
@@ -460,7 +460,7 @@ private extension ChatView {
         Task { await chat.send(text, images: images) }
     }
 
-    func loadFilePickerImages(_ result: Result<[URL], Error>) {
+    private func loadFilePickerImages(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result else { return }
         var loaded: [ChatImage] = []
         for url in urls.prefix(4) {
@@ -476,7 +476,7 @@ private extension ChatView {
         pendingImages.append(contentsOf: loaded)
     }
 
-    func loadDroppedImages(_ providers: [NSItemProvider]) {
+    private func loadDroppedImages(_ providers: [NSItemProvider]) {
         for provider in providers.prefix(4)
         where provider.hasItemConformingToTypeIdentifier("public.image") {
             provider.loadDataRepresentation(
@@ -501,7 +501,7 @@ private extension ChatView {
         }
     }
 
-    func openAssistantInMainApp() {
+    private func openAssistantInMainApp() {
         NSApp.activate(ignoringOtherApps: true)
         NotificationCenter.default.post(
             name: Notification.Name("navigateToSection"),

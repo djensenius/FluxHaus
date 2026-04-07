@@ -141,8 +141,11 @@ final class GlobalHotKeyManager {
             nil,
             &hotKeyID
         )
-        guard status == noErr, hotKeyID.signature == hotKeySignature else {
+        guard status == noErr else {
             return status
+        }
+        guard hotKeyID.signature == hotKeySignature else {
+            return OSStatus(eventNotHandledErr)
         }
         onPress?()
         return noErr
