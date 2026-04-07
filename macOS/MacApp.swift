@@ -15,57 +15,6 @@ private let quickChatShortcutDefaultsKey = "quickChatShortcut"
 private let showMenuBarExtraDefaultsKey = "showMenuBarExtra"
 private let quickChatHotKeySignature: OSType = 0x464C5848 // FLXH
 
-enum QuickChatShortcut: String, CaseIterable, Identifiable {
-    case optionSpace
-    case shiftCommandSpace
-    case controlSpace
-    case optionCommandSpace
-    case disabled
-
-    static let defaultShortcut: QuickChatShortcut = .optionSpace
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .optionSpace:
-            "Option+Space"
-        case .shiftCommandSpace:
-            "Shift+Command+Space"
-        case .controlSpace:
-            "Control+Space"
-        case .optionCommandSpace:
-            "Option+Command+Space"
-        case .disabled:
-            "Disabled"
-        }
-    }
-
-    var keyCode: UInt32? {
-        guard self != .disabled else { return nil }
-        return UInt32(kVK_Space)
-    }
-
-    var carbonModifiers: UInt32? {
-        switch self {
-        case .optionSpace:
-            UInt32(optionKey)
-        case .shiftCommandSpace:
-            UInt32(shiftKey | cmdKey)
-        case .controlSpace:
-            UInt32(controlKey)
-        case .optionCommandSpace:
-            UInt32(optionKey | cmdKey)
-        case .disabled:
-            nil
-        }
-    }
-
-    static func fromStored(_ rawValue: String) -> QuickChatShortcut {
-        QuickChatShortcut(rawValue: rawValue) ?? .defaultShortcut
-    }
-}
-
 @MainActor
 final class GlobalHotKeyManager {
     static let shared = GlobalHotKeyManager()
@@ -75,10 +24,6 @@ final class GlobalHotKeyManager {
 
     private init() {
         installEventHandler()
-    }
-
-    deinit {
-        unregister()
     }
 
     func updateRegistration(for shortcut: QuickChatShortcut) {
