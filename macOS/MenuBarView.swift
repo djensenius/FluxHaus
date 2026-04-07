@@ -218,7 +218,7 @@ struct MenuBarView: View {
         HStack {
             Button("Open FluxHaus") {
                 dismiss()
-                NSApp.activate(ignoringOtherApps: true)
+                NotificationCenter.default.post(name: .openMainAppRequested, object: nil)
             }
             .font(Theme.Fonts.caption)
             Spacer()
@@ -231,12 +231,6 @@ struct MenuBarView: View {
                 })
                 .font(Theme.Fonts.caption)
             }
-            Spacer()
-            Button("Quit Fully") {
-                dismiss()
-                NotificationCenter.default.post(name: .fullQuitRequested, object: nil)
-            }
-            .font(Theme.Fonts.caption)
         }
     }
 
@@ -274,9 +268,8 @@ struct MenuBarView: View {
     }
 
     private func openAppToSection(_ section: SidebarItem) {
-        NSApp.activate(ignoringOtherApps: true)
         NotificationCenter.default.post(
-            name: Notification.Name("navigateToSection"),
+            name: .openMainAppRequested,
             object: nil,
             userInfo: ["section": section.rawValue]
         )
