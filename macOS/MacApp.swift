@@ -30,7 +30,7 @@ final class GlobalHotKeyManager {
         unregister()
         guard let keyCode = shortcut.keyCode,
               let modifiers = shortcut.carbonModifiers else { return }
-        var hotKeyID = EventHotKeyID(signature: quickChatHotKeySignature, id: 1)
+        let hotKeyID = EventHotKeyID(signature: quickChatHotKeySignature, id: 1)
         let status = RegisterEventHotKey(
             keyCode,
             modifiers,
@@ -158,7 +158,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
             )
         }
         GlobalHotKeyManager.shared.onPress = { [weak self] in
-            self?.presentQuickChatWindow()
+            Task { @MainActor [weak self] in
+                self?.presentQuickChatWindow()
+            }
         }
         registerObservers()
         updateQuickChatShortcutRegistration()
@@ -190,21 +192,27 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.presentQuickChatWindow()
+                Task { @MainActor [weak self] in
+                    self?.presentQuickChatWindow()
+                }
             },
             center.addObserver(
                 forName: .quickChatShortcutChanged,
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.updateQuickChatShortcutRegistration()
+                Task { @MainActor [weak self] in
+                    self?.updateQuickChatShortcutRegistration()
+                }
             },
             center.addObserver(
                 forName: .fullQuitRequested,
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                self?.performFullQuit()
+                Task { @MainActor [weak self] in
+                    self?.performFullQuit()
+                }
             }
         ]
     }
