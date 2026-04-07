@@ -76,7 +76,8 @@ struct MacOSViewSmokeTests {
             robots: robots,
             battery: MockData.createBattery(),
             car: car,
-            apiResponse: MockData.createApi()
+            apiResponse: MockData.createApi(),
+            chat: Chat()
         )
 
         let controller = NSHostingController(rootView: view)
@@ -87,6 +88,14 @@ struct MacOSViewSmokeTests {
     @Test("SettingsView renders without crashing")
     @MainActor func testSettingsView() {
         let view = SettingsView()
+        let controller = NSHostingController(rootView: view)
+        controller.loadView()
+        #expect(controller.view.frame.width >= 0)
+    }
+
+    @Test("Quick Chat view renders without crashing")
+    @MainActor func testQuickChatView() {
+        let view = ChatView(chat: Chat(), style: .quick)
         let controller = NSHostingController(rootView: view)
         controller.loadView()
         #expect(controller.view.frame.width >= 0)
@@ -192,6 +201,24 @@ struct SidebarItemTests {
     func testUniqueIds() {
         let ids = SidebarItem.allCases.map(\.id)
         #expect(Set(ids).count == ids.count)
+    }
+}
+
+struct QuickChatShortcutTests {
+
+    @Test("Quick chat shortcut titles are stable")
+    func testShortcutTitles() {
+        #expect(QuickChatShortcut.defaultShortcut == .optionSpace)
+        #expect(QuickChatShortcut.optionSpace.title == "Option+Space")
+        #expect(QuickChatShortcut.shiftCommandSpace.title == "Shift+Command+Space")
+        #expect(QuickChatShortcut.controlSpace.title == "Control+Space")
+        #expect(QuickChatShortcut.optionCommandSpace.title == "Option+Command+Space")
+        #expect(QuickChatShortcut.disabled.title == "Disabled")
+    }
+
+    @Test("Quick chat shortcut fallback uses default")
+    func testShortcutFallback() {
+        #expect(QuickChatShortcut.fromStored("invalid-shortcut") == .optionSpace)
     }
 }
 
@@ -352,7 +379,7 @@ struct MacOSNilDataResilienceTests {
         let view = ContentView(
             fluxHausConsts: FluxHausConsts(),
             hconn: hconn, miele: miele, robots: robots,
-            battery: Battery(), car: car, apiResponse: api
+            battery: Battery(), car: car, apiResponse: api, chat: Chat()
         )
         let controller = NSHostingController(rootView: view)
         controller.loadView()

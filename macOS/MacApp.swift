@@ -6,12 +6,274 @@
 //
 
 import SwiftUI
+import AppKit
+import Carbon
 import os
 
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "MacApp")
+private let quickChatShortcutDefaultsKey = "quickChatShortcut"
+private let showMenuBarExtraDefaultsKey = "showMenuBarExtra"
+
+enum QuickChatShortcut: String, CaseIterable, Identifiable {
+    case optionSpace
+    case shiftCommandSpace
+    case controlSpace
+    case optionCommandSpace
+    case disabled
+
+    static let defaultShortcut: QuickChatShortcut = .optionSpace
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .optionSpace:
+            "Option+Space"
+        case .shiftCommandSpace:
+            "Shift+Command+Space"
+        case .controlSpace:
+            "Control+Space"
+        case .optionCommandSpace:
+            "Option+Command+Space"
+        case .disabled:
+            "Disabled"
+        }
+    }
+
+    var keyCode: UInt32? {
+        guard self != .disabled else { return nil }
+        return UInt32(kVK_Space)
+    }
+
+    var carbonModifiers: UInt32? {
+        switch self {
+        case .optionSpace:
+            UInt32(optionKey)
+        case .shiftCommandSpace:
+            UInt32(shiftKey | cmdKey)
+        case .controlSpace:
+            UInt32(controlKey)
+        case .optionCommandSpace:
+            UInt32(optionKey | cmdKey)
+        case .disabled:
+            nil
+        }
+    }
+
+    static func fromStored(_ rawValue: String) -> QuickChatShortcut {
+        QuickChatShortcut(rawValue: rawValue) ?? .defaultShortcut
+    }
+}
+
+final class GlobalHotKeyManager {
+    static let shared = GlobalHotKeyManager()
+    private let hotKeySignature: OSType = 0x464C5848 // FLXH
+    private var hotKeyRef: EventHotKeyRef?
+    private var eventHandler: EventHandlerRef?
+    var onPress: (() -> Void)?
+
+    private init() {
+        installEventHandler()
+    }
+
+    deinit {
+        unregister()
+    }
+
+    func updateRegistration(for shortcut: QuickChatShortcut) {
+        unregister()
+        guard let keyCode = shortcut.keyCode,
+              let modifiers = shortcut.carbonModifiers else { return }
+        var hotKeyID = EventHotKeyID(signature: hotKeySignature, id: 1)
+        let status = RegisterEventHotKey(
+            keyCode,
+            modifiers,
+            hotKeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotKeyRef
+        )
+        if status != noErr {
+            appLogger.error("Failed to register quick chat hotkey: \(status)")
+        }
+    }
+
+    func unregister() {
+        if let hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
+            self.hotKeyRef = nil
+        }
+    }
+
+    private func installEventHandler() {
+        guard eventHandler == nil else { return }
+        var eventType = EventTypeSpec(
+            eventClass: OSType(kEventClassKeyboard),
+            eventKind: UInt32(kEventHotKeyPressed)
+        )
+        let status = InstallEventHandler(
+            GetApplicationEventTarget(),
+            { _, event, userData in
+                guard let userData else { return OSStatus(eventNotHandledErr) }
+                let manager = Unmanaged<GlobalHotKeyManager>.fromOpaque(userData)
+                    .takeUnretainedValue()
+                return manager.handle(event)
+            },
+            1,
+            &eventType,
+            Unmanaged.passUnretained(self).toOpaque(),
+            &eventHandler
+        )
+        if status != noErr {
+            appLogger.error("Failed to install quick chat hotkey handler: \(status)")
+        }
+    }
+
+    private func handle(_ event: EventRef?) -> OSStatus {
+        guard let event else { return OSStatus(eventNotHandledErr) }
+        var hotKeyID = EventHotKeyID()
+        let status = GetEventParameter(
+            event,
+            EventParamName(kEventParamDirectObject),
+            EventParamType(typeEventHotKeyID),
+            nil,
+            MemoryLayout<EventHotKeyID>.size,
+            nil,
+            &hotKeyID
+        )
+        guard status == noErr, hotKeyID.signature == hotKeySignature else {
+            return status
+        }
+        onPress?()
+        return noErr
+    }
+}
+
+final class QuickChatWindowController: NSWindowController {
+    init(chat: Chat) {
+        let rootView = ChatView(chat: chat, style: .quick)
+        let hostingController = NSHostingController(rootView: rootView)
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "Quick Chat"
+        window.setContentSize(NSSize(width: 720, height: 560))
+        window.minSize = NSSize(width: 560, height: 420)
+        window.titlebarAppearsTransparent = true
+        window.toolbarStyle = .unifiedCompact
+        window.isReleasedWhenClosed = false
+        window.collectionBehavior = [.moveToActiveSpace]
+        super.init(window: window)
+        shouldCascadeWindows = false
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func present() {
+        NSApp.activate(ignoringOtherApps: true)
+        showWindow(nil)
+        window?.center()
+        window?.makeKeyAndOrderFront(nil)
+    }
+}
+
+final class MacAppDelegate: NSObject, NSApplicationDelegate {
+    private weak var sharedChat: Chat?
+    private var quickChatWindowController: QuickChatWindowController?
+    private var observers: [NSObjectProtocol] = []
+    private var shouldFullyTerminate = false
+
+    func configure(sharedChat: Chat) {
+        self.sharedChat = sharedChat
+        if quickChatWindowController == nil {
+            quickChatWindowController = QuickChatWindowController(chat: sharedChat)
+        }
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        if UserDefaults.standard.string(forKey: quickChatShortcutDefaultsKey) == nil {
+            UserDefaults.standard.set(
+                QuickChatShortcut.defaultShortcut.rawValue,
+                forKey: quickChatShortcutDefaultsKey
+            )
+        }
+        GlobalHotKeyManager.shared.onPress = { [weak self] in
+            self?.presentQuickChatWindow()
+        }
+        registerObservers()
+        updateQuickChatShortcutRegistration()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        observers.forEach(NotificationCenter.default.removeObserver)
+        observers.removeAll()
+        GlobalHotKeyManager.shared.unregister()
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard shouldFullyTerminate || !isMenuBarResident else {
+            sender.hide(nil)
+            return .terminateCancel
+        }
+        return .terminateNow
+    }
+
+    private var isMenuBarResident: Bool {
+        UserDefaults.standard.object(forKey: showMenuBarExtraDefaultsKey) as? Bool ?? true
+    }
+
+    private func registerObservers() {
+        let center = NotificationCenter.default
+        observers = [
+            center.addObserver(
+                forName: .quickChatRequested,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.presentQuickChatWindow()
+            },
+            center.addObserver(
+                forName: .quickChatShortcutChanged,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.updateQuickChatShortcutRegistration()
+            },
+            center.addObserver(
+                forName: .fullQuitRequested,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.performFullQuit()
+            }
+        ]
+    }
+
+    private func updateQuickChatShortcutRegistration() {
+        let rawValue = UserDefaults.standard.string(forKey: quickChatShortcutDefaultsKey)
+            ?? QuickChatShortcut.defaultShortcut.rawValue
+        let shortcut = QuickChatShortcut.fromStored(rawValue)
+        GlobalHotKeyManager.shared.updateRegistration(for: shortcut)
+    }
+
+    private func presentQuickChatWindow() {
+        guard let sharedChat else { return }
+        if quickChatWindowController == nil {
+            quickChatWindowController = QuickChatWindowController(chat: sharedChat)
+        }
+        quickChatWindowController?.present()
+    }
+
+    private func performFullQuit() {
+        shouldFullyTerminate = true
+        NSApp.terminate(nil)
+    }
+}
 
 @main
 struct MacApp: App {
+    @NSApplicationDelegateAdaptor(MacAppDelegate.self) private var appDelegate
     @State private var whereWeAre = WhereWeAre()
     @State var fluxHausConsts = FluxHausConsts()
     @State private var battery = Battery()
@@ -20,6 +282,7 @@ struct MacApp: App {
     @State private var hconn: HomeConnect?
     @State private var robots: Robots?
     @State private var car: Car?
+    @State private var chat = Chat()
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
 
     let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
@@ -28,6 +291,7 @@ struct MacApp: App {
         WindowGroup {
             mainContent
                 .onAppear {
+                    appDelegate.configure(sharedChat: chat)
                     if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
                         if AuthManager.shared.isSignedIn {
                             Task {
@@ -120,7 +384,8 @@ struct MacApp: App {
                 robots: robots,
                 battery: battery,
                 car: car,
-                apiResponse: apiResponse
+                apiResponse: apiResponse,
+                chat: chat
             )
             .onReceive(
                 NotificationCenter.default.publisher(

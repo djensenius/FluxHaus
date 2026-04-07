@@ -10,6 +10,8 @@ import SwiftUI
 struct SettingsView: View {
     @State private var selectedTab = "general"
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
+    @AppStorage("quickChatShortcut") private var quickChatShortcutRawValue =
+        QuickChatShortcut.defaultShortcut.rawValue
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -20,15 +22,36 @@ struct SettingsView: View {
                 accountTab
             }
         }
-        .frame(width: 420, height: 200)
+        .frame(width: 460, height: 280)
     }
 
     private var generalTab: some View {
         Form {
             Toggle("Show in Menu Bar", isOn: $showMenuBar)
+            Picker("Quick Chat Shortcut", selection: $quickChatShortcutRawValue) {
+                ForEach(QuickChatShortcut.allCases) { shortcut in
+                    Text(shortcut.title).tag(shortcut.rawValue)
+                }
+            }
+            Text(
+                "Use the quick chat shortcut to open a lightweight assistant window "
+                    + "while FluxHaus stays available in the menu bar."
+            )
+            .font(Theme.Fonts.caption)
+            .foregroundColor(Theme.Colors.textSecondary)
+            Button("Open Quick Chat") {
+                NotificationCenter.default.post(name: .quickChatRequested, object: nil)
+            }
         }
         .formStyle(.grouped)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onChange(of: quickChatShortcutRawValue) {
+            let normalized = QuickChatShortcut.fromStored(quickChatShortcutRawValue).rawValue
+            if normalized != quickChatShortcutRawValue {
+                quickChatShortcutRawValue = normalized
+            }
+            NotificationCenter.default.post(name: .quickChatShortcutChanged, object: nil)
+        }
     }
 
     private var accountTab: some View {

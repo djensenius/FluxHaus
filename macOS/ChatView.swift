@@ -5,11 +5,18 @@
 //  Created by Copilot on 2026-03-02.
 //
 
+// swiftlint:disable file_length
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum ChatViewStyle {
+    case full
+    case quick
+}
+
 struct ChatView: View {
     @Bindable var chat: Chat
+    var style: ChatViewStyle = .full
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
@@ -42,11 +49,18 @@ struct ChatView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            chatSidebar
-                .frame(width: 260)
-            Divider()
-            chatDetail
+        Group {
+            switch style {
+            case .full:
+                HStack(spacing: 0) {
+                    chatSidebar
+                        .frame(width: 260)
+                    Divider()
+                    chatDetail
+                }
+            case .quick:
+                quickChatWindow
+            }
         }
         .task {
             if chat.conversations.isEmpty {
@@ -68,6 +82,48 @@ struct ChatView: View {
         ) { _ in
             Task { await chat.createNewConversation() }
         }
+    }
+
+    private var quickChatWindow: some View {
+        VStack(spacing: 0) {
+            quickChatHeader
+            Divider()
+            chatDetail
+        }
+        .frame(minWidth: 560, minHeight: 420)
+        .background(Theme.Colors.background)
+    }
+
+    private var quickChatHeader: some View {
+        HStack(spacing: 12) {
+            Label("Quick Chat", systemImage: "sparkles")
+                .font(Theme.Fonts.bodyMedium.weight(.semibold))
+            if let activeConversationTitle {
+                Text(activeConversationTitle)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .lineLimit(1)
+            }
+            Spacer()
+            Button(action: {
+                Task { await chat.createNewConversation() }
+            }, label: {
+                Label("New", systemImage: "square.and.pencil")
+            })
+            .buttonStyle(.borderless)
+            Button(action: openAssistantInMainApp, label: {
+                Label("Open App", systemImage: "arrow.up.forward.app")
+            })
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Theme.Colors.secondaryBackground)
+    }
+
+    private var activeConversationTitle: String? {
+        guard let conversationId = chat.conversationId else { return nil }
+        return chat.conversations.first(where: { $0.id == conversationId })?.title
     }
 
     // MARK: - Sidebar
@@ -173,7 +229,10 @@ struct ChatView: View {
         }
     }
 
-    private func formatRelativeDate(_ isoString: String) -> String {
+}
+
+private extension ChatView {
+    func formatRelativeDate(_ isoString: String) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         guard let date = formatter.date(from: isoString)
@@ -194,9 +253,7 @@ struct ChatView: View {
         }
     }
 
-    // MARK: - Chat detail
-
-    private var chatDetail: some View {
+    var chatDetail: some View {
         VStack(spacing: 0) {
             if let error = chat.sessionError {
                 sessionErrorBanner(error)
@@ -219,7 +276,7 @@ struct ChatView: View {
         }
     }
 
-    private func sessionErrorBanner(_ error: String) -> some View {
+    func sessionErrorBanner(_ error: String) -> some View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(Theme.Colors.warning)
@@ -238,9 +295,7 @@ struct ChatView: View {
         .background(Theme.Colors.warning.opacity(0.1))
     }
 
-    // MARK: - Messages
-
-    private var chatMessages: some View {
+    var chatMessages: some View {
         Group {
             if let convId = chat.conversationId {
                 ConversationScrollView(convId: convId, chat: chat)
@@ -248,10 +303,8 @@ struct ChatView: View {
         }
     }
 
-    // MARK: - Image preview
-
     @ViewBuilder
-    private var imagePreviewBar: some View {
+    var imagePreviewBar: some View {
         if !pendingImages.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -284,9 +337,7 @@ struct ChatView: View {
         }
     }
 
-    // MARK: - Input bar
-
-    private var inputBar: some View {
+    var inputBar: some View {
         Group {
             if chat.isRecording {
                 recordingOverlay
@@ -336,13 +387,13 @@ struct ChatView: View {
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
     }
 
-    private var canSend: Bool {
+    var canSend: Bool {
         let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasImages = !pendingImages.isEmpty
         return (hasText || hasImages) && !chat.isLoading
     }
 
-    private var micButton: some View {
+    var micButton: some View {
         Image(systemName: "mic.circle.fill")
             .font(Theme.Fonts.headerLarge())
             .foregroundColor(
@@ -366,7 +417,7 @@ struct ChatView: View {
             .allowsHitTesting(!chat.isLoading)
     }
 
-    private var recordingOverlay: some View {
+    var recordingOverlay: some View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
@@ -401,9 +452,7 @@ struct ChatView: View {
         .padding(10)
     }
 
-    // MARK: - Actions
-
-    private func sendMessage() {
+    func sendMessage() {
         let text = inputText
         let images = pendingImages
         inputText = ""
@@ -411,7 +460,7 @@ struct ChatView: View {
         Task { await chat.send(text, images: images) }
     }
 
-    private func loadFilePickerImages(_ result: Result<[URL], Error>) {
+    func loadFilePickerImages(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result else { return }
         var loaded: [ChatImage] = []
         for url in urls.prefix(4) {
@@ -427,7 +476,7 @@ struct ChatView: View {
         pendingImages.append(contentsOf: loaded)
     }
 
-    private func loadDroppedImages(_ providers: [NSItemProvider]) {
+    func loadDroppedImages(_ providers: [NSItemProvider]) {
         for provider in providers.prefix(4)
         where provider.hasItemConformingToTypeIdentifier("public.image") {
             provider.loadDataRepresentation(
@@ -450,6 +499,15 @@ struct ChatView: View {
                 }
             }
         }
+    }
+
+    func openAssistantInMainApp() {
+        NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(
+            name: Notification.Name("navigateToSection"),
+            object: nil,
+            userInfo: ["section": SidebarItem.assistant.rawValue]
+        )
     }
 }
 

@@ -225,15 +225,16 @@ struct MenuBarView: View {
             if authManager.isOIDC {
                 Button(action: {
                     dismiss()
-                    openAppToSection(.assistant)
+                    NotificationCenter.default.post(name: .quickChatRequested, object: nil)
                 }, label: {
-                    Label("Assistant", systemImage: "bubble.left.and.bubble.right.fill")
+                    Label("Quick Chat", systemImage: "bubble.left.and.bubble.right.fill")
                 })
                 .font(Theme.Fonts.caption)
             }
             Spacer()
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
+            Button("Quit Fully") {
+                dismiss()
+                NotificationCenter.default.post(name: .fullQuitRequested, object: nil)
             }
             .font(Theme.Fonts.caption)
         }
