@@ -5,6 +5,8 @@
 //  Created by Copilot on 2026-03-02.
 //
 
+// swiftlint:disable file_length
+
 import SwiftUI
 import AppKit
 import Carbon
@@ -111,14 +113,19 @@ final class QuickChatWindowController: NSWindowController {
     init(chat: Chat) {
         let rootView = ChatView(chat: chat, style: .quick)
         let hostingController = NSHostingController(rootView: rootView)
-        let window = NSWindow(contentViewController: hostingController)
+        let window = NSPanel(
+            contentViewController: hostingController
+        )
         window.title = "Quick Chat"
         window.setContentSize(NSSize(width: 720, height: 560))
         window.minSize = NSSize(width: 560, height: 420)
         window.titlebarAppearsTransparent = true
         window.toolbarStyle = .unifiedCompact
         window.isReleasedWhenClosed = false
-        window.collectionBehavior = [.moveToActiveSpace]
+        window.isFloatingPanel = true
+        window.hidesOnDeactivate = false
+        window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
+        window.identifier = NSUserInterfaceItemIdentifier("QuickChatWindow")
         super.init(window: window)
         shouldCascadeWindows = false
     }
@@ -129,9 +136,10 @@ final class QuickChatWindowController: NSWindowController {
     }
 
     func present() {
-        NSApp.activate(ignoringOtherApps: true)
         showWindow(nil)
         window?.center()
+        window?.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
     }
 }
@@ -174,10 +182,22 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard shouldFullyTerminate || !isMenuBarResident else {
-            sender.hide(nil)
+            dismissMainInterface()
             return .terminateCancel
         }
         return .terminateNow
+    }
+
+    func applicationShouldHandleReopen(
+        _ sender: NSApplication,
+        hasVisibleWindows flag: Bool
+    ) -> Bool {
+        presentMainApp()
+        return true
+    }
+
+    func requestFullQuit() {
+        performFullQuit()
     }
 
     private var isMenuBarResident: Bool {
@@ -213,6 +233,25 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
                 Task { @MainActor [weak self] in
                     self?.performFullQuit()
                 }
+            },
+            center.addObserver(
+                forName: .openMainAppRequested,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                let section = notification.userInfo?["section"] as? String
+                Task { @MainActor [weak self] in
+                    self?.presentMainApp(section: section)
+                }
+            },
+            center.addObserver(
+                forName: .menuBarPreferenceChanged,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.handleMenuBarPreferenceChanged()
+                }
             }
         ]
     }
@@ -230,6 +269,56 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
             quickChatWindowController = QuickChatWindowController(chat: sharedChat)
         }
         quickChatWindowController?.present()
+    }
+
+    private func presentMainApp(section: String? = nil) {
+        restoreDockPresence()
+        restorePrimaryWindows()
+        NSApp.activate(ignoringOtherApps: true)
+        if let section {
+            NotificationCenter.default.post(
+                name: Notification.Name("navigateToSection"),
+                object: nil,
+                userInfo: ["section": section]
+            )
+        }
+    }
+
+    private func handleMenuBarPreferenceChanged() {
+        restoreDockPresence()
+    }
+
+    private func enterResidentMode() {
+        guard isMenuBarResident else { return }
+        _ = NSApp.setActivationPolicy(.accessory)
+    }
+
+    private func restoreDockPresence() {
+        _ = NSApp.setActivationPolicy(.regular)
+    }
+
+    private func dismissMainInterface() {
+        enterResidentMode()
+        primaryWindows.forEach { window in
+            window.orderOut(nil)
+        }
+        NSApp.deactivate()
+    }
+
+    private func restorePrimaryWindows() {
+        if primaryWindows.isEmpty {
+            NSApp.unhide(nil)
+            return
+        }
+        primaryWindows.forEach { window in
+            window.makeKeyAndOrderFront(nil)
+        }
+    }
+
+    private var primaryWindows: [NSWindow] {
+        NSApp.windows.filter { window in
+            window.identifier?.rawValue != "QuickChatWindow"
+        }
     }
 
     private func performFullQuit() {
@@ -306,6 +395,14 @@ struct MacApp: App {
                     queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
                 .keyboardShortcut("r", modifiers: .command)
+            }
+
+            CommandGroup(after: .appTermination) {
+                Divider()
+                Button("Quit FluxHaus Completely") {
+                    appDelegate.requestFullQuit()
+                }
+                .keyboardShortcut("q", modifiers: [.command, .option])
             }
         }
 

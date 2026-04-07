@@ -15,4 +15,6 @@ extension Notification.Name {
     static let quickChatRequested: Notification.Name = Notification.Name("quickChatRequested")
     static let quickChatShortcutChanged: Notification.Name = Notification.Name("quickChatShortcutChanged")
     static let fullQuitRequested: Notification.Name = Notification.Name("fullQuitRequested")
+    static let openMainAppRequested: Notification.Name = Notification.Name("openMainAppRequested")
+    static let menuBarPreferenceChanged: Notification.Name = Notification.Name("menuBarPreferenceChanged")
 }

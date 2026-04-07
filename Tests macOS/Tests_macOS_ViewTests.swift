@@ -5,9 +5,12 @@
 //  Created by Copilot on 2026-03-02.
 //
 
+// swiftlint:disable file_length
+
 import Testing
 import AppKit
 import SwiftUI
+import Carbon
 
 /// Drains pending DispatchQueue.main.async blocks so data population completes.
 @MainActor
@@ -96,6 +99,14 @@ struct MacOSViewSmokeTests {
     @Test("Quick Chat view renders without crashing")
     @MainActor func testQuickChatView() {
         let view = ChatView(chat: Chat(), style: .quick)
+        let controller = NSHostingController(rootView: view)
+        controller.loadView()
+        #expect(controller.view.frame.width >= 0)
+    }
+
+    @Test("Expanded Quick Chat view renders without crashing")
+    @MainActor func testExpandedQuickChatView() {
+        let view = ChatView(chat: Chat(), style: .quick, initialQuickChatExpanded: true)
         let controller = NSHostingController(rootView: view)
         controller.loadView()
         #expect(controller.view.frame.width >= 0)
@@ -208,17 +219,41 @@ struct QuickChatShortcutTests {
 
     @Test("Quick chat shortcut titles are stable")
     func testShortcutTitles() {
-        #expect(QuickChatShortcut.defaultShortcut == .optionSpace)
-        #expect(QuickChatShortcut.optionSpace.title == "Option+Space")
-        #expect(QuickChatShortcut.shiftCommandSpace.title == "Shift+Command+Space")
-        #expect(QuickChatShortcut.controlSpace.title == "Control+Space")
-        #expect(QuickChatShortcut.optionCommandSpace.title == "Option+Command+Space")
+        #expect(QuickChatShortcut.defaultShortcut.title == "⌥␣")
         #expect(QuickChatShortcut.disabled.title == "Disabled")
+    }
+
+    @Test("Quick chat shortcut migrates old preset values")
+    func testShortcutMigration() {
+        #expect(QuickChatShortcut.fromStored("shiftCommandSpace").title == "⇧⌘␣")
+        #expect(QuickChatShortcut.fromStored("controlSpace").title == "⌃␣")
+        #expect(QuickChatShortcut.fromStored("optionCommandSpace").title == "⌥⌘␣")
     }
 
     @Test("Quick chat shortcut fallback uses default")
     func testShortcutFallback() {
-        #expect(QuickChatShortcut.fromStored("invalid-shortcut") == .optionSpace)
+        #expect(QuickChatShortcut.fromStored("invalid-shortcut").title == "⌥␣")
+    }
+
+    @Test("Quick chat shortcut round-trips custom values")
+    func testShortcutRoundTrip() {
+        let shortcut = QuickChatShortcut(
+            keyCode: UInt32(kVK_ANSI_K),
+            carbonModifiers: UInt32(cmdKey | optionKey),
+            displayKey: "K"
+        )
+        #expect(QuickChatShortcut.fromStored(shortcut.rawValue) == shortcut)
+        #expect(shortcut.title == "⌥⌘K")
+    }
+
+    @Test("Quick chat shortcut preserves unshifted number row labels")
+    func testShortcutUnshiftedNumberRowLabel() {
+        let shortcut = QuickChatShortcut(
+            keyCode: UInt32(kVK_ANSI_9),
+            carbonModifiers: UInt32(shiftKey | cmdKey),
+            displayKey: "9"
+        )
+        #expect(shortcut.title == "⇧⌘9")
     }
 }
 

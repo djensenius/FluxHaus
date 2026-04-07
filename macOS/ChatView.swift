@@ -17,6 +17,7 @@ enum ChatViewStyle {
 struct ChatView: View {
     @Bindable var chat: Chat
     var style: ChatViewStyle = .full
+    private let initialQuickChatExpanded: Bool
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
@@ -32,6 +33,14 @@ struct ChatView: View {
     // the NSTextView-backed multi-line TextField) to re-render on every token,
     // which triggers _NSDetectedLayoutRecursion on macOS.
     @State private var showSuggestions = false
+    @State private var quickChatExpanded = false
+
+    init(chat: Chat, style: ChatViewStyle = .full, initialQuickChatExpanded: Bool = false) {
+        self.chat = chat
+        self.style = style
+        self.initialQuickChatExpanded = initialQuickChatExpanded
+        _quickChatExpanded = State(initialValue: initialQuickChatExpanded)
+    }
 
     private func updateShowSuggestions() {
         guard let convId = chat.conversationId else { showSuggestions = false; return }
@@ -88,10 +97,24 @@ struct ChatView: View {
         VStack(spacing: 0) {
             quickChatHeader
             Divider()
-            chatDetail
+            if quickChatExpanded {
+                HStack(spacing: 0) {
+                    chatSidebar
+                        .frame(width: 260)
+                    Divider()
+                    chatDetail
+                }
+            } else {
+                chatDetail
+            }
         }
-        .frame(minWidth: 560, minHeight: 420)
+        .frame(
+            minWidth: quickChatExpanded ? 820 : 560,
+            idealWidth: quickChatExpanded ? 960 : 720,
+            minHeight: 420
+        )
         .background(Theme.Colors.background)
+        .animation(.easeInOut(duration: 0.2), value: quickChatExpanded)
     }
 
     private var quickChatHeader: some View {
@@ -105,6 +128,15 @@ struct ChatView: View {
                     .lineLimit(1)
             }
             Spacer()
+            Button(action: {
+                quickChatExpanded.toggle()
+            }, label: {
+                Label(
+                    quickChatExpanded ? "Hide History" : "Show History",
+                    systemImage: "sidebar.left"
+                )
+            })
+            .buttonStyle(.borderless)
             Button(action: {
                 Task { await chat.createNewConversation() }
             }, label: {
@@ -502,9 +534,8 @@ extension ChatView {
     }
 
     private func openAssistantInMainApp() {
-        NSApp.activate(ignoringOtherApps: true)
         NotificationCenter.default.post(
-            name: Notification.Name("navigateToSection"),
+            name: .openMainAppRequested,
             object: nil,
             userInfo: ["section": SidebarItem.assistant.rawValue]
         )
