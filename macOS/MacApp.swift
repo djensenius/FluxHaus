@@ -13,6 +13,7 @@ import os
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "MacApp")
 private let quickChatShortcutDefaultsKey = "quickChatShortcut"
 private let showMenuBarExtraDefaultsKey = "showMenuBarExtra"
+private let quickChatHotKeySignature: OSType = 0x464C5848 // FLXH
 
 enum QuickChatShortcut: String, CaseIterable, Identifiable {
     case optionSpace
@@ -65,9 +66,9 @@ enum QuickChatShortcut: String, CaseIterable, Identifiable {
     }
 }
 
+@MainActor
 final class GlobalHotKeyManager {
     static let shared = GlobalHotKeyManager()
-    private let hotKeySignature: OSType = 0x464C5848 // FLXH
     private var hotKeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
     var onPress: (() -> Void)?
@@ -84,7 +85,7 @@ final class GlobalHotKeyManager {
         unregister()
         guard let keyCode = shortcut.keyCode,
               let modifiers = shortcut.carbonModifiers else { return }
-        var hotKeyID = EventHotKeyID(signature: hotKeySignature, id: 1)
+        var hotKeyID = EventHotKeyID(signature: quickChatHotKeySignature, id: 1)
         let status = RegisterEventHotKey(
             keyCode,
             modifiers,
@@ -114,10 +115,7 @@ final class GlobalHotKeyManager {
         let status = InstallEventHandler(
             GetApplicationEventTarget(),
             { _, event, userData in
-                guard let userData else { return OSStatus(eventNotHandledErr) }
-                let manager = Unmanaged<GlobalHotKeyManager>.fromOpaque(userData)
-                    .takeUnretainedValue()
-                return manager.handle(event)
+                handleQuickChatHotKeyEvent(event, userData: userData)
             },
             1,
             &eventType,
@@ -129,29 +127,41 @@ final class GlobalHotKeyManager {
         }
     }
 
-    private func handle(_ event: EventRef?) -> OSStatus {
-        guard let event else { return OSStatus(eventNotHandledErr) }
-        var hotKeyID = EventHotKeyID()
-        let status = GetEventParameter(
-            event,
-            EventParamName(kEventParamDirectObject),
-            EventParamType(typeEventHotKeyID),
-            nil,
-            MemoryLayout<EventHotKeyID>.size,
-            nil,
-            &hotKeyID
-        )
-        guard status == noErr else {
-            return status
-        }
-        guard hotKeyID.signature == hotKeySignature else {
-            return OSStatus(eventNotHandledErr)
-        }
+    fileprivate func handleHotKeyPress() {
         onPress?()
-        return noErr
     }
 }
 
+private func handleQuickChatHotKeyEvent(
+    _ event: EventRef?,
+    userData: UnsafeMutableRawPointer?
+) -> OSStatus {
+    guard let event, let userData else { return OSStatus(eventNotHandledErr) }
+    var hotKeyID = EventHotKeyID()
+    let status = GetEventParameter(
+        event,
+        EventParamName(kEventParamDirectObject),
+        EventParamType(typeEventHotKeyID),
+        nil,
+        MemoryLayout<EventHotKeyID>.size,
+        nil,
+        &hotKeyID
+    )
+    guard status == noErr else {
+        return status
+    }
+    guard hotKeyID.signature == quickChatHotKeySignature else {
+        return OSStatus(eventNotHandledErr)
+    }
+    let manager = Unmanaged<GlobalHotKeyManager>.fromOpaque(userData)
+        .takeUnretainedValue()
+    Task { @MainActor in
+        manager.handleHotKeyPress()
+    }
+    return noErr
+}
+
+@MainActor
 final class QuickChatWindowController: NSWindowController {
     init(chat: Chat) {
         let rootView = ChatView(chat: chat, style: .quick)
@@ -181,6 +191,7 @@ final class QuickChatWindowController: NSWindowController {
     }
 }
 
+@MainActor
 final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private weak var sharedChat: Chat?
     private var quickChatWindowController: QuickChatWindowController?
