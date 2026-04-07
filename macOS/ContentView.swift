@@ -39,9 +39,9 @@ struct ContentView: View {
     var battery: Battery
     var car: Car
     var apiResponse: Api
+    var chat: Chat
     @StateObject private var locationManager = LocationManager()
     @StateObject private var authManager = AuthManager.shared
-    @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedItem: SidebarItem = .dashboard
 
@@ -437,7 +437,8 @@ struct RobotsMacView: View {
         robots: MockData.createRobots(),
         battery: MockData.createBattery(),
         car: MockData.createCar(),
-        apiResponse: MockData.createApi()
+        apiResponse: MockData.createApi(),
+        chat: Chat()
     )
 }
 #endif

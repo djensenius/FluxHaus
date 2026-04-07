@@ -5,11 +5,18 @@
 //  Created by Copilot on 2026-03-02.
 //
 
+// swiftlint:disable file_length
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum ChatViewStyle {
+    case full
+    case quick
+}
+
 struct ChatView: View {
     @Bindable var chat: Chat
+    var style: ChatViewStyle = .full
     @State private var inputText = ""
     @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
@@ -42,11 +49,18 @@ struct ChatView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            chatSidebar
-                .frame(width: 260)
-            Divider()
-            chatDetail
+        Group {
+            switch style {
+            case .full:
+                HStack(spacing: 0) {
+                    chatSidebar
+                        .frame(width: 260)
+                    Divider()
+                    chatDetail
+                }
+            case .quick:
+                quickChatWindow
+            }
         }
         .task {
             if chat.conversations.isEmpty {
@@ -68,6 +82,48 @@ struct ChatView: View {
         ) { _ in
             Task { await chat.createNewConversation() }
         }
+    }
+
+    private var quickChatWindow: some View {
+        VStack(spacing: 0) {
+            quickChatHeader
+            Divider()
+            chatDetail
+        }
+        .frame(minWidth: 560, minHeight: 420)
+        .background(Theme.Colors.background)
+    }
+
+    private var quickChatHeader: some View {
+        HStack(spacing: 12) {
+            Label("Quick Chat", systemImage: "sparkles")
+                .font(Theme.Fonts.bodyMedium.weight(.semibold))
+            if let activeConversationTitle {
+                Text(activeConversationTitle)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .lineLimit(1)
+            }
+            Spacer()
+            Button(action: {
+                Task { await chat.createNewConversation() }
+            }, label: {
+                Label("New", systemImage: "square.and.pencil")
+            })
+            .buttonStyle(.borderless)
+            Button(action: openAssistantInMainApp, label: {
+                Label("Open App", systemImage: "arrow.up.forward.app")
+            })
+            .buttonStyle(.borderless)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Theme.Colors.secondaryBackground)
+    }
+
+    private var activeConversationTitle: String? {
+        guard let conversationId = chat.conversationId else { return nil }
+        return chat.conversations.first(where: { $0.id == conversationId })?.title
     }
 
     // MARK: - Sidebar
@@ -173,6 +229,9 @@ struct ChatView: View {
         }
     }
 
+}
+
+extension ChatView {
     private func formatRelativeDate(_ isoString: String) -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -193,8 +252,6 @@ struct ChatView: View {
             return dayFormatter.string(from: date)
         }
     }
-
-    // MARK: - Chat detail
 
     private var chatDetail: some View {
         VStack(spacing: 0) {
@@ -238,8 +295,6 @@ struct ChatView: View {
         .background(Theme.Colors.warning.opacity(0.1))
     }
 
-    // MARK: - Messages
-
     private var chatMessages: some View {
         Group {
             if let convId = chat.conversationId {
@@ -247,8 +302,6 @@ struct ChatView: View {
             }
         }
     }
-
-    // MARK: - Image preview
 
     @ViewBuilder
     private var imagePreviewBar: some View {
@@ -283,8 +336,6 @@ struct ChatView: View {
             Divider()
         }
     }
-
-    // MARK: - Input bar
 
     private var inputBar: some View {
         Group {
@@ -401,8 +452,6 @@ struct ChatView: View {
         .padding(10)
     }
 
-    // MARK: - Actions
-
     private func sendMessage() {
         let text = inputText
         let images = pendingImages
@@ -450,6 +499,15 @@ struct ChatView: View {
                 }
             }
         }
+    }
+
+    private func openAssistantInMainApp() {
+        NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(
+            name: Notification.Name("navigateToSection"),
+            object: nil,
+            userInfo: ["section": SidebarItem.assistant.rawValue]
+        )
     }
 }
 
