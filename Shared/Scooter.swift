@@ -25,9 +25,7 @@ import Foundation
     func fetchScooterDetails() {
         if let response = apiResponse?.response,
            let scooterData = response.scooter {
-            DispatchQueue.main.async {
-                self.summary = scooterData
-            }
+            self.summary = scooterData
         }
     }
 

@@ -180,7 +180,7 @@ class LiveActivityManager {
             await activity.end(nil, dismissalPolicy: .immediate)
         }
 
-        // Clean up stale/ended/dismissed consolidated activities to unblock push-to-start
+        // If our tracked activity has ended, clear the reference
         if let activity = consolidatedActivity {
             switch activity.activityState {
             case .ended, .dismissed:
@@ -193,23 +193,28 @@ class LiveActivityManager {
             }
         }
 
-        // Adopt consolidated activity from push-to-start if we don't track it
-        if consolidatedActivity == nil {
-            for activity in Activity<FluxWidgetMultiAttributes>.activities
-            where activity.activityState == .active || activity.activityState == .stale {
-                consolidatedActivity = activity
-                observeActivityPushToken(activity: activity)
-                logger.info("Adopted consolidated Live Activity")
-                break
-            }
+        // Collect all active/stale consolidated activities
+        let liveActivities = Activity<FluxWidgetMultiAttributes>.activities.filter {
+            $0.activityState == .active || $0.activityState == .stale
         }
 
-        // End any EXTRA consolidated activities (dedup — only keep the one we track)
-        for activity in Activity<FluxWidgetMultiAttributes>.activities
-        where activity.id != consolidatedActivity?.id
-            && (activity.activityState == .active || activity.activityState == .stale) {
-            await activity.end(nil, dismissalPolicy: .immediate)
-            logger.info("Ended duplicate consolidated activity")
+        if consolidatedActivity != nil {
+            // We already track one — end any extras
+            for activity in liveActivities where activity.id != consolidatedActivity?.id {
+                nonisolated(unsafe) let activityRef = activity
+                await activityRef.end(nil, dismissalPolicy: .immediate)
+                logger.info("Ended duplicate consolidated activity")
+            }
+        } else if let first = liveActivities.first {
+            // Adopt the first live activity, end all others
+            consolidatedActivity = first
+            observeActivityPushToken(activity: first)
+            logger.info("Adopted consolidated Live Activity")
+            for activity in liveActivities.dropFirst() {
+                nonisolated(unsafe) let activityRef = activity
+                await activityRef.end(nil, dismissalPolicy: .immediate)
+                logger.info("Ended duplicate consolidated activity")
+            }
         }
     }
 
@@ -241,6 +246,13 @@ class LiveActivityManager {
     }
 
     private func startConsolidatedActivity(devices: [WidgetDevice]) {
+        // Safety: end any orphaned activities before starting a new one
+        for activity in Activity<FluxWidgetMultiAttributes>.activities
+        where activity.activityState == .active || activity.activityState == .stale {
+            nonisolated(unsafe) let activityRef = activity
+            Task { await activityRef.end(nil, dismissalPolicy: .immediate) }
+        }
+
         let attributes = FluxWidgetMultiAttributes(name: "Appliances")
         let state = FluxWidgetMultiAttributes.ContentState(devices: devices)
 

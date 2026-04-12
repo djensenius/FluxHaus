@@ -433,6 +433,8 @@ public struct ScooterLastRide: Codable {
 
 public struct ScooterSummary: Codable {
     public let timestamp: String?
+    public let battery: Int?
+    public let estimatedRange: Double?
     public let odometer: Double?
     public let totalRideTime: Int?
     public let batteryCycles: Int?
@@ -440,12 +442,16 @@ public struct ScooterSummary: Codable {
 
     public init(
         timestamp: String? = nil,
+        battery: Int? = nil,
+        estimatedRange: Double? = nil,
         odometer: Double? = nil,
         totalRideTime: Int? = nil,
         batteryCycles: Int? = nil,
         lastRide: ScooterLastRide? = nil
     ) {
         self.timestamp = timestamp
+        self.battery = battery
+        self.estimatedRange = estimatedRange
         self.odometer = odometer
         self.totalRideTime = totalRideTime
         self.batteryCycles = batteryCycles

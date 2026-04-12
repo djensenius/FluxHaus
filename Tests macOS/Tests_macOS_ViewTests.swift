@@ -79,6 +79,7 @@ struct MacOSViewSmokeTests {
             robots: robots,
             battery: MockData.createBattery(),
             car: car,
+            scooter: MockData.createScooter(),
             apiResponse: MockData.createApi(),
             chat: Chat()
         )
@@ -133,6 +134,7 @@ struct MacOSViewSmokeTests {
             robots: robots,
             battery: MockData.createBattery(),
             car: car,
+            scooter: MockData.createScooter(),
             apiResponse: MockData.createApi(),
             locationManager: LocationManager(),
             radarService: RadarService(),
@@ -417,7 +419,9 @@ struct MacOSNilDataResilienceTests {
         let view = ContentView(
             fluxHausConsts: FluxHausConsts(),
             hconn: hconn, miele: miele, robots: robots,
-            battery: Battery(), car: car, apiResponse: api, chat: Chat()
+            battery: Battery(), car: car,
+            scooter: MockData.createScooter(),
+            apiResponse: api, chat: Chat()
         )
         let controller = NSHostingController(rootView: view)
         controller.loadView()
@@ -440,7 +444,9 @@ struct MacOSNilDataResilienceTests {
         let view = DashboardView(
             fluxHausConsts: FluxHausConsts(),
             hconn: hconn, miele: miele, robots: robots,
-            battery: Battery(), car: car, apiResponse: api,
+            battery: Battery(), car: car,
+            scooter: MockData.createScooter(),
+            apiResponse: api,
             locationManager: LocationManager(),
             radarService: RadarService(),
             onNavigate: { _ in }

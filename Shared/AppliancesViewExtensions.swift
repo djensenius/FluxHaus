@@ -20,6 +20,8 @@ extension Appliances {
             return getBatteryIconColor()
         case "Car":
             return getCarIconColor()
+        case "Scooter":
+            return getScooterIconColor()
         default: // HomeConnect
             return getApplianceIconColor(appliances: hconn.appliances, index: index)
         }
@@ -54,6 +56,10 @@ extension Appliances {
         return Theme.Colors.textSecondary
     }
 
+    private func getScooterIconColor() -> Color {
+        return Theme.Colors.textSecondary
+    }
+
     private func getApplianceIconColor(appliances: [Appliance], index: Int) -> Color {
         if appliances.count > index {
             if appliances[index].inUse {
@@ -77,6 +83,8 @@ extension Appliances {
             return getDeviceIcon(battery: battery)
         } else if type == "Car" {
             return Image(systemName: "car")
+        } else if type == "Scooter" {
+            return Image(systemName: "scooter")
         } else {
             tAppliance = hconn.appliances
         }
@@ -113,6 +121,8 @@ extension Appliances {
             }
         } else if type == "Car" {
             return "Car"
+        } else if type == "Scooter" {
+            return "GT3 Pro"
         } else {
             tAppliance = hconn.appliances
         }
@@ -158,6 +168,8 @@ extension Appliances {
             return ""
         } else if type == "Car" {
             return carDetails(car: car)
+        } else if type == "Scooter" {
+            return scooterDetails()
         } else {
             tAppliance = hconn.appliances
         }
@@ -224,6 +236,11 @@ extension Appliances {
             return "\(battery.percent)%"
         } else if type == "Car" {
             return "\(car.vehicle.batteryLevel)%"
+        } else if type == "Scooter" {
+            if let battery = apiResponse.response?.scooter?.battery {
+                return "\(battery)%"
+            }
+            return "—"
         } else {
             tAppliance = hconn.appliances
         }
@@ -232,5 +249,18 @@ extension Appliances {
             return tApplianceTimeRemaining(tAppliance: tAppliance, index: index)
         }
         return ""
+    }
+
+    private func scooterDetails() -> String {
+        guard let scooter = apiResponse.response?.scooter else { return "" }
+        var text = ""
+        if let range = scooter.estimatedRange {
+            text += "Range \(String(format: "%.0f", range)) km"
+        }
+        if let timestamp = scooter.timestamp {
+            if !text.isEmpty { text += " | " }
+            text += "Updated \(relativeTimeString(from: timestamp))"
+        }
+        return text
     }
 }

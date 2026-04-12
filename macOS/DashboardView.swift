@@ -161,6 +161,17 @@ struct DashboardView: View {
                         .font(Theme.Fonts.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
+                if let battery = scooter.summary.battery {
+                    HStack(spacing: 4) {
+                        Text("Battery: \(battery)%")
+                        if let range = scooter.summary.estimatedRange {
+                            Text("·")
+                            Text(String(format: "%.0f km", range))
+                        }
+                    }
+                    .font(Theme.Fonts.bodyLarge)
+                    .foregroundColor(Theme.Colors.textPrimary)
+                }
                 HStack(spacing: 16) {
                     Label(scooter.formattedOdometer, systemImage: "gauge.with.dots.needle.67percent")
                         .foregroundColor(Theme.Colors.textPrimary)
