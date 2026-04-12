@@ -57,14 +57,15 @@ import Foundation
 }
 
 private extension Scooter {
-    private static let isoFormatter: ISO8601DateFormatter = {
+    static let isoFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
     }()
-    private static let displayFormatter: DateFormatter = {
+    static let displayFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter
     }()
+}
