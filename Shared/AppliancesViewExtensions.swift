@@ -71,34 +71,34 @@ extension Appliances {
         return Theme.Colors.textSecondary
     }
 
-    func getIcon(type: String, index: Int) -> Image {
-        var tAppliance: [Appliance]
-        if type == "Miele" {
-            tAppliance = miele.appliances
-        } else if type == "MopBot" {
-            return Image(systemName: "humidifier.and.droplets")
-        } else if type == "BroomBot" {
-            return Image(systemName: "fan")
-        } else if type == "Battery" {
-            return getDeviceIcon(battery: battery)
-        } else if type == "Car" {
-            return Image(systemName: "car")
-        } else if type == "Scooter" {
-            return Image(systemName: "scooter")
-        } else {
-            tAppliance = hconn.appliances
+    @ViewBuilder
+    func getIcon(type: String, index: Int) -> some View {
+        switch type {
+        case "MopBot":
+            Image(systemName: "humidifier.and.droplets")
+        case "BroomBot":
+            Image(systemName: "fan")
+        case "Battery":
+            getDeviceIcon(battery: battery)
+        case "Car":
+            Image(systemName: "car")
+        case "Scooter":
+            Image(systemName: "scooter")
+                .scaleEffect(x: -1)
+        case "Miele":
+            applianceIcon(for: miele.appliances, index: index)
+        default:
+            applianceIcon(for: hconn.appliances, index: index)
         }
+    }
 
-        if tAppliance.count > index {
-            var emoji = Image(systemName: "dryer")
-            if tAppliance[index].name == "Washing machine" {
-                emoji = Image(systemName: "washer")
-            } else if tAppliance[index].name == "Dishwasher" {
-                emoji = Image(systemName: "dishwasher")
-            }
-            return emoji
+    private func applianceIcon(for appliances: [Appliance], index: Int) -> Image {
+        guard appliances.count > index else { return Image(systemName: "network") }
+        switch appliances[index].name {
+        case "Washing machine": return Image(systemName: "washer")
+        case "Dishwasher": return Image(systemName: "dishwasher")
+        default: return Image(systemName: "dryer")
         }
-        return Image(systemName: "network")
     }
 
     func getApplianceName(type: String, index: Int) -> String {

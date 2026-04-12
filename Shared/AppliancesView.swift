@@ -60,9 +60,6 @@ struct Appliances: View {
                                                     type: theAppliances[app].name,
                                                     index: theAppliances[app].index
                                                 ))
-                                                .scaleEffect(
-                                                    x: theAppliances[app].name == "Scooter" ? -1 : 1
-                                                )
                                                 .padding(.leading)
                                                 Text(
                                                     getApplianceName(
