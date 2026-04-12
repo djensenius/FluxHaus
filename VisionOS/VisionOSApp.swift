@@ -16,6 +16,7 @@ private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Vis
 @MainActor var robots: Robots?
 @MainActor var battery: Battery?
 @MainActor var car: Car?
+@MainActor var scooter: Scooter?
 
 @main
 struct VisionOSApp: App {
@@ -78,6 +79,7 @@ struct VisionOSApp: App {
                                 loadRobots()
                                 loadBattery()
                                 loadCar()
+                                loadScooter()
                                 loadHomeConnect()
                             }
                         }
@@ -89,6 +91,7 @@ struct VisionOSApp: App {
                         robots: robots!,
                         battery: battery!,
                         car: car!,
+                        scooter: scooter!,
                         apiResponse: self.apiResponse
                     )
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
@@ -105,6 +108,7 @@ struct VisionOSApp: App {
                             hconn?.setApiResponse(apiResponse: self.apiResponse)
                             miele?.setApiResponse(apiResponse: self.apiResponse)
                             car?.setApiResponse(apiResponse: self.apiResponse)
+                            scooter?.setApiResponse(apiResponse: self.apiResponse)
                         }
                     }
                     .onReceive(timer) {_ in
@@ -168,5 +172,10 @@ struct VisionOSApp: App {
     func loadCar() {
         car = Car()
         car?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadScooter() {
+        scooter = Scooter()
+        scooter?.setApiResponse(apiResponse: self.apiResponse)
     }
 }

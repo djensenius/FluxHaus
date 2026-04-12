@@ -173,12 +173,13 @@ struct SidebarItemTests {
     @Test("SidebarItem has all expected cases")
     func testAllCases() {
         let items = SidebarItem.allCases
-        #expect(items.count == 7)
+        #expect(items.count == 8)
         #expect(items.contains(.dashboard))
         #expect(items.contains(.weather))
         #expect(items.contains(.scenes))
         #expect(items.contains(.appliances))
         #expect(items.contains(.car))
+        #expect(items.contains(.scooter))
         #expect(items.contains(.robots))
         #expect(items.contains(.assistant))
     }
@@ -190,6 +191,7 @@ struct SidebarItemTests {
         #expect(SidebarItem.scenes.rawValue == "Scenes")
         #expect(SidebarItem.appliances.rawValue == "Appliances")
         #expect(SidebarItem.car.rawValue == "Car")
+        #expect(SidebarItem.scooter.rawValue == "Scooter")
         #expect(SidebarItem.robots.rawValue == "Robots")
         #expect(SidebarItem.assistant.rawValue == "Assistant")
     }
@@ -201,6 +203,7 @@ struct SidebarItemTests {
         #expect(SidebarItem.scenes.icon == "lightbulb.fill")
         #expect(SidebarItem.appliances.icon == "washer.fill")
         #expect(SidebarItem.car.icon == "car.fill")
+        #expect(SidebarItem.scooter.icon == "scooter")
         #expect(SidebarItem.robots.icon == "fan.fill")
         #expect(
             SidebarItem.assistant.icon

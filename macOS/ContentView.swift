@@ -13,6 +13,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case scenes = "Scenes"
     case appliances = "Appliances"
     case car = "Car"
+    case scooter = "Scooter"
     case robots = "Robots"
     case assistant = "Assistant"
 
@@ -25,6 +26,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .scenes: return "lightbulb.fill"
         case .appliances: return "washer.fill"
         case .car: return "car.fill"
+        case .scooter: return "scooter"
         case .robots: return "fan.fill"
         case .assistant: return "bubble.left.and.bubble.right.fill"
         }
@@ -38,6 +40,7 @@ struct ContentView: View {
     var robots: Robots
     var battery: Battery
     var car: Car
+    var scooter: Scooter
     var apiResponse: Api
     var chat: Chat
     @StateObject private var locationManager = LocationManager()
@@ -93,8 +96,9 @@ struct ContentView: View {
             Button("") { selectedItem = .scenes }.keyboardShortcut("3")
             Button("") { selectedItem = .appliances }.keyboardShortcut("4")
             Button("") { selectedItem = .car }.keyboardShortcut("5")
-            Button("") { selectedItem = .robots }.keyboardShortcut("6")
-            Button("") { selectedItem = .assistant }.keyboardShortcut("7")
+            Button("") { selectedItem = .scooter }.keyboardShortcut("6")
+            Button("") { selectedItem = .robots }.keyboardShortcut("7")
+            Button("") { selectedItem = .assistant }.keyboardShortcut("8")
         }
         .frame(width: 0, height: 0)
         .opacity(0)
@@ -111,6 +115,7 @@ struct ContentView: View {
                 robots: robots,
                 battery: battery,
                 car: car,
+                scooter: scooter,
                 apiResponse: apiResponse,
                 locationManager: locationManager,
                 radarService: radarService,
@@ -131,6 +136,9 @@ struct ContentView: View {
         case .car:
             CarDetailView(car: car, locationManager: locationManager)
                 .navigationTitle("Car")
+        case .scooter:
+            ScooterDetailView(scooter: scooter)
+                .navigationTitle("Scooter")
         case .robots:
             RobotsMacView(robots: robots)
                 .navigationTitle("Robots")
@@ -437,6 +445,7 @@ struct RobotsMacView: View {
         robots: MockData.createRobots(),
         battery: MockData.createBattery(),
         car: MockData.createCar(),
+        scooter: Scooter(),
         apiResponse: MockData.createApi(),
         chat: Chat()
     )

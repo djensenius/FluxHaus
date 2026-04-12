@@ -14,6 +14,7 @@ struct DashboardView: View {
     var robots: Robots
     var battery: Battery
     var car: Car
+    var scooter: Scooter
     var apiResponse: Api
     @ObservedObject var locationManager: LocationManager
     var radarService: RadarService
@@ -71,6 +72,7 @@ struct DashboardView: View {
             ))
         }
         cards.append(DeviceCard(id: "car", isActive: false, priority: 1, view: AnyView(carCard)))
+        cards.append(DeviceCard(id: "scooter", isActive: false, priority: 1, view: AnyView(scooterCard)))
         return cards.sorted { $0.priority > $1.priority }
     }
 
@@ -136,6 +138,61 @@ struct DashboardView: View {
                     Text("Details →").font(Theme.Fonts.bodyMedium)
                 }).buttonStyle(.plain).foregroundColor(Theme.Colors.accent)
             }.buttonStyle(.bordered).disabled(carButtonsDisabled)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+    }
+
+    // MARK: - Scooter
+    private var scooterCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "scooter")
+                    .foregroundColor(Theme.Colors.accent)
+                Text("GT3 Pro")
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(Theme.Colors.textPrimary)
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                if let timestamp = scooter.summary.timestamp {
+                    Text("Updated \(relativeTimeString(from: timestamp))")
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                HStack(spacing: 16) {
+                    Label(scooter.formattedOdometer, systemImage: "gauge.with.dots.needle.67percent")
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    if let cycles = scooter.summary.batteryCycles {
+                        Label("\(cycles) cycles", systemImage: "battery.100percent.circle")
+                            .foregroundColor(Theme.Colors.textPrimary)
+                    }
+                }.font(Theme.Fonts.bodyMedium)
+                if let lastRide = scooter.summary.lastRide {
+                    HStack(spacing: 16) {
+                        Label(
+                            scooter.formattedLastRideDistance,
+                            systemImage: "point.topleft.down.to.point.bottomright.curvepath"
+                        )
+                        if let maxSpeed = lastRide.maxSpeed {
+                            Label(String(format: "%.1f km/h", maxSpeed), systemImage: "speedometer")
+                        }
+                        if let battUsed = lastRide.batteryUsed {
+                            Label("-\(battUsed)%", systemImage: "battery.75percent")
+                        }
+                    }
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
+                }
+            }
+            Divider()
+            HStack {
+                Button(action: { onNavigate(.scooter) }, label: {
+                    Text("Details →").font(Theme.Fonts.bodyMedium)
+                }).buttonStyle(.plain).foregroundColor(Theme.Colors.accent)
+                Spacer()
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -381,6 +438,7 @@ extension DashboardView {
         robots: MockData.createRobots(),
         battery: MockData.createBattery(),
         car: MockData.createCar(),
+        scooter: Scooter(),
         apiResponse: MockData.createApi(),
         locationManager: LocationManager(),
         radarService: RadarService(),

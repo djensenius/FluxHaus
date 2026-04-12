@@ -16,6 +16,7 @@ struct ContentView: View {
     var robots: Robots
     var battery: Battery
     var car: Car
+    var scooter: Scooter
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
@@ -41,6 +42,9 @@ struct ContentView: View {
             carTab
                 .tabItem { Label("Car", systemImage: "car.fill") }
                 .tag("Car")
+            scooterTab
+                .tabItem { Label("Scooter", systemImage: "scooter") }
+                .tag("Scooter")
             RobotsListView(robots: robots)
                 .tabItem { Label("Robots", systemImage: "fan.fill") }
                 .tag("Robots")
@@ -100,6 +104,10 @@ struct ContentView: View {
         CarDetailView(car: car, locationManager: locationManager)
     }
 
+    private var scooterTab: some View {
+        ScooterDetailView(scooter: scooter)
+    }
+
     private var appliancesTab: some View {
         AppliancesDetailView(
             hconn: hconn,
@@ -116,8 +124,9 @@ struct ContentView: View {
             Button("") { selectedTab = "Scenes" }.keyboardShortcut("3")
             Button("") { selectedTab = "Appliances" }.keyboardShortcut("4")
             Button("") { selectedTab = "Car" }.keyboardShortcut("5")
-            Button("") { selectedTab = "Robots" }.keyboardShortcut("6")
-            Button("") { selectedTab = "Assistant" }.keyboardShortcut("7")
+            Button("") { selectedTab = "Scooter" }.keyboardShortcut("6")
+            Button("") { selectedTab = "Robots" }.keyboardShortcut("7")
+            Button("") { selectedTab = "Assistant" }.keyboardShortcut("8")
         }
         .frame(width: 0, height: 0)
         .opacity(0)
@@ -137,6 +146,7 @@ struct ContentView: View {
         robots: MockData.createRobots(),
         battery: MockData.createBattery(),
         car: MockData.createCar(),
+        scooter: Scooter(),
         apiResponse: MockData.createApi()
     )
 }
