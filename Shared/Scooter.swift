@@ -50,13 +50,21 @@ import Foundation
 
     var formattedLastRideDate: String {
         guard let dateStr = summary.lastRide?.date else { return "—" }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: dateStr)
+        guard let date = Self.isoFormatter.date(from: dateStr)
                 ?? ISO8601DateFormatter().date(from: dateStr) else { return dateStr }
-        let display = DateFormatter()
-        display.dateStyle = .medium
-        display.timeStyle = .short
-        return display.string(from: date)
+        return Self.displayFormatter.string(from: date)
     }
 }
+
+private extension Scooter {
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    private static let displayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()

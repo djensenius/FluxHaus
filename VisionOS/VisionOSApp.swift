@@ -84,14 +84,23 @@ struct VisionOSApp: App {
                             }
                         }
                 } else {
+                    guard let hconn = hconn,
+                          let miele = miele,
+                          let robots = robots,
+                          let battery = battery,
+                          let car = car,
+                          let scooter = scooter else {
+                        return
+                    }
+
                     ContentView(
                         fluxHausConsts: fluxHausConsts,
-                        hconn: hconn!,
-                        miele: miele!,
-                        robots: robots!,
-                        battery: battery!,
-                        car: car!,
-                        scooter: scooter!,
+                        hconn: hconn,
+                        miele: miele,
+                        robots: robots,
+                        battery: battery,
+                        car: car,
+                        scooter: scooter,
                         apiResponse: self.apiResponse
                     )
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
