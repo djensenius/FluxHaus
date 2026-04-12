@@ -217,21 +217,9 @@ extension Appliances {
         if type == "Miele" {
             tAppliance = miele.appliances
         } else if type == "MopBot" {
-            if robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true) {
-                return "On"
-            } else if robots.mopBot.running != nil && robots.mopBot.running == false {
-                return "Off"
-            } else {
-                return "Lost"
-            }
+            return robotStatus(robots.mopBot)
         } else if type == "BroomBot" {
-            if robots.broomBot.running != nil && (robots.broomBot.running == true || robots.broomBot.paused == true) {
-                return "On"
-            } else if robots.broomBot.running != nil && robots.broomBot.running == false {
-                return "Off"
-            } else {
-                return "Lost"
-            }
+            return robotStatus(robots.broomBot)
         } else if type == "Battery" {
             return "\(battery.percent)%"
         } else if type == "Car" {
@@ -249,6 +237,15 @@ extension Appliances {
             return tApplianceTimeRemaining(tAppliance: tAppliance, index: index)
         }
         return ""
+    }
+
+    private func robotStatus(_ robot: Robot) -> String {
+        if robot.running == true || robot.paused == true {
+            return "On"
+        } else if robot.running == false {
+            return "Off"
+        }
+        return "Lost"
     }
 
     private func scooterDetails() -> String {

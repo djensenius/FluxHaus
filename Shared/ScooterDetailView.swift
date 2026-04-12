@@ -124,7 +124,11 @@ struct ScooterDetailView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        #if os(visionOS)
+                        .glassBackgroundEffect()
+                        #else
                         .background(Theme.Colors.secondaryBackground)
+                        #endif
                         .cornerRadius(12)
                     }
                 }
