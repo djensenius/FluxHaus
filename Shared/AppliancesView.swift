@@ -34,6 +34,7 @@ struct Appliances: View {
         (name: "BroomBot", index: 0),
         (name: "MopBot", index: 0),
         (name: "Car", index: 0),
+        (name: "Scooter", index: 0),
         (name: "Battery", index: 0)
     ]
 
@@ -50,17 +51,18 @@ struct Appliances: View {
                                     HStack {
                                         VStack(alignment: .leading) {
                                             HStack {
-                                                Text(
-                                                    getIcon(
-                                                        type: theAppliances[app].name,
-                                                        index: theAppliances[app].index
-                                                    )
+                                                getIcon(
+                                                    type: theAppliances[app].name,
+                                                    index: theAppliances[app].index
                                                 )
                                                 .font(Theme.Fonts.headerLarge())
                                                 .foregroundColor(getIconColor(
                                                     type: theAppliances[app].name,
                                                     index: theAppliances[app].index
                                                 ))
+                                                .scaleEffect(
+                                                    x: theAppliances[app].name == "Scooter" ? -1 : 1
+                                                )
                                                 .padding(.leading)
                                                 Text(
                                                     getApplianceName(

@@ -44,8 +44,15 @@ struct ContentView: View {
                 carTab
             }
             .customizationID("car")
-            Tab("Scooter", systemImage: "scooter", value: "scooter") {
+            Tab(value: "scooter") {
                 scooterTab
+            } label: {
+                Label {
+                    Text("Scooter")
+                } icon: {
+                    Image(systemName: "scooter")
+                        .scaleEffect(x: -1)
+                }
             }
             .customizationID("scooter")
             TabSection {

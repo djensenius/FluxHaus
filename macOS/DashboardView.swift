@@ -150,6 +150,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "scooter")
+                    .scaleEffect(x: -1)
                     .foregroundColor(Theme.Colors.accent)
                 Text("GT3 Pro")
                     .font(Theme.Fonts.headerLarge())

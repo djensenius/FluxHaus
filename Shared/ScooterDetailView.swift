@@ -15,6 +15,7 @@ struct ScooterDetailView: View {
                     #if !os(macOS)
                     HStack {
                         Image(systemName: "scooter")
+                            .scaleEffect(x: -1)
                         Text("GT3 Pro")
                     }
                     .font(Theme.Fonts.headerXL())
