@@ -104,6 +104,25 @@ struct MockData {
             programName: "Cotton 60",
             status: "Running",
             inUse: true
+        ),
+        scooter: ScooterSummary(
+            timestamp: "2024-12-13T11:50:00Z",
+            battery: 85,
+            estimatedRange: 42.5,
+            odometer: 1234.5,
+            totalRideTime: 36000,
+            batteryCycles: 42,
+            lastRide: ScooterLastRide(
+                date: "2024-12-13T10:00:00Z",
+                endDate: "2024-12-13T10:30:00Z",
+                distance: 12.5,
+                maxSpeed: 65.0,
+                avgSpeed: 38.2,
+                batteryUsed: 15,
+                startBattery: 100,
+                endBattery: 85,
+                gearMode: 3
+            )
         )
     )
 
@@ -135,6 +154,13 @@ struct MockData {
         let api = createApi()
         robots.setApiResponse(apiResponse: api)
         return robots
+    }
+
+    static func createScooter() -> Scooter {
+        let scooter = Scooter()
+        let api = createApi()
+        scooter.setApiResponse(apiResponse: api)
+        return scooter
     }
 
     static func createBattery() -> Battery {

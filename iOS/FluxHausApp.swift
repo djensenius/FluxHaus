@@ -123,6 +123,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @MainActor var robots: Robots?
 @MainActor var battery: Battery?
 @MainActor var car: Car?
+@MainActor var scooter: Scooter?
 
 @main
 struct FluxHausApp: App {
@@ -190,10 +191,11 @@ struct FluxHausApp: App {
                                 loadRobots()
                                 loadBattery()
                                 loadCar()
+                                loadScooter()
                                 loadHomeConnect()
                             }
                         }
-                } else if let hconn, let miele, let robots, let car {
+                } else if let hconn, let miele, let robots, let car, let scooter {
                     ContentView(
                         fluxHausConsts: fluxHausConsts,
                         hconn: hconn,
@@ -201,6 +203,7 @@ struct FluxHausApp: App {
                         robots: robots,
                         battery: battery,
                         car: car,
+                        scooter: scooter,
                         apiResponse: self.apiResponse
                     )
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
@@ -217,6 +220,7 @@ struct FluxHausApp: App {
                             hconn.setApiResponse(apiResponse: self.apiResponse)
                             miele.setApiResponse(apiResponse: self.apiResponse)
                             car.setApiResponse(apiResponse: self.apiResponse)
+                            scooter.setApiResponse(apiResponse: self.apiResponse)
                             updateLiveActivities(response: response)
                         }
                     }
@@ -277,8 +281,10 @@ struct FluxHausApp: App {
                     .keyboardShortcut("3", modifiers: .command)
                 Button("Car") { postNavigation("car") }
                     .keyboardShortcut("4", modifiers: .command)
-                Button("Appliances") { postNavigation("appliances") }
+                Button("Scooter") { postNavigation("scooter") }
                     .keyboardShortcut("5", modifiers: .command)
+                Button("Appliances") { postNavigation("appliances") }
+                    .keyboardShortcut("6", modifiers: .command)
 
                 Divider()
 
@@ -310,6 +316,11 @@ struct FluxHausApp: App {
     func loadCar() {
         car = Car()
         car?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadScooter() {
+        scooter = Scooter()
+        scooter?.setApiResponse(apiResponse: self.apiResponse)
     }
 
     func updateLiveActivities(response: LoginResponse) {

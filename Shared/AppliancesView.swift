@@ -19,6 +19,7 @@ struct Appliances: View {
     var locationManager: LocationManager
 
     @State private var showCarModal: Bool = false
+    @State private var showScooterModal: Bool = false
     @State private var showBroomBotModal: Bool = false
     @State private var showMopBotModal: Bool = false
     @State private var showApplianceModal: [String: Bool] = [:]
@@ -114,6 +115,8 @@ struct Appliances: View {
                                         self.car.apiResponse = self.apiResponse
                                         self.car.fetchCarDetails()
                                         self.showCarModal = true
+                                    } else if theAppliances[app].name == "Scooter" {
+                                        self.showScooterModal = true
                                     } else if theAppliances[app].name == "MopBot" {
                                         self.showMopBotModal = true
                                     } else if theAppliances[app].name == "BroomBot" {
@@ -132,6 +135,15 @@ struct Appliances: View {
         .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
         .sheet(isPresented: self.$showCarModal) {
             CarDetailView(car: car, locationManager: locationManager)
+        }
+        .sheet(isPresented: self.$showScooterModal) {
+            ScooterDetailView(
+                scooter: {
+                    let scooter = Scooter()
+                    scooter.setApiResponse(apiResponse: apiResponse)
+                    return scooter
+                }()
+            )
         }
         .sheet(isPresented: self.$showBroomBotModal) {
             RobotDetailView(robot: robots.broomBot, robots: robots)
@@ -198,7 +210,7 @@ struct Appliances: View {
             let name = appliance.name
             let index = appliance.index
             switch name {
-            case "Car", "Battery":
+            case "Car", "Scooter", "Battery":
                 activeAppliances.append(appliance)
             case "MopBot":
                 if robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true) {

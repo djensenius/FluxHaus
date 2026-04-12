@@ -14,6 +14,7 @@ struct ContentView: View {
     var robots: Robots
     var battery: Battery
     var car: Car
+    var scooter: Scooter
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
     @StateObject private var locationManager = LocationManager()
@@ -43,6 +44,10 @@ struct ContentView: View {
                 carTab
             }
             .customizationID("car")
+            Tab("Scooter", systemImage: "scooter", value: "scooter") {
+                scooterTab
+            }
+            .customizationID("scooter")
             TabSection {
                 Tab("Appliances", systemImage: "washer.fill", value: "appliances") {
                     appliancesTab
@@ -116,6 +121,10 @@ struct ContentView: View {
         CarDetailView(car: car, locationManager: locationManager)
     }
 
+    private var scooterTab: some View {
+        ScooterDetailView(scooter: scooter)
+    }
+
     private var scenesTab: some View {
         SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
     }
@@ -158,10 +167,11 @@ struct ContentView: View {
             Button("") { selectedTab = "weather" }.keyboardShortcut("2")
             Button("") { selectedTab = "assistant" }.keyboardShortcut("3")
             Button("") { selectedTab = "car" }.keyboardShortcut("4")
-            Button("") { selectedTab = "appliances" }.keyboardShortcut("5")
-            Button("") { selectedTab = "scenes" }.keyboardShortcut("6")
-            Button("") { selectedTab = "robots" }.keyboardShortcut("7")
-            Button("") { selectedTab = "settings" }.keyboardShortcut("8")
+            Button("") { selectedTab = "scooter" }.keyboardShortcut("5")
+            Button("") { selectedTab = "appliances" }.keyboardShortcut("6")
+            Button("") { selectedTab = "scenes" }.keyboardShortcut("7")
+            Button("") { selectedTab = "robots" }.keyboardShortcut("8")
+            Button("") { selectedTab = "settings" }.keyboardShortcut("9")
         }
         .frame(width: 0, height: 0)
         .opacity(0)
@@ -181,6 +191,7 @@ struct ContentView: View {
         robots: MockData.createRobots(),
         battery: MockData.createBattery(),
         car: MockData.createCar(),
+        scooter: Scooter(),
         apiResponse: MockData.createApi()
     )
 }

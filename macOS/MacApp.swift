@@ -339,6 +339,7 @@ struct MacApp: App {
     @State private var robots: Robots?
     @State private var car: Car?
     @State private var chat = Chat()
+    @State private var scooter: Scooter?
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
 
     let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
@@ -384,10 +385,12 @@ struct MacApp: App {
                     .keyboardShortcut("4", modifiers: .command)
                 Button("Car") { postNavigation("Car") }
                     .keyboardShortcut("5", modifiers: .command)
-                Button("Robots") { postNavigation("Robots") }
+                Button("Scooter") { postNavigation("Scooter") }
                     .keyboardShortcut("6", modifiers: .command)
-                Button("Assistant") { postNavigation("Assistant") }
+                Button("Robots") { postNavigation("Robots") }
                     .keyboardShortcut("7", modifiers: .command)
+                Button("Assistant") { postNavigation("Assistant") }
+                    .keyboardShortcut("8", modifiers: .command)
 
                 Divider()
 
@@ -440,7 +443,7 @@ struct MacApp: App {
                 ) { object in
                     handleDataUpdated(object)
                 }
-        } else if let hconn, let miele, let robots, let car {
+        } else if let hconn, let miele, let robots, let car, let scooter {
             ContentView(
                 fluxHausConsts: fluxHausConsts,
                 hconn: hconn,
@@ -448,6 +451,7 @@ struct MacApp: App {
                 robots: robots,
                 battery: battery,
                 car: car,
+                scooter: scooter,
                 apiResponse: apiResponse,
                 chat: chat
             )
@@ -473,6 +477,7 @@ struct MacApp: App {
                     hconn.setApiResponse(apiResponse: self.apiResponse)
                     miele.setApiResponse(apiResponse: self.apiResponse)
                     car.setApiResponse(apiResponse: self.apiResponse)
+                    scooter.setApiResponse(apiResponse: self.apiResponse)
                 }
             }
             .onReceive(timer) { _ in
@@ -543,6 +548,8 @@ struct MacApp: App {
             self.robots?.apiResponse = self.apiResponse
             self.car = Car()
             self.car?.setApiResponse(apiResponse: self.apiResponse)
+            self.scooter = Scooter()
+            self.scooter?.setApiResponse(apiResponse: self.apiResponse)
             self.hconn = HomeConnect(apiResponse: self.apiResponse)
         }
     }

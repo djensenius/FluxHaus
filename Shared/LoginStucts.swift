@@ -366,6 +366,7 @@ public struct LoginResponse: Codable {
     public let dishwasher: DishWasher?
     public let dryer: WasherDryer?
     public let washer: WasherDryer?
+    public let scooter: ScooterSummary?
 
     public init(
         timestamp: String,
@@ -378,7 +379,8 @@ public struct LoginResponse: Codable {
         carOdometer: Double? = nil,
         dishwasher: DishWasher? = nil,
         dryer: WasherDryer? = nil,
-        washer: WasherDryer? = nil
+        washer: WasherDryer? = nil,
+        scooter: ScooterSummary? = nil
     ) {
         self.timestamp = timestamp
         self.favouriteHomeKit = favouriteHomeKit
@@ -391,6 +393,69 @@ public struct LoginResponse: Codable {
         self.dishwasher = dishwasher
         self.dryer = dryer
         self.washer = washer
+        self.scooter = scooter
+    }
+}
+
+public struct ScooterLastRide: Codable {
+    public let date: String?
+    public let endDate: String?
+    public let distance: Double?
+    public let maxSpeed: Double?
+    public let avgSpeed: Double?
+    public let batteryUsed: Int?
+    public let startBattery: Int?
+    public let endBattery: Int?
+    public let gearMode: Int?
+
+    public init(
+        date: String? = nil,
+        endDate: String? = nil,
+        distance: Double? = nil,
+        maxSpeed: Double? = nil,
+        avgSpeed: Double? = nil,
+        batteryUsed: Int? = nil,
+        startBattery: Int? = nil,
+        endBattery: Int? = nil,
+        gearMode: Int? = nil
+    ) {
+        self.date = date
+        self.endDate = endDate
+        self.distance = distance
+        self.maxSpeed = maxSpeed
+        self.avgSpeed = avgSpeed
+        self.batteryUsed = batteryUsed
+        self.startBattery = startBattery
+        self.endBattery = endBattery
+        self.gearMode = gearMode
+    }
+}
+
+public struct ScooterSummary: Codable {
+    public let timestamp: String?
+    public let battery: Int?
+    public let estimatedRange: Double?
+    public let odometer: Double?
+    public let totalRideTime: Int?
+    public let batteryCycles: Int?
+    public let lastRide: ScooterLastRide?
+
+    public init(
+        timestamp: String? = nil,
+        battery: Int? = nil,
+        estimatedRange: Double? = nil,
+        odometer: Double? = nil,
+        totalRideTime: Int? = nil,
+        batteryCycles: Int? = nil,
+        lastRide: ScooterLastRide? = nil
+    ) {
+        self.timestamp = timestamp
+        self.battery = battery
+        self.estimatedRange = estimatedRange
+        self.odometer = odometer
+        self.totalRideTime = totalRideTime
+        self.batteryCycles = batteryCycles
+        self.lastRide = lastRide
     }
 }
 

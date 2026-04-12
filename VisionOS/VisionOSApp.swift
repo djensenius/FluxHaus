@@ -16,6 +16,7 @@ private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Vis
 @MainActor var robots: Robots?
 @MainActor var battery: Battery?
 @MainActor var car: Car?
+@MainActor var scooter: Scooter?
 
 @main
 struct VisionOSApp: App {
@@ -78,41 +79,51 @@ struct VisionOSApp: App {
                                 loadRobots()
                                 loadBattery()
                                 loadCar()
+                                loadScooter()
                                 loadHomeConnect()
                             }
                         }
                 } else {
-                    ContentView(
-                        fluxHausConsts: fluxHausConsts,
-                        hconn: hconn!,
-                        miele: miele!,
-                        robots: robots!,
-                        battery: battery!,
-                        car: car!,
-                        apiResponse: self.apiResponse
-                    )
-                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
-                        if (object.userInfo?["logout"]) != nil {
-                            DispatchQueue.main.async {
-                                self.whereWeAre = WhereWeAre()
+                    if let hconn = hconn,
+                       let miele = miele,
+                       let robots = robots,
+                       let battery = battery,
+                       let car = car,
+                       let scooter = scooter {
+                        ContentView(
+                            fluxHausConsts: fluxHausConsts,
+                            hconn: hconn,
+                            miele: miele,
+                            robots: robots,
+                            battery: battery,
+                            car: car,
+                            scooter: scooter,
+                            apiResponse: self.apiResponse
+                        )
+                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
+                            if (object.userInfo?["logout"]) != nil {
+                                DispatchQueue.main.async {
+                                    self.whereWeAre = WhereWeAre()
+                                }
                             }
                         }
-                    }
-                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
-                        if let response = object.userInfo?["data"] as? LoginResponse {
-                            self.apiResponse.setApiResponse(apiResponse: response)
-                            robots?.setApiResponse(apiResponse: self.apiResponse)
-                            hconn?.setApiResponse(apiResponse: self.apiResponse)
-                            miele?.setApiResponse(apiResponse: self.apiResponse)
-                            car?.setApiResponse(apiResponse: self.apiResponse)
-                        }
-                    }
-                    .onReceive(timer) {_ in
-                        if AuthManager.shared.isSignedIn {
-                            Task {
-                                _ = await AuthManager.shared.ensureValidToken()
+                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
+                            if let response = object.userInfo?["data"] as? LoginResponse {
+                                self.apiResponse.setApiResponse(apiResponse: response)
+                                robots.setApiResponse(apiResponse: self.apiResponse)
+                                hconn.setApiResponse(apiResponse: self.apiResponse)
+                                miele.setApiResponse(apiResponse: self.apiResponse)
+                                car.setApiResponse(apiResponse: self.apiResponse)
+                                scooter.setApiResponse(apiResponse: self.apiResponse)
                             }
-                            queryFlux(password: WhereWeAre.getPassword() ?? "")
+                        }
+                        .onReceive(timer) {_ in
+                            if AuthManager.shared.isSignedIn {
+                                Task {
+                                    _ = await AuthManager.shared.ensureValidToken()
+                                }
+                                queryFlux(password: WhereWeAre.getPassword() ?? "")
+                            }
                         }
                     }
                 }
@@ -168,5 +179,10 @@ struct VisionOSApp: App {
     func loadCar() {
         car = Car()
         car?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadScooter() {
+        scooter = Scooter()
+        scooter?.setApiResponse(apiResponse: self.apiResponse)
     }
 }

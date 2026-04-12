@@ -1,0 +1,69 @@
+//
+//  Scooter.swift
+//  FluxHaus
+//
+
+import Foundation
+
+@MainActor
+@Observable class Scooter {
+    var apiResponse: Api?
+    var summary = ScooterSummary()
+
+    private static let gearNames: [Int: String] = [1: "Eco", 2: "Standard", 3: "Sport", 4: "Race"]
+
+    static func gearName(_ mode: Int?) -> String {
+        guard let mode = mode else { return "Unknown" }
+        return gearNames[mode] ?? "Mode \(mode)"
+    }
+
+    func setApiResponse(apiResponse: Api) {
+        self.apiResponse = apiResponse
+        fetchScooterDetails()
+    }
+
+    func fetchScooterDetails() {
+        if let response = apiResponse?.response,
+           let scooterData = response.scooter {
+            self.summary = scooterData
+        }
+    }
+
+    var formattedOdometer: String {
+        guard let odo = summary.odometer else { return "—" }
+        return String(format: "%.1f km", odo)
+    }
+
+    var formattedTotalRideTime: String {
+        guard let seconds = summary.totalRideTime else { return "—" }
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        return "\(hours)h \(minutes)m"
+    }
+
+    var formattedLastRideDistance: String {
+        guard let dist = summary.lastRide?.distance else { return "—" }
+        return dist < 1 ? String(format: "%.0f m", dist * 1000) : String(format: "%.1f km", dist)
+    }
+
+    var formattedLastRideDate: String {
+        guard let dateStr = summary.lastRide?.date else { return "—" }
+        guard let date = Self.isoFormatter.date(from: dateStr)
+                ?? ISO8601DateFormatter().date(from: dateStr) else { return dateStr }
+        return Self.displayFormatter.string(from: date)
+    }
+}
+
+private extension Scooter {
+    static let isoFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    static let displayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+}
