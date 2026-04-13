@@ -43,7 +43,14 @@ struct ContentView: View {
                 .tabItem { Label("Car", systemImage: "car.fill") }
                 .tag("Car")
             scooterTab
-                .tabItem { Label("Scooter", systemImage: "scooter") }
+                .tabItem {
+                    Label {
+                        Text("Scooter")
+                    } icon: {
+                        Image(systemName: "scooter")
+                            .scaleEffect(x: -1)
+                    }
+                }
                 .tag("Scooter")
             RobotsListView(robots: robots)
                 .tabItem { Label("Robots", systemImage: "fan.fill") }
