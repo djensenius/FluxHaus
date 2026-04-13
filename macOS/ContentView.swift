@@ -80,6 +80,13 @@ struct ContentView: View {
             ForEach(SidebarItem.allCases) { item in
                 if item == .assistant && !authManager.isOIDC {
                     EmptyView()
+                } else if item == .scooter {
+                    Label {
+                        Text(item.rawValue)
+                    } icon: {
+                        Image.flippedScooter
+                    }
+                    .tag(item)
                 } else {
                     Label(item.rawValue, systemImage: item.icon)
                         .tag(item)

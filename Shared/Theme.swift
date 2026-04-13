@@ -239,3 +239,33 @@ extension ButtonStyle where Self == FluxButtonStyle {
         FluxButtonStyle()
     }
 }
+
+// MARK: - Flipped Scooter Icon
+extension Image {
+    /// A horizontally flipped "scooter" SF Symbol for use in tab bars and navigation
+    /// where `.scaleEffect(x: -1)` is ignored by the system rendering.
+    static var flippedScooter: Image {
+        #if canImport(UIKit)
+        let symbol = UIImage(systemName: "scooter")!
+        let renderer = UIGraphicsImageRenderer(size: symbol.size)
+        let flipped = renderer.image { context in
+            context.cgContext.translateBy(x: symbol.size.width, y: 0)
+            context.cgContext.scaleBy(x: -1, y: 1)
+            symbol.draw(at: .zero)
+        }.withRenderingMode(.alwaysTemplate)
+        return Image(uiImage: flipped)
+        #elseif canImport(AppKit)
+        let symbol = NSImage(systemSymbolName: "scooter", accessibilityDescription: "Scooter")!
+        let flipped = NSImage(size: symbol.size, flipped: false) { rect in
+            let transform = NSAffineTransform()
+            transform.translateX(by: rect.width, yBy: 0)
+            transform.scaleX(by: -1, yBy: 1)
+            transform.concat()
+            symbol.draw(in: rect)
+            return true
+        }
+        flipped.isTemplate = true
+        return Image(nsImage: flipped)
+        #endif
+    }
+}
