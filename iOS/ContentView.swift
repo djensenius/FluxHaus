@@ -50,8 +50,7 @@ struct ContentView: View {
                 Label {
                     Text("Scooter")
                 } icon: {
-                    Image(systemName: "scooter")
-                        .scaleEffect(x: -1)
+                    Image.flippedScooter
                 }
             }
             .customizationID("scooter")
