@@ -43,9 +43,17 @@ class LiveActivityManager {
 
     /// Reentrancy guard for reconcile — prevents concurrent calls from both creating activities
     private var isReconciling = false
+    /// Pending devices for coalesced reconcile — if a reconcile is skipped, re-run with latest data
+    private var pendingReconcileDevices: [WidgetDevice]?
 
     /// Last registered push-to-start token — skip duplicates like GT3
     private var lastRegisteredPushToStartToken: String?
+
+    /// Reset dedup state when auth changes (e.g. sign-out/sign-in)
+    func resetTokenRegistrationState() {
+        lastRegisteredPushToStartToken = nil
+        pendingPushToStartToken = nil
+    }
 
     /// User's subscription preferences (which device types to show)
     var subscribedDeviceTypes: Set<String> = Set(["Dishwasher", "Washer", "Dryer", "BroomBot", "MopBot"]) {
@@ -133,9 +141,11 @@ class LiveActivityManager {
             logger.info("Auth not ready — deferring push-to-start token registration")
             return
         }
-        await registerDeviceToken(token: token)
-        lastRegisteredPushToStartToken = token
-        pendingPushToStartToken = nil
+        let success = await registerDeviceToken(token: token)
+        if success {
+            lastRegisteredPushToStartToken = token
+            pendingPushToStartToken = nil
+        }
     }
 
     /// Called when auth becomes available to retry any pending registration.
@@ -236,14 +246,26 @@ class LiveActivityManager {
             return
         }
 
-        // Serialize: if a reconcile is already in progress, skip this one
+        // Coalesce: if a reconcile is in progress, store the latest devices and re-run after
         guard !isReconciling else {
-            logger.debug("reconcile: already in progress — skipping")
+            logger.debug("reconcile: already in progress — coalescing")
+            pendingReconcileDevices = devices
             return
         }
         isReconciling = true
-        defer { isReconciling = false }
 
+        await performReconcile(devices: devices)
+
+        // If another reconcile was requested during ours, run it with the latest data
+        while let pending = pendingReconcileDevices {
+            pendingReconcileDevices = nil
+            await performReconcile(devices: pending)
+        }
+
+        isReconciling = false
+    }
+
+    private func performReconcile(devices: [WidgetDevice]) async {
         await cleanupAndAdoptActivities()
 
         // Filter by subscription preferences
@@ -382,8 +404,8 @@ class LiveActivityManager {
         }
     }
 
-    private func registerDeviceToken(token: String) async {
-        await postToServer(
+    private func registerDeviceToken(token: String) async -> Bool {
+        return await postToServer(
             path: "/push-tokens/device",
             body: [
                 "pushToStartToken": token,
@@ -392,17 +414,18 @@ class LiveActivityManager {
         )
     }
 
-    private func postToServer(path: String, body: [String: String]) async {
+    @discardableResult
+    private func postToServer(path: String, body: [String: String]) async -> Bool {
         var components = URLComponents()
         components.scheme = "https"
         components.host = "api.fluxhaus.io"
         components.path = path
 
-        guard let url = components.url else { return }
+        guard let url = components.url else { return false }
 
         guard let authHeader = AuthManager.shared.authorizationHeader() else {
             logger.warning("No auth header available — skipping POST to \(path)")
-            return
+            return false
         }
 
         let csrfToken = await fetchCsrfToken()
@@ -423,6 +446,7 @@ class LiveActivityManager {
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
                     logger.info("Registered token at \(path)")
+                    return true
                 } else {
                     logger.error("Server returned \(httpResponse.statusCode) for \(path)")
                 }
@@ -430,6 +454,7 @@ class LiveActivityManager {
         } catch {
             logger.error("Failed to register token at \(path): \(error)")
         }
+        return false
     }
 }
 #endif

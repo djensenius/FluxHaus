@@ -287,6 +287,9 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
+        #if os(iOS)
+        LiveActivityManager.shared.resetTokenRegistrationState()
+        #endif
     }
 
     // MARK: - Token Management
