@@ -41,6 +41,12 @@ class LiveActivityManager {
     private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
 
+    /// Reentrancy guard for reconcile — prevents concurrent calls from both creating activities
+    private var isReconciling = false
+
+    /// Last registered push-to-start token — skip duplicates like GT3
+    private var lastRegisteredPushToStartToken: String?
+
     /// User's subscription preferences (which device types to show)
     var subscribedDeviceTypes: Set<String> = Set(["Dishwasher", "Washer", "Dryer", "BroomBot", "MopBot"]) {
         didSet { saveSubscriptionPreferences() }
@@ -104,6 +110,11 @@ class LiveActivityManager {
             pushToStartTask = Task {
                 for await tokenData in Activity<FluxWidgetMultiAttributes>.pushToStartTokenUpdates {
                     let token = tokenData.map { String(format: "%02x", $0) }.joined()
+                    // Skip duplicate registrations
+                    guard token != lastRegisteredPushToStartToken else {
+                        logger.debug("Push-to-start token unchanged — skipping registration")
+                        continue
+                    }
                     logger.info("Push-to-start token (multi): \(token.prefix(8))...")
                     pendingPushToStartToken = token
                     await registerPushToStartTokenWhenReady()
@@ -123,6 +134,7 @@ class LiveActivityManager {
             return
         }
         await registerDeviceToken(token: token)
+        lastRegisteredPushToStartToken = token
         pendingPushToStartToken = nil
     }
 
@@ -224,6 +236,14 @@ class LiveActivityManager {
             return
         }
 
+        // Serialize: if a reconcile is already in progress, skip this one
+        guard !isReconciling else {
+            logger.debug("reconcile: already in progress — skipping")
+            return
+        }
+        isReconciling = true
+        defer { isReconciling = false }
+
         await cleanupAndAdoptActivities()
 
         // Filter by subscription preferences
@@ -241,16 +261,17 @@ class LiveActivityManager {
         } else {
             // Start a new consolidated activity (only if none exists)
             consolidatedActivity = nil
-            startConsolidatedActivity(devices: runningDevices)
+            await startConsolidatedActivity(devices: runningDevices)
         }
     }
 
-    private func startConsolidatedActivity(devices: [WidgetDevice]) {
-        // Safety: end any orphaned activities before starting a new one
+    private func startConsolidatedActivity(devices: [WidgetDevice]) async {
+        // End any orphaned activities before starting a new one (await to avoid race)
         for activity in Activity<FluxWidgetMultiAttributes>.activities
         where activity.activityState == .active || activity.activityState == .stale {
             nonisolated(unsafe) let activityRef = activity
-            Task { await activityRef.end(nil, dismissalPolicy: .immediate) }
+            await activityRef.end(nil, dismissalPolicy: .immediate)
+            logger.info("Ended orphaned activity before starting new one")
         }
 
         let attributes = FluxWidgetMultiAttributes(name: "Appliances")
