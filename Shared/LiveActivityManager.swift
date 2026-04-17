@@ -63,10 +63,20 @@ class LiveActivityManager {
     private init() {
         loadSubscriptionPreferences()
         observePushToStartToken()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAuthSignOut),
+            name: .authDidSignOut,
+            object: nil
+        )
         Task {
             await restoreExistingActivities()
             await fetchChannelIds()
         }
+    }
+
+    @objc private func handleAuthSignOut() {
+        resetTokenRegistrationState()
     }
 
     /// Re-adopt activities that iOS kept alive while the app was killed.

@@ -14,6 +14,10 @@ import os
 import AppKit
 #endif
 
+extension Notification.Name {
+    static let authDidSignOut = Notification.Name("authDidSignOut")
+}
+
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
 // Provides a presentation anchor for ASWebAuthenticationSession.
@@ -287,9 +291,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
-        #if os(iOS)
-        LiveActivityManager.shared.resetTokenRegistrationState()
-        #endif
+        NotificationCenter.default.post(name: .authDidSignOut, object: nil)
     }
 
     // MARK: - Token Management
