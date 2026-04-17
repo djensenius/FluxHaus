@@ -41,6 +41,20 @@ class LiveActivityManager {
     private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
 
+    /// Reentrancy guard for reconcile — prevents concurrent calls from both creating activities
+    private var isReconciling = false
+    /// Pending devices for coalesced reconcile — if a reconcile is skipped, re-run with latest data
+    private var pendingReconcileDevices: [WidgetDevice]?
+
+    /// Last registered push-to-start token — skip duplicates like GT3
+    private var lastRegisteredPushToStartToken: String?
+
+    /// Reset dedup state when auth changes (e.g. sign-out/sign-in)
+    func resetTokenRegistrationState() {
+        lastRegisteredPushToStartToken = nil
+        pendingPushToStartToken = nil
+    }
+
     /// User's subscription preferences (which device types to show)
     var subscribedDeviceTypes: Set<String> = Set(["Dishwasher", "Washer", "Dryer", "BroomBot", "MopBot"]) {
         didSet { saveSubscriptionPreferences() }
@@ -49,10 +63,20 @@ class LiveActivityManager {
     private init() {
         loadSubscriptionPreferences()
         observePushToStartToken()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAuthSignOut),
+            name: .authDidSignOut,
+            object: nil
+        )
         Task {
             await restoreExistingActivities()
             await fetchChannelIds()
         }
+    }
+
+    @objc private func handleAuthSignOut() {
+        resetTokenRegistrationState()
     }
 
     /// Re-adopt activities that iOS kept alive while the app was killed.
@@ -104,6 +128,11 @@ class LiveActivityManager {
             pushToStartTask = Task {
                 for await tokenData in Activity<FluxWidgetMultiAttributes>.pushToStartTokenUpdates {
                     let token = tokenData.map { String(format: "%02x", $0) }.joined()
+                    // Skip duplicate registrations
+                    guard token != lastRegisteredPushToStartToken else {
+                        logger.debug("Push-to-start token unchanged — skipping registration")
+                        continue
+                    }
                     logger.info("Push-to-start token (multi): \(token.prefix(8))...")
                     pendingPushToStartToken = token
                     await registerPushToStartTokenWhenReady()
@@ -122,8 +151,11 @@ class LiveActivityManager {
             logger.info("Auth not ready — deferring push-to-start token registration")
             return
         }
-        await registerDeviceToken(token: token)
-        pendingPushToStartToken = nil
+        let success = await registerDeviceToken(token: token)
+        if success {
+            lastRegisteredPushToStartToken = token
+            pendingPushToStartToken = nil
+        }
     }
 
     /// Called when auth becomes available to retry any pending registration.
@@ -224,6 +256,26 @@ class LiveActivityManager {
             return
         }
 
+        // Coalesce: if a reconcile is in progress, store the latest devices and re-run after
+        guard !isReconciling else {
+            logger.debug("reconcile: already in progress — coalescing")
+            pendingReconcileDevices = devices
+            return
+        }
+        isReconciling = true
+
+        await performReconcile(devices: devices)
+
+        // If another reconcile was requested during ours, run it with the latest data
+        while let pending = pendingReconcileDevices {
+            pendingReconcileDevices = nil
+            await performReconcile(devices: pending)
+        }
+
+        isReconciling = false
+    }
+
+    private func performReconcile(devices: [WidgetDevice]) async {
         await cleanupAndAdoptActivities()
 
         // Filter by subscription preferences
@@ -241,16 +293,17 @@ class LiveActivityManager {
         } else {
             // Start a new consolidated activity (only if none exists)
             consolidatedActivity = nil
-            startConsolidatedActivity(devices: runningDevices)
+            await startConsolidatedActivity(devices: runningDevices)
         }
     }
 
-    private func startConsolidatedActivity(devices: [WidgetDevice]) {
-        // Safety: end any orphaned activities before starting a new one
+    private func startConsolidatedActivity(devices: [WidgetDevice]) async {
+        // End any orphaned activities before starting a new one (await to avoid race)
         for activity in Activity<FluxWidgetMultiAttributes>.activities
         where activity.activityState == .active || activity.activityState == .stale {
             nonisolated(unsafe) let activityRef = activity
-            Task { await activityRef.end(nil, dismissalPolicy: .immediate) }
+            await activityRef.end(nil, dismissalPolicy: .immediate)
+            logger.info("Ended orphaned activity before starting new one")
         }
 
         let attributes = FluxWidgetMultiAttributes(name: "Appliances")
@@ -361,8 +414,8 @@ class LiveActivityManager {
         }
     }
 
-    private func registerDeviceToken(token: String) async {
-        await postToServer(
+    private func registerDeviceToken(token: String) async -> Bool {
+        return await postToServer(
             path: "/push-tokens/device",
             body: [
                 "pushToStartToken": token,
@@ -371,17 +424,18 @@ class LiveActivityManager {
         )
     }
 
-    private func postToServer(path: String, body: [String: String]) async {
+    @discardableResult
+    private func postToServer(path: String, body: [String: String]) async -> Bool {
         var components = URLComponents()
         components.scheme = "https"
         components.host = "api.fluxhaus.io"
         components.path = path
 
-        guard let url = components.url else { return }
+        guard let url = components.url else { return false }
 
         guard let authHeader = AuthManager.shared.authorizationHeader() else {
             logger.warning("No auth header available — skipping POST to \(path)")
-            return
+            return false
         }
 
         let csrfToken = await fetchCsrfToken()
@@ -402,6 +456,7 @@ class LiveActivityManager {
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
                     logger.info("Registered token at \(path)")
+                    return true
                 } else {
                     logger.error("Server returned \(httpResponse.statusCode) for \(path)")
                 }
@@ -409,6 +464,7 @@ class LiveActivityManager {
         } catch {
             logger.error("Failed to register token at \(path): \(error)")
         }
+        return false
     }
 }
 #endif
