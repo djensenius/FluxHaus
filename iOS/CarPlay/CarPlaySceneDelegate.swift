@@ -213,85 +213,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private func buildStatusTab() -> CPListTemplate {
         var sections: [CPListSection] = []
 
-        // Appliances section (dishwasher, washer, dryer — same order as iOS home)
-        var applianceItems: [CPListItem] = []
-        if let dishwasher = latestResponse?.dishwasher {
-            let status = dishwasherStatusText(dishwasher)
-            let item = CPListItem(
-                text: "Dishwasher",
-                detailText: status,
-                image: UIImage(systemName: "dishwasher")
-            )
-            applianceItems.append(item)
-        }
-        if let washer = latestResponse?.washer {
-            let status = washerDryerStatusText(washer)
-            let item = CPListItem(
-                text: "Washer",
-                detailText: status,
-                image: UIImage(systemName: "washer")
-            )
-            applianceItems.append(item)
-        }
-        if let dryer = latestResponse?.dryer {
-            let status = washerDryerStatusText(dryer)
-            let item = CPListItem(
-                text: "Dryer",
-                detailText: status,
-                image: UIImage(systemName: "dryer")
-            )
-            applianceItems.append(item)
-        }
-        if !applianceItems.isEmpty {
-            sections.append(CPListSection(items: applianceItems, header: "Appliances", sectionIndexTitle: nil))
-        }
-
-        // Robots section
-        var robotItems: [CPListItem] = []
-        if let response = latestResponse {
-            let broomStatus = robotStatusText(response.broombot)
-            let broomItem = CPListItem(
-                text: "BroomBot",
-                detailText: broomStatus,
-                image: UIImage(systemName: "fan")
-            )
-            robotItems.append(broomItem)
-
-            let mopStatus = robotStatusText(response.mopbot)
-            let mopItem = CPListItem(
-                text: "MopBot",
-                detailText: mopStatus,
-                image: UIImage(systemName: "humidifier.and.droplets")
-            )
-            robotItems.append(mopItem)
-        }
-        if !robotItems.isEmpty {
-            sections.append(CPListSection(items: robotItems, header: "Robots", sectionIndexTitle: nil))
-        }
-
-        // Car section
-        if let car = latestResponse?.car, let evStatus = latestResponse?.carEvStatus {
-            var carItems: [CPListItem] = []
-            let lockText = car.doorLock ? "Locked" : "Unlocked"
-            let range = evStatus.drvDistance.first?.rangeByFuel.evModeRange.value ?? 0
-            let carDetail = "\(lockText) · \(evStatus.batteryStatus)% · \(range) km"
-            let lockItem = CPListItem(
-                text: "Car",
-                detailText: carDetail,
-                image: UIImage(systemName: "car.fill")
-            )
-            carItems.append(lockItem)
-
-            if car.airCtrlOn {
-                let climateItem = CPListItem(
-                    text: "Climate",
-                    detailText: "On",
-                    image: UIImage(systemName: "thermometer.snowflake")
-                )
-                carItems.append(climateItem)
-            }
-            sections.append(CPListSection(items: carItems, header: "Car", sectionIndexTitle: nil))
-        }
+        if let section = buildAppliancesSection() { sections.append(section) }
+        if let section = buildRobotsSection() { sections.append(section) }
+        if let section = buildVehiclesSection() { sections.append(section) }
 
         if sections.isEmpty {
             let emptyItem = CPListItem(text: "No data", detailText: "Connect to load status")
@@ -301,6 +225,80 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         let template = CPListTemplate(title: "Status", sections: sections)
         template.tabImage = UIImage(systemName: "house.fill")
         return template
+    }
+
+    private func buildAppliancesSection() -> CPListSection? {
+        var items: [CPListItem] = []
+        if let dishwasher = latestResponse?.dishwasher {
+            items.append(CPListItem(
+                text: "Dishwasher",
+                detailText: dishwasherStatusText(dishwasher),
+                image: UIImage(systemName: "dishwasher")
+            ))
+        }
+        if let washer = latestResponse?.washer {
+            items.append(CPListItem(
+                text: "Washer",
+                detailText: washerDryerStatusText(washer),
+                image: UIImage(systemName: "washer")
+            ))
+        }
+        if let dryer = latestResponse?.dryer {
+            items.append(CPListItem(
+                text: "Dryer",
+                detailText: washerDryerStatusText(dryer),
+                image: UIImage(systemName: "dryer")
+            ))
+        }
+        guard !items.isEmpty else { return nil }
+        return CPListSection(items: items, header: "Appliances", sectionIndexTitle: nil)
+    }
+
+    private func buildRobotsSection() -> CPListSection? {
+        guard let response = latestResponse else { return nil }
+        let items = [
+            CPListItem(
+                text: "BroomBot",
+                detailText: robotStatusText(response.broombot),
+                image: UIImage(systemName: "fan")
+            ),
+            CPListItem(
+                text: "MopBot",
+                detailText: robotStatusText(response.mopbot),
+                image: UIImage(systemName: "humidifier.and.droplets")
+            )
+        ]
+        return CPListSection(items: items, header: "Robots", sectionIndexTitle: nil)
+    }
+
+    private func buildVehiclesSection() -> CPListSection? {
+        var items: [CPListItem] = []
+        if let scooter = latestResponse?.scooter {
+            items.append(CPListItem(
+                text: "Scooter",
+                detailText: scooterStatusText(scooter),
+                image: UIImage(systemName: "scooter")
+            ))
+        }
+        if let car = latestResponse?.car, let evStatus = latestResponse?.carEvStatus {
+            let lockText = car.doorLock ? "Locked" : "Unlocked"
+            let range = evStatus.drvDistance.first?.rangeByFuel.evModeRange.value ?? 0
+            let carDetail = "\(lockText) · \(evStatus.batteryStatus)% · \(range) km"
+            items.append(CPListItem(
+                text: "Car",
+                detailText: carDetail,
+                image: UIImage(systemName: "car.fill")
+            ))
+            if car.airCtrlOn {
+                items.append(CPListItem(
+                    text: "Climate",
+                    detailText: "On",
+                    image: UIImage(systemName: "thermometer.snowflake")
+                ))
+            }
+        }
+        guard !items.isEmpty else { return nil }
+        return CPListSection(items: items, header: "Vehicles", sectionIndexTitle: nil)
     }
 
     // MARK: - Status text helpers
@@ -351,5 +349,16 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             parts.append(device.status ?? "Idle")
         }
         return parts.joined(separator: " · ")
+    }
+
+    private func scooterStatusText(_ scooter: ScooterSummary) -> String {
+        var parts: [String] = []
+        if let battery = scooter.battery {
+            parts.append("\(battery)%")
+        }
+        if let range = scooter.estimatedRange {
+            parts.append("\(Int(range)) km")
+        }
+        return parts.isEmpty ? "Connected" : parts.joined(separator: " · ")
     }
 }

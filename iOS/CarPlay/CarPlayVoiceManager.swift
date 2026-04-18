@@ -35,7 +35,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     /// Seconds of silence before auto-stopping
     private let silenceThreshold: TimeInterval = 1.5
     /// dB level below which we consider silence
-    private let silenceLevel: Float = -40
+    private let silenceLevel: Float = -30
     /// Minimum recording duration before silence detection activates
     private let minRecordingDuration: TimeInterval = 1.0
     private var recordingStartTime: Date?
