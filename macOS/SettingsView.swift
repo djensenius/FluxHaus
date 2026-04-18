@@ -418,11 +418,6 @@ struct SettingsView: View {
                 }
                 Button("Sign Out") {
                     AuthManager.shared.signOut()
-                    NotificationCenter.default.post(
-                        name: Notification.Name.logout,
-                        object: nil,
-                        userInfo: ["logout": true]
-                    )
                 }
             } else {
                 Image(systemName: "xmark.circle.fill")

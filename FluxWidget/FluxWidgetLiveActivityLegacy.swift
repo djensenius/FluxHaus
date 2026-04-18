@@ -6,7 +6,7 @@
 //  with existing push-to-start tokens. New installs use FluxWidgetMultiLiveActivity.
 //
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import ActivityKit
 import WidgetKit
 import SwiftUI
@@ -35,9 +35,10 @@ struct FluxWidgetLiveActivity: Widget {
             .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
         } dynamicIsland: { context in
             DynamicIsland {
-                DynamicIslandExpandedRegion(.leading) { Text("") }
-                DynamicIslandExpandedRegion(.trailing) { Text("") }
-                DynamicIslandExpandedRegion(.bottom) { Text("") }
+                DynamicIslandExpandedRegion(.bottom) {
+                    Text(context.state.device.name)
+                        .font(.headline)
+                }
             } compactLeading: {
                 Image(systemName: context.state.device.icon)
                     .foregroundStyle(tintColor(for: context.state.device.name))

@@ -5,7 +5,7 @@
 //  Created by David Jensenius on 2025-03-09.
 //
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import ActivityKit
 import Foundation
 import UIKit

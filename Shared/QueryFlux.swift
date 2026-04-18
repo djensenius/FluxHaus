@@ -63,34 +63,29 @@ class BasicAuthDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     }
 }
 
-func queryFlux(password: String) {
-    let scheme: String = "https"
-    let host: String = "api.fluxhaus.io"
-    let path = "/"
-
+private func buildFluxAPIRequest(password: String) -> URLRequest? {
     var components = URLComponents()
-    components.scheme = scheme
-    components.host = host
-    components.path = path
-
-    guard let url = components.url else {
-        return
-    }
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/"
+    guard let url = components.url else { return nil }
 
     var request = URLRequest(url: url)
     request.httpMethod = "get"
-
     request.addValue("application/json", forHTTPHeaderField: "Content-Type")
     request.addValue("application/json", forHTTPHeaderField: "Accept")
-
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
-        // Fallback for demo login
-        let credentialData = Data("demo:\(password)".utf8)
-        let base64Credential = credentialData.base64EncodedString()
-        request.setValue("Basic \(base64Credential)", forHTTPHeaderField: "Authorization")
+        let base64 = Data("demo:\(password)".utf8).base64EncodedString()
+        request.setValue("Basic \(base64)", forHTTPHeaderField: "Authorization")
     }
+    return request
+}
+
+func queryFlux(password: String) {
+    guard let request = buildFluxAPIRequest(password: password) else { return }
+
     let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
     let task = session.dataTask(with: request) { data, response, error in
         let httpResponse = response as? HTTPURLResponse
@@ -98,30 +93,13 @@ func queryFlux(password: String) {
             handleUnauthorized(password: password)
             return
         }
-        authRetryCount = 0
         handleQueryFluxResponse(data: data, error: error, password: password)
     }
     task.resume()
 }
 
-private nonisolated(unsafe) var authRetryCount = 0
-
 private func handleUnauthorized(password: String) {
     if AuthManager.shared.getAccessToken() != nil {
-        guard authRetryCount < 1 else {
-            authRetryCount = 0
-            logger.error("handleUnauthorized: still 401 after refresh — signing out")
-            DispatchQueue.main.async {
-                AuthManager.shared.signOut()
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: nil,
-                    userInfo: ["keysFailed": true]
-                )
-            }
-            return
-        }
-        authRetryCount += 1
         logger.debug("handleUnauthorized: 401 with OIDC token, requesting refresh")
         Task { @MainActor in
             let oldToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
@@ -129,9 +107,8 @@ private func handleUnauthorized(password: String) {
             if refreshed {
                 let newToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
                 logger.debug("handleUnauthorized: refresh succeeded (…\(oldToken) → …\(newToken)), retrying")
-                queryFlux(password: password)
+                retryQueryFlux(password: password)
             } else {
-                authRetryCount = 0
                 logger.error("handleUnauthorized: refresh FAILED — signing out")
                 AuthManager.shared.signOut()
                 NotificationCenter.default.post(
@@ -154,11 +131,40 @@ private func handleUnauthorized(password: String) {
     }
 }
 
+/// Single retry after token refresh — signs out on second 401 without further retry.
+private func retryQueryFlux(password: String) {
+    guard let request = buildFluxAPIRequest(password: password) else { return }
+
+    let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+    let task = session.dataTask(with: request) { data, response, error in
+        let httpResponse = response as? HTTPURLResponse
+        if httpResponse?.statusCode == 401 {
+            logger.error("retryQueryFlux: still 401 after refresh — signing out")
+            DispatchQueue.main.async {
+                AuthManager.shared.signOut()
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["keysFailed": true]
+                )
+            }
+            return
+        }
+        handleQueryFluxResponse(data: data, error: error, password: password)
+    }
+    task.resume()
+}
+
 private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             DispatchQueue.main.async {
+                AuthManager.shared.isCompletingOIDCLogin = false
+                guard AuthManager.shared.isSignedIn else {
+                    logger.debug("Ignoring late queryFlux success after sign-out")
+                    return
+                }
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: response,
@@ -181,6 +187,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
                 logger.error("Response body: \(jsonStr.prefix(500))")
             }
             DispatchQueue.main.async {
+                AuthManager.shared.isCompletingOIDCLogin = false
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
@@ -190,6 +197,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
         }
     } else {
         DispatchQueue.main.async {
+            AuthManager.shared.isCompletingOIDCLogin = false
             NotificationCenter.default.post(
                 name: Notification.Name.loginsUpdated,
                 object: nil,
@@ -200,17 +208,12 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
 }
 
 func getFlux(password: String) async throws -> LoginResponse? {
-    let scheme: String = "https"
-    let host: String = "api.fluxhaus.io"
-    let path = "/"
-
     var components = URLComponents()
-    components.scheme = scheme
-    components.host = host
-    components.path = path
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/"
 
     let url = components.url!
-
     var request = URLRequest(url: url)
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")

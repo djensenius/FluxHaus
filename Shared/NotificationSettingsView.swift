@@ -5,7 +5,7 @@
 //  Created by David Jensenius on 2026-03-22.
 //
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import SwiftUI
 import ActivityKit
 
@@ -72,20 +72,21 @@ struct NotificationSettingsSection: View {
         )
     }
 }
+#endif
+
+#if os(iOS)
+import SwiftUI
 
 struct SettingsView: View {
     var body: some View {
         List {
+            #if !targetEnvironment(macCatalyst)
             NotificationSettingsSection()
+            #endif
 
             Section {
                 Button(role: .destructive) {
                     AuthManager.shared.signOut()
-                    NotificationCenter.default.post(
-                        name: Notification.Name.logout,
-                        object: nil,
-                        userInfo: ["logout": true]
-                    )
                 } label: {
                     Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                 }

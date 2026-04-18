@@ -5,7 +5,7 @@
 //  Watch-specific Live Activity views for the Smart Stack.
 //
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import SwiftUI
 import WidgetKit
 
@@ -225,7 +225,7 @@ struct PhoneMultiDeviceView: View {
     }
 }
 
-@ViewBuilder
+@MainActor @ViewBuilder
 func phoneDeviceProgressBar(device: WidgetDevice) -> some View {
     if isRobot(device.name) {
         if let battery = device.battery {
