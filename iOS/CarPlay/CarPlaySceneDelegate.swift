@@ -101,10 +101,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         guard let interfaceController else { return }
 
         let assistantTab = buildAssistantTab()
-        let favouritesTab = buildFavouritesTab()
         let statusTab = buildStatusTab()
 
-        let tabBar = CPTabBarTemplate(templates: [assistantTab, favouritesTab, statusTab])
+        let tabBar = CPTabBarTemplate(templates: [assistantTab, statusTab])
         interfaceController.setRootTemplate(tabBar, animated: true, completion: nil)
     }
 
@@ -113,9 +112,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
               let tabBar = interfaceController.rootTemplate as? CPTabBarTemplate else { return }
 
         let assistantTab = buildAssistantTab()
-        let favouritesTab = buildFavouritesTab()
         let statusTab = buildStatusTab()
-        tabBar.updateTemplates([assistantTab, favouritesTab, statusTab])
+        tabBar.updateTemplates([assistantTab, statusTab])
     }
 
     // MARK: - Assistant tab
@@ -136,58 +134,43 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         return template
     }
 
-    // MARK: - Favourites tab
-
-    private func buildFavouritesTab() -> CPGridTemplate {
-        var buttons: [CPGridButton] = []
-        let favouriteNames = latestResponse?.favouriteHomeKit ?? []
-        let sceneNames = latestResponse?.favouriteScenes ?? []
-        let allNames = Array((favouriteNames + sceneNames).prefix(8))
-
-        for name in allNames {
-            let image = UIImage(systemName: "house.fill") ?? UIImage()
-            let button = CPGridButton(titleVariants: [name], image: image) { [weak self] _ in
-                self?.activateScene(named: name)
-            }
-            buttons.append(button)
-        }
-
-        if buttons.isEmpty {
-            let image = UIImage(systemName: "house") ?? UIImage()
-            let placeholder = CPGridButton(
-                titleVariants: ["No Favourites"],
-                image: image
-            ) { _ in }
-            buttons.append(placeholder)
-        }
-
-        let template = CPGridTemplate(title: "Favourites", gridButtons: buttons)
-        template.tabImage = UIImage(systemName: "star.fill")
-        return template
-    }
-
-    private func activateScene(named name: String) {
-        #if canImport(HomeKit)
-        let homeKit = HomeKitIntegration()
-        Task { @MainActor in
-            // Wait for HomeKit to initialize
-            try? await Task.sleep(for: .seconds(1))
-            if let favourite = homeKit.favourites.first(where: { $0.name == name }) {
-                do {
-                    try await homeKit.primaryHome?.executeActionSet(favourite.hkSet)
-                    logger.info("Activated scene: \(name)")
-                } catch {
-                    logger.error("Failed to activate scene '\(name)': \(error.localizedDescription)")
-                }
-            }
-        }
-        #endif
-    }
-
     // MARK: - Status tab
 
     private func buildStatusTab() -> CPListTemplate {
         var sections: [CPListSection] = []
+
+        // Appliances section (dishwasher, washer, dryer — same order as iOS home)
+        var applianceItems: [CPListItem] = []
+        if let dishwasher = latestResponse?.dishwasher {
+            let status = dishwasherStatusText(dishwasher)
+            let item = CPListItem(
+                text: "Dishwasher",
+                detailText: status,
+                image: UIImage(systemName: "dishwasher")
+            )
+            applianceItems.append(item)
+        }
+        if let washer = latestResponse?.washer {
+            let status = washerDryerStatusText(washer)
+            let item = CPListItem(
+                text: "Washer",
+                detailText: status,
+                image: UIImage(systemName: "washer")
+            )
+            applianceItems.append(item)
+        }
+        if let dryer = latestResponse?.dryer {
+            let status = washerDryerStatusText(dryer)
+            let item = CPListItem(
+                text: "Dryer",
+                detailText: status,
+                image: UIImage(systemName: "dryer")
+            )
+            applianceItems.append(item)
+        }
+        if !applianceItems.isEmpty {
+            sections.append(CPListSection(items: applianceItems, header: "Appliances", sectionIndexTitle: nil))
+        }
 
         // Robots section
         var robotItems: [CPListItem] = []
@@ -234,39 +217,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                 carItems.append(climateItem)
             }
             sections.append(CPListSection(items: carItems, header: "Car", sectionIndexTitle: nil))
-        }
-
-        // Appliances section
-        var applianceItems: [CPListItem] = []
-        if let dishwasher = latestResponse?.dishwasher {
-            let status = dishwasherStatusText(dishwasher)
-            let item = CPListItem(
-                text: "Dishwasher",
-                detailText: status,
-                image: UIImage(systemName: "dishwasher")
-            )
-            applianceItems.append(item)
-        }
-        if let washer = latestResponse?.washer {
-            let status = washerDryerStatusText(washer)
-            let item = CPListItem(
-                text: "Washer",
-                detailText: status,
-                image: UIImage(systemName: "washer")
-            )
-            applianceItems.append(item)
-        }
-        if let dryer = latestResponse?.dryer {
-            let status = washerDryerStatusText(dryer)
-            let item = CPListItem(
-                text: "Dryer",
-                detailText: status,
-                image: UIImage(systemName: "dryer")
-            )
-            applianceItems.append(item)
-        }
-        if !applianceItems.isEmpty {
-            sections.append(CPListSection(items: applianceItems, header: "Appliances", sectionIndexTitle: nil))
         }
 
         if sections.isEmpty {

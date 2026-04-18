@@ -80,7 +80,13 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     // MARK: - Recording
 
     private func startRecording() {
-        configureRecordingSession()
+        do {
+            try configureRecordingSession()
+        } catch {
+            logger.error("CarPlay: audio session setup failed: \(error.localizedDescription)")
+            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
+            return
+        }
 
         let tempDir = FileManager.default.temporaryDirectory
         let url = tempDir.appendingPathComponent("carplay_voice.m4a")
@@ -95,7 +101,12 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
-            audioRecorder?.record()
+            guard audioRecorder?.record() == true else {
+                logger.error("CarPlay: AVAudioRecorder.record() returned false")
+                voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
+                deactivateAudioSession()
+                return
+            }
             voiceTemplate?.activateVoiceControlState(withIdentifier: "listening")
             logger.info("CarPlay: recording started")
 
@@ -108,6 +119,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             }
         } catch {
             logger.error("CarPlay: failed to start recording: \(error.localizedDescription)")
+            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
             deactivateAudioSession()
         }
     }
@@ -214,18 +226,14 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
     // MARK: - Audio session management
 
-    private func configureRecordingSession() {
+    private func configureRecordingSession() throws {
         let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(
-                .playAndRecord,
-                mode: .default,
-                options: [.duckOthers, .allowBluetoothA2DP]
-            )
-            try session.setActive(true)
-        } catch {
-            logger.error("CarPlay: failed to configure recording session: \(error.localizedDescription)")
-        }
+        try session.setCategory(
+            .playAndRecord,
+            mode: .default,
+            options: [.duckOthers, .allowBluetoothA2DP]
+        )
+        try session.setActive(true)
     }
 
     private func configurePlaybackSession() {
