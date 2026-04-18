@@ -225,7 +225,7 @@ struct PhoneMultiDeviceView: View {
     }
 }
 
-@ViewBuilder
+@MainActor @ViewBuilder
 func phoneDeviceProgressBar(device: WidgetDevice) -> some View {
     if isRobot(device.name) {
         if let battery = device.battery {

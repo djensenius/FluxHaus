@@ -46,7 +46,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     func templateApplicationScene(
         _ templateApplicationScene: CPTemplateApplicationScene,
-        didDisconnect interfaceController: CPInterfaceController
+        didDisconnectInterfaceController interfaceController: CPInterfaceController
     ) {
         logger.info("CarPlay disconnected")
         stopRefreshTimer()
@@ -173,12 +173,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             // Wait for HomeKit to initialize
             try? await Task.sleep(for: .seconds(1))
             if let favourite = homeKit.favourites.first(where: { $0.name == name }) {
-                homeKit.primaryHome?.executeActionSet(favourite.hkSet) { error in
-                    if let error {
-                        logger.error("Failed to activate scene '\(name)': \(error.localizedDescription)")
-                    } else {
-                        logger.info("Activated scene: \(name)")
-                    }
+                do {
+                    try await homeKit.primaryHome?.executeActionSet(favourite.hkSet)
+                    logger.info("Activated scene: \(name)")
+                } catch {
+                    logger.error("Failed to activate scene '\(name)': \(error.localizedDescription)")
                 }
             }
         }
