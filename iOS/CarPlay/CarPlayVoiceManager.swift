@@ -25,8 +25,11 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
     /// Seconds of silence before auto-stopping
     private let silenceThreshold: TimeInterval = 1.5
-    /// dB level below which we consider silence (-50 dB is very quiet)
+    /// dB level below which we consider silence (-40 dB is very quiet)
     private let silenceLevel: Float = -40
+    /// Minimum recording duration before silence detection activates
+    private let minRecordingDuration: TimeInterval = 1.0
+    private var recordingStartTime: Date?
 
     // Voice control states
     private let listeningState: CPVoiceControlState
@@ -121,6 +124,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             }
             voiceTemplate?.activateVoiceControlState(withIdentifier: "listening")
             silenceStart = nil
+            recordingStartTime = Date()
             logger.info("CarPlay: recording started")
 
             startSilenceDetection()
@@ -175,6 +179,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     // MARK: - Voice API
 
     private func sendVoice(audioData: Data) async {
+        logger.info("CarPlay: sending \(audioData.count) bytes to voice API")
         do {
             var responseText = "Done."
             var responseAudio: Data?
@@ -185,9 +190,13 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             ) {
                 switch event.type {
                 case "done":
-                    if let text = event.text { responseText = text }
+                    if let text = event.text {
+                        responseText = text
+                        logger.info("CarPlay: got response text: \(text.prefix(80))")
+                    }
                     if let b64 = event.audio, let data = Data(base64Encoded: b64) {
                         responseAudio = data
+                        logger.info("CarPlay: got response audio: \(data.count) bytes")
                     }
                 case "error":
                     logger.error("CarPlay voice error: \(event.text ?? "unknown")")
@@ -264,11 +273,17 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
     private func checkAudioLevel() {
         guard let recorder = audioRecorder, recorder.isRecording else { return }
+
+        // Don't check for silence until minimum recording duration has passed
+        if let start = recordingStartTime,
+           Date().timeIntervalSince(start) < minRecordingDuration {
+            return
+        }
+
         recorder.updateMeters()
         let avgPower = recorder.averagePower(forChannel: 0)
 
         if avgPower < silenceLevel {
-            // Below threshold — track silence duration
             if silenceStart == nil {
                 silenceStart = Date()
             } else if let start = silenceStart,
@@ -277,7 +292,6 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
                 stopRecordingAndSend()
             }
         } else {
-            // Speech detected — reset silence tracker
             silenceStart = nil
         }
     }
