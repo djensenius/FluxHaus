@@ -161,6 +161,10 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             DispatchQueue.main.async {
                 AuthManager.shared.isCompletingOIDCLogin = false
+                guard AuthManager.shared.isSignedIn else {
+                    logger.debug("Ignoring late queryFlux success after sign-out")
+                    return
+                }
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: response,
@@ -204,17 +208,12 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
 }
 
 func getFlux(password: String) async throws -> LoginResponse? {
-    let scheme: String = "https"
-    let host: String = "api.fluxhaus.io"
-    let path = "/"
-
     var components = URLComponents()
-    components.scheme = scheme
-    components.host = host
-    components.path = path
+    components.scheme = "https"
+    components.host = "api.fluxhaus.io"
+    components.path = "/"
 
     let url = components.url!
-
     var request = URLRequest(url: url)
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
