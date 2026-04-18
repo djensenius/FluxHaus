@@ -15,7 +15,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var voiceManager: CarPlayVoiceManager?
     private var latestResponse: LoginResponse?
     private var refreshTimer: Timer?
-    private var assistantTemplate: CPInformationTemplate?
+    private var assistantTemplate: CPListTemplate?
+    private var assistantItem: CPListItem?
+    private var sendItem: CPListItem?
 
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -122,88 +124,83 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     // MARK: - Assistant tab
 
-    private func buildAssistantTab() -> CPInformationTemplate {
-        let button = CPTextButton(
-            title: "Tap to Speak",
-            textStyle: .normal
-        ) { [weak self] _ in
-            self?.voiceManager?.toggleRecording()
-        }
-
-        let template = CPInformationTemplate(
-            title: "Assistant",
-            layout: .leading,
-            items: [
-                CPInformationItem(title: "AI Assistant", detail: "Ready")
-            ],
-            actions: [button]
+    private func buildAssistantTab() -> CPListTemplate {
+        let item = CPListItem(
+            text: "Tap to Speak",
+            detailText: "Talk to your AI assistant",
+            image: UIImage(systemName: "mic.slash")
         )
-        template.tabImage = UIImage(systemName: "mic.slash")
+        item.handler = { [weak self] _, completion in
+            self?.voiceManager?.toggleRecording()
+            completion()
+        }
+        assistantItem = item
+
+        let section = CPListSection(items: [item])
+        let template = CPListTemplate(title: "Assistant", sections: [section])
+        template.tabImage = UIImage(systemName: "mic.circle")
         assistantTemplate = template
         return template
     }
 
     private func updateAssistantItem(for state: CarPlayVoiceManager.VoiceState) {
-        guard let template = assistantTemplate else { return }
+        guard let item = assistantItem else { return }
 
         switch state {
         case .idle:
-            template.items = [
-                CPInformationItem(title: "AI Assistant", detail: "Ready")
-            ]
-            template.tabImage = UIImage(systemName: "mic.slash")
-            let startButton = CPTextButton(
-                title: "Tap to Speak",
-                textStyle: .normal
-            ) { [weak self] _ in
-                self?.voiceManager?.toggleRecording()
-            }
-            template.actions = [startButton]
+            item.setText("Tap to Speak")
+            item.setDetailText("Talk to your AI assistant")
+            item.setImage(UIImage(systemName: "mic.slash"))
+            updateAssistantActions(showSend: false)
 
         case .listening:
-            template.items = [
-                CPInformationItem(title: "Listening…", detail: "Speak now")
-            ]
-            template.tabImage = UIImage(systemName: "mic.fill")
-            let sendButton = CPTextButton(
-                title: "Send",
-                textStyle: .normal
-            ) { [weak self] _ in
-                self?.voiceManager?.sendNow()
-            }
-            let cancelButton = CPTextButton(
-                title: "Cancel",
-                textStyle: .cancel
-            ) { [weak self] _ in
-                self?.voiceManager?.toggleRecording()
-            }
-            template.actions = [sendButton, cancelButton]
+            item.setText("Listening…")
+            item.setDetailText("Speak now")
+            item.setImage(UIImage(systemName: "mic.fill"))
+            updateAssistantActions(showSend: true)
 
         case .thinking:
-            template.items = [
-                CPInformationItem(title: "Thinking…", detail: "Processing your request")
-            ]
-            template.tabImage = UIImage(systemName: "brain")
-            let cancelButton = CPTextButton(
-                title: "Cancel",
-                textStyle: .cancel
-            ) { [weak self] _ in
-                self?.voiceManager?.toggleRecording()
-            }
-            template.actions = [cancelButton]
+            item.setText("Thinking…")
+            item.setDetailText("Processing your request")
+            item.setImage(UIImage(systemName: "brain"))
+            updateAssistantActions(showSend: false)
 
         case .speaking:
-            template.items = [
-                CPInformationItem(title: "Speaking…", detail: "Playing response")
-            ]
-            template.tabImage = UIImage(systemName: "speaker.wave.2.fill")
-            let stopButton = CPTextButton(
-                title: "Stop",
-                textStyle: .cancel
-            ) { [weak self] _ in
-                self?.voiceManager?.toggleRecording()
+            item.setText("Speaking…")
+            item.setDetailText("Playing response")
+            item.setImage(UIImage(systemName: "speaker.wave.2.fill"))
+            updateAssistantActions(showSend: false)
+        }
+    }
+
+    private func updateAssistantActions(showSend: Bool) {
+        guard let template = assistantTemplate else { return }
+        if showSend {
+            let send = CPListItem(
+                text: "Send",
+                detailText: "Stop recording and send",
+                image: UIImage(systemName: "arrow.up.circle.fill")
+            )
+            send.handler = { [weak self] _, completion in
+                self?.voiceManager?.sendNow()
+                completion()
             }
-            template.actions = [stopButton]
+            let cancel = CPListItem(
+                text: "Cancel",
+                detailText: "Stop recording",
+                image: UIImage(systemName: "xmark.circle")
+            )
+            cancel.handler = { [weak self] _, completion in
+                self?.voiceManager?.toggleRecording()
+                completion()
+            }
+            template.updateSections([
+                CPListSection(items: [assistantItem, send, cancel].compactMap { $0 })
+            ])
+        } else {
+            template.updateSections([
+                CPListSection(items: [assistantItem].compactMap { $0 })
+            ])
         }
     }
 
