@@ -13,8 +13,6 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "CarPla
 
 @MainActor
 class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
-    private weak var interfaceController: CPInterfaceController?
-    private var voiceTemplate: CPVoiceControlTemplate?
     private var audioRecorder: AVAudioRecorder?
     private var audioPlayer: AVAudioPlayer?
     private var recordingURL: URL?
@@ -22,73 +20,53 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     private var silenceTimer: Task<Void, Never>?
     private var silenceStart: Date?
     private var meteringTimer: Timer?
+    private var isActive = false
+
+    /// Callback to update the assistant tab UI with current state
+    var onStateChange: ((VoiceState) -> Void)?
+
+    enum VoiceState {
+        case idle
+        case listening
+        case thinking
+        case speaking
+    }
 
     /// Seconds of silence before auto-stopping
     private let silenceThreshold: TimeInterval = 1.5
-    /// dB level below which we consider silence (-40 dB is very quiet)
+    /// dB level below which we consider silence
     private let silenceLevel: Float = -40
     /// Minimum recording duration before silence detection activates
     private let minRecordingDuration: TimeInterval = 1.0
     private var recordingStartTime: Date?
 
-    // Voice control states
-    private let listeningState: CPVoiceControlState
-    private let thinkingState: CPVoiceControlState
-    private let speakingState: CPVoiceControlState
-    private let idleState: CPVoiceControlState
+    // MARK: - Public API
 
-    init(interfaceController: CPInterfaceController) {
-        self.interfaceController = interfaceController
-
-        listeningState = CPVoiceControlState(
-            identifier: "listening",
-            titleVariants: ["Listening…"],
-            image: UIImage(systemName: "mic.fill"),
-            repeats: false
-        )
-        thinkingState = CPVoiceControlState(
-            identifier: "thinking",
-            titleVariants: ["Thinking…"],
-            image: UIImage(systemName: "brain"),
-            repeats: false
-        )
-        speakingState = CPVoiceControlState(
-            identifier: "speaking",
-            titleVariants: ["Speaking…"],
-            image: UIImage(systemName: "speaker.wave.2.fill"),
-            repeats: false
-        )
-        idleState = CPVoiceControlState(
-            identifier: "idle",
-            titleVariants: ["Tap to speak"],
-            image: UIImage(systemName: "mic.circle"),
-            repeats: false
-        )
-
-        super.init()
-    }
-
-    // MARK: - Session lifecycle
-
-    func startVoiceSession() {
-        let states = [idleState, listeningState, thinkingState, speakingState]
-        voiceTemplate = CPVoiceControlTemplate(voiceControlStates: states)
-
-        guard let voiceTemplate, let interfaceController else { return }
-        interfaceController.pushTemplate(voiceTemplate, animated: true, completion: nil)
-        voiceTemplate.activateVoiceControlState(withIdentifier: "idle")
-
-        startRecording()
+    func toggleRecording() {
+        if isActive {
+            // Stop everything
+            cancelSession()
+        } else {
+            startRecording()
+        }
     }
 
     func cleanup() {
+        cancelSession()
+        conversationId = nil
+    }
+
+    private func cancelSession() {
         stopSilenceDetection()
         silenceTimer?.cancel()
         silenceTimer = nil
         stopPlayback()
-        stopRecording()
+        audioRecorder?.stop()
+        audioRecorder = nil
+        cleanupRecording()
         deactivateAudioSession()
-        conversationId = nil
+        isActive = false
+        onStateChange?(.idle)
     }
 
     // MARK: - Recording
@@ -98,7 +76,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             try configureRecordingSession()
         } catch {
             logger.error("CarPlay: audio session setup failed: \(error.localizedDescription)")
-            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
+            onStateChange?(.idle)
             return
         }
 
@@ -118,11 +96,12 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             audioRecorder?.isMeteringEnabled = true
             guard audioRecorder?.record() == true else {
                 logger.error("CarPlay: AVAudioRecorder.record() returned false")
-                voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
+                onStateChange?(.idle)
                 deactivateAudioSession()
                 return
             }
-            voiceTemplate?.activateVoiceControlState(withIdentifier: "listening")
+            isActive = true
+            onStateChange?(.listening)
             silenceStart = nil
             recordingStartTime = Date()
             logger.info("CarPlay: recording started")
@@ -139,7 +118,8 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             }
         } catch {
             logger.error("CarPlay: failed to start recording: \(error.localizedDescription)")
-            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
+            isActive = false
+            onStateChange?(.idle)
             deactivateAudioSession()
         }
     }
@@ -162,12 +142,11 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
         guard let url = recordingURL,
               let audioData = try? Data(contentsOf: url) else {
             logger.error("CarPlay: failed to read recording")
-            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
-            deactivateAudioSession()
+            cancelSession()
             return
         }
 
-        voiceTemplate?.activateVoiceControlState(withIdentifier: "thinking")
+        onStateChange?(.thinking)
 
         Task { [weak self] in
             await self?.sendVoice(audioData: audioData)
@@ -200,8 +179,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
                     }
                 case "error":
                     logger.error("CarPlay voice error: \(event.text ?? "unknown")")
-                    voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
-                    deactivateAudioSession()
+                    cancelSession()
                     return
                 default:
                     break
@@ -212,13 +190,11 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
                 playResponse(data: audio)
             } else {
                 logger.info("CarPlay response (no audio): \(responseText)")
-                voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
-                deactivateAudioSession()
+                cancelSession()
             }
         } catch {
             logger.error("CarPlay voice stream failed: \(error.localizedDescription)")
-            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
-            deactivateAudioSession()
+            cancelSession()
         }
     }
 
@@ -226,15 +202,14 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
     private func playResponse(data: Data) {
         configurePlaybackSession()
-        voiceTemplate?.activateVoiceControlState(withIdentifier: "speaking")
+        onStateChange?(.speaking)
         do {
             audioPlayer = try AVAudioPlayer(data: data)
             audioPlayer?.delegate = self
             audioPlayer?.play()
         } catch {
             logger.error("CarPlay: failed to play response: \(error.localizedDescription)")
-            voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
-            deactivateAudioSession()
+            cancelSession()
         }
     }
 
@@ -248,10 +223,9 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
         successfully flag: Bool
     ) {
         Task { @MainActor in
-            self.voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
+            self.isActive = false
             self.deactivateAudioSession()
-            // Start listening again for multi-turn conversation
-            self.startRecording()
+            self.onStateChange?(.idle)
         }
     }
 

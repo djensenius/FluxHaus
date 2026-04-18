@@ -15,6 +15,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var voiceManager: CarPlayVoiceManager?
     private var latestResponse: LoginResponse?
     private var refreshTimer: Timer?
+    private var assistantItem: CPListItem?
 
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -34,7 +35,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             name: .dataUpdated, object: nil
         )
 
-        voiceManager = CarPlayVoiceManager(interfaceController: interfaceController)
+        voiceManager = CarPlayVoiceManager()
+        voiceManager?.onStateChange = { [weak self] state in
+            self?.updateAssistantItem(for: state)
+        }
 
         Task {
             await loadInitialData()
@@ -119,19 +123,43 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     // MARK: - Assistant tab
 
     private func buildAssistantTab() -> CPListTemplate {
-        let startItem = CPListItem(
-            text: "Start Conversation",
-            detailText: "Talk to your AI assistant"
+        let item = CPListItem(
+            text: "Tap to Speak",
+            detailText: "Talk to your AI assistant",
+            image: UIImage(systemName: "mic.circle")
         )
-        startItem.handler = { [weak self] _, completion in
-            self?.voiceManager?.startVoiceSession()
+        item.handler = { [weak self] _, completion in
+            self?.voiceManager?.toggleRecording()
             completion()
         }
+        assistantItem = item
 
-        let section = CPListSection(items: [startItem])
+        let section = CPListSection(items: [item])
         let template = CPListTemplate(title: "Assistant", sections: [section])
         template.tabImage = UIImage(systemName: "mic.circle")
         return template
+    }
+
+    private func updateAssistantItem(for state: CarPlayVoiceManager.VoiceState) {
+        guard let item = assistantItem else { return }
+        switch state {
+        case .idle:
+            item.setText("Tap to Speak")
+            item.setDetailText("Talk to your AI assistant")
+            item.setImage(UIImage(systemName: "mic.circle"))
+        case .listening:
+            item.setText("Listening…")
+            item.setDetailText("Tap to cancel")
+            item.setImage(UIImage(systemName: "mic.fill"))
+        case .thinking:
+            item.setText("Thinking…")
+            item.setDetailText("Processing your request")
+            item.setImage(UIImage(systemName: "brain"))
+        case .speaking:
+            item.setText("Speaking…")
+            item.setDetailText("Tap to stop")
+            item.setImage(UIImage(systemName: "speaker.wave.2.fill"))
+        }
     }
 
     // MARK: - Status tab
