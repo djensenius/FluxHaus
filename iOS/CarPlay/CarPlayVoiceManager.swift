@@ -44,11 +44,16 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
     func toggleRecording() {
         if isActive {
-            // Stop everything
             cancelSession()
         } else {
             startRecording()
         }
+    }
+
+    /// Manually stop recording and send what we have
+    func sendNow() {
+        guard audioRecorder?.isRecording == true else { return }
+        stopRecordingAndSend()
     }
 
     func cleanup() {

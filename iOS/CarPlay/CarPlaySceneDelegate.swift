@@ -124,7 +124,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func buildAssistantTab() -> CPInformationTemplate {
         let button = CPTextButton(
-            title: "Tap to Speak",
+            title: "🎙️ Tap to Speak",
             textStyle: .normal
         ) { [weak self] _ in
             self?.voiceManager?.toggleRecording()
@@ -133,7 +133,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         let template = CPInformationTemplate(
             title: "Assistant",
             layout: .leading,
-            items: [CPInformationItem(title: "AI Assistant", detail: "Ready")],
+            items: [
+                CPInformationItem(title: nil, detail: "🚫🎙️"),
+                CPInformationItem(title: "AI Assistant", detail: "Ready")
+            ],
             actions: [button]
         )
         template.tabImage = UIImage(systemName: "mic.circle")
@@ -143,37 +146,66 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func updateAssistantItem(for state: CarPlayVoiceManager.VoiceState) {
         guard let template = assistantTemplate else { return }
-        let title: String
-        let detail: String
-        let buttonTitle: String
 
         switch state {
         case .idle:
-            title = "AI Assistant"
-            detail = "Ready"
-            buttonTitle = "Tap to Speak"
-        case .listening:
-            title = "Listening…"
-            detail = "Speak now"
-            buttonTitle = "Tap to Cancel"
-        case .thinking:
-            title = "Thinking…"
-            detail = "Processing your request"
-            buttonTitle = "Tap to Cancel"
-        case .speaking:
-            title = "Speaking…"
-            detail = "Playing response"
-            buttonTitle = "Tap to Stop"
-        }
+            template.items = [
+                CPInformationItem(title: nil, detail: "🚫🎙️"),
+                CPInformationItem(title: "AI Assistant", detail: "Ready")
+            ]
+            let startButton = CPTextButton(
+                title: "🎙️ Tap to Speak",
+                textStyle: .normal
+            ) { [weak self] _ in
+                self?.voiceManager?.toggleRecording()
+            }
+            template.actions = [startButton]
 
-        template.items = [CPInformationItem(title: title, detail: detail)]
-        let button = CPTextButton(
-            title: buttonTitle,
-            textStyle: state == .idle ? .normal : .cancel
-        ) { [weak self] _ in
-            self?.voiceManager?.toggleRecording()
+        case .listening:
+            template.items = [
+                CPInformationItem(title: nil, detail: "🎙️"),
+                CPInformationItem(title: "Listening…", detail: "Speak now")
+            ]
+            let sendButton = CPTextButton(
+                title: "📤 Send",
+                textStyle: .normal
+            ) { [weak self] _ in
+                self?.voiceManager?.sendNow()
+            }
+            let cancelButton = CPTextButton(
+                title: "Cancel",
+                textStyle: .cancel
+            ) { [weak self] _ in
+                self?.voiceManager?.toggleRecording()
+            }
+            template.actions = [sendButton, cancelButton]
+
+        case .thinking:
+            template.items = [
+                CPInformationItem(title: nil, detail: "🧠"),
+                CPInformationItem(title: "Thinking…", detail: "Processing your request")
+            ]
+            let cancelButton = CPTextButton(
+                title: "Cancel",
+                textStyle: .cancel
+            ) { [weak self] _ in
+                self?.voiceManager?.toggleRecording()
+            }
+            template.actions = [cancelButton]
+
+        case .speaking:
+            template.items = [
+                CPInformationItem(title: nil, detail: "🔊"),
+                CPInformationItem(title: "Speaking…", detail: "Playing response")
+            ]
+            let stopButton = CPTextButton(
+                title: "Stop",
+                textStyle: .cancel
+            ) { [weak self] _ in
+                self?.voiceManager?.toggleRecording()
+            }
+            template.actions = [stopButton]
         }
-        template.actions = [button]
     }
 
     // MARK: - Status tab
