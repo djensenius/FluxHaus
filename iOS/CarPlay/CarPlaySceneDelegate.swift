@@ -15,7 +15,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var voiceManager: CarPlayVoiceManager?
     private var latestResponse: LoginResponse?
     private var refreshTimer: Timer?
-    private var assistantItem: CPListItem?
+    private var assistantTemplate: CPInformationTemplate?
 
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -115,51 +115,65 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         guard let interfaceController,
               let tabBar = interfaceController.rootTemplate as? CPTabBarTemplate else { return }
 
-        let assistantTab = buildAssistantTab()
+        let assistantTab = assistantTemplate ?? buildAssistantTab()
         let statusTab = buildStatusTab()
         tabBar.updateTemplates([assistantTab, statusTab])
     }
 
     // MARK: - Assistant tab
 
-    private func buildAssistantTab() -> CPListTemplate {
-        let item = CPListItem(
-            text: "Tap to Speak",
-            detailText: "Talk to your AI assistant",
-            image: UIImage(systemName: "mic.circle")
-        )
-        item.handler = { [weak self] _, completion in
+    private func buildAssistantTab() -> CPInformationTemplate {
+        let button = CPTextButton(
+            title: "Tap to Speak",
+            textStyle: .normal
+        ) { [weak self] _ in
             self?.voiceManager?.toggleRecording()
-            completion()
         }
-        assistantItem = item
 
-        let section = CPListSection(items: [item])
-        let template = CPListTemplate(title: "Assistant", sections: [section])
+        let template = CPInformationTemplate(
+            title: "Assistant",
+            layout: .leading,
+            items: [CPInformationItem(title: "AI Assistant", detail: "Ready")],
+            actions: [button]
+        )
         template.tabImage = UIImage(systemName: "mic.circle")
+        assistantTemplate = template
         return template
     }
 
     private func updateAssistantItem(for state: CarPlayVoiceManager.VoiceState) {
-        guard let item = assistantItem else { return }
+        guard let template = assistantTemplate else { return }
+        let title: String
+        let detail: String
+        let buttonTitle: String
+
         switch state {
         case .idle:
-            item.setText("Tap to Speak")
-            item.setDetailText("Talk to your AI assistant")
-            item.setImage(UIImage(systemName: "mic.circle"))
+            title = "AI Assistant"
+            detail = "Ready"
+            buttonTitle = "Tap to Speak"
         case .listening:
-            item.setText("Listening…")
-            item.setDetailText("Tap to cancel")
-            item.setImage(UIImage(systemName: "mic.fill"))
+            title = "Listening…"
+            detail = "Speak now"
+            buttonTitle = "Tap to Cancel"
         case .thinking:
-            item.setText("Thinking…")
-            item.setDetailText("Processing your request")
-            item.setImage(UIImage(systemName: "brain"))
+            title = "Thinking…"
+            detail = "Processing your request"
+            buttonTitle = "Tap to Cancel"
         case .speaking:
-            item.setText("Speaking…")
-            item.setDetailText("Tap to stop")
-            item.setImage(UIImage(systemName: "speaker.wave.2.fill"))
+            title = "Speaking…"
+            detail = "Playing response"
+            buttonTitle = "Tap to Stop"
         }
+
+        template.items = [CPInformationItem(title: title, detail: detail)]
+        let button = CPTextButton(
+            title: buttonTitle,
+            textStyle: state == .idle ? .normal : .cancel
+        ) { [weak self] _ in
+            self?.voiceManager?.toggleRecording()
+        }
+        template.actions = [button]
     }
 
     // MARK: - Status tab
