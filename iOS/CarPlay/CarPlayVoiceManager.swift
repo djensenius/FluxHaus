@@ -19,6 +19,14 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     private var audioPlayer: AVAudioPlayer?
     private var recordingURL: URL?
     private var conversationId: String?
+    private var silenceTimer: Task<Void, Never>?
+    private var silenceStart: Date?
+    private var meteringTimer: Timer?
+
+    /// Seconds of silence before auto-stopping
+    private let silenceThreshold: TimeInterval = 1.5
+    /// dB level below which we consider silence (-50 dB is very quiet)
+    private let silenceLevel: Float = -40
 
     // Voice control states
     private let listeningState: CPVoiceControlState
@@ -71,6 +79,9 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     }
 
     func cleanup() {
+        stopSilenceDetection()
+        silenceTimer?.cancel()
+        silenceTimer = nil
         stopPlayback()
         stopRecording()
         deactivateAudioSession()
@@ -101,6 +112,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
 
         do {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+            audioRecorder?.isMeteringEnabled = true
             guard audioRecorder?.record() == true else {
                 logger.error("CarPlay: AVAudioRecorder.record() returned false")
                 voiceTemplate?.activateVoiceControlState(withIdentifier: "idle")
@@ -108,12 +120,16 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
                 return
             }
             voiceTemplate?.activateVoiceControlState(withIdentifier: "listening")
+            silenceStart = nil
             logger.info("CarPlay: recording started")
 
-            // Auto-stop after 30 seconds to prevent indefinite recording
-            Task { [weak self] in
+            startSilenceDetection()
+
+            // Hard cap: auto-stop after 30 seconds
+            silenceTimer = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(30))
                 if self?.audioRecorder?.isRecording == true {
+                    self?.stopSilenceDetection()
                     self?.stopRecordingAndSend()
                 }
             }
@@ -125,12 +141,18 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
     }
 
     private func stopRecording() {
+        stopSilenceDetection()
+        silenceTimer?.cancel()
+        silenceTimer = nil
         audioRecorder?.stop()
         audioRecorder = nil
         cleanupRecording()
     }
 
     private func stopRecordingAndSend() {
+        stopSilenceDetection()
+        silenceTimer?.cancel()
+        silenceTimer = nil
         audioRecorder?.stop()
 
         guard let url = recordingURL,
@@ -221,6 +243,42 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
             self.deactivateAudioSession()
             // Start listening again for multi-turn conversation
             self.startRecording()
+        }
+    }
+
+    // MARK: - Silence detection
+
+    private func startSilenceDetection() {
+        meteringTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.checkAudioLevel()
+            }
+        }
+    }
+
+    private func stopSilenceDetection() {
+        meteringTimer?.invalidate()
+        meteringTimer = nil
+        silenceStart = nil
+    }
+
+    private func checkAudioLevel() {
+        guard let recorder = audioRecorder, recorder.isRecording else { return }
+        recorder.updateMeters()
+        let avgPower = recorder.averagePower(forChannel: 0)
+
+        if avgPower < silenceLevel {
+            // Below threshold — track silence duration
+            if silenceStart == nil {
+                silenceStart = Date()
+            } else if let start = silenceStart,
+                      Date().timeIntervalSince(start) >= silenceThreshold {
+                logger.info("CarPlay: silence detected, sending recording")
+                stopRecordingAndSend()
+            }
+        } else {
+            // Speech detected — reset silence tracker
+            silenceStart = nil
         }
     }
 
