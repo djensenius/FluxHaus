@@ -5,7 +5,7 @@
 //  Watch-specific Live Activity views for the Smart Stack.
 //
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import SwiftUI
 import WidgetKit
 

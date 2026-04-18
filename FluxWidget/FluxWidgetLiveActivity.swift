@@ -5,11 +5,13 @@
 //  Created by David Jensenius on 2024-08-01.
 //
 
-#if os(iOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import ActivityKit
 import WidgetKit
+#endif
 import SwiftUI
 
+#if os(iOS) && !targetEnvironment(macCatalyst)
 struct FluxWidgetAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         var device: WidgetDevice
@@ -332,6 +334,7 @@ struct FluxWidgetMultiLiveActivity: Widget {
         }
     }
 }
+#endif
 
 // MARK: - Helpers
 
@@ -370,6 +373,7 @@ func batteryIcon(level: Int) -> String {
 
 // MARK: - Preview Data
 
+#if os(iOS) && !targetEnvironment(macCatalyst)
 extension FluxWidgetMultiAttributes {
     static var preview: FluxWidgetMultiAttributes {
         FluxWidgetMultiAttributes(name: "Appliances")

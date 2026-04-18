@@ -13,7 +13,7 @@ struct FluxWidgetBundle: WidgetBundle {
     var body: some Widget {
         FluxWidget()
         FluxWidgetOtherSmall()
-        #if os(iOS)
+        #if os(iOS) && !targetEnvironment(macCatalyst)
         FluxWidgetMultiLiveActivity()
         FluxWidgetLiveActivity()
         #endif

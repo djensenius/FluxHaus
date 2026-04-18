@@ -156,7 +156,9 @@ struct FluxHausApp: App {
                                 // Register APNs token now that auth is available
                                 Task { await AppDelegate.registerApnsTokenIfReady() }
                                 // Retry any deferred push-to-start token registration
+                                #if !targetEnvironment(macCatalyst)
                                 LiveActivityManager.shared.retryPendingTokenRegistration()
+                                #endif
                             }
 
                             if ((object.userInfo?["homeConnectComplete"]) != nil) == true {
@@ -329,9 +331,11 @@ struct FluxHausApp: App {
     }
 
     func updateLiveActivities(response: LoginResponse) {
+        #if !targetEnvironment(macCatalyst)
         let fluxData = convertLoginResponseToAppData(response: response)
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
         Task { await LiveActivityManager.shared.reconcile(devices: devices) }
+        #endif
     }
 
     private func postNavigation(_ section: String) {
