@@ -81,11 +81,6 @@ struct SettingsView: View {
             Section {
                 Button(role: .destructive) {
                     AuthManager.shared.signOut()
-                    NotificationCenter.default.post(
-                        name: Notification.Name.logout,
-                        object: nil,
-                        userInfo: ["logout": true]
-                    )
                 } label: {
                     Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                 }

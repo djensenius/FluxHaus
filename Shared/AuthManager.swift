@@ -147,6 +147,10 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     @Published var authState: AuthState = .unknown
 
+    /// True while an OIDC sign-in is completing (exchange → first API call).
+    /// Used to suppress duplicate queryFlux triggered by scenePhase changes.
+    @Published var isCompletingOIDCLogin = false
+
     // Keep strong references to prevent deallocation during auth
     private var currentAuthSession: ASWebAuthenticationSession?
     private var anchorProvider: AuthSessionAnchorProvider?
@@ -207,6 +211,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     // MARK: - OIDC Sign In
     @MainActor func signInWithOIDC() async throws {
+        isCompletingOIDCLogin = true
         let codeVerifier = generateCodeVerifier()
         let codeChallenge = generateCodeChallenge(from: codeVerifier)
         let state = generateRandomString()
@@ -285,6 +290,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     // MARK: - Sign Out
     @MainActor func signOut() {
         logger.warning("signOut() called — clearing all tokens and credentials")
+        isCompletingOIDCLogin = false
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
         deleteKeychainItem(account: "oidc_token_expiry")

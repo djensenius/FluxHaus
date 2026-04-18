@@ -206,15 +206,9 @@ struct FluxHausApp: App {
                         scooter: scooter,
                         apiResponse: self.apiResponse
                     )
-                    .onReceive(NotificationCenter.default.publisher(for: Notification.Name.logout)) { object in
-                        if (object.userInfo?["logout"]) != nil {
-                            DispatchQueue.main.async {
-                                self.whereWeAre = WhereWeAre()
-                            }
-                        }
-                    }
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                         if let response = object.userInfo?["data"] as? LoginResponse {
+                            guard AuthManager.shared.isSignedIn else { return }
                             self.apiResponse.setApiResponse(apiResponse: response)
                             robots.setApiResponse(apiResponse: self.apiResponse)
                             hconn.setApiResponse(apiResponse: self.apiResponse)
@@ -244,8 +238,19 @@ struct FluxHausApp: App {
                     }
                 }
             }
+            .onReceive(
+                NotificationCenter.default.publisher(for: .authDidSignOut)
+            ) { _ in
+                self.whereWeAre = WhereWeAre()
+                hconn = nil
+                miele = nil
+                robots = nil
+                car = nil
+                scooter = nil
+            }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
+                    guard !AuthManager.shared.isCompletingOIDCLogin else { return }
                     Task {
                         _ = await AuthManager.shared.ensureValidToken()
                         if AuthManager.shared.isSignedIn {

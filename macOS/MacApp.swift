@@ -264,6 +264,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func presentQuickChatWindow() {
+        guard AuthManager.shared.isOIDC else { return }
         guard let sharedChat else { return }
         if quickChatWindowController == nil {
             quickChatWindowController = QuickChatWindowController(chat: sharedChat)
@@ -318,6 +319,8 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private var primaryWindows: [NSWindow] {
         NSApp.windows.filter { window in
             window.identifier?.rawValue != "QuickChatWindow"
+                && window.identifier?.rawValue != "com_apple_SwiftUI_Settings_window"
+                && !(window is NSPanel)
         }
     }
 
@@ -357,6 +360,16 @@ struct MacApp: App {
                             }
                         }
                     }
+                }
+                .onReceive(
+                    NotificationCenter.default.publisher(for: .authDidSignOut)
+                ) { _ in
+                    self.whereWeAre = WhereWeAre()
+                    self.miele = nil
+                    self.hconn = nil
+                    self.robots = nil
+                    self.car = nil
+                    self.scooter = nil
                 }
                 .onOpenURL { url in
                     handleDeepLink(url)
@@ -398,6 +411,13 @@ struct MacApp: App {
                     queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
                 .keyboardShortcut("r", modifiers: .command)
+
+                Divider()
+
+                Button("Sign Out") {
+                    AuthManager.shared.signOut()
+                }
+                .disabled(!AuthManager.shared.isSignedIn)
             }
 
             CommandGroup(after: .appTermination) {
@@ -457,21 +477,11 @@ struct MacApp: App {
             )
             .onReceive(
                 NotificationCenter.default.publisher(
-                    for: Notification.Name.logout
-                )
-            ) { object in
-                if (object.userInfo?["logout"]) != nil {
-                    DispatchQueue.main.async {
-                        self.whereWeAre = WhereWeAre()
-                    }
-                }
-            }
-            .onReceive(
-                NotificationCenter.default.publisher(
                     for: Notification.Name.dataUpdated
                 )
             ) { object in
                 if let response = object.userInfo?["data"] as? LoginResponse {
+                    guard AuthManager.shared.isSignedIn else { return }
                     self.apiResponse.setApiResponse(apiResponse: response)
                     robots.setApiResponse(apiResponse: self.apiResponse)
                     hconn.setApiResponse(apiResponse: self.apiResponse)
