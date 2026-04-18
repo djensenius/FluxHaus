@@ -144,16 +144,22 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
         silenceTimer = nil
         audioRecorder?.stop()
 
-        guard let url = recordingURL,
-              let audioData = try? Data(contentsOf: url) else {
-            logger.error("CarPlay: failed to read recording")
+        guard let url = recordingURL else {
+            logger.error("CarPlay: no recording URL")
             cancelSession()
             return
         }
 
         onStateChange?(.thinking)
 
-        Task { [weak self] in
+        Task.detached { [weak self] in
+            guard let audioData = try? Data(contentsOf: url) else {
+                await MainActor.run {
+                    logger.error("CarPlay: failed to read recording")
+                    self?.cancelSession()
+                }
+                return
+            }
             await self?.sendVoice(audioData: audioData)
         }
 
@@ -282,7 +288,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
         try session.setCategory(
             .playAndRecord,
             mode: .default,
-            options: [.duckOthers, .allowBluetoothA2DP]
+            options: [.duckOthers, .allowBluetooth]
         )
         try session.setActive(true)
     }

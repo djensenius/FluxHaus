@@ -212,6 +212,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     // MARK: - OIDC Sign In
     @MainActor func signInWithOIDC() async throws {
         isCompletingOIDCLogin = true
+        defer { isCompletingOIDCLogin = false }
         let codeVerifier = generateCodeVerifier()
         let codeChallenge = generateCodeChallenge(from: codeVerifier)
         let state = generateRandomString()

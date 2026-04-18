@@ -10,6 +10,7 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "CarPlay")
 
+@MainActor
 class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     var interfaceController: CPInterfaceController?
     private var voiceManager: CarPlayVoiceManager?
@@ -17,7 +18,6 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var refreshTimer: Timer?
     private var assistantTemplate: CPListTemplate?
     private var assistantItem: CPListItem?
-    private var sendItem: CPListItem?
 
     deinit {
         NotificationCenter.default.removeObserver(self)
