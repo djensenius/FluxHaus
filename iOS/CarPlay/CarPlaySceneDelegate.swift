@@ -124,7 +124,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func buildAssistantTab() -> CPInformationTemplate {
         let button = CPTextButton(
-            title: "🎙️ Tap to Speak",
+            title: "Tap to Speak",
             textStyle: .normal
         ) { [weak self] _ in
             self?.voiceManager?.toggleRecording()
@@ -134,12 +134,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             title: "Assistant",
             layout: .leading,
             items: [
-                CPInformationItem(title: nil, detail: "🚫🎙️"),
                 CPInformationItem(title: "AI Assistant", detail: "Ready")
             ],
             actions: [button]
         )
-        template.tabImage = UIImage(systemName: "mic.circle")
+        template.tabImage = UIImage(systemName: "mic.slash")
         assistantTemplate = template
         return template
     }
@@ -150,11 +149,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         switch state {
         case .idle:
             template.items = [
-                CPInformationItem(title: nil, detail: "🚫🎙️"),
                 CPInformationItem(title: "AI Assistant", detail: "Ready")
             ]
+            template.tabImage = UIImage(systemName: "mic.slash")
             let startButton = CPTextButton(
-                title: "🎙️ Tap to Speak",
+                title: "Tap to Speak",
                 textStyle: .normal
             ) { [weak self] _ in
                 self?.voiceManager?.toggleRecording()
@@ -163,11 +162,11 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         case .listening:
             template.items = [
-                CPInformationItem(title: nil, detail: "🎙️"),
                 CPInformationItem(title: "Listening…", detail: "Speak now")
             ]
+            template.tabImage = UIImage(systemName: "mic.fill")
             let sendButton = CPTextButton(
-                title: "📤 Send",
+                title: "Send",
                 textStyle: .normal
             ) { [weak self] _ in
                 self?.voiceManager?.sendNow()
@@ -182,9 +181,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         case .thinking:
             template.items = [
-                CPInformationItem(title: nil, detail: "🧠"),
                 CPInformationItem(title: "Thinking…", detail: "Processing your request")
             ]
+            template.tabImage = UIImage(systemName: "brain")
             let cancelButton = CPTextButton(
                 title: "Cancel",
                 textStyle: .cancel
@@ -195,9 +194,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         case .speaking:
             template.items = [
-                CPInformationItem(title: nil, detail: "🔊"),
                 CPInformationItem(title: "Speaking…", detail: "Playing response")
             ]
+            template.tabImage = UIImage(systemName: "speaker.wave.2.fill")
             let stopButton = CPTextButton(
                 title: "Stop",
                 textStyle: .cancel
