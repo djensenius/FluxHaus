@@ -10,6 +10,39 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryFlux")
 
+// MARK: - Error Categorization
+enum QueryFluxErrorType {
+    case transientNetworkError(Error)
+    case authenticationFailed(String)
+    case serverError(Int)
+    case responseDecodeError
+    case unknown(String)
+
+    var isTransient: Bool {
+        switch self {
+        case .transientNetworkError:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var userMessage: String {
+        switch self {
+        case .authenticationFailed(let msg):
+            return msg
+        case .responseDecodeError:
+            return "Failed to load data"
+        case .serverError(let code):
+            return "Server error (\(code))"
+        case .transientNetworkError:
+            return "Network error"
+        case .unknown(let msg):
+            return msg
+        }
+    }
+}
+
 private struct CsrfResponse: Decodable {
     let csrfToken: String
 }
@@ -63,6 +96,30 @@ class BasicAuthDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     }
 }
 
+// MARK: - Retry Helper
+private struct RetryConfig {
+    let maxRetries: Int = 3
+    let initialDelayMs: UInt32 = 500
+
+    func delayMs(for attempt: Int) -> UInt32 {
+        UInt32(Double(initialDelayMs) * pow(2.0, Double(attempt)))
+    }
+}
+
+private func isTransientNetworkError(_ error: Error) -> Bool {
+    let nsError = error as NSError
+    let transientCodes = [
+        NSURLErrorTimedOut,
+        NSURLErrorNetworkConnectionLost,
+        NSURLErrorNotConnectedToInternet,
+        NSURLErrorCannotConnectToHost,
+        NSURLErrorCannotFindHost,
+        NSURLErrorDNSLookupFailed,
+        NSURLErrorResourceUnavailable
+    ]
+    return transientCodes.contains(nsError.code)
+}
+
 private func buildFluxAPIRequest(password: String) -> URLRequest? {
     var components = URLComponents()
     components.scheme = "https"
@@ -84,16 +141,33 @@ private func buildFluxAPIRequest(password: String) -> URLRequest? {
 }
 
 func queryFlux(password: String) {
+    queryFluxWithRetry(password: password, attempt: 0)
+}
+
+private func queryFluxWithRetry(password: String, attempt: Int) {
     guard let request = buildFluxAPIRequest(password: password) else { return }
 
     let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
     let task = session.dataTask(with: request) { data, response, error in
         let httpResponse = response as? HTTPURLResponse
+
         if httpResponse?.statusCode == 401 {
             handleUnauthorized(password: password)
             return
         }
-        handleQueryFluxResponse(data: data, error: error, password: password)
+
+        if let error = error {
+            if isTransientNetworkError(error) && attempt < RetryConfig().maxRetries {
+                let delayMs = RetryConfig().delayMs(for: attempt)
+                logger.warning("queryFlux: transient error on attempt \(attempt + 1), retrying in \(delayMs)ms")
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(delayMs))) {
+                    queryFluxWithRetry(password: password, attempt: attempt + 1)
+                }
+                return
+            }
+        }
+
+        handleQueryFluxResponse(data: data, error: error, password: password, isRetry: attempt > 0)
     }
     task.resume()
 }
@@ -155,7 +229,7 @@ private func retryQueryFlux(password: String) {
     task.resume()
 }
 
-private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) {
+private func handleQueryFluxResponse(data: Data?, error: Error?, password: String, isRetry: Bool = false) {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
@@ -195,14 +269,29 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
                 )
             }
         }
+    } else if let error = error {
+        // Only post error for non-transient failures
+        if !isTransientNetworkError(error) {
+            logger.error("handleQueryFluxResponse: non-transient error: \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                AuthManager.shared.isCompletingOIDCLogin = false
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": error.localizedDescription]
+                )
+            }
+        } else {
+            // Transient network error but retries exhausted
+            let msg = "transient error exhausted after retries"
+            logger.error("handleQueryFluxResponse: \(msg): \(error.localizedDescription)")
+            DispatchQueue.main.async {
+                AuthManager.shared.isCompletingOIDCLogin = false
+            }
+        }
     } else {
         DispatchQueue.main.async {
             AuthManager.shared.isCompletingOIDCLogin = false
-            NotificationCenter.default.post(
-                name: Notification.Name.loginsUpdated,
-                object: nil,
-                userInfo: ["loginError": error?.localizedDescription ?? "Network error"]
-            )
         }
     }
 }
@@ -318,182 +407,4 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         dryer: dryer,
         washer: washer
     )
-}
-
-struct WidgetDevice: Codable, Equatable, Hashable {
-    var name: String
-    var progress: Int
-    var icon: String
-    var trailingText: String
-    var shortText: String
-    var running: Bool
-    var battery: Int?
-    var programName: String?
-}
-
-/// Format a time remaining value (in minutes) as a human-readable string.
-/// Under 60 minutes: "30m". 60+ minutes: "2h 36m".
-func formatTimeRemaining(minutes: Int) -> String {
-    if minutes < 60 {
-        return "\(minutes)m"
-    }
-    let finishDate = Date().addingTimeInterval(Double(minutes) * 60)
-    let formatter = DateFormatter()
-    formatter.timeStyle = .short
-    formatter.dateStyle = .none
-    return formatter.string(from: finishDate)
-}
-
-/// Format a duration in minutes for display in appliance views.
-/// Under 60 minutes: "30 min". 60+ minutes: "2h 36 min".
-func formatDurationMinutes(_ minutes: Int) -> String {
-    if minutes < 60 {
-        return "\(minutes) min"
-    }
-    let hours = minutes / 60
-    let remainingMinutes = minutes % 60
-    if remainingMinutes == 0 {
-        return "\(hours)h"
-    }
-    return "\(hours)h \(remainingMinutes) min"
-}
-
-// swiftlint:disable:next function_body_length
-func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
-    var returnValue: [WidgetDevice] = []
-
-    let dishwasherMinutes = (fluxData.dishwasher?.remainingTime ?? 0) / 60
-    let dishWasherReminingTime = formatTimeRemaining(minutes: dishwasherMinutes)
-    let dishwasherDisplayName = fluxData.dishwasher?.activeProgram?.displayName
-    var dishwasherTrailingText = dishWasherReminingTime
-    if let programName = dishwasherDisplayName {
-        dishwasherTrailingText = "\(programName) ⋅ \(dishwasherTrailingText)"
-    }
-    if fluxData.dishwasher != nil && fluxData.dishwasher?.operationState.rawValue != "Run" {
-        dishwasherTrailingText = fluxData.dishwasher!.operationState.rawValue + " ⋅ \(dishwasherTrailingText)"
-    }
-
-    if fluxData.dishwasher?.operationState.rawValue == "Finished" {
-        returnValue.append(
-            WidgetDevice(
-                name: "Dishwasher",
-                progress: 0,
-                icon: "dishwasher",
-                trailingText: "",
-                shortText: "",
-                running: false,
-                programName: dishwasherDisplayName
-            )
-        )
-    } else {
-        returnValue.append(
-            WidgetDevice(
-                name: "Dishwasher",
-                progress: Int(fluxData.dishwasher?.programProgress ?? 0),
-                icon: "dishwasher",
-                trailingText: dishwasherTrailingText,
-                shortText: dishWasherReminingTime,
-                running: fluxData.dishwasher?.programProgress ?? 0 > 0,
-                programName: dishwasherDisplayName
-            )
-        )
-    }
-
-    let washerTimeRunning = fluxData.washer?.timeRunning ?? 0
-    let washerTimeRemaining = fluxData.washer?.timeRemaining ?? 0
-    var washerProrgress = 0
-    if washerTimeRunning > 0 {
-        washerProrgress = Int(Double(washerTimeRunning) / Double(washerTimeRemaining + washerTimeRunning) * 100)
-    }
-
-    let washerReminingTime = formatTimeRemaining(minutes: fluxData.washer?.timeRemaining ?? 0)
-    var washerTrailingText = washerReminingTime
-    if let programName = fluxData.washer?.programName,
-       !programName.trimmingCharacters(in: .whitespaces).isEmpty {
-        washerTrailingText = "\(formatApplianceProgramName(programName)) ⋅ \(washerTrailingText)"
-    }
-    if fluxData.washer != nil && fluxData.washer?.status != "In use",
-       let status = fluxData.washer?.status {
-        washerTrailingText = "\(status) ⋅ \(washerTrailingText)"
-    }
-
-    returnValue.append(
-        WidgetDevice(
-            name: "Washer",
-            progress: washerProrgress,
-            icon: "washer",
-            trailingText: washerTrailingText,
-            shortText: washerReminingTime,
-            running: fluxData.washer?.timeRemaining ?? 0 > 0,
-            programName: fluxData.washer?.programName.map { formatApplianceProgramName($0) }
-        )
-    )
-
-    let dryerTimeRunning = fluxData.dryer?.timeRunning ?? 0
-    let dryerTimeRemaining = fluxData.dryer?.timeRemaining ?? 1
-    var dryerProgress = 0
-    if dryerTimeRunning  > 0 {
-        dryerProgress = Int(Double(dryerTimeRunning) / Double(dryerTimeRemaining + dryerTimeRunning) * 100)
-    }
-    let dryerReminingTime = formatTimeRemaining(minutes: fluxData.dryer?.timeRemaining ?? 0)
-    var dryerTrailingText = dryerReminingTime
-    if let programName = fluxData.dryer?.programName,
-       !programName.trimmingCharacters(in: .whitespaces).isEmpty {
-        dryerTrailingText = "\(formatApplianceProgramName(programName)) ⋅ \(dryerTrailingText)"
-    }
-    if fluxData.dryer != nil && fluxData.dryer?.status != "In use",
-       let status = fluxData.dryer?.status {
-        dryerTrailingText = "\(status) ⋅ \(dryerTrailingText)"
-    }
-
-    returnValue.append(
-        WidgetDevice(
-            name: "Dryer",
-            progress: dryerProgress,
-            icon: "dryer",
-            trailingText: dryerTrailingText,
-            shortText: dryerReminingTime,
-            running: fluxData.dryer?.timeRemaining ?? 0 > 0,
-            programName: fluxData.dryer?.programName.map { formatApplianceProgramName($0) }
-        )
-    )
-
-    returnValue.append(
-        WidgetDevice(
-            name: "BroomBot",
-            progress: fluxData.broomBot?.batteryLevel ?? 0,
-            icon: "fan",
-            trailingText: fluxData.broomBot?.running ?? false ? "On" : "Off",
-            shortText: fluxData.broomBot?.running ?? false ? "On" : "Off",
-            running: fluxData.broomBot?.running ?? false,
-            battery: fluxData.broomBot?.batteryLevel
-        )
-    )
-
-    returnValue.append(
-        WidgetDevice(
-            name: "MopBot",
-            progress: fluxData.mopBot?.batteryLevel ?? 0,
-            icon: "humidifier.and.droplets",
-            trailingText: fluxData.mopBot?.running ?? false ? "On" : "Off",
-            shortText: fluxData.mopBot?.running ?? false ? "On" : "Off",
-            running: fluxData.mopBot?.running ?? false,
-            battery: fluxData.mopBot?.batteryLevel
-        )
-    )
-
-    if let car = fluxData.car {
-        returnValue.append(
-            WidgetDevice(
-                name: "Car",
-                progress: car.batteryLevel,
-                icon: "car",
-                trailingText: "Range \(car.distance) km ⋅ \(car.batteryLevel)% ",
-                shortText: "\(car.distance) km",
-                running: false
-            )
-        )
-    }
-
-    return returnValue
 }

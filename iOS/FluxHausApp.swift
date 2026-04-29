@@ -181,8 +181,17 @@ struct FluxHausApp: App {
                                 let isSignedIn = AuthManager.shared.isSignedIn
                                 appLogger.warning("loginError: \(errMsg), isSignedIn=\(isSignedIn)")
                                 if !AuthManager.shared.isSignedIn {
-                                    appLogger.warning("Clearing keychain due to loginError while signed out")
-                                    whereWeAre.deleteKeyChainPasword()
+                                    // Only clear keychain for auth-related failures, not network errors
+                                    let isAuthFailure = errMsg.lowercased().contains("password") ||
+                                                       errMsg.lowercased().contains("incorrect") ||
+                                                       errMsg.lowercased().contains("unauthorized") ||
+                                                       errMsg.lowercased().contains("failed to load data")
+                                    if isAuthFailure {
+                                        appLogger.warning("Clearing keychain due to auth failure: \(errMsg)")
+                                        whereWeAre.deleteKeyChainPasword()
+                                    } else {
+                                        appLogger.warning("Not clearing keychain for transient error: \(errMsg)")
+                                    }
                                 }
                             }
                         }

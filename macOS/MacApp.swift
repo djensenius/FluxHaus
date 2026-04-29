@@ -526,8 +526,16 @@ struct MacApp: App {
             }
         }
         if (object.userInfo?["loginError"]) != nil {
+            let errMsg = object.userInfo?["loginError"] as? String ?? "unknown"
             if !AuthManager.shared.isSignedIn {
-                whereWeAre.deleteKeyChainPasword()
+                // Only clear keychain for auth-related failures, not network errors
+                let isAuthFailure = errMsg.lowercased().contains("password") ||
+                                   errMsg.lowercased().contains("incorrect") ||
+                                   errMsg.lowercased().contains("unauthorized") ||
+                                   errMsg.lowercased().contains("failed to load data")
+                if isAuthFailure {
+                    whereWeAre.deleteKeyChainPasword()
+                }
             }
         }
     }
