@@ -10,37 +10,12 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryFlux")
 
-// MARK: - Error Categorization
-enum QueryFluxErrorType {
-    case transientNetworkError(Error)
-    case authenticationFailed(String)
-    case serverError(Int)
-    case responseDecodeError
-    case unknown(String)
+// MARK: - Helper Functions
 
-    var isTransient: Bool {
-        switch self {
-        case .transientNetworkError:
-            return true
-        default:
-            return false
-        }
-    }
-
-    var userMessage: String {
-        switch self {
-        case .authenticationFailed(let msg):
-            return msg
-        case .responseDecodeError:
-            return "Failed to load data"
-        case .serverError(let code):
-            return "Server error (\(code))"
-        case .transientNetworkError:
-            return "Network error"
-        case .unknown(let msg):
-            return msg
-        }
-    }
+/// Check if a login error message indicates an authentication failure (vs transient/server issue)
+func isAuthFailureMessage(_ message: String) -> Bool {
+    let lower = message.lowercased()
+    return lower.contains("password") || lower.contains("incorrect") || lower.contains("unauthorized")
 }
 
 private struct CsrfResponse: Decodable {
@@ -168,7 +143,7 @@ private func queryFluxWithRetry(password: String, attempt: Int) {
             }
         }
 
-        handleQueryFluxResponse(data: data, error: error, password: password, isRetry: attempt > 0)
+        handleQueryFluxResponse(data: data, error: error, password: password)
     }
     task.resume()
 }
@@ -230,7 +205,7 @@ private func retryQueryFlux(password: String) {
     task.resume()
 }
 
-private func handleQueryFluxResponse(data: Data?, error: Error?, password: String, isRetry: Bool = false) {
+private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)

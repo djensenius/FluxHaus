@@ -39,6 +39,9 @@
 		37D0A0010000000000000004 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
 		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		639B4A8E2E4812E0001C9Fda /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9Fb3 /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9F09 /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
 		3CFA1F5604BA445D83EE6D88 /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
@@ -392,6 +395,7 @@
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
+		639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFluxWidgetExtensions.swift; sourceTree = "<group>"; };
 		63A159272C5E9763003F3796 /* LoginStucts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStucts.swift; sourceTree = "<group>"; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -559,6 +563,7 @@
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
+				639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */,
 				637CE4C42BE71FC000258158 /* RobotDetailView.swift */,
 				635BD66A2B9DF8A6009CEEA9 /* Robots.swift */,
 				6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */,
