@@ -108,6 +108,7 @@ private struct RetryConfig {
 
 private func isTransientNetworkError(_ error: Error) -> Bool {
     let nsError = error as NSError
+    guard nsError.domain == NSURLErrorDomain else { return false }
     let transientCodes = [
         NSURLErrorTimedOut,
         NSURLErrorNetworkConnectionLost,
@@ -287,6 +288,11 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             logger.error("handleQueryFluxResponse: \(msg): \(error.localizedDescription)")
             DispatchQueue.main.async {
                 AuthManager.shared.isCompletingOIDCLogin = false
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Network error"]
+                )
             }
         }
     } else {

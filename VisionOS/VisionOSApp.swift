@@ -67,16 +67,15 @@ struct VisionOSApp: App {
                                 let isSignedIn = AuthManager.shared.isSignedIn
                                 appLogger.warning("loginError: \(errMsg), isSignedIn=\(isSignedIn)")
                                 if !AuthManager.shared.isSignedIn {
-                                    // Only clear keychain for auth-related failures, not network errors
+                                    // Only clear keychain for actual auth failures
                                     let isAuthFailure = errMsg.lowercased().contains("password") ||
                                                        errMsg.lowercased().contains("incorrect") ||
-                                                       errMsg.lowercased().contains("unauthorized") ||
-                                                       errMsg.lowercased().contains("failed to load data")
+                                                       errMsg.lowercased().contains("unauthorized")
                                     if isAuthFailure {
                                         appLogger.warning("Clearing keychain due to auth failure: \(errMsg)")
                                         whereWeAre.deleteKeyChainPasword()
                                     } else {
-                                        appLogger.warning("Not clearing keychain for transient error: \(errMsg)")
+                                        appLogger.warning("Not clearing keychain for: \(errMsg)")
                                     }
                                 }
                             }
