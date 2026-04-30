@@ -43,6 +43,7 @@
 		639B4A8E2E4812E0001C9Fb3 /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
 		639B4A8E2E4812E0001C9F09 /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
 		639B4A8E2E4812E0001C9FAA /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9FBB /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
 		3CFA1F5604BA445D83EE6D88 /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
@@ -1322,6 +1323,7 @@
 				4C7C9D7BE074D65A480045A1 /* Miele.swift in Sources */,
 				FE6B445E3E47FC883C281562 /* MieleAppliance.swift in Sources */,
 				D8A5836912F3F1DF56628A1C /* QueryFlux.swift in Sources */,
+				639B4A8E2E4812E0001C9FBB /* QueryFluxWidgetExtensions.swift in Sources */,
 				D8D21373FC74A18689317FBB /* RobotDetailView.swift in Sources */,
 				C26CB6CAACD7386DAA031965 /* Robots.swift in Sources */,
 				FFD5C7DCE9B4284348280B90 /* SystemNotifications.swift in Sources */,
