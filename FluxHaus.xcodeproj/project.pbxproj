@@ -39,6 +39,11 @@
 		37D0A0010000000000000004 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
 		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		639B4A8E2E4812E0001C9Fda /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9Fb3 /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9F09 /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9FAA /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		639B4A8E2E4812E0001C9FBB /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
 		3CFA1F5604BA445D83EE6D88 /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
@@ -392,6 +397,7 @@
 		6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNotifications.swift; sourceTree = "<group>"; };
 		6399EA302B9D3671000C8CA4 /* Login.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 		6399EA352B9D7901000C8CA4 /* QueryFlux.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFlux.swift; sourceTree = "<group>"; };
+		639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFluxWidgetExtensions.swift; sourceTree = "<group>"; };
 		63A159272C5E9763003F3796 /* LoginStucts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginStucts.swift; sourceTree = "<group>"; };
 		63A39FB42C44391E00E62C09 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		63A39FB62C44391E00E62C09 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -559,6 +565,7 @@
 				632CBC6F2586C79E003E4988 /* Miele.swift */,
 				635F9D052BAF836C000700FD /* MieleAppliance.swift */,
 				6399EA352B9D7901000C8CA4 /* QueryFlux.swift */,
+				639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */,
 				637CE4C42BE71FC000258158 /* RobotDetailView.swift */,
 				635BD66A2B9DF8A6009CEEA9 /* Robots.swift */,
 				6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */,
@@ -1066,6 +1073,7 @@
 				9D14B888828F5291C3A1B2D5 /* Miele.swift in Sources */,
 				E0FFED608140DA7EB6F6D326 /* MieleAppliance.swift in Sources */,
 				3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */,
+				639B4A8E2E4812E0001C9F09 /* QueryFluxWidgetExtensions.swift in Sources */,
 				323C8C60BEA480D9040C3B37 /* RobotDetailView.swift in Sources */,
 				A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */,
 				1EE958BBEBFBE734319E4BAB /* SystemNotifications.swift in Sources */,
@@ -1143,6 +1151,7 @@
 				636B9B3A258E57D400DE97BD /* WeatherView.swift in Sources */,
 				63610D2E2BB883DA0048B9FF /* ApplianceViewHelpers.swift in Sources */,
 				6399EA362B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
+				639B4A8E2E4812E0001C9Fda /* QueryFluxWidgetExtensions.swift in Sources */,
 				9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */,
 				RD0003000000000000000002 /* RadarService.swift in Sources */,
 				RM0001000000000000000001 /* RadarMapViews.swift in Sources */,
@@ -1196,6 +1205,7 @@
 				636BF1EE2C5D8EC900C1244C /* Miele.swift in Sources */,
 				636BF1EF2C5D8EC900C1244C /* Robots.swift in Sources */,
 				636BF1E82C5D8E1400C1244C /* QueryFlux.swift in Sources */,
+				639B4A8E2E4812E0001C9FAA /* QueryFluxWidgetExtensions.swift in Sources */,
 				636BF1E72C5D8B8400C1244C /* WhereWeAre.swift in Sources */,
 				77CDDA9FA1A142A79B3AEB86 /* AuthManager.swift in Sources */,
 				637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */,
@@ -1248,6 +1258,7 @@
 				63DBD7352B954215006603D0 /* VisionOSApp.swift in Sources */,
 				63BCF7572C63FABB001D4375 /* Api.swift in Sources */,
 				6399EA382B9D7901000C8CA4 /* QueryFlux.swift in Sources */,
+				639B4A8E2E4812E0001C9Fb3 /* QueryFluxWidgetExtensions.swift in Sources */,
 				36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */,
 				RD0003000000000000000003 /* RadarService.swift in Sources */,
 				RM0001000000000000000002 /* RadarMapViews.swift in Sources */,
@@ -1312,6 +1323,7 @@
 				4C7C9D7BE074D65A480045A1 /* Miele.swift in Sources */,
 				FE6B445E3E47FC883C281562 /* MieleAppliance.swift in Sources */,
 				D8A5836912F3F1DF56628A1C /* QueryFlux.swift in Sources */,
+				639B4A8E2E4812E0001C9FBB /* QueryFluxWidgetExtensions.swift in Sources */,
 				D8D21373FC74A18689317FBB /* RobotDetailView.swift in Sources */,
 				C26CB6CAACD7386DAA031965 /* Robots.swift in Sources */,
 				FFD5C7DCE9B4284348280B90 /* SystemNotifications.swift in Sources */,
@@ -1375,7 +1387,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1441,7 +1453,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1502,7 +1514,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1530,7 +1542,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1563,7 +1575,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1592,7 +1604,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1619,7 +1631,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1658,7 +1670,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1697,7 +1709,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1734,7 +1746,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1772,7 +1784,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1798,7 +1810,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -1824,7 +1836,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -1871,7 +1883,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -1911,7 +1923,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -1927,7 +1939,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.7;
+				MARKETING_VERSION = 1.8.8;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

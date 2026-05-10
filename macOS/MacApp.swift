@@ -546,8 +546,11 @@ struct MacApp: App {
             }
         }
         if (object.userInfo?["loginError"]) != nil {
+            let errMsg = object.userInfo?["loginError"] as? String ?? "unknown"
             if !AuthManager.shared.isSignedIn {
-                whereWeAre.deleteKeyChainPasword()
+                if isAuthFailureMessage(errMsg) {
+                    whereWeAre.deleteKeyChainPasword()
+                }
             }
         }
     }
