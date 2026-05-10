@@ -122,16 +122,10 @@ struct VisionOSApp: App {
                     }
                 }
             }
-            .onAppear {
-                if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
-                    if AuthManager.shared.isSignedIn {
-                        queryFlux(password: WhereWeAre.getPassword() ?? "")
-                    }
-                }
-            }
             .task {
                 await AuthManager.shared.validateSessionOnLaunch()
                 if whereWeAre.hasKeyChainPassword && whereWeAre.loading && AuthManager.shared.isSignedIn {
+                    _ = await AuthManager.shared.ensureValidToken()
                     queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
             }

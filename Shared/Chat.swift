@@ -273,7 +273,10 @@ struct Conversation: Identifiable, Codable {
             return
         }
 
-        guard await ensureConversation() else { return }
+        guard await ensureConversation() else {
+            cleanupRecording()
+            return
+        }
         messages.append(ChatMessage(
             role: .user, content: "🎤 Voice message",
             audioData: audioData, isVoice: true

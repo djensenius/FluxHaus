@@ -1,4 +1,3 @@
-// swiftlint:disable file_length
 //
 //  QueryFlux.swift
 //  FluxHaus
@@ -256,7 +255,6 @@ func getFlux(password: String) async throws -> LoginResponse? {
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value
 }
-
 struct FluxData {
     var mopBot: Robot?
     var broomBot: Robot?
@@ -265,7 +263,6 @@ struct FluxData {
     var dryer: WasherDryer?
     let washer: WasherDryer?
 }
-
 func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
     let mopBot = Robot(
         name: "MopBot",
@@ -278,7 +275,6 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         paused: response.mopbot.paused,
         timeStarted: response.mopbot.timeStarted
     )
-
     let broomBot = Robot(
         name: "BroomBot",
         timestamp: response.broombot.timestamp,
@@ -290,7 +286,6 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         paused: response.broombot.paused,
         timeStarted: response.broombot.timeStarted
     )
-
     var car: CarDetails?
     if let fluxCar = response.car, let evStatus = response.carEvStatus {
         car = CarDetails(
@@ -315,13 +310,9 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
             engine: fluxCar.engine
         )
     }
-
     let dishwasher = response.dishwasher
-
     let dryer = response.dryer
-
     let washer = response.washer
-
     return FluxData(
         mopBot: mopBot,
         broomBot: broomBot,
@@ -331,7 +322,6 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         washer: washer
     )
 }
-
 struct WidgetDevice: Codable, Equatable, Hashable {
     var name: String
     var progress: Int
@@ -342,7 +332,6 @@ struct WidgetDevice: Codable, Equatable, Hashable {
     var battery: Int?
     var programName: String?
 }
-
 /// Format a time remaining value (in minutes) as a human-readable string.
 /// Under 60 minutes: "30m". 60+ minutes: "2h 36m".
 func formatTimeRemaining(minutes: Int) -> String {
@@ -355,7 +344,6 @@ func formatTimeRemaining(minutes: Int) -> String {
     formatter.dateStyle = .none
     return formatter.string(from: finishDate)
 }
-
 /// Format a duration in minutes for display in appliance views.
 /// Under 60 minutes: "30 min". 60+ minutes: "2h 36 min".
 func formatDurationMinutes(_ minutes: Int) -> String {
@@ -369,11 +357,9 @@ func formatDurationMinutes(_ minutes: Int) -> String {
     }
     return "\(hours)h \(remainingMinutes) min"
 }
-
 // swiftlint:disable:next function_body_length
 func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     var returnValue: [WidgetDevice] = []
-
     let dishwasherMinutes = (fluxData.dishwasher?.remainingTime ?? 0) / 60
     let dishWasherReminingTime = formatTimeRemaining(minutes: dishwasherMinutes)
     let dishwasherDisplayName = fluxData.dishwasher?.activeProgram?.displayName
@@ -410,14 +396,12 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             )
         )
     }
-
     let washerTimeRunning = fluxData.washer?.timeRunning ?? 0
     let washerTimeRemaining = fluxData.washer?.timeRemaining ?? 0
     var washerProrgress = 0
     if washerTimeRunning > 0 {
         washerProrgress = Int(Double(washerTimeRunning) / Double(washerTimeRemaining + washerTimeRunning) * 100)
     }
-
     let washerReminingTime = formatTimeRemaining(minutes: fluxData.washer?.timeRemaining ?? 0)
     var washerTrailingText = washerReminingTime
     if let programName = fluxData.washer?.programName,
@@ -440,7 +424,6 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             programName: fluxData.washer?.programName.map { formatApplianceProgramName($0) }
         )
     )
-
     let dryerTimeRunning = fluxData.dryer?.timeRunning ?? 0
     let dryerTimeRemaining = fluxData.dryer?.timeRemaining ?? 1
     var dryerProgress = 0
@@ -457,7 +440,6 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
        let status = fluxData.dryer?.status {
         dryerTrailingText = "\(status) ⋅ \(dryerTrailingText)"
     }
-
     returnValue.append(
         WidgetDevice(
             name: "Dryer",
@@ -469,7 +451,6 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             programName: fluxData.dryer?.programName.map { formatApplianceProgramName($0) }
         )
     )
-
     returnValue.append(
         WidgetDevice(
             name: "BroomBot",
@@ -481,7 +462,6 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             battery: fluxData.broomBot?.batteryLevel
         )
     )
-
     returnValue.append(
         WidgetDevice(
             name: "MopBot",
@@ -493,7 +473,6 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             battery: fluxData.mopBot?.batteryLevel
         )
     )
-
     if let car = fluxData.car {
         returnValue.append(
             WidgetDevice(
@@ -506,6 +485,5 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             )
         )
     }
-
     return returnValue
 }

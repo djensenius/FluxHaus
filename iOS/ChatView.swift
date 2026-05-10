@@ -152,25 +152,27 @@ struct ChatView: View {
     private var sidebar: some View {
         List {
             ForEach(chat.conversations) { conv in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(conv.title ?? "Untitled")
-                            .font(Theme.Fonts.bodyLarge)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            .lineLimit(1)
-                        Spacer()
-                        Text(formatRelativeDate(conv.updatedAt))
+                Button(action: {
+                    Task { await chat.loadConversation(conv) }
+                }, label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(conv.title ?? "Untitled")
+                                .font(Theme.Fonts.bodyLarge)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .lineLimit(1)
+                            Spacer()
+                            Text(formatRelativeDate(conv.updatedAt))
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                        Text("\(conv.messageCount) messages")
                             .font(Theme.Fonts.caption)
                             .foregroundColor(Theme.Colors.textSecondary)
                     }
-                    Text("\(conv.messageCount) messages")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                }
+                })
+                .buttonStyle(.plain)
                 .contentShape(Rectangle())
-                .onTapGesture {
-                    Task { await chat.loadConversation(conv) }
-                }
                 .listRowBackground(
                     conv.id == chat.conversationId
                         ? Theme.Colors.accent.opacity(0.15) : nil
@@ -478,28 +480,30 @@ struct ConversationListView: View {
     var body: some View {
         List {
             ForEach(filteredConversations) { conv in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(conv.title ?? "Untitled")
-                            .font(Theme.Fonts.bodyLarge)
-                            .foregroundColor(Theme.Colors.textPrimary)
-                            .lineLimit(1)
-                        Spacer()
-                        Text(formatRelativeDate(conv.updatedAt))
-                            .font(Theme.Fonts.caption)
-                            .foregroundColor(Theme.Colors.textSecondary)
-                    }
-                    Text("\(conv.messageCount) messages")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
+                Button(action: {
                     Task {
                         await chat.loadConversation(conv)
                         onSelectConversation()
                     }
-                }
+                }, label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(conv.title ?? "Untitled")
+                                .font(Theme.Fonts.bodyLarge)
+                                .foregroundColor(Theme.Colors.textPrimary)
+                                .lineLimit(1)
+                            Spacer()
+                            Text(formatRelativeDate(conv.updatedAt))
+                                .font(Theme.Fonts.caption)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                        Text("\(conv.messageCount) messages")
+                            .font(Theme.Fonts.caption)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                })
+                .buttonStyle(.plain)
+                .contentShape(Rectangle())
                 .listRowBackground(
                     conv.id == chat.conversationId
                         ? Theme.Colors.accent.opacity(0.15) : nil

@@ -40,6 +40,7 @@ public struct WhereWeAre {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecValueData as String: password.data(using: String.Encoding.utf8)!
         ]
+        var didSave = false
         let status = SecItemAdd(attributes as CFDictionary, nil)
         if status == errSecDuplicateItem {
             let query: [String: Any] = [
@@ -54,10 +55,13 @@ public struct WhereWeAre {
             if updateStatus != noErr {
                 logger.error("Keychain update FAILED for demo password: OSStatus \(updateStatus)")
             }
+            didSave = updateStatus == noErr
         } else if status != noErr {
             logger.error("Keychain write FAILED for demo password: OSStatus \(status)")
+        } else {
+            didSave = true
         }
-        hasKeychainPassword(has: true)
+        hasKeychainPassword(has: didSave)
     }
 
     public static func getPassword() -> String? {

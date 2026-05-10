@@ -349,6 +349,8 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     // MARK: - Demo Sign In
     @MainActor func signInDemo(password: String) {
         guard !password.isEmpty else {
+            var whereWeAre = WhereWeAre()
+            whereWeAre.deleteKeyChainPasword()
             authState = .signedOut
             return
         }
