@@ -76,10 +76,10 @@ struct ChatView: View {
                 await chat.loadConversations()
             }
             if chat.conversationId == nil {
-                if chat.conversations.isEmpty {
-                    await chat.createNewConversation()
-                } else if let first = chat.conversations.first {
+                if let first = chat.conversations.first {
                     await chat.loadConversation(first)
+                } else {
+                    chat.startNewConversation()
                 }
             }
         }
@@ -89,7 +89,7 @@ struct ChatView: View {
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
         ) { _ in
-            Task { await chat.createNewConversation() }
+            chat.startNewConversation()
         }
     }
 
@@ -138,7 +138,7 @@ struct ChatView: View {
             })
             .buttonStyle(.borderless)
             Button(action: {
-                Task { await chat.createNewConversation() }
+                chat.startNewConversation()
             }, label: {
                 Label("New", systemImage: "square.and.pencil")
             })
@@ -168,7 +168,7 @@ struct ChatView: View {
                     .fontWeight(.semibold)
                 Spacer()
                 Button(action: {
-                    Task { await chat.createNewConversation() }
+                    chat.startNewConversation()
                 }, label: {
                     Image(systemName: "square.and.pencil")
                 })

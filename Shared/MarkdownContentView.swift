@@ -91,6 +91,7 @@ struct MarkdownContentView: View {
                 blockView(for: block)
             }
         }
+        .textSelection(.enabled)
         .task(id: content) {
             let key = content.hashValue
             if let cached = MarkdownBlocksCache.shared.cached(for: key) {

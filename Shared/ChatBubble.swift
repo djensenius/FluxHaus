@@ -79,17 +79,17 @@ struct ChatBubble: View {
                     progressContent
                 } else if message.role == .assistant {
                     MarkdownContentView(content: message.content, role: .assistant)
-                        #if !os(macOS)
                         .textSelection(.enabled)
-                        #endif
                 } else if message.role == .error {
                     Text(message.content)
                         .font(Theme.Fonts.bodyLarge)
                         .foregroundColor(Theme.Colors.error)
+                        .textSelection(.enabled)
                 } else {
                     Text(markdownAttributed(message.content))
                         .font(Theme.Fonts.bodyLarge)
                         .foregroundColor(Theme.Colors.background)
+                        .textSelection(.enabled)
                 }
 
                 // Voice playback button
@@ -124,6 +124,7 @@ struct ChatBubble: View {
             Text(message.content)
                 .font(Theme.Fonts.bodySmall).italic()
                 .foregroundColor(Theme.Colors.textSecondary)
+                .textSelection(.enabled)
         }
     }
 

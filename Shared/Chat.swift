@@ -126,12 +126,16 @@ struct Conversation: Identifiable, Codable {
     private var recordingURL: URL?
     private var levelTimer: Timer?
     private var isSyncing = false
+    private var loadingConversationId: String?
 
     func send(_ text: String, images: [ChatImage] = []) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
 
-        await ensureConversation()
+        guard await ensureConversation() else {
+            cleanupRecording()
+            return
+        }
         messages.append(ChatMessage(role: .user, content: trimmed, images: images))
         isLoading = true
 
@@ -269,7 +273,10 @@ struct Conversation: Identifiable, Codable {
             return
         }
 
-        await ensureConversation()
+        guard await ensureConversation() else {
+            cleanupRecording()
+            return
+        }
         messages.append(ChatMessage(
             role: .user, content: "🎤 Voice message",
             audioData: audioData, isVoice: true
@@ -378,33 +385,27 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
-    func createNewConversation() async {
-        do {
-            let conv = try await createConversation()
-            conversationId = conv.id
-            touchConversation(conv.id)
-            messages = []
-            conversations.insert(conv, at: 0)
-            sessionError = nil
-        } catch {
-            logger.error("Failed to create conversation: \(error.localizedDescription)")
-            sessionError = "Chat history unavailable"
-        }
+    func startNewConversation() {
+        stopPlayback()
+        loadingConversationId = nil
+        isLoading = false
+        conversationId = nil
+        sessionError = nil
     }
 
     func loadConversation(_ conv: Conversation) async {
         touchConversation(conv.id)
-        // Yield before mutating state so any in-progress layout cycle on the
-        // calling side (e.g. List selection highlight) can finish first.
-        await Task.yield()
         conversationId = conv.id
         if cachedMessages[conv.id] != nil {
+            loadingConversationId = nil
+            isLoading = false
             return
         }
+        loadingConversationId = conv.id
         isLoading = true
         do {
             let detail = try await fetchConversation(id: conv.id)
-            messages = detail.messages.map { msg in
+            cachedMessages[conv.id] = detail.messages.map { msg in
                 ChatMessage(
                     role: ChatRole(rawValue: msg.role) ?? .assistant,
                     content: msg.content,
@@ -414,9 +415,14 @@ struct Conversation: Identifiable, Codable {
             }
         } catch {
             logger.error("Failed to load conversation: \(error.localizedDescription)")
-            messages.append(ChatMessage(role: .error, content: "Failed to load history"))
+            cachedMessages[conv.id] = [
+                ChatMessage(role: .error, content: "Failed to load history")
+            ]
         }
-        isLoading = false
+        if loadingConversationId == conv.id {
+            loadingConversationId = nil
+            isLoading = false
+        }
     }
 
     func deleteConversation(_ conv: Conversation) async {
@@ -440,16 +446,20 @@ struct Conversation: Identifiable, Codable {
 
     // MARK: - Conversation helpers
 
-    private func ensureConversation() async {
-        guard conversationId == nil else { return }
+    @discardableResult
+    private func ensureConversation() async -> Bool {
+        guard conversationId == nil else { return true }
         do {
             let conv = try await createConversation()
             conversationId = conv.id
             touchConversation(conv.id)
             conversations.insert(conv, at: 0)
             sessionError = nil
+            return true
         } catch {
             logger.error("Failed to ensure conversation: \(error.localizedDescription)")
+            sessionError = error.localizedDescription
+            return false
         }
     }
 

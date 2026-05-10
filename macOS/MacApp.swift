@@ -142,6 +142,14 @@ final class QuickChatWindowController: NSWindowController {
         NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
     }
+
+    func dismiss() {
+        window?.orderOut(nil)
+    }
+
+    var isVisible: Bool {
+        window?.isVisible == true
+    }
 }
 
 @MainActor
@@ -167,7 +175,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         }
         GlobalHotKeyManager.shared.onPress = { [weak self] in
             Task { @MainActor [weak self] in
-                self?.presentQuickChatWindow()
+                self?.toggleQuickChatWindow()
             }
         }
         registerObservers()
@@ -272,6 +280,19 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         quickChatWindowController?.present()
     }
 
+    private func toggleQuickChatWindow() {
+        guard AuthManager.shared.isOIDC else { return }
+        guard let sharedChat else { return }
+        if quickChatWindowController == nil {
+            quickChatWindowController = QuickChatWindowController(chat: sharedChat)
+        }
+        if quickChatWindowController?.isVisible == true {
+            quickChatWindowController?.dismiss()
+        } else {
+            quickChatWindowController?.present()
+        }
+    }
+
     private func presentMainApp(section: String? = nil) {
         restoreDockPresence()
         restorePrimaryWindows()
@@ -352,13 +373,12 @@ struct MacApp: App {
             mainContent
                 .onAppear {
                     appDelegate.configure(sharedChat: chat)
-                    if whereWeAre.hasKeyChainPassword && whereWeAre.loading {
-                        if AuthManager.shared.isSignedIn {
-                            Task {
-                                _ = await AuthManager.shared.ensureValidToken()
-                                queryFlux(password: WhereWeAre.getPassword() ?? "")
-                            }
-                        }
+                }
+                .task {
+                    await AuthManager.shared.validateSessionOnLaunch()
+                    if whereWeAre.hasKeyChainPassword && whereWeAre.loading && AuthManager.shared.isSignedIn {
+                        _ = await AuthManager.shared.ensureValidToken()
+                        queryFlux(password: WhereWeAre.getPassword() ?? "")
                     }
                 }
                 .onReceive(

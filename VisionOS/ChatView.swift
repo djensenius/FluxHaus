@@ -56,7 +56,7 @@ struct ChatView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
-                        Task { await chat.createNewConversation() }
+                        chat.startNewConversation()
                     }, label: {
                         Image(systemName: "plus")
                             .foregroundColor(Theme.Colors.accent)
@@ -72,10 +72,10 @@ struct ChatView: View {
                     await chat.loadConversations()
                 }
                 if chat.conversationId == nil {
-                    if chat.conversations.isEmpty {
-                        await chat.createNewConversation()
-                    } else if let first = chat.conversations.first {
+                    if let first = chat.conversations.first {
                         await chat.loadConversation(first)
+                    } else {
+                        chat.startNewConversation()
                     }
                 }
             }
@@ -140,6 +140,7 @@ struct ChatView: View {
             if chat.isRecording {
                 recordingOverlay
             } else {
+                let isLoading = chat.isLoading
                 HStack(spacing: 10) {
                     Button(action: {
                         chat.startRecording()
@@ -148,7 +149,7 @@ struct ChatView: View {
                             .font(Theme.Fonts.headerXL())
                             .foregroundColor(Theme.Colors.accent)
                     })
-                    .disabled(chat.isLoading)
+                    .disabled(isLoading)
 
                     PhotosPicker(
                         selection: $selectedPhotos,
@@ -158,10 +159,10 @@ struct ChatView: View {
                         Image(systemName: "photo.on.rectangle.angled")
                             .font(Theme.Fonts.headerLarge())
                             .foregroundColor(
-                                chat.isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
+                                isLoading ? Theme.Colors.textSecondary : Theme.Colors.accent
                             )
                     }
-                    .disabled(chat.isLoading)
+                    .disabled(isLoading)
 
                     TextField("Ask anything…", text: $inputText, axis: .vertical)
                         .font(Theme.Fonts.bodyLarge)

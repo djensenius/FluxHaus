@@ -222,6 +222,10 @@ private func buildAuthRequest(url: URL, method: String = "POST") async throws ->
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
 
+    if AuthManager.shared.getAccessToken() != nil {
+        _ = await AuthManager.shared.ensureValidToken()
+    }
+
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
@@ -411,7 +415,13 @@ func deleteConversationRequest(id: String) async throws {
     let request = try await buildAuthRequest(url: url, method: "DELETE")
 
     let session = URLSession(configuration: .default)
-    let (_, response) = try await session.data(for: request)
+    var (_, response) = try await session.data(for: request)
+
+    if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+        (_, response) = try await handleUnauthorizedRetry(
+            url: url, body: Data(), method: "DELETE", session: session
+        )
+    }
 
     if let http = response as? HTTPURLResponse,
        http.statusCode != 204 && http.statusCode != 200 {

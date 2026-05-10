@@ -158,13 +158,19 @@ private func handleUnauthorized(password: String) {
                 let newToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
                 logger.debug("handleUnauthorized: refresh succeeded (…\(oldToken) → …\(newToken)), retrying")
                 retryQueryFlux(password: password)
-            } else {
-                logger.error("handleUnauthorized: refresh FAILED — signing out")
-                AuthManager.shared.signOut()
+            } else if AuthManager.shared.isSignedOut {
+                logger.error("handleUnauthorized: refresh rejected — signed out")
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
                     userInfo: ["keysFailed": true]
+                )
+            } else {
+                logger.warning("handleUnauthorized: refresh failed transiently, keeping session")
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Temporary connection problem"]
                 )
             }
         }
@@ -211,6 +217,9 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             DispatchQueue.main.async {
                 AuthManager.shared.isCompletingOIDCLogin = false
+                if AuthManager.shared.getAccessToken() != nil {
+                    AuthManager.shared.markOIDCSessionValid()
+                }
                 guard AuthManager.shared.isSignedIn else {
                     logger.debug("Ignoring late queryFlux success after sign-out")
                     return
@@ -220,11 +229,13 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
                     object: response,
                     userInfo: ["keysComplete": true]
                 )
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: nil,
-                    userInfo: ["updateKeychain": password]
-                )
+                if !password.isEmpty {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.loginsUpdated,
+                        object: nil,
+                        userInfo: ["updateKeychain": password]
+                    )
+                }
                 NotificationCenter.default.post(
                     name: Notification.Name.dataUpdated,
                     object: nil,
@@ -314,7 +325,6 @@ func getFlux(password: String) async throws -> LoginResponse? {
     let value = try JSONDecoder().decode(LoginResponse.self, from: data)
     return value
 }
-
 struct FluxData {
     var mopBot: Robot?
     var broomBot: Robot?
@@ -323,7 +333,6 @@ struct FluxData {
     var dryer: WasherDryer?
     let washer: WasherDryer?
 }
-
 func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
     let mopBot = Robot(
         name: "MopBot",
@@ -336,7 +345,6 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         paused: response.mopbot.paused,
         timeStarted: response.mopbot.timeStarted
     )
-
     let broomBot = Robot(
         name: "BroomBot",
         timestamp: response.broombot.timestamp,
@@ -348,7 +356,6 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         paused: response.broombot.paused,
         timeStarted: response.broombot.timeStarted
     )
-
     var car: CarDetails?
     if let fluxCar = response.car, let evStatus = response.carEvStatus {
         car = CarDetails(
@@ -373,13 +380,9 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
             engine: fluxCar.engine
         )
     }
-
     let dishwasher = response.dishwasher
-
     let dryer = response.dryer
-
     let washer = response.washer
-
     return FluxData(
         mopBot: mopBot,
         broomBot: broomBot,

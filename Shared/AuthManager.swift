@@ -61,6 +61,8 @@ enum AuthError: Error, LocalizedError {
     case tokenExchangeFailed(String)
     case cancelled
     case unknown
+    case refreshTokenInvalid(String)
+    case transientRefreshFailure(Error)
 
     var errorDescription: String? {
         switch self {
@@ -68,6 +70,8 @@ enum AuthError: Error, LocalizedError {
         case .tokenExchangeFailed(let msg): return "Token exchange failed: \(msg)"
         case .cancelled: return "Sign in was cancelled"
         case .unknown: return "An unknown error occurred"
+        case .refreshTokenInvalid(let msg): return "Session expired: \(msg)"
+        case .transientRefreshFailure(let err): return "Temporary refresh failure: \(err.localizedDescription)"
         }
     }
 }
@@ -109,6 +113,7 @@ private actor RefreshCoordinator {
     }
 }
 
+// swiftlint:disable:next type_body_length
 class AuthManager: ObservableObject, @unchecked Sendable {
     static let shared = AuthManager()
 
@@ -168,12 +173,37 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         return false
     }
 
+    var isSignedOut: Bool {
+        if case .signedOut = authState { return true }
+        return false
+    }
+
     private init() {
         let hasAccessToken = getAccessToken() != nil
         let hasRefreshToken = getKeychainItem(account: "oidc_refresh_token") != nil
         if hasAccessToken {
-            authState = .signedIn(method: .oidc)
-            logger.info("Init: signedIn(oidc) — accessToken=YES, refreshToken=\(hasRefreshToken ? "YES" : "MISSING!")")
+            if let expiryString = getKeychainItem(account: "oidc_token_expiry"),
+               let expiryInterval = TimeInterval(expiryString),
+               Date() >= Date(timeIntervalSince1970: expiryInterval) {
+                if hasRefreshToken {
+                    authState = .unknown
+                    logger.info("Init: OIDC token expired, will validate with refresh token")
+                } else {
+                    clearOIDCTokens()
+                    if WhereWeAre.getPassword() != nil {
+                        authState = .signedIn(method: .demo)
+                        logger.info("Init: expired OIDC token without refresh; falling back to demo")
+                    } else {
+                        authState = .signedOut
+                        logger.info("Init: expired OIDC token without refresh, state=signedOut")
+                    }
+                }
+            } else {
+                authState = .signedIn(method: .oidc)
+                logger.info(
+                    "Init: signedIn(oidc) — accessToken=YES, refreshToken=\(hasRefreshToken ? "YES" : "MISSING!")"
+                )
+            }
         } else if WhereWeAre.getPassword() != nil {
             authState = .signedIn(method: .demo)
             logger.info("Init: signedIn(demo)")
@@ -189,11 +219,42 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: "oidc_access_token",
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == noErr,
+              let data = item as? Data,
+              !data.isEmpty else {
+            return false
+        }
+
+        let refreshQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "io.fluxhaus.oidc",
+            kSecAttrAccount as String: "oidc_refresh_token",
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: false
         ]
-        return SecItemCopyMatching(query as CFDictionary, nil) == noErr
+        let hasRefreshToken = SecItemCopyMatching(refreshQuery as CFDictionary, nil) == noErr
+
+        let expiryQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "io.fluxhaus.oidc",
+            kSecAttrAccount as String: "oidc_token_expiry",
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true
+        ]
+        var expiryItem: CFTypeRef?
+        guard SecItemCopyMatching(expiryQuery as CFDictionary, &expiryItem) == noErr,
+              let expiryData = expiryItem as? Data,
+              let expiryString = String(data: expiryData, encoding: .utf8),
+              let expiryInterval = TimeInterval(expiryString) else {
+            return true
+        }
+
+        let isExpired = Date() >= Date(timeIntervalSince1970: expiryInterval)
+        return !isExpired || hasRefreshToken
     }
 
     // MARK: - Authorization Header
@@ -287,6 +348,12 @@ class AuthManager: ObservableObject, @unchecked Sendable {
 
     // MARK: - Demo Sign In
     @MainActor func signInDemo(password: String) {
+        guard !password.isEmpty else {
+            var whereWeAre = WhereWeAre()
+            whereWeAre.deleteKeyChainPasword()
+            authState = .signedOut
+            return
+        }
         var whereWeAre = WhereWeAre()
         whereWeAre.setPassword(password: password)
         authState = .signedIn(method: .demo)
@@ -296,9 +363,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
     @MainActor func signOut() {
         logger.warning("signOut() called — clearing all tokens and credentials")
         isCompletingOIDCLogin = false
-        deleteKeychainItem(account: "oidc_access_token")
-        deleteKeychainItem(account: "oidc_refresh_token")
-        deleteKeychainItem(account: "oidc_token_expiry")
+        clearOIDCTokens()
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
@@ -328,19 +393,37 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         guard getAccessToken() != nil else { return false }
         if isTokenExpiringSoon() {
             logger.debug("ensureValidToken: token expiring soon, refreshing proactively")
-            let success = await refreshTokenIfNeeded()
-            if !success {
-                logger.error("ensureValidToken: refresh failed — signing out")
-                await MainActor.run { signOut() }
-            }
-            return success
+            return await refreshTokenIfNeeded()
         }
         return true
     }
 
+    /// Validates an expired stored OIDC session at launch.
+    @MainActor func validateSessionOnLaunch() async {
+        guard case .unknown = authState else { return }
+        guard getKeychainItem(account: "oidc_refresh_token") != nil else {
+            logger.info("validateSessionOnLaunch: no refresh token — signing out")
+            signOut()
+            return
+        }
+
+        let refreshed = await refreshTokenIfNeeded()
+        if case .unknown = authState {
+            authState = .signedIn(method: .oidc)
+            logger.info("validateSessionOnLaunch: \(refreshed ? "refreshed token" : "keeping cached session")")
+        }
+    }
+
+    @MainActor func markOIDCSessionValid() {
+        guard getAccessToken() != nil else { return }
+        if !isOIDC {
+            authState = .signedIn(method: .oidc)
+        }
+    }
+
     /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
     @MainActor func restoreStateIfNeeded() {
-        guard !isSignedIn else { return }
+        guard case .signedOut = authState else { return }
         if getAccessToken() != nil {
             authState = .signedIn(method: .oidc)
         } else if WhereWeAre.getPassword() != nil {
@@ -358,6 +441,7 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         guard let refreshToken = getKeychainItem(account: "oidc_refresh_token") else {
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(success: false)
+            await MainActor.run { signOut() }
             return false
         }
 
@@ -369,8 +453,13 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             logger.info("Token refreshed (expiresIn=\(tokens.expiresIn ?? -1))")
             await refreshCoordinator.complete(success: true)
             return true
+        } catch AuthError.refreshTokenInvalid(let reason) {
+            logger.error("Refresh token rejected by server — signing out: \(reason)")
+            await refreshCoordinator.complete(success: false)
+            await MainActor.run { signOut() }
+            return false
         } catch {
-            logger.error("refreshTokenIfNeeded: FAILED — \(error.localizedDescription)")
+            logger.warning("refreshTokenIfNeeded: transient failure, keeping session — \(error.localizedDescription)")
             await refreshCoordinator.complete(success: false)
             return false
         }
@@ -416,12 +505,26 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             ("scope", Self.scopes)
         ]
         request.httpBody = Self.formEncode(params).data(using: .utf8)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let body = String(data: data, encoding: .utf8) ?? "unknown"
-            throw AuthError.tokenExchangeFailed(body)
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw AuthError.transientRefreshFailure(error)
         }
-        return try JSONDecoder().decode(OIDCTokens.self, from: data)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AuthError.transientRefreshFailure(URLError(.badServerResponse))
+        }
+        if httpResponse.statusCode == 200 {
+            return try JSONDecoder().decode(OIDCTokens.self, from: data)
+        }
+
+        let body = String(data: data, encoding: .utf8) ?? "unknown"
+        if (400...499).contains(httpResponse.statusCode) {
+            throw AuthError.refreshTokenInvalid(body)
+        }
+        throw AuthError.transientRefreshFailure(URLError(.badServerResponse))
     }
 
     private func storeTokens(_ tokens: OIDCTokens) {
@@ -485,6 +588,12 @@ class AuthManager: ObservableObject, @unchecked Sendable {
             kSecAttrAccount as String: account
         ]
         SecItemDelete(query as CFDictionary)
+    }
+
+    private func clearOIDCTokens() {
+        deleteKeychainItem(account: "oidc_access_token")
+        deleteKeychainItem(account: "oidc_refresh_token")
+        deleteKeychainItem(account: "oidc_token_expiry")
     }
 
     // MARK: - PKCE Helpers
