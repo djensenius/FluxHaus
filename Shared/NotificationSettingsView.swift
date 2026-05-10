@@ -54,7 +54,7 @@ struct NotificationSettingsSection: View {
         } header: {
             Text("Live Activity & Push Notifications")
         } footer: {
-            Text("Choose which devices show Live Activities and send push notifications when finished.")
+            Text("Choose which devices appear in Live Activities and which finish alerts are sent.")
         }
     }
 

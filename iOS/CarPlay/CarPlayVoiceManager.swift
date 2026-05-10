@@ -288,7 +288,7 @@ class CarPlayVoiceManager: NSObject, AVAudioPlayerDelegate {
         try session.setCategory(
             .playAndRecord,
             mode: .default,
-            options: [.duckOthers, .allowBluetooth]
+            options: [.duckOthers, .allowBluetoothHFP]
         )
         try session.setActive(true)
     }
