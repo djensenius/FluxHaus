@@ -77,7 +77,8 @@ struct ChatView: View {
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("newConversation"))
         ) { _ in
-            Task { await chat.createNewConversation() }
+            chat.startNewConversation()
+            compactNavPath = ["chat"]
         }
         .onChange(of: selectedPhotos) {
             Task { await loadSelectedPhotos() }
@@ -114,14 +115,23 @@ struct ChatView: View {
 
     private var compactLayout: some View {
         NavigationStack(path: $compactNavPath) {
-            ConversationListView(chat: chat)
+            ConversationListView(
+                chat: chat,
+                onSelectConversation: {
+                    compactNavPath = ["chat"]
+                },
+                onStartNewConversation: {
+                    chat.startNewConversation()
+                    compactNavPath = ["chat"]
+                }
+            )
                 .navigationDestination(for: String.self) { _ in
                     chatDetail
                         .toolbarVisibility(.hidden, for: .tabBar)
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
                                 Button(action: {
-                                    Task { await chat.createNewConversation() }
+                                    chat.startNewConversation()
                                 }, label: {
                                     Image(systemName: "plus")
                                         .foregroundColor(Theme.Colors.accent)
@@ -133,8 +143,6 @@ struct ChatView: View {
         .onChange(of: chat.conversationId) {
             if chat.conversationId != nil && compactNavPath.isEmpty {
                 compactNavPath = ["chat"]
-            } else if chat.conversationId == nil && !compactNavPath.isEmpty {
-                compactNavPath = []
             }
         }
     }
@@ -144,25 +152,25 @@ struct ChatView: View {
     private var sidebar: some View {
         List {
             ForEach(chat.conversations) { conv in
-                Button(action: {
-                    Task { await chat.loadConversation(conv) }
-                }, label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(conv.title ?? "Untitled")
-                                .font(Theme.Fonts.bodyLarge)
-                                .foregroundColor(Theme.Colors.textPrimary)
-                                .lineLimit(1)
-                            Spacer()
-                            Text(formatRelativeDate(conv.updatedAt))
-                                .font(Theme.Fonts.caption)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                        Text("\(conv.messageCount) messages")
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(conv.title ?? "Untitled")
+                            .font(Theme.Fonts.bodyLarge)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(formatRelativeDate(conv.updatedAt))
                             .font(Theme.Fonts.caption)
                             .foregroundColor(Theme.Colors.textSecondary)
                     }
-                })
+                    Text("\(conv.messageCount) messages")
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    Task { await chat.loadConversation(conv) }
+                }
                 .listRowBackground(
                     conv.id == chat.conversationId
                         ? Theme.Colors.accent.opacity(0.15) : nil
@@ -192,7 +200,7 @@ struct ChatView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
-                    Task { await chat.createNewConversation() }
+                    chat.startNewConversation()
                 }, label: {
                     Image(systemName: "plus")
                         .foregroundColor(Theme.Colors.accent)
@@ -454,6 +462,8 @@ struct ChatView: View {
 
 struct ConversationListView: View {
     @Bindable var chat: Chat
+    var onSelectConversation: () -> Void = {}
+    var onStartNewConversation: () -> Void = {}
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
     @State private var searchText = ""
@@ -468,25 +478,32 @@ struct ConversationListView: View {
     var body: some View {
         List {
             ForEach(filteredConversations) { conv in
-                Button(action: {
-                    Task { await chat.loadConversation(conv) }
-                }, label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(conv.title ?? "Untitled")
-                                .font(Theme.Fonts.bodyLarge)
-                                .foregroundColor(Theme.Colors.textPrimary)
-                                .lineLimit(1)
-                            Spacer()
-                            Text(formatRelativeDate(conv.updatedAt))
-                                .font(Theme.Fonts.caption)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
-                        Text("\(conv.messageCount) messages")
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(conv.title ?? "Untitled")
+                            .font(Theme.Fonts.bodyLarge)
+                            .foregroundColor(Theme.Colors.textPrimary)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(formatRelativeDate(conv.updatedAt))
                             .font(Theme.Fonts.caption)
                             .foregroundColor(Theme.Colors.textSecondary)
                     }
-                })
+                    Text("\(conv.messageCount) messages")
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    Task {
+                        await chat.loadConversation(conv)
+                        onSelectConversation()
+                    }
+                }
+                .listRowBackground(
+                    conv.id == chat.conversationId
+                        ? Theme.Colors.accent.opacity(0.15) : nil
+                )
                 .contextMenu {
                     Button(action: {
                         renameText = conv.title ?? ""
@@ -513,7 +530,7 @@ struct ConversationListView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
-                    Task { await chat.createNewConversation() }
+                    onStartNewConversation()
                 }, label: {
                     Image(systemName: "square.and.pencil")
                         .foregroundColor(Theme.Colors.accent)
