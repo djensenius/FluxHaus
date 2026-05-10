@@ -13,13 +13,22 @@ import os
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    /// Store APNs device token for deferred registration
+    /// Store APNs device token for deferred registration.
     static var pendingApnsToken: String?
+    private static var currentApnsToken: String?
+    private static let registeredApnsTokenKey = "registeredApnsToken"
 
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAuthSignOut),
+            name: .authDidSignOut,
+            object: nil
+        )
+
         // Request notification permission — required for push notifications and live activities
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
@@ -37,12 +46,26 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         return true
     }
 
+    @objc private func handleAuthSignOut() {
+        UserDefaults.standard.removeObject(forKey: AppDelegate.registeredApnsTokenKey)
+        AppDelegate.pendingApnsToken = AppDelegate.currentApnsToken
+    }
+
     func application(
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
         let token = deviceToken.map { String(format: "%02x", $0) }.joined()
         appLogger.info("Registered for remote notifications: \(token.prefix(8))...")
+        AppDelegate.currentApnsToken = token
+
+        // iOS can hand us the same APNs token on every launch. Register it with the
+        // server once per auth context and rely on the server subscription state for delivery.
+        guard token != UserDefaults.standard.string(forKey: AppDelegate.registeredApnsTokenKey) else {
+            appLogger.debug("APNs token unchanged — skipping server registration")
+            return
+        }
+
         AppDelegate.pendingApnsToken = token
         Task { await AppDelegate.registerApnsTokenIfReady() }
     }
@@ -109,6 +132,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             let session = URLSession(configuration: .default)
             let (_, response) = try await session.data(for: request)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                UserDefaults.standard.set(token, forKey: registeredApnsTokenKey)
                 pendingApnsToken = nil
                 appLogger.info("APNs token registered with server")
             }

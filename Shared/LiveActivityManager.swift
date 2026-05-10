@@ -46,12 +46,15 @@ class LiveActivityManager {
     /// Pending devices for coalesced reconcile — if a reconcile is skipped, re-run with latest data
     private var pendingReconcileDevices: [WidgetDevice]?
 
-    /// Last registered push-to-start token — skip duplicates like GT3
+    /// Last registered push-to-start token — skip duplicates like GT3.
     private var lastRegisteredPushToStartToken: String?
+    /// Last registered per-activity update token — ActivityKit may emit it again when restored.
+    private var lastRegisteredActivityToken: String?
 
     /// Reset dedup state when auth changes (e.g. sign-out/sign-in)
     func resetTokenRegistrationState() {
         lastRegisteredPushToStartToken = nil
+        lastRegisteredActivityToken = nil
         pendingPushToStartToken = nil
     }
 
@@ -113,13 +116,21 @@ class LiveActivityManager {
     }
 
     private func registerActivityToken(token: String) async {
-        await postToServer(
+        guard token != lastRegisteredActivityToken else {
+            logger.debug("Activity push token unchanged — skipping registration")
+            return
+        }
+
+        let success = await postToServer(
             path: "/push-tokens/activity",
             body: [
                 "activityToken": token,
                 "deviceName": UIDevice.current.name
             ]
         )
+        if success {
+            lastRegisteredActivityToken = token
+        }
     }
 
     /// Observe the push-to-start token so the server can start activities remotely.

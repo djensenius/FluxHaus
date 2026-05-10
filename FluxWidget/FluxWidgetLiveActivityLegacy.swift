@@ -14,36 +14,39 @@ import SwiftUI
 struct FluxWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FluxWidgetAttributes.self) { context in
-            let device = context.state.device
-            VStack(spacing: 8) {
-                HStack {
-                    Image(systemName: device.icon)
-                        .font(.title3)
-                        .foregroundStyle(tintColor(for: device.name))
-                    Text(device.name)
-                        .font(.headline)
-                    Spacer()
-                    if !device.shortText.isEmpty {
-                        Text(device.shortText)
-                            .font(.headline)
-                            .monospacedDigit()
-                            .foregroundStyle(tintColor(for: device.name))
-                    }
-                }
-            }
-            .padding(16)
-            .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
+            PhoneSingleDeviceView(device: context.state.device)
+                .padding(16)
+                .activityBackgroundTint(liveActivityBackgroundTint(for: [context.state.device]))
+                .activitySystemActionForegroundColor(.primary)
         } dynamicIsland: { context in
             DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    LiveActivityIconBubble(device: context.state.device, size: 34, iconSize: .headline)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text(deviceMetricText(context.state.device))
+                            .font(Theme.Fonts.headerLarge())
+                            .lineLimit(1)
+                            .foregroundStyle(liveActivityProgressColor(for: context.state.device))
+                        Text(trailingSubtitle(for: context.state.device))
+                            .font(Theme.Fonts.caption)
+                            .lineLimit(1)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.state.device.name)
-                        .font(.headline)
+                    LiveActivityProgressLine(device: context.state.device)
                 }
             } compactLeading: {
                 Image(systemName: context.state.device.icon)
                     .foregroundStyle(tintColor(for: context.state.device.name))
             } compactTrailing: {
-                Text("")
+                Text(deviceMetricText(context.state.device))
+                    .font(Theme.Fonts.bodyMedium)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+                    .foregroundStyle(liveActivityProgressColor(for: context.state.device))
             } minimal: {
                 Image(systemName: context.state.device.icon)
                     .foregroundStyle(tintColor(for: context.state.device.name))
