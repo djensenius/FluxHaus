@@ -29,6 +29,10 @@ public struct WhereWeAre {
     }
 
     public mutating func setPassword(password: String) {
+        guard !password.isEmpty else {
+            deleteKeyChainPasword()
+            return
+        }
         let attributes: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrServer as String: "api.fluxhaus.io",
@@ -37,7 +41,20 @@ public struct WhereWeAre {
             kSecValueData as String: password.data(using: String.Encoding.utf8)!
         ]
         let status = SecItemAdd(attributes as CFDictionary, nil)
-        if status != noErr {
+        if status == errSecDuplicateItem {
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassInternetPassword,
+                kSecAttrServer as String: "api.fluxhaus.io",
+                kSecAttrAccount as String: "demo"
+            ]
+            let update: [String: Any] = [
+                kSecValueData as String: password.data(using: String.Encoding.utf8)!
+            ]
+            let updateStatus = SecItemUpdate(query as CFDictionary, update as CFDictionary)
+            if updateStatus != noErr {
+                logger.error("Keychain update FAILED for demo password: OSStatus \(updateStatus)")
+            }
+        } else if status != noErr {
             logger.error("Keychain write FAILED for demo password: OSStatus \(status)")
         }
         hasKeychainPassword(has: true)
@@ -59,6 +76,10 @@ public struct WhereWeAre {
            let existingItem = item as? [String: Any],
            let passwordData = existingItem[kSecValueData as String] as? Data,
            let password = String(data: passwordData, encoding: .utf8) {
+            guard !password.isEmpty else {
+                deleteDemoPassword()
+                return nil
+            }
             return password
         }
         if status != errSecItemNotFound {
@@ -76,6 +97,11 @@ public struct WhereWeAre {
     }
 
     public mutating func deleteKeyChainPasword() {
+        Self.deleteDemoPassword()
+        hasKeychainPassword(has: false)
+    }
+
+    private static func deleteDemoPassword() {
         let query: [String: Any] = [
             kSecClass as String: kSecClassInternetPassword,
             kSecAttrServer as String: "api.fluxhaus.io",
@@ -85,6 +111,5 @@ public struct WhereWeAre {
         if status != noErr && status != errSecItemNotFound {
             logger.error("Keychain delete FAILED for demo password: OSStatus \(status)")
         }
-        hasKeychainPassword(has: false)
     }
 }

@@ -240,6 +240,12 @@ struct FluxHausApp: App {
                     }
                 }
             }
+            .task {
+                await AuthManager.shared.validateSessionOnLaunch()
+                if whereWeAre.hasKeyChainPassword && whereWeAre.loading && AuthManager.shared.isSignedIn {
+                    queryFlux(password: WhereWeAre.getPassword() ?? "")
+                }
+            }
             .onReceive(
                 NotificationCenter.default.publisher(for: .authDidSignOut)
             ) { _ in

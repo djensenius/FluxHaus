@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  QueryFlux.swift
 //  FluxHaus
@@ -108,13 +109,19 @@ private func handleUnauthorized(password: String) {
                 let newToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
                 logger.debug("handleUnauthorized: refresh succeeded (…\(oldToken) → …\(newToken)), retrying")
                 retryQueryFlux(password: password)
-            } else {
-                logger.error("handleUnauthorized: refresh FAILED — signing out")
-                AuthManager.shared.signOut()
+            } else if AuthManager.shared.isSignedOut {
+                logger.error("handleUnauthorized: refresh rejected — signed out")
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
                     userInfo: ["keysFailed": true]
+                )
+            } else {
+                logger.warning("handleUnauthorized: refresh failed transiently, keeping session")
+                NotificationCenter.default.post(
+                    name: Notification.Name.loginsUpdated,
+                    object: nil,
+                    userInfo: ["loginError": "Temporary connection problem"]
                 )
             }
         }
@@ -161,6 +168,9 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             DispatchQueue.main.async {
                 AuthManager.shared.isCompletingOIDCLogin = false
+                if AuthManager.shared.getAccessToken() != nil {
+                    AuthManager.shared.markOIDCSessionValid()
+                }
                 guard AuthManager.shared.isSignedIn else {
                     logger.debug("Ignoring late queryFlux success after sign-out")
                     return
@@ -170,11 +180,13 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
                     object: response,
                     userInfo: ["keysComplete": true]
                 )
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: nil,
-                    userInfo: ["updateKeychain": password]
-                )
+                if !password.isEmpty {
+                    NotificationCenter.default.post(
+                        name: Notification.Name.loginsUpdated,
+                        object: nil,
+                        userInfo: ["updateKeychain": password]
+                    )
+                }
                 NotificationCenter.default.post(
                     name: Notification.Name.dataUpdated,
                     object: nil,
