@@ -526,7 +526,7 @@ extension ChatView {
                     mediaType: "image/jpeg",
                     base64: jpeg.base64EncodedString()
                 )
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     pendingImages.append(chatImage)
                 }
             }

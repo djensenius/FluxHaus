@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Robots")
 
 // Robot-specific logic and classes
 // Note: Shared types are now defined in LoginStucts.swift
@@ -45,30 +48,28 @@ import Foundation
 
     func fetchRobots() {
         if let response = apiResponse?.response {
-            DispatchQueue.main.async {
-                self.mopBot = Robot(
-                    name: "MopBot",
-                    timestamp: response.mopbot.timestamp,
-                    batteryLevel: response.mopbot.batteryLevel,
-                    binFull: response.mopbot.binFull,
-                    running: response.mopbot.running,
-                    charging: response.mopbot.charging,
-                    docking: response.mopbot.docking,
-                    paused: response.mopbot.paused,
-                    timeStarted: response.mopbot.timeStarted
-                )
-                self.broomBot = Robot(
-                    name: "BroomBot",
-                    timestamp: response.broombot.timestamp,
-                    batteryLevel: response.broombot.batteryLevel,
-                    binFull: response.broombot.binFull,
-                    running: response.broombot.running,
-                    charging: response.broombot.charging,
-                    docking: response.broombot.docking,
-                    paused: response.broombot.paused,
-                    timeStarted: response.broombot.timeStarted
-                )
-            }
+            mopBot = Robot(
+                name: "MopBot",
+                timestamp: response.mopbot.timestamp,
+                batteryLevel: response.mopbot.batteryLevel,
+                binFull: response.mopbot.binFull,
+                running: response.mopbot.running,
+                charging: response.mopbot.charging,
+                docking: response.mopbot.docking,
+                paused: response.mopbot.paused,
+                timeStarted: response.mopbot.timeStarted
+            )
+            broomBot = Robot(
+                name: "BroomBot",
+                timestamp: response.broombot.timestamp,
+                batteryLevel: response.broombot.batteryLevel,
+                binFull: response.broombot.binFull,
+                running: response.broombot.running,
+                charging: response.broombot.charging,
+                docking: response.broombot.docking,
+                paused: response.broombot.paused,
+                timeStarted: response.broombot.timeStarted
+            )
         }
     }
 
@@ -110,13 +111,14 @@ import Foundation
             if let csrfToken = csrfToken {
                 request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
             }
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
-                if data != nil {
-                    print("Got Robot data \(path)")
-                }
+            do {
+                let session = URLSession(configuration: .default)
+                let (_, response) = try await session.data(for: request)
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                logger.info("Robot action \(path) completed with HTTP \(statusCode)")
+            } catch {
+                logger.error("Robot action \(path) failed: \(error.localizedDescription)")
             }
-            task.resume()
         }
     }
 }

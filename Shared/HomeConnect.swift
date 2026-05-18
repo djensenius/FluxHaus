@@ -9,8 +9,8 @@ import Foundation
 // Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor
-class HomeConnect: ObservableObject {
-    @Published var appliances: [Appliance] = []
+@Observable class HomeConnect {
+    var appliances: [Appliance] = []
     var apiResponse: Api?
 
     init(apiResponse: Api) {
@@ -52,8 +52,9 @@ class HomeConnect: ObservableObject {
         var timeRemaining = 0
 
         timeRemaining = (program.remainingTime ?? 0) / 60
-        if program.activeProgram != nil {
-            options = [program.activeProgram!.rawValue]
+        if let activeProgram = program.activeProgram {
+            // The API's selected program is the user-facing name; fall back to the enum value.
+            options = [program.selectedProgram ?? activeProgram.rawValue]
         }
 
         let currentDate = Date()

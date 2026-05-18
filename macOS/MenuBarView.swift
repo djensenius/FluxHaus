@@ -14,7 +14,7 @@ struct MenuBarView: View {
     var hconn: HomeConnect?
     var favouriteScenes: [String]
     @State private var sceneManager = SceneManager()
-    @ObservedObject private var authManager = AuthManager.shared
+    @State private var authManager = AuthManager.shared
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {

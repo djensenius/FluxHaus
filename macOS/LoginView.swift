@@ -9,7 +9,7 @@ import SwiftUI
 
 struct LoginView: View {
     var needLoginView: Bool
-    @ObservedObject var viewModel: LoginViewModel = LoginViewModel()
+    @State private var viewModel = LoginViewModel()
     @State private var isSigningIn = false
     @State private var showDemoLogin = false
     @State private var errorMessage: String?

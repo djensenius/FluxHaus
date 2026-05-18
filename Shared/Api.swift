@@ -8,8 +8,8 @@
 import Foundation
 
 @MainActor
-class Api: ObservableObject {
-    @Published var response: LoginResponse?
+@Observable class Api {
+    var response: LoginResponse?
 
     func setApiResponse(apiResponse: LoginResponse) {
         self.response = apiResponse

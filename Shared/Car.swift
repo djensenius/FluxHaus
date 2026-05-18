@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import os
+
+private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Car")
 
 // Car-specific logic and classes
 // Note: Shared types are now defined in LoginStucts.swift
@@ -39,29 +42,27 @@ import Foundation
         if let response = apiResponse?.response,
            let fluxCar = response.car,
            let evStatus = response.carEvStatus {
-            DispatchQueue.main.async {
-                self.vehicle = CarDetails(
-                    timestamp: fluxCar.timestamp,
-                    evStatusTimestamp: evStatus.timestamp,
-                    batteryLevel: evStatus.batteryStatus,
-                    distance: evStatus.drvDistance[0].rangeByFuel.evModeRange.value,
-                    hvac: fluxCar.airCtrlOn,
-                    pluggedIn: evStatus.batteryPlugin == 0 ? false : true,
-                    batteryCharge: evStatus.batteryCharge,
-                    locked: fluxCar.doorLock,
-                    doorsOpen: Doors(
-                        frontRight: fluxCar.doorOpen.frontRight,
-                        frontLeft: fluxCar.doorOpen.frontLeft,
-                        backRight: fluxCar.doorOpen.backRight,
-                        backLeft: fluxCar.doorOpen.backLeft
-                    ),
-                    trunkOpen: fluxCar.trunkOpen,
-                    defrost: fluxCar.defrost,
-                    hoodOpen: fluxCar.hoodOpen,
-                    odometer: response.carOdometer ?? 0,
-                    engine: fluxCar.engine
-                )
-            }
+            vehicle = CarDetails(
+                timestamp: fluxCar.timestamp,
+                evStatusTimestamp: evStatus.timestamp,
+                batteryLevel: evStatus.batteryStatus,
+                distance: evStatus.drvDistance[0].rangeByFuel.evModeRange.value,
+                hvac: fluxCar.airCtrlOn,
+                pluggedIn: evStatus.batteryPlugin != 0,
+                batteryCharge: evStatus.batteryCharge,
+                locked: fluxCar.doorLock,
+                doorsOpen: Doors(
+                    frontRight: fluxCar.doorOpen.frontRight,
+                    frontLeft: fluxCar.doorOpen.frontLeft,
+                    backRight: fluxCar.doorOpen.backRight,
+                    backLeft: fluxCar.doorOpen.backLeft
+                ),
+                trunkOpen: fluxCar.trunkOpen,
+                defrost: fluxCar.defrost,
+                hoodOpen: fluxCar.hoodOpen,
+                odometer: response.carOdometer ?? 0,
+                engine: fluxCar.engine
+            )
         }
     }
 
@@ -126,13 +127,14 @@ import Foundation
                 request.httpBody = try? JSONSerialization.data(withJSONObject: body)
             }
 
-            let session = URLSession(configuration: .default)
-            let task = session.dataTask(with: request) { @Sendable (data: Data?, _: URLResponse?, _: Error?) in
-                if data != nil {
-                    print("Got data \(path)")
-                }
+            do {
+                let session = URLSession(configuration: .default)
+                let (_, response) = try await session.data(for: request)
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                logger.info("Car action \(path) completed with HTTP \(statusCode)")
+            } catch {
+                logger.error("Car action \(path) failed: \(error.localizedDescription)")
             }
-            task.resume()
         }
     }
 }

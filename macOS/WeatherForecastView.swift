@@ -187,7 +187,7 @@ struct WeatherForecastSection: View {
 
 // swiftlint:disable:next type_body_length
 struct WeatherDetailView: View {
-    @ObservedObject var locationManager: LocationManager
+    var locationManager: LocationManager
     var radarService: RadarService
     @State private var frameIndex = 0
     @State private var isPlaying = false
@@ -476,7 +476,7 @@ struct WeatherDetailView: View {
                     coordinate: locationManager.coordinate,
                     radarService: radarService,
                     frameIndex: frameIndex,
-                    onPreloadComplete: { DispatchQueue.main.async { tilesReady = true } }
+                    onPreloadComplete: { Task { @MainActor in tilesReady = true } }
                 )
                 .frame(maxWidth: .infinity).frame(height: 300)
                 .cornerRadius(8).clipped()

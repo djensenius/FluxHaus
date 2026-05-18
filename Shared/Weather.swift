@@ -33,13 +33,13 @@ struct ForecastInfo {
 
 // MARK: - Location services
 @MainActor
-@preconcurrency class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+@preconcurrency @Observable class LocationManager: NSObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     private var status: CLAuthorizationStatus?
     private var location: CLLocation?
-    @Published var weather: Weather?
-    @Published var forecast: ForecastInfo?
-    @Published var weatherError: String?
+    var weather: Weather?
+    var forecast: ForecastInfo?
+    var weatherError: String?
     private var retryCount = 0
     private static let maxRetries = 3
 

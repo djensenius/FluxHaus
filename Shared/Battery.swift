@@ -25,13 +25,9 @@ enum Model {
     var model = Model.iPhone
 
     init() {
-        DispatchQueue.main.async {
-            UIDevice.current.isBatteryMonitoringEnabled = true
-            print(UIDevice.current.isBatteryMonitoringEnabled)
-            print(UIDevice.current.batteryLevel)
-            self.percent = Int(UIDevice.current.batteryLevel * 100)
-            self.state = UIDevice.current.batteryState
-        }
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        self.percent = max(0, Int(UIDevice.current.batteryLevel * 100))
+        self.state = UIDevice.current.batteryState
 
         if UIDevice.current.model == "iPhone" {
             self.model = Model.iPhone
@@ -56,8 +52,8 @@ enum Model {
         )
     }
     @objc func batteryLevelDidChange(notification: Notification) {
-         percent = Int(UIDevice.current.batteryLevel * 100)
-     }
+         percent = max(0, Int(UIDevice.current.batteryLevel * 100))
+      }
 
      @objc func batteryStateDidChange(notification: Notification) {
          state = UIDevice.current.batteryState

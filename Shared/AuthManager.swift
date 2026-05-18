@@ -114,7 +114,7 @@ private actor RefreshCoordinator {
 }
 
 // swiftlint:disable:next type_body_length
-class AuthManager: ObservableObject, @unchecked Sendable {
+@Observable class AuthManager: @unchecked Sendable {
     static let shared = AuthManager()
 
     // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
@@ -150,11 +150,11 @@ class AuthManager: ObservableObject, @unchecked Sendable {
         case demo
     }
 
-    @Published var authState: AuthState = .unknown
+    var authState: AuthState = .unknown
 
     /// True while an OIDC sign-in is completing (exchange → first API call).
     /// Used to suppress duplicate queryFlux triggered by scenePhase changes.
-    @Published var isCompletingOIDCLogin = false
+    var isCompletingOIDCLogin = false
 
     // Keep strong references to prevent deallocation during auth
     private var currentAuthSession: ASWebAuthenticationSession?

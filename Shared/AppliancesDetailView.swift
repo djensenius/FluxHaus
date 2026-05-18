@@ -5,9 +5,9 @@
 import SwiftUI
 
 struct AppliancesDetailView: View {
-    @ObservedObject var hconn: HomeConnect
-    @ObservedObject var miele: Miele
-    @ObservedObject var apiResponse: Api
+    var hconn: HomeConnect
+    var miele: Miele
+    var apiResponse: Api
     var robots: Robots
     @State private var showBroomBotSheet = false
     @State private var showMopBotSheet = false

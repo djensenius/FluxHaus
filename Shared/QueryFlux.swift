@@ -10,6 +10,8 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryFlux")
 
+@MainActor private var activeQueryFluxTask: Task<Void, Never>?
+
 // MARK: - Helper Functions
 
 /// Check if a login error message indicates an authentication failure (vs transient/server issue)
@@ -117,56 +119,64 @@ private func buildFluxAPIRequest(password: String) -> URLRequest? {
 }
 
 func queryFlux(password: String) {
-    queryFluxWithRetry(password: password, attempt: 0)
+    Task { @MainActor in
+        activeQueryFluxTask?.cancel()
+        activeQueryFluxTask = Task {
+            await queryFluxWithRetry(password: password, attempt: 0)
+        }
+    }
 }
 
-private func queryFluxWithRetry(password: String, attempt: Int) {
+private func queryFluxWithRetry(password: String, attempt: Int) async {
     guard let request = buildFluxAPIRequest(password: password) else { return }
 
-    let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
-    let task = session.dataTask(with: request) { data, response, error in
+    do {
+        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+        let (data, response) = try await session.data(for: request)
         let httpResponse = response as? HTTPURLResponse
 
         if httpResponse?.statusCode == 401 {
-            handleUnauthorized(password: password)
+            await handleUnauthorized(password: password)
             return
         }
 
-        if let error = error {
-            if isTransientNetworkError(error) && attempt < RetryConfig().maxRetries {
-                let delayMs = RetryConfig().delayMs(for: attempt)
-                logger.warning("queryFlux: transient error on attempt \(attempt + 1), retrying in \(delayMs)ms")
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(Int(delayMs))) {
-                    queryFluxWithRetry(password: password, attempt: attempt + 1)
-                }
-                return
-            }
+        await handleQueryFluxResponse(data: data, error: nil, password: password)
+    } catch is CancellationError {
+        return
+    } catch {
+        if isTransientNetworkError(error) && attempt < RetryConfig().maxRetries {
+            let delayMs = RetryConfig().delayMs(for: attempt)
+            logger.warning("queryFlux: transient error on attempt \(attempt + 1), retrying in \(delayMs)ms")
+            try? await Task.sleep(for: .milliseconds(delayMs))
+            guard !Task.isCancelled else { return }
+            await queryFluxWithRetry(password: password, attempt: attempt + 1)
+            return
         }
-
-        handleQueryFluxResponse(data: data, error: error, password: password)
+        await handleQueryFluxResponse(data: nil, error: error, password: password)
     }
-    task.resume()
 }
 
-private func handleUnauthorized(password: String) {
+private func handleUnauthorized(password: String) async {
     if AuthManager.shared.getAccessToken() != nil {
         logger.debug("handleUnauthorized: 401 with OIDC token, requesting refresh")
-        Task { @MainActor in
-            let oldToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
-            let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
-            if refreshed {
-                let newToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
-                logger.debug("handleUnauthorized: refresh succeeded (…\(oldToken) → …\(newToken)), retrying")
-                retryQueryFlux(password: password)
-            } else if AuthManager.shared.isSignedOut {
-                logger.error("handleUnauthorized: refresh rejected — signed out")
+        let oldToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
+        let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
+        if refreshed {
+            let newToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
+            logger.debug("handleUnauthorized: refresh succeeded (…\(oldToken) → …\(newToken)), retrying")
+            await retryQueryFlux(password: password)
+        } else if await MainActor.run(body: { AuthManager.shared.isSignedOut }) {
+            logger.error("handleUnauthorized: refresh rejected — signed out")
+            await MainActor.run {
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
                     userInfo: ["keysFailed": true]
                 )
-            } else {
-                logger.warning("handleUnauthorized: refresh failed transiently, keeping session")
+            }
+        } else {
+            logger.warning("handleUnauthorized: refresh failed transiently, keeping session")
+            await MainActor.run {
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
                     object: nil,
@@ -176,7 +186,7 @@ private func handleUnauthorized(password: String) {
         }
     } else {
         logger.error("handleUnauthorized: demo auth failed — signing out and posting loginError")
-        DispatchQueue.main.async {
+        await MainActor.run {
             AuthManager.shared.signOut()
             NotificationCenter.default.post(
                 name: Notification.Name.loginsUpdated,
@@ -188,15 +198,16 @@ private func handleUnauthorized(password: String) {
 }
 
 /// Single retry after token refresh — signs out on second 401 without further retry.
-private func retryQueryFlux(password: String) {
+private func retryQueryFlux(password: String) async {
     guard let request = buildFluxAPIRequest(password: password) else { return }
 
-    let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
-    let task = session.dataTask(with: request) { data, response, error in
+    do {
+        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
+        let (data, response) = try await session.data(for: request)
         let httpResponse = response as? HTTPURLResponse
         if httpResponse?.statusCode == 401 {
             logger.error("retryQueryFlux: still 401 after refresh — signing out")
-            DispatchQueue.main.async {
+            await MainActor.run {
                 AuthManager.shared.signOut()
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
@@ -206,16 +217,19 @@ private func retryQueryFlux(password: String) {
             }
             return
         }
-        handleQueryFluxResponse(data: data, error: error, password: password)
+        await handleQueryFluxResponse(data: data, error: nil, password: password)
+    } catch is CancellationError {
+        return
+    } catch {
+        await handleQueryFluxResponse(data: nil, error: error, password: password)
     }
-    task.resume()
 }
 
-private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) {
+private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) async {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
-            DispatchQueue.main.async {
+            await MainActor.run {
                 AuthManager.shared.isCompletingOIDCLogin = false
                 if AuthManager.shared.getAccessToken() != nil {
                     AuthManager.shared.markOIDCSessionValid()
@@ -247,7 +261,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             if let jsonStr = String(data: data, encoding: .utf8) {
                 logger.error("Response body: \(jsonStr.prefix(500))")
             }
-            DispatchQueue.main.async {
+            await MainActor.run {
                 AuthManager.shared.isCompletingOIDCLogin = false
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
@@ -260,7 +274,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
         // Only post error for non-transient failures
         if !isTransientNetworkError(error) {
             logger.error("handleQueryFluxResponse: non-transient error: \(error.localizedDescription)")
-            DispatchQueue.main.async {
+            await MainActor.run {
                 AuthManager.shared.isCompletingOIDCLogin = false
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
@@ -272,7 +286,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             // Transient network error but retries exhausted
             let msg = "transient error exhausted after retries"
             logger.error("handleQueryFluxResponse: \(msg): \(error.localizedDescription)")
-            DispatchQueue.main.async {
+            await MainActor.run {
                 AuthManager.shared.isCompletingOIDCLogin = false
                 NotificationCenter.default.post(
                     name: Notification.Name.loginsUpdated,
@@ -282,7 +296,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
             }
         }
     } else {
-        DispatchQueue.main.async {
+        await MainActor.run {
             AuthManager.shared.isCompletingOIDCLogin = false
         }
     }

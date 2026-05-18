@@ -12,9 +12,9 @@ struct FluxHausConfig {
     let favouriteScenes: [String]
 }
 
-class FluxHausConsts: ObservableObject {
-    @Published var favouriteHomeKit: [String] = []
-    @Published var favouriteScenes: [String] = []
+@Observable class FluxHausConsts {
+    var favouriteHomeKit: [String] = []
+    var favouriteScenes: [String] = []
 
     func setConfig(config: FluxHausConfig) {
         self.favouriteHomeKit = config.favouriteHomeKit
