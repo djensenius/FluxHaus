@@ -9,9 +9,9 @@ import SwiftUI
 
 struct Appliances: View {
     var fluxHausConsts: FluxHausConsts
-    @ObservedObject var hconn: HomeConnect
-    @ObservedObject var miele: Miele
-    @ObservedObject var apiResponse: Api
+    var hconn: HomeConnect
+    var miele: Miele
+    var apiResponse: Api
 
     var robots: Robots
     var battery: Battery

@@ -43,8 +43,8 @@ struct ContentView: View {
     var scooter: Scooter
     var apiResponse: Api
     var chat: Chat
-    @StateObject private var locationManager = LocationManager()
-    @StateObject private var authManager = AuthManager.shared
+    @State private var locationManager = LocationManager()
+    @State private var authManager = AuthManager.shared
     @State private var radarService = RadarService()
     @State private var selectedItem: SidebarItem = .dashboard
 

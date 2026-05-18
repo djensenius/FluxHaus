@@ -11,22 +11,20 @@ import os
 
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "VisionOSApp")
 
-@MainActor var hconn: HomeConnect?
-@MainActor var miele: Miele?
-@MainActor var robots: Robots?
-@MainActor var battery: Battery?
-@MainActor var car: Car?
-@MainActor var scooter: Scooter?
-
 @main
 struct VisionOSApp: App {
 
     @State private var whereWeAre = WhereWeAre()
     @State var fluxHausConsts = FluxHausConsts()
     @State var apiResponse = Api()
+    @State private var hconn: HomeConnect?
+    @State private var miele: Miele?
+    @State private var robots: Robots?
+    @State private var battery: Battery?
+    @State private var car: Car?
+    @State private var scooter: Scooter?
 
     @Environment(\.scenePhase) private var scenePhase
-    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     var body: some Scene {
         WindowGroup {
@@ -115,13 +113,8 @@ struct VisionOSApp: App {
                                 scooter.setApiResponse(apiResponse: self.apiResponse)
                             }
                         }
-                        .onReceive(timer) {_ in
-                            if AuthManager.shared.isSignedIn {
-                                Task {
-                                    _ = await AuthManager.shared.ensureValidToken()
-                                }
-                                queryFlux(password: WhereWeAre.getPassword() ?? "")
-                            }
+                        .task {
+                            await runPeriodicRefresh()
                         }
                     }
                 }
@@ -193,5 +186,14 @@ struct VisionOSApp: App {
     func loadScooter() {
         scooter = Scooter()
         scooter?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    private func runPeriodicRefresh() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled, AuthManager.shared.isSignedIn else { continue }
+            _ = await AuthManager.shared.ensureValidToken()
+            queryFlux(password: WhereWeAre.getPassword() ?? "")
+        }
     }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct LoadingView: View {
     var needLoginView: Bool
-    @ObservedObject var viewModel: LoginViewModel = LoginViewModel()
+    @State var viewModel = LoginViewModel()
 
     @State var error: String?
     @State var loggedIn: Bool = false
@@ -69,15 +69,11 @@ struct LoadingView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name.loginsUpdated)) { object in
                 if (object.userInfo?["loginError"]) != nil {
-                    DispatchQueue.main.async {
-                        self.error = object.userInfo!["loginError"] as? String
-                        self.isSigningIn = false
-                    }
+                    self.error = object.userInfo!["loginError"] as? String
+                    self.isSigningIn = false
                 }
                 if (object.userInfo?["keysComplete"]) != nil {
-                    DispatchQueue.main.async {
-                        self.loggedIn = true
-                    }
+                    self.loggedIn = true
                 }
             }
         } else {

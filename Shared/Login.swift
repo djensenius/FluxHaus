@@ -7,8 +7,8 @@
 
 import Foundation
 
-class LoginViewModel: ObservableObject {
-    @Published var password: String = ""
+@Observable class LoginViewModel {
+    var password: String = ""
 
     func login() {
         LoginAction(

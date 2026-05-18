@@ -9,8 +9,8 @@ import Foundation
 // Note: Shared types are now defined in LoginStucts.swift
 
 @MainActor
-class HomeConnect: ObservableObject {
-    @Published var appliances: [Appliance] = []
+@Observable class HomeConnect {
+    var appliances: [Appliance] = []
     var apiResponse: Api?
 
     init(apiResponse: Api) {
@@ -53,7 +53,7 @@ class HomeConnect: ObservableObject {
 
         timeRemaining = (program.remainingTime ?? 0) / 60
         if program.activeProgram != nil {
-            options = [program.activeProgram!.rawValue]
+            options = [program.selectedProgram ?? program.activeProgram!.rawValue]
         }
 
         let currentDate = Date()

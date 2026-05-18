@@ -12,7 +12,7 @@ import CoreLocation
 struct CarDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     var car: Car
-    @ObservedObject var locationManager: LocationManager
+    var locationManager: LocationManager
     @State private var buttonsDisabled: Bool = false
     @State var apiResponse: Api?
 
@@ -399,7 +399,7 @@ struct CarDetailView: View {
 
 struct CarClimateView: View {
     var car: Car
-    @ObservedObject var locationManager: LocationManager
+    var locationManager: LocationManager
     @Environment(\.presentationMode) var presentationMode
 
     @State private var steeringWheelHeat: Bool = false

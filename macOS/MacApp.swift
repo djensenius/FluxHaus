@@ -366,8 +366,6 @@ struct MacApp: App {
     @State private var scooter: Scooter?
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
 
-    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
-
     var body: some Scene {
         WindowGroup {
             mainContent
@@ -510,13 +508,8 @@ struct MacApp: App {
                     scooter.setApiResponse(apiResponse: self.apiResponse)
                 }
             }
-            .onReceive(timer) { _ in
-                if AuthManager.shared.isSignedIn {
-                    Task {
-                        _ = await AuthManager.shared.ensureValidToken()
-                        queryFlux(password: WhereWeAre.getPassword() ?? "")
-                    }
-                }
+            .task {
+                await runPeriodicRefresh()
             }
         }
     }
@@ -571,6 +564,15 @@ struct MacApp: App {
         let capitalized = section.prefix(1).uppercased() + section.dropFirst()
         appLogger.info("Deep link: \(capitalized)")
         postNavigation(capitalized)
+    }
+
+    private func runPeriodicRefresh() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled, AuthManager.shared.isSignedIn else { continue }
+            _ = await AuthManager.shared.ensureValidToken()
+            queryFlux(password: WhereWeAre.getPassword() ?? "")
+        }
     }
 
     private func handleDataUpdated(_ object: NotificationCenter.Publisher.Output) {

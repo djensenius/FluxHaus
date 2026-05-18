@@ -16,10 +16,10 @@ struct HomeKitFavourite {
 }
 
 @MainActor
-class HomeKitIntegration: NSObject, ObservableObject, HMHomeDelegate, HMHomeManagerDelegate {
-    @Published var homeManager = HMHomeManager()
-    @Published var favourites: [HomeKitFavourite] = []
-    @Published var primaryHome: HMHome?
+@Observable class HomeKitIntegration: NSObject, HMHomeDelegate, HMHomeManagerDelegate {
+    var homeManager = HMHomeManager()
+    var favourites: [HomeKitFavourite] = []
+    var primaryHome: HMHome?
 
     override init() {
         super.init()

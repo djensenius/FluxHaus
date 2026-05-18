@@ -17,8 +17,8 @@ struct ContentView: View {
     var scooter: Scooter
     var apiResponse: Api
     @State private var whereWeAre = WhereWeAre()
-    @StateObject private var locationManager = LocationManager()
-    @StateObject private var authManager = AuthManager.shared
+    @State private var locationManager = LocationManager()
+    @State private var authManager = AuthManager.shared
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedTab = "home"

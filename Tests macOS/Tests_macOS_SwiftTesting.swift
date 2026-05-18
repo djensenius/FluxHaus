@@ -10,14 +10,10 @@ import Testing
 import AppKit
 import SwiftUI
 
-/// Drains pending DispatchQueue.main.async blocks so data population completes.
+/// Gives main-actor updates a turn to complete before assertions.
 @MainActor
 private func drainMainQueue() async {
-    await withCheckedContinuation { continuation in
-        DispatchQueue.main.async {
-            continuation.resume()
-        }
-    }
+    await Task.yield()
 }
 
 /// Creates a LoginResponse with all device fields nil (minimal/empty state).

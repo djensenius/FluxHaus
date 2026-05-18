@@ -8,8 +8,8 @@
 import Foundation
 
 @MainActor
-class Miele: ObservableObject {
-    @Published var appliances: [Appliance] = []
+@Observable class Miele {
+    var appliances: [Appliance] = []
     var apiResponse: Api?
 
     init(apiResponse: Api) {

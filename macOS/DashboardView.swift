@@ -16,7 +16,7 @@ struct DashboardView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
-    @ObservedObject var locationManager: LocationManager
+    var locationManager: LocationManager
     var radarService: RadarService
     var onNavigate: (SidebarItem) -> Void
     @State private var sceneManager = SceneManager()

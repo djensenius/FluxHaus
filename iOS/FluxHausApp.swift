@@ -38,7 +38,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             }
             appLogger.info("Notification authorization granted: \(granted)")
             if granted {
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     application.registerForRemoteNotifications()
                 }
             }
@@ -142,13 +142,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
-@MainActor var hconn: HomeConnect?
-@MainActor var miele: Miele?
-@MainActor var robots: Robots?
-@MainActor var battery: Battery?
-@MainActor var car: Car?
-@MainActor var scooter: Scooter?
-
 @main
 struct FluxHausApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -156,9 +149,13 @@ struct FluxHausApp: App {
     @State var fluxHausConsts = FluxHausConsts()
     @State private var battery = Battery()
     @State var apiResponse = Api()
+    @State private var hconn: HomeConnect?
+    @State private var miele: Miele?
+    @State private var robots: Robots?
+    @State private var car: Car?
+    @State private var scooter: Scooter?
 
     @Environment(\.scenePhase) private var scenePhase
-    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
 
     var body: some Scene {
         WindowGroup {
@@ -248,13 +245,8 @@ struct FluxHausApp: App {
                             updateLiveActivities(response: response)
                         }
                     }
-                    .onReceive(timer) {_ in
-                        if AuthManager.shared.isSignedIn {
-                            Task {
-                                _ = await AuthManager.shared.ensureValidToken()
-                                queryFlux(password: WhereWeAre.getPassword() ?? "")
-                            }
-                        }
+                    .task {
+                        await runPeriodicRefresh()
                     }
                 }
             }
@@ -369,5 +361,14 @@ struct FluxHausApp: App {
             object: nil,
             userInfo: ["section": section]
         )
+    }
+
+    private func runPeriodicRefresh() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled, AuthManager.shared.isSignedIn else { continue }
+            _ = await AuthManager.shared.ensureValidToken()
+            queryFlux(password: WhereWeAre.getPassword() ?? "")
+        }
     }
 }

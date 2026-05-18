@@ -194,29 +194,48 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
         lock.unlock()
 
         guard let url = urlBuilder(path, zoom, col, row) else {
+            finishPending(key)
             onComplete?()
             return
         }
 
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+        Task { [weak self] in
             defer { onComplete?() }
-            guard let self, let data,
-                  let src = CGImageSourceCreateWithData(
-                      data as CFData, nil),
-                  let img = CGImageSourceCreateImageAtIndex(
-                      src, 0, nil)
-            else { return }
+            guard let self else { return }
 
-            self.lock.lock()
-            self.cache[key] = img
-            self.pending.remove(key)
-            self.lock.unlock()
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard let src = CGImageSourceCreateWithData(data as CFData, nil),
+                      let img = CGImageSourceCreateImageAtIndex(src, 0, nil)
+                else {
+                    finishPending(key)
+                    return
+                }
 
-            let tRect = self.tileMapRect(col: col, row: row, zoom: zoom)
-            DispatchQueue.main.async {
-                self.setNeedsDisplay(tRect)
+                storeTile(img, key: key)
+
+                let tRect = tileMapRect(col: col, row: row, zoom: zoom)
+                await MainActor.run {
+                    self.setNeedsDisplay(tRect)
+                }
+            } catch {
+                logger.error("Radar tile fetch failed: \(error.localizedDescription)")
+                finishPending(key)
             }
-        }.resume()
+        }
+    }
+
+    private func finishPending(_ key: String) {
+        lock.lock()
+        pending.remove(key)
+        lock.unlock()
+    }
+
+    private func storeTile(_ image: CGImage, key: String) {
+        lock.lock()
+        cache[key] = image
+        pending.remove(key)
+        lock.unlock()
     }
 
     // MARK: - Tile Math
