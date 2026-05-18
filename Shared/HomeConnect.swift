@@ -52,8 +52,9 @@ import Foundation
         var timeRemaining = 0
 
         timeRemaining = (program.remainingTime ?? 0) / 60
-        if program.activeProgram != nil {
-            options = [program.selectedProgram ?? program.activeProgram!.rawValue]
+        if let activeProgram = program.activeProgram {
+            // The API's selected program is the user-facing name; fall back to the enum value.
+            options = [program.selectedProgram ?? activeProgram.rawValue]
         }
 
         let currentDate = Date()

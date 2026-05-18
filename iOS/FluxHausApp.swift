@@ -365,10 +365,11 @@ struct FluxHausApp: App {
 
     private func runPeriodicRefresh() async {
         while !Task.isCancelled {
+            if AuthManager.shared.isSignedIn {
+                _ = await AuthManager.shared.ensureValidToken()
+                queryFlux(password: WhereWeAre.getPassword() ?? "")
+            }
             try? await Task.sleep(for: .seconds(5))
-            guard !Task.isCancelled, AuthManager.shared.isSignedIn else { continue }
-            _ = await AuthManager.shared.ensureValidToken()
-            queryFlux(password: WhereWeAre.getPassword() ?? "")
         }
     }
 }

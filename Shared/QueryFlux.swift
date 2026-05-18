@@ -10,6 +10,8 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryFlux")
 
+@MainActor private var activeQueryFluxTask: Task<Void, Never>?
+
 // MARK: - Helper Functions
 
 /// Check if a login error message indicates an authentication failure (vs transient/server issue)
@@ -117,8 +119,11 @@ private func buildFluxAPIRequest(password: String) -> URLRequest? {
 }
 
 func queryFlux(password: String) {
-    Task {
-        await queryFluxWithRetry(password: password, attempt: 0)
+    Task { @MainActor in
+        activeQueryFluxTask?.cancel()
+        activeQueryFluxTask = Task {
+            await queryFluxWithRetry(password: password, attempt: 0)
+        }
     }
 }
 
@@ -136,11 +141,14 @@ private func queryFluxWithRetry(password: String, attempt: Int) async {
         }
 
         await handleQueryFluxResponse(data: data, error: nil, password: password)
+    } catch is CancellationError {
+        return
     } catch {
         if isTransientNetworkError(error) && attempt < RetryConfig().maxRetries {
             let delayMs = RetryConfig().delayMs(for: attempt)
             logger.warning("queryFlux: transient error on attempt \(attempt + 1), retrying in \(delayMs)ms")
             try? await Task.sleep(for: .milliseconds(delayMs))
+            guard !Task.isCancelled else { return }
             await queryFluxWithRetry(password: password, attempt: attempt + 1)
             return
         }
@@ -151,14 +159,11 @@ private func queryFluxWithRetry(password: String, attempt: Int) async {
 private func handleUnauthorized(password: String) async {
     if AuthManager.shared.getAccessToken() != nil {
         logger.debug("handleUnauthorized: 401 with OIDC token, requesting refresh")
-        await MainActor.run {
-            let oldToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
-            logger.debug("handleUnauthorized: refreshing token after 401 (old token …\(oldToken))")
-        }
+        let oldToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
         let refreshed = await AuthManager.shared.refreshTokenIfNeeded()
         if refreshed {
             let newToken = AuthManager.shared.getAccessToken()?.suffix(8) ?? "nil"
-            logger.debug("handleUnauthorized: refresh succeeded (new token …\(newToken)), retrying")
+            logger.debug("handleUnauthorized: refresh succeeded (…\(oldToken) → …\(newToken)), retrying")
             await retryQueryFlux(password: password)
         } else if await MainActor.run(body: { AuthManager.shared.isSignedOut }) {
             logger.error("handleUnauthorized: refresh rejected — signed out")
@@ -213,6 +218,8 @@ private func retryQueryFlux(password: String) async {
             return
         }
         await handleQueryFluxResponse(data: data, error: nil, password: password)
+    } catch is CancellationError {
+        return
     } catch {
         await handleQueryFluxResponse(data: nil, error: error, password: password)
     }

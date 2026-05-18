@@ -200,7 +200,11 @@ class RadarAnimationRenderer: MKOverlayRenderer, @unchecked Sendable {
         }
 
         Task { [weak self] in
-            defer { onComplete?() }
+            defer {
+                if let onComplete {
+                    Task { @MainActor in onComplete() }
+                }
+            }
             guard let self else { return }
 
             do {
