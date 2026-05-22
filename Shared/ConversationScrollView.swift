@@ -24,7 +24,17 @@ struct ConversationScrollView: View {
 
     var body: some View {
         let msgs = convMessages
-        return ScrollView {
+        return Group {
+            if ChatTranscriptRenderer.usesWebTranscript && ChatTranscriptRenderer.isAvailable {
+                ConversationWebView(convId: convId, chat: chat)
+            } else {
+                nativeTranscript(messages: msgs)
+            }
+        }
+    }
+
+    private func nativeTranscript(messages msgs: [ChatMessage]) -> some View {
+        ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(msgs) { message in
                     ChatBubble(
@@ -53,7 +63,7 @@ struct ConversationScrollView: View {
         .scrollPosition($scrollPosition)
         .task(id: convId) {
             // Pre-warm the markdown cache so MarkdownContentView finds hits immediately.
-            warmMarkdownCache(for: convMessages.map(\.content))
+            warmMarkdownCache(for: msgs.map(\.content))
             scrollPosition = ScrollPosition()
             try? await Task.sleep(for: .milliseconds(32))
             scrollPosition.scrollTo(edge: .bottom)

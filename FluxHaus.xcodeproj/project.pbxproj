@@ -70,6 +70,7 @@
 		633F094A2BBB8F8F0052C088 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CC2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift */; };
 		634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
+		CTR0005000000000000000001 /* ChatTranscriptRendererTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTR0005000000000000000002 /* ChatTranscriptRendererTests.swift */; };
 		634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */; };
 		634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */; };
 		634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D22E47FFC2001F8278 /* SharedTests.swift */; };
@@ -216,6 +217,10 @@
 		CB0002000000000000000002 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		CB0002000000000000000003 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		CB0002000000000000000004 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
+		CWV0002000000000000000001 /* ConversationWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWV0001000000000000000001 /* ConversationWebView.swift */; };
+		CWV0002000000000000000002 /* ConversationWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWV0001000000000000000001 /* ConversationWebView.swift */; };
+		CWV0002000000000000000003 /* ConversationWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWV0001000000000000000001 /* ConversationWebView.swift */; };
+		CWV0002000000000000000004 /* ConversationWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWV0001000000000000000001 /* ConversationWebView.swift */; };
 		CSV0001000000000000000001 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
 		CSV0001000000000000000002 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
 		CSV0001000000000000000003 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
@@ -255,6 +260,19 @@
 		MD0002000000000000000002 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
 		MD0002000000000000000003 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
 		MD0002000000000000000004 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
+		CTR0002000000000000000001 /* ChatTranscriptRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000001 /* ChatTranscriptRenderer.swift */; };
+		CTR0002000000000000000002 /* ChatTranscriptRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000001 /* ChatTranscriptRenderer.swift */; };
+		CTR0002000000000000000003 /* ChatTranscriptRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000001 /* ChatTranscriptRenderer.swift */; };
+		CTR0002000000000000000004 /* ChatTranscriptRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000001 /* ChatTranscriptRenderer.swift */; };
+		CTR0003000000000000000001 /* ChatTranscriptRenderer.html in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000002 /* ChatTranscriptRenderer.html */; };
+		CTR0003000000000000000002 /* ChatTranscriptRenderer.html in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000002 /* ChatTranscriptRenderer.html */; };
+		CTR0003000000000000000003 /* ChatTranscriptRenderer.html in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000002 /* ChatTranscriptRenderer.html */; };
+		CTR0003000000000000000004 /* ChatTranscriptRenderer.css in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000003 /* ChatTranscriptRenderer.css */; };
+		CTR0003000000000000000005 /* ChatTranscriptRenderer.css in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000003 /* ChatTranscriptRenderer.css */; };
+		CTR0003000000000000000006 /* ChatTranscriptRenderer.css in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000003 /* ChatTranscriptRenderer.css */; };
+		CTR0003000000000000000007 /* ChatTranscriptRenderer.js in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000004 /* ChatTranscriptRenderer.js */; };
+		CTR0003000000000000000008 /* ChatTranscriptRenderer.js in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000004 /* ChatTranscriptRenderer.js */; };
+		CTR0003000000000000000009 /* ChatTranscriptRenderer.js in Resources */ = {isa = PBXBuildFile; fileRef = CTR0001000000000000000004 /* ChatTranscriptRenderer.js */; };
 		MP0002000000000000000001 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
 		MP0002000000000000000002 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
 		MP0002000000000000000003 /* MarkdownParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = MP0001000000000000000001 /* MarkdownParser.swift */; };
@@ -369,6 +387,7 @@
 		634056D22E47FFC2001F8278 /* SharedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTests.swift; sourceTree = "<group>"; };
 		634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAreTests.swift; sourceTree = "<group>"; };
 		634056D42E47FFC2001F8278 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
+		CTR0005000000000000000002 /* ChatTranscriptRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTranscriptRendererTests.swift; sourceTree = "<group>"; };
 		635BD66A2B9DF8A6009CEEA9 /* Robots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Robots.swift; sourceTree = "<group>"; };
 		635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAre.swift; sourceTree = "<group>"; };
 		635BD6742B9E030E009CEEA9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -437,7 +456,12 @@
 		C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScooterDetailView.swift; sourceTree = "<group>"; };
 		CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scooter.swift; sourceTree = "<group>"; };
+		CTR0001000000000000000001 /* ChatTranscriptRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTranscriptRenderer.swift; sourceTree = "<group>"; };
+		CTR0001000000000000000002 /* ChatTranscriptRenderer.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = ChatTranscriptRenderer.html; sourceTree = "<group>"; };
+		CTR0001000000000000000003 /* ChatTranscriptRenderer.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = ChatTranscriptRenderer.css; sourceTree = "<group>"; };
+		CTR0001000000000000000004 /* ChatTranscriptRenderer.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = ChatTranscriptRenderer.js; sourceTree = "<group>"; };
 		CSV0000000000000000000001 /* ConversationScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationScrollView.swift; sourceTree = "<group>"; };
+		CWV0001000000000000000001 /* ConversationWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationWebView.swift; sourceTree = "<group>"; };
 		D7F4D12AFB5260CA5BD9CE33 /* CarPlayVoiceManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayVoiceManager.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
 		MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
@@ -584,6 +608,9 @@
 				37D0A0000000000000000001 /* SuggestionChips.swift */,
 				PT0000000000000000000001 /* PrecipitationTimelineView.swift */,
 				CSV0000000000000000000001 /* ConversationScrollView.swift */,
+				CWV0001000000000000000001 /* ConversationWebView.swift */,
+				CTR0001000000000000000001 /* ChatTranscriptRenderer.swift */,
+				CTR0004000000000000000001 /* ChatWebRenderer */,
 				TI0000000000000000000001 /* TypingIndicator.swift */,
 				CB0001000000000000000001 /* ChatBubble.swift */,
 				MD0001000000000000000001 /* MarkdownContentView.swift */,
@@ -591,6 +618,16 @@
 				NS0001000000000000000001 /* NotificationSettingsView.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		CTR0004000000000000000001 /* ChatWebRenderer */ = {
+			isa = PBXGroup;
+			children = (
+				CTR0001000000000000000002 /* ChatTranscriptRenderer.html */,
+				CTR0001000000000000000003 /* ChatTranscriptRenderer.css */,
+				CTR0001000000000000000004 /* ChatTranscriptRenderer.js */,
+			);
+			path = ChatWebRenderer;
 			sourceTree = "<group>";
 		};
 		632CBC2C258682C9003E4988 /* Products */ = {
@@ -682,6 +719,7 @@
 			isa = PBXGroup;
 			children = (
 				634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */,
+				CTR0005000000000000000002 /* ChatTranscriptRendererTests.swift */,
 				634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */,
 				634056D02E47FFC2001F8278 /* IntegrationTests.swift */,
 				634056D12E47FFC2001F8278 /* QueryFluxTests.swift */,
@@ -952,6 +990,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */,
+				CTR0003000000000000000002 /* ChatTranscriptRenderer.html in Resources */,
+				CTR0003000000000000000005 /* ChatTranscriptRenderer.css in Resources */,
+				CTR0003000000000000000008 /* ChatTranscriptRenderer.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -960,6 +1001,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				632CBC51258682C9003E4988 /* Assets.xcassets in Resources */,
+				CTR0003000000000000000001 /* ChatTranscriptRenderer.html in Resources */,
+				CTR0003000000000000000004 /* ChatTranscriptRenderer.css in Resources */,
+				CTR0003000000000000000007 /* ChatTranscriptRenderer.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -984,6 +1028,9 @@
 			files = (
 				63DBD73C2B954216006603D0 /* Preview Assets.xcassets in Resources */,
 				63DBD7392B954216006603D0 /* Assets.xcassets in Resources */,
+				CTR0003000000000000000003 /* ChatTranscriptRenderer.html in Resources */,
+				CTR0003000000000000000006 /* ChatTranscriptRenderer.css in Resources */,
+				CTR0003000000000000000009 /* ChatTranscriptRenderer.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1096,6 +1143,8 @@
 				37D0A0010000000000000001 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000001 /* PrecipitationTimelineView.swift in Sources */,
 				CSV0001000000000000000001 /* ConversationScrollView.swift in Sources */,
+				CWV0002000000000000000001 /* ConversationWebView.swift in Sources */,
+				CTR0002000000000000000001 /* ChatTranscriptRenderer.swift in Sources */,
 				TI0001000000000000000001 /* TypingIndicator.swift in Sources */,
 				CB0002000000000000000001 /* ChatBubble.swift in Sources */,
 				MD0002000000000000000001 /* MarkdownContentView.swift in Sources */,
@@ -1162,6 +1211,8 @@
 				37D0A0010000000000000002 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000002 /* PrecipitationTimelineView.swift in Sources */,
 				CSV0001000000000000000002 /* ConversationScrollView.swift in Sources */,
+				CWV0002000000000000000002 /* ConversationWebView.swift in Sources */,
+				CTR0002000000000000000002 /* ChatTranscriptRenderer.swift in Sources */,
 				TI0001000000000000000002 /* TypingIndicator.swift in Sources */,
 				CB0002000000000000000002 /* ChatBubble.swift in Sources */,
 				MD0002000000000000000002 /* MarkdownContentView.swift in Sources */,
@@ -1269,6 +1320,8 @@
 				37D0A0010000000000000003 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000003 /* PrecipitationTimelineView.swift in Sources */,
 				CSV0001000000000000000003 /* ConversationScrollView.swift in Sources */,
+				CWV0002000000000000000003 /* ConversationWebView.swift in Sources */,
+				CTR0002000000000000000003 /* ChatTranscriptRenderer.swift in Sources */,
 				TI0001000000000000000003 /* TypingIndicator.swift in Sources */,
 				CB0002000000000000000003 /* ChatBubble.swift in Sources */,
 				MD0002000000000000000003 /* MarkdownContentView.swift in Sources */,
@@ -1281,6 +1334,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				63DBD7472B954216006603D0 /* VisionOSTests.swift in Sources */,
+				CTR0005000000000000000001 /* ChatTranscriptRendererTests.swift in Sources */,
 				634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */,
 				634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */,
 				634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */,
@@ -1345,6 +1399,8 @@
 				37D0A0010000000000000004 /* SuggestionChips.swift in Sources */,
 				PT0001000000000000000004 /* PrecipitationTimelineView.swift in Sources */,
 				CSV0001000000000000000004 /* ConversationScrollView.swift in Sources */,
+				CWV0002000000000000000004 /* ConversationWebView.swift in Sources */,
+				CTR0002000000000000000004 /* ChatTranscriptRenderer.swift in Sources */,
 				TI0001000000000000000004 /* TypingIndicator.swift in Sources */,
 				CB0002000000000000000004 /* ChatBubble.swift in Sources */,
 				MD0002000000000000000004 /* MarkdownContentView.swift in Sources */,
@@ -1386,7 +1442,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1452,7 +1508,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1513,7 +1569,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1541,7 +1597,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1574,7 +1630,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1603,7 +1659,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1630,7 +1686,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1669,7 +1725,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1708,7 +1764,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1745,7 +1801,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1783,7 +1839,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1809,7 +1865,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -1835,7 +1891,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -1882,7 +1938,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -1922,7 +1978,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.9;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -1938,7 +1994,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.8.8;
+				MARKETING_VERSION = 1.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
