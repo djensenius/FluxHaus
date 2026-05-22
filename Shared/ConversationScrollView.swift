@@ -25,7 +25,7 @@ struct ConversationScrollView: View {
     var body: some View {
         let msgs = convMessages
         return Group {
-            if ChatTranscriptRenderer.usesWebTranscript {
+            if ChatTranscriptRenderer.usesWebTranscript && ChatTranscriptRenderer.isAvailable {
                 ConversationWebView(convId: convId, chat: chat)
             } else {
                 nativeTranscript(messages: msgs)

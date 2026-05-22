@@ -26,7 +26,7 @@
 
   function safeURL(value) {
     try {
-      const url = new URL(String(value), "https://fluxhaus.local");
+      const url = new URL(String(value));
       if (["http:", "https:", "mailto:"].includes(url.protocol)) return url.href;
     } catch (_) {}
     return null;

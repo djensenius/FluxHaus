@@ -16,6 +16,10 @@ enum ChatTranscriptRenderer {
         }
         return UserDefaults.standard.bool(forKey: defaultsKey)
     }
+
+    static var isAvailable: Bool {
+        Bundle.main.url(forResource: "ChatTranscriptRenderer", withExtension: "html") != nil
+    }
 }
 
 struct ChatTranscriptSnapshot: Encodable {
@@ -57,10 +61,12 @@ struct ChatTranscriptMessage: Encodable {
 struct ChatTranscriptImage: Encodable {
     let mediaType: String
     let dataURL: String
+    private static let allowedTypes: Set<String> = [
+        "image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"
+    ]
 
     init?(image: ChatImage) {
-        let allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic"]
-        guard allowedTypes.contains(image.mediaType.lowercased()),
+        guard Self.allowedTypes.contains(image.mediaType.lowercased()),
               Data(base64Encoded: image.base64) != nil else { return nil }
         mediaType = image.mediaType.lowercased()
         dataURL = "data:\(mediaType);base64,\(image.base64)"

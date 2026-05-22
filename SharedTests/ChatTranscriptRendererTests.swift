@@ -2,7 +2,7 @@
 //  ChatTranscriptRendererTests.swift
 //  FluxHaus Tests
 //
-//  Created by Copilot on 2026-05-22.
+//  Created by Testing Suite on 2026-05-22.
 //
 
 import Foundation

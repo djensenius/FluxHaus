@@ -108,8 +108,8 @@ private struct ChatTranscriptWebRepresentable {
         guard let url = Bundle.main.url(
             forResource: "ChatTranscriptRenderer", withExtension: "html"
         ) else {
-            coordinator.isReady = true
-            coordinator.send(snapshot: snapshot, appearance: appearance, to: webView)
+            let message = "Chat transcript renderer is missing from the app bundle."
+            webView.loadHTMLString("<!doctype html><p>\(message)</p>", baseURL: nil)
             return
         }
         webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
@@ -164,15 +164,9 @@ extension ChatTranscriptWebRepresentable: NSViewRepresentable {
 
 @MainActor
 private extension ChatTranscriptWebRepresentable {
-    #if !targetEnvironment(macCatalyst)
-    static let processPool = WKProcessPool()
-    #endif
-
     static func configuration(handler: WeakScriptHandler) -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
-        #if !targetEnvironment(macCatalyst)
-        config.processPool = processPool
-        #endif
+        config.websiteDataStore = .nonPersistent()
         let controller = WKUserContentController()
         controller.add(handler, name: Coordinator.messageName)
         config.userContentController = controller
