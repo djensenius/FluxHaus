@@ -6,6 +6,15 @@
     : null;
   const transcript = document.getElementById("transcript");
   let lastMessageId = null;
+  let userScrolledUp = false;
+
+  function isNearBottom() {
+    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
+  }
+
+  window.addEventListener("scroll", () => {
+    userScrolledUp = !isNearBottom();
+  }, { passive: true });
 
   function post(message) {
     if (bridge) bridge.postMessage(message);
@@ -233,10 +242,6 @@
     </div>`;
   }
 
-  function shouldStickToBottom() {
-    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
-  }
-
   function scrollToBottom() {
     window.requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
   }
@@ -248,11 +253,15 @@
     },
     render(snapshot) {
       const nextLast = snapshot.messages[snapshot.messages.length - 1]?.id || null;
-      const stick = shouldStickToBottom() || lastMessageId !== nextLast;
+      const hasNewMessage = lastMessageId !== nextLast;
+      const stick = !userScrolledUp || hasNewMessage;
       transcript.innerHTML = snapshot.messages.map(renderMessage).join("") +
         (snapshot.isLoading ? typingIndicator() : "");
       lastMessageId = nextLast;
-      if (stick) scrollToBottom();
+      if (stick) {
+        userScrolledUp = false;
+        scrollToBottom();
+      }
     }
   };
 
