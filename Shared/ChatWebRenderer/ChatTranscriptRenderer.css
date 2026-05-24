@@ -14,8 +14,8 @@
   --border: rgba(76, 79, 105, 0.18);
   --blockquote-border: rgba(254, 100, 11, 0.55);
   --radius: 18px;
-  --font-size: calc(18px * var(--scale));
-  --small-size: calc(14px * var(--scale));
+  --font-size: calc(15px * var(--scale));
+  --small-size: calc(12px * var(--scale));
 }
 
 html,
