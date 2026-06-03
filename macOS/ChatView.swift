@@ -111,7 +111,9 @@ struct ChatView: View {
         .frame(
             minWidth: quickChatExpanded ? 820 : 560,
             idealWidth: quickChatExpanded ? 960 : 720,
-            minHeight: 420
+            minHeight: 420,
+            maxHeight: .infinity,
+            alignment: .top
         )
         .background(Theme.Colors.background)
         .animation(.easeInOut(duration: 0.2), value: quickChatExpanded)
@@ -331,8 +333,11 @@ extension ChatView {
         Group {
             if let convId = chat.conversationId {
                 ConversationScrollView(convId: convId, chat: chat)
+            } else {
+                Color.clear
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
