@@ -33,11 +33,11 @@ jobs:
         include:
           - name: iOS
             scheme: 'FluxHaus (iOS)'
-            destination: 'generic/platform=iOS'
+            destination: 'generic/platform=iOS Simulator'
             extra: ''
           - name: visionOS
             scheme: 'VisionOS'
-            destination: 'generic/platform=visionOS'
+            destination: 'generic/platform=visionOS Simulator'
             extra: ''
           - name: macOS
             scheme: 'FluxHaus (macOS)'
