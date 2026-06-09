@@ -166,7 +166,7 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Car")
             try? await intent.donate()
         case "stop":
             try? await StopCarClimateIntent().donate()
-        case "resync":
+        case "resync", "rsync":
             try? await ResyncCarIntent().donate()
         default:
             break

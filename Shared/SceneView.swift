@@ -20,12 +20,19 @@ private let logger = Logger(
     var activatingSceneId: String?
     var loadError: String?
     var hasLoaded = false
+    private var indexedSceneIds: Set<String> = []
 
     func loadScenes(favouriteNames: [String]) async {
         do {
             scenes = try await fetchScenes()
             loadError = nil
-            await indexScenes(scenes)
+            // Only re-index Spotlight when the set of scenes actually changes, so the
+            // periodic refresh timer doesn't re-index on every tick.
+            let currentIds = Set(scenes.map { $0.entityId })
+            if currentIds != indexedSceneIds {
+                await indexScenes(scenes)
+                indexedSceneIds = currentIds
+            }
             if favouriteNames.isEmpty {
                 favourites = []
             } else {
