@@ -1,0 +1,78 @@
+name: Build & Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-test.yml'
+      - '**/*.swift'
+      - '**/*.plist'
+      - '**/*.entitlements'
+      - 'FluxHaus.xcodeproj/**'
+      - 'Packages/**'
+  pull_request:
+    paths:
+      - '.github/workflows/build-test.yml'
+      - '**/*.swift'
+      - '**/*.plist'
+      - '**/*.entitlements'
+      - 'FluxHaus.xcodeproj/**'
+      - 'Packages/**'
+
+concurrency:
+  group: build-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: macos-26
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: iOS
+            scheme: 'FluxHaus (iOS)'
+            destination: 'generic/platform=iOS'
+            extra: ''
+          - name: visionOS
+            scheme: 'VisionOS'
+            destination: 'generic/platform=visionOS'
+            extra: ''
+          - name: macOS
+            scheme: 'FluxHaus (macOS)'
+            destination: 'generic/platform=macOS'
+            extra: 'CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Ensure xcbeautify
+        run: which xcbeautify || brew install xcbeautify
+      - name: Build ${{ matrix.name }}
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project FluxHaus.xcodeproj \
+            -scheme "${{ matrix.scheme }}" \
+            -destination '${{ matrix.destination }}' \
+            ${{ matrix.extra }} \
+            build | xcbeautify
+
+  test:
+    name: Test (VisionOS unit tests)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Ensure xcbeautify
+        run: which xcbeautify || brew install xcbeautify
+      - name: Run unit tests
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project FluxHaus.xcodeproj \
+            -scheme "VisionOS" \
+            -destination 'platform=visionOS Simulator,name=Apple Vision Pro' \
+            test | xcbeautify
