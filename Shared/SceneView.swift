@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppIntents
 import os
 
 private let logger = Logger(
@@ -24,6 +25,7 @@ private let logger = Logger(
         do {
             scenes = try await fetchScenes()
             loadError = nil
+            await indexScenes(scenes)
             if favouriteNames.isEmpty {
                 favourites = []
             } else {
@@ -51,6 +53,9 @@ private let logger = Logger(
             do {
                 try await activateScene(entityId: scene.entityId)
                 logger.info("Scene activated: \(scene.name)")
+                let intent = ActivateSceneIntent()
+                intent.scene = SceneAppEntity(scene: scene)
+                try? await intent.donate()
             } catch {
                 logger.error("Scene activation failed: \(error.localizedDescription)")
             }

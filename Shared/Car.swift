@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppIntents
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Car")
@@ -132,9 +133,43 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Car")
                 let (_, response) = try await session.data(for: request)
                 let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
                 logger.info("Car action \(path) completed with HTTP \(statusCode)")
+                if (200...299).contains(statusCode) {
+                    await Self.donateCarIntent(
+                        action: action,
+                        defrost: defrost,
+                        heatedFeatures: steeringWheel,
+                        temperature: temperature
+                    )
+                }
             } catch {
                 logger.error("Car action \(path) failed: \(error.localizedDescription)")
             }
+        }
+    }
+
+    private static func donateCarIntent(
+        action: String,
+        defrost: Bool,
+        heatedFeatures: Bool,
+        temperature: Int?
+    ) async {
+        switch action {
+        case "lock":
+            try? await LockCarIntent().donate()
+        case "unlock":
+            try? await UnlockCarIntent().donate()
+        case "start":
+            let intent = StartCarClimateIntent()
+            intent.defrost = defrost
+            intent.heatedFeatures = heatedFeatures
+            intent.temperature = temperature
+            try? await intent.donate()
+        case "stop":
+            try? await StopCarClimateIntent().donate()
+        case "resync":
+            try? await ResyncCarIntent().donate()
+        default:
+            break
         }
     }
 }
