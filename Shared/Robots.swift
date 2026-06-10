@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppIntents
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Robots")
@@ -116,9 +117,30 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Robots
                 let (_, response) = try await session.data(for: request)
                 let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
                 logger.info("Robot action \(path) completed with HTTP \(statusCode)")
+                if (200...299).contains(statusCode) {
+                    await Self.donateRobotIntent(action: action, robot: robot)
+                }
             } catch {
                 logger.error("Robot action \(path) failed: \(error.localizedDescription)")
             }
+        }
+    }
+
+    private static func donateRobotIntent(action: String, robot: String) async {
+        let choice: RobotChoice = robot == "MopBot" ? .mopBot : .broomBot
+        switch action {
+        case "start":
+            let intent = StartRobotIntent()
+            intent.robot = choice
+            try? await intent.donate()
+        case "stop":
+            let intent = StopRobotIntent()
+            intent.robot = choice
+            try? await intent.donate()
+        case "deepClean":
+            try? await DeepCleanIntent().donate()
+        default:
+            break
         }
     }
 }
