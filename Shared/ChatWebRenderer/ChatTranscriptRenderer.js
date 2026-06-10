@@ -262,12 +262,17 @@
   // Keep the transcript pinned to the bottom while content reflows after a
   // render (streaming text growth, async image decoding, font metrics, the
   // "thinking" indicator appearing). Without this the auto-scroll would only
-  // happen once, before the layout settles.
+  // happen once, before the layout settles. Scroll writes are batched into a
+  // single animation frame to avoid layout thrashing from rapid reflows.
   if (typeof ResizeObserver === "function") {
+    let pinScheduled = false;
     const observer = new ResizeObserver(() => {
-      if (sticking) {
-        scroller.scrollTop = scroller.scrollHeight;
-      }
+      if (!sticking || pinScheduled) return;
+      pinScheduled = true;
+      window.requestAnimationFrame(() => {
+        pinScheduled = false;
+        if (sticking) scroller.scrollTop = scroller.scrollHeight;
+      });
     });
     observer.observe(transcript);
   }
