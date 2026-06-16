@@ -25,7 +25,7 @@ struct ConversationWebView: View {
         ChatTranscriptSnapshot(
             conversationId: convId,
             messages: chat.messages(for: convId),
-            isLoading: chat.isLoading,
+            isLoading: chat.isConversationBusy(convId),
             playingMessageId: chat.playingMessageId
         )
     }
