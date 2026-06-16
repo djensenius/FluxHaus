@@ -140,6 +140,10 @@ struct Conversation: Identifiable, Codable {
     private func touchConversation(_ id: String) {
         cachedConversationIds.removeAll { $0 == id }
         cachedConversationIds.insert(id, at: 0)
+        pruneCachedConversations()
+    }
+
+    private func pruneCachedConversations() {
         while cachedConversationIds.count > maxCachedConversations {
             let protectedIds = loadingConversationIds.union([streamingConversationId].compactMap(\.self))
             let evictionIndex = cachedConversationIds.lastIndex { !protectedIds.contains($0) }
@@ -527,6 +531,7 @@ extension Chat {
             ]
         }
         loadingConversationIds.remove(conv.id)
+        pruneCachedConversations()
         refreshLoadingState()
     }
 
@@ -642,6 +647,7 @@ extension Chat {
         if streamingConversationId == conversationId {
             streamingConversationId = nil
         }
+        pruneCachedConversations()
         refreshLoadingState()
     }
 

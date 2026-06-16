@@ -89,12 +89,11 @@ struct ConversationScrollView: View {
         .onChange(of: msgs.last?.content) {
             guard isAutoFollowEnabled else { return }
             pendingScrollTask?.cancel()
-            let scheduledConversationId = convId
             pendingScrollTask = Task { @MainActor in
                 // `scrollDebounceMilliseconds` keeps streamed-text scrolling
                 // smooth without issuing a scroll for every token mutation.
                 try? await Task.sleep(for: .milliseconds(scrollDebounceMilliseconds))
-                guard !Task.isCancelled, scheduledConversationId == convId, isAutoFollowEnabled else { return }
+                guard !Task.isCancelled, isAutoFollowEnabled else { return }
                 scrollPosition.scrollTo(edge: .bottom)
             }
         }
