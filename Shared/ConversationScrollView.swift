@@ -16,9 +16,11 @@ struct ConversationScrollView: View {
     let convId: String
     @Bindable var chat: Chat
     private let scrollDebounceMilliseconds: UInt64 = 50
+    private let bottomFollowThreshold: CGFloat = 80
 
     @State private var scrollPosition = ScrollPosition()
     @State private var pendingScrollTask: Task<Void, Never>?
+    @State private var isAutoFollowEnabled = true
 
     private var convMessages: [ChatMessage] {
         chat.messages(for: convId)
@@ -64,9 +66,15 @@ struct ConversationScrollView: View {
             .padding(.vertical, 12)
         }
         .scrollPosition($scrollPosition)
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.visibleRect.maxY >= geometry.contentSize.height - bottomFollowThreshold
+        } action: { _, isNearBottom in
+            isAutoFollowEnabled = isNearBottom
+        }
         .task(id: convId) {
             pendingScrollTask?.cancel()
             pendingScrollTask = nil
+            isAutoFollowEnabled = true
             // Pre-warm the markdown cache so MarkdownContentView finds hits immediately.
             warmMarkdownCache(for: msgs.map(\.content))
             scrollPosition = ScrollPosition()
@@ -75,21 +83,23 @@ struct ConversationScrollView: View {
             scrollPosition.scrollTo(edge: .bottom)
         }
         .onChange(of: msgs.last?.id) {
+            guard isAutoFollowEnabled else { return }
             Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
         }
         .onChange(of: msgs.last?.content) {
+            guard isAutoFollowEnabled else { return }
             pendingScrollTask?.cancel()
             let scheduledConversationId = convId
             pendingScrollTask = Task { @MainActor in
                 // `scrollDebounceMilliseconds` keeps streamed-text scrolling
                 // smooth without issuing a scroll for every token mutation.
                 try? await Task.sleep(for: .milliseconds(scrollDebounceMilliseconds))
-                guard !Task.isCancelled, scheduledConversationId == convId else { return }
+                guard !Task.isCancelled, scheduledConversationId == convId, isAutoFollowEnabled else { return }
                 scrollPosition.scrollTo(edge: .bottom)
             }
         }
         .onChange(of: isLoading) {
-            if isLoading {
+            if isLoading && isAutoFollowEnabled {
                 Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
             }
         }
