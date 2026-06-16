@@ -260,6 +260,9 @@ struct Conversation: Identifiable, Codable {
             .capitalized
     }
 
+}
+
+extension Chat {
     func startRecording() {
         #if canImport(UIKit)
         let audioSession = AVAudioSession.sharedInstance()
@@ -405,6 +408,9 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
+}
+
+extension Chat {
     // MARK: - Session management
 
     func syncConversationsPeriodically() async {
@@ -489,6 +495,9 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
+}
+
+extension Chat {
     // MARK: - Conversation helpers
 
     @discardableResult
