@@ -4,16 +4,27 @@
   const bridge = window.webkit && window.webkit.messageHandlers
     ? window.webkit.messageHandlers.fluxHausChat
     : null;
+  const scroller = document.getElementById("scroller");
   const transcript = document.getElementById("transcript");
   let lastMessageId = null;
   let userScrolledUp = false;
+  // While true, keep the view pinned to the bottom as content reflows
+  // (streaming text, async image loads, typing indicator, etc.).
+  let sticking = true;
 
-  function isNearBottom() {
-    return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80;
+  function distanceFromBottom() {
+    return scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight;
   }
 
-  window.addEventListener("scroll", () => {
+  function isNearBottom() {
+    return distanceFromBottom() <= 80;
+  }
+
+  scroller.addEventListener("scroll", () => {
     userScrolledUp = !isNearBottom();
+    // Re-engage auto-follow when the user returns to the bottom, and release
+    // it the moment they scroll up to read earlier messages.
+    sticking = !userScrolledUp;
   }, { passive: true });
 
   function post(message) {
@@ -243,7 +254,27 @@
   }
 
   function scrollToBottom() {
-    window.requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    window.requestAnimationFrame(() => {
+      scroller.scrollTop = scroller.scrollHeight;
+    });
+  }
+
+  // Keep the transcript pinned to the bottom while content reflows after a
+  // render (streaming text growth, async image decoding, font metrics, the
+  // "thinking" indicator appearing). Without this the auto-scroll would only
+  // happen once, before the layout settles. Scroll writes are batched into a
+  // single animation frame to avoid layout thrashing from rapid reflows.
+  if (typeof ResizeObserver === "function") {
+    let pinScheduled = false;
+    const observer = new ResizeObserver(() => {
+      if (!sticking || pinScheduled) return;
+      pinScheduled = true;
+      window.requestAnimationFrame(() => {
+        pinScheduled = false;
+        if (sticking) scroller.scrollTop = scroller.scrollHeight;
+      });
+    });
+    observer.observe(transcript);
   }
 
   window.FluxHausChat = {
@@ -260,6 +291,7 @@
       lastMessageId = nextLast;
       if (stick) {
         userScrolledUp = false;
+        sticking = true;
         scrollToBottom();
       }
     }
