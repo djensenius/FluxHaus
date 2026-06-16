@@ -71,6 +71,7 @@ struct ConversationScrollView: View {
             warmMarkdownCache(for: msgs.map(\.content))
             scrollPosition = ScrollPosition()
             try? await Task.sleep(for: .milliseconds(32))
+            guard !Task.isCancelled else { return }
             scrollPosition.scrollTo(edge: .bottom)
         }
         .onChange(of: msgs.last?.id) {

@@ -134,14 +134,14 @@ struct Conversation: Identifiable, Codable {
     }
 
     func isConversationBusy(_ convId: String) -> Bool {
-        streamingConversationId == convId || loadingConversationId == convId
+        streamingConversationId == convId || loadingConversationIds.contains(convId)
     }
 
     private func touchConversation(_ id: String) {
         cachedConversationIds.removeAll { $0 == id }
         cachedConversationIds.insert(id, at: 0)
         while cachedConversationIds.count > maxCachedConversations {
-            let protectedIds = Set([streamingConversationId, loadingConversationId].compactMap(\.self))
+            let protectedIds = loadingConversationIds.union([streamingConversationId].compactMap(\.self))
             let evictionIndex = cachedConversationIds.lastIndex { !protectedIds.contains($0) }
             guard let evictionIndex else { break }
             let evicted = cachedConversationIds.remove(at: evictionIndex)
@@ -154,7 +154,7 @@ struct Conversation: Identifiable, Codable {
     private var recordingURL: URL?
     private var levelTimer: Timer?
     private var isSyncing = false
-    private var loadingConversationId: String?
+    private var loadingConversationIds: Set<String> = []
 
     func send(_ text: String, images: [ChatImage] = []) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -492,9 +492,8 @@ extension Chat {
     func startNewConversation() {
         stopPlayback()
         cancelActiveStream()
-        loadingConversationId = nil
-        refreshLoadingState()
         conversationId = nil
+        refreshLoadingState()
         sessionError = nil
     }
 
@@ -502,11 +501,14 @@ extension Chat {
         touchConversation(conv.id)
         conversationId = conv.id
         if cachedMessages[conv.id] != nil {
-            loadingConversationId = nil
             refreshLoadingState()
             return
         }
-        loadingConversationId = conv.id
+        guard !loadingConversationIds.contains(conv.id) else {
+            refreshLoadingState()
+            return
+        }
+        loadingConversationIds.insert(conv.id)
         refreshLoadingState()
         do {
             let detail = try await fetchConversation(id: conv.id)
@@ -524,10 +526,8 @@ extension Chat {
                 ChatMessage(role: .error, content: "Failed to load history")
             ]
         }
-        if loadingConversationId == conv.id {
-            loadingConversationId = nil
-            refreshLoadingState()
-        }
+        loadingConversationIds.remove(conv.id)
+        refreshLoadingState()
     }
 
     func deleteConversation(_ conv: Conversation) async {
@@ -536,6 +536,7 @@ extension Chat {
             conversations.removeAll { $0.id == conv.id }
             cachedMessages.removeValue(forKey: conv.id)
             cachedConversationIds.removeAll { $0 == conv.id }
+            loadingConversationIds.remove(conv.id)
             if conversationId == conv.id {
                 // Select next available conversation instead of creating a new one
                 if let next = conversations.first {
@@ -544,6 +545,7 @@ extension Chat {
                     conversationId = nil
                 }
             }
+            refreshLoadingState()
         } catch {
             logger.error("Failed to delete conversation: \(error.localizedDescription)")
         }
@@ -674,7 +676,8 @@ extension Chat {
     }
 
     private func refreshLoadingState() {
-        isLoading = streamingConversationId != nil || loadingConversationId != nil
+        isLoading = streamingConversationId != nil
+            || conversationId.map { loadingConversationIds.contains($0) } == true
     }
 
     private func cleanupRecording() {
