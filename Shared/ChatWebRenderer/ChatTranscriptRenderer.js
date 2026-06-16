@@ -6,6 +6,7 @@
     : null;
   const scroller = document.getElementById("scroller");
   const transcript = document.getElementById("transcript");
+  let lastConversationId = null;
   let lastMessageId = null;
   let userScrolledUp = false;
   // While true, keep the view pinned to the bottom as content reflows
@@ -283,11 +284,18 @@
       document.documentElement.style.setProperty("--scale", String(appearance.scale || 1));
     },
     render(snapshot) {
+      const conversationChanged = lastConversationId !== snapshot.conversationId;
+      if (conversationChanged) {
+        userScrolledUp = false;
+        sticking = true;
+        lastMessageId = null;
+      }
       const nextLast = snapshot.messages[snapshot.messages.length - 1]?.id || null;
-      const hasNewMessage = lastMessageId !== nextLast;
+      const hasNewMessage = conversationChanged || lastMessageId !== nextLast;
       const stick = !userScrolledUp || hasNewMessage;
       transcript.innerHTML = snapshot.messages.map(renderMessage).join("") +
         (snapshot.isLoading ? typingIndicator() : "");
+      lastConversationId = snapshot.conversationId;
       lastMessageId = nextLast;
       if (stick) {
         userScrolledUp = false;

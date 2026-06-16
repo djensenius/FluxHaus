@@ -99,6 +99,7 @@ struct Conversation: Identifiable, Codable {
     private(set) var cachedConversationIds: [String] = []
     private var cachedMessages: [String: [ChatMessage]] = [:]
     private let maxCachedConversations = 5
+    private var streamingConversationId: String?
 
     var messages: [ChatMessage] {
         get { conversationId.flatMap { cachedMessages[$0] } ?? [] }
@@ -110,6 +111,10 @@ struct Conversation: Identifiable, Codable {
 
     func messages(for convId: String) -> [ChatMessage] {
         cachedMessages[convId] ?? []
+    }
+
+    func isLoadingConversation(_ convId: String) -> Bool {
+        streamingConversationId == convId || loadingConversationId == convId
     }
 
     private func touchConversation(_ id: String) {
@@ -136,27 +141,39 @@ struct Conversation: Identifiable, Codable {
             cleanupRecording()
             return
         }
-        messages.append(ChatMessage(role: .user, content: trimmed, images: images))
-        isLoading = true
+        guard let targetConversationId = conversationId else {
+            cleanupRecording()
+            return
+        }
+        appendMessage(
+            ChatMessage(role: .user, content: trimmed, images: images),
+            to: targetConversationId
+        )
+        streamingConversationId = targetConversationId
+        refreshLoadingState()
 
         do {
             let result = try await processStream(
-                streamCommand(trimmed, conversationId: conversationId, images: images)
+                streamCommand(trimmed, conversationId: targetConversationId, images: images),
+                conversationId: targetConversationId
             )
             // Batch: remove progress + add assistant in one mutation
-            var updated = messages.filter { !$0.isProgress }
+            var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             updated.append(ChatMessage(role: .assistant, content: result.text))
-            messages = updated
-            updateMessageCount(by: 2)
-            await updateTitleIfNeeded()
+            setMessages(updated, for: targetConversationId)
+            updateMessageCount(by: 2, conversationId: targetConversationId)
+            await updateTitleIfNeeded(conversationId: targetConversationId)
         } catch {
-            var updated = messages.filter { !$0.isProgress }
+            var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
             updated.append(ChatMessage(role: .error, content: error.localizedDescription))
-            messages = updated
+            setMessages(updated, for: targetConversationId)
         }
 
-        isLoading = false
+        if streamingConversationId == targetConversationId {
+            streamingConversationId = nil
+        }
+        refreshLoadingState()
     }
 
     private struct StreamResult {
@@ -166,7 +183,8 @@ struct Conversation: Identifiable, Codable {
     }
 
     private func processStream(
-        _ stream: AsyncThrowingStream<StreamEvent, Error>
+        _ stream: AsyncThrowingStream<StreamEvent, Error>,
+        conversationId: String
     ) async throws -> StreamResult {
         var result = StreamResult()
         var hadToolCalls = false
@@ -175,12 +193,12 @@ struct Conversation: Identifiable, Codable {
             switch event.type {
             case "transcript":
                 result.transcript = event.text
-                updateUserTranscript(event.text)
+                updateUserTranscript(event.text, conversationId: conversationId)
             case "progress":
-                appendProgress(event.text)
+                appendProgress(event.text, conversationId: conversationId)
             case "tool_call":
                 hadToolCalls = true
-                appendToolCall(event.tool)
+                appendToolCall(event.tool, conversationId: conversationId)
             case "done":
                 receivedDone = true
                 if let text = event.text { result.text = text }
@@ -198,26 +216,33 @@ struct Conversation: Identifiable, Codable {
         return result
     }
 
-    private func appendProgress(_ text: String?) {
+    private func appendProgress(_ text: String?, conversationId: String) {
         guard let text, !text.isEmpty else { return }
-        messages.append(ChatMessage(role: .assistant, content: text, isProgress: true))
+        appendMessage(ChatMessage(role: .assistant, content: text, isProgress: true), to: conversationId)
     }
 
-    private func appendToolCall(_ tool: String?) {
+    private func appendToolCall(_ tool: String?, conversationId: String) {
         guard let tool else { return }
-        messages.append(ChatMessage(
+        appendMessage(ChatMessage(
             role: .assistant, content: "🔧 \(formatToolName(tool))", isProgress: true
-        ))
+        ), to: conversationId)
     }
 
-    private func updateUserTranscript(_ text: String?) {
+    private func updateUserTranscript(_ text: String?, conversationId: String) {
         guard let text, !text.isEmpty,
-              let idx = messages.lastIndex(where: { $0.role == .user }) else { return }
-        messages[idx] = ChatMessage(
+              let idx = messages(for: conversationId).lastIndex(where: { $0.role == .user }) else { return }
+        var conversationMessages = messages(for: conversationId)
+        let existing = conversationMessages[idx]
+        conversationMessages[idx] = ChatMessage(
             role: .user, content: text,
-            timestamp: messages[idx].timestamp,
-            audioData: messages[idx].audioData, isVoice: true
+            timestamp: existing.timestamp,
+            audioData: existing.audioData,
+            images: existing.images,
+            isVoice: true,
+            isProgress: existing.isProgress,
+            serverMessageId: existing.serverMessageId
         )
+        setMessages(conversationMessages, for: conversationId)
     }
 
     private func formatToolName(_ name: String) -> String {
@@ -277,35 +302,44 @@ struct Conversation: Identifiable, Codable {
             cleanupRecording()
             return
         }
-        messages.append(ChatMessage(
+        guard let targetConversationId = conversationId else {
+            cleanupRecording()
+            return
+        }
+        appendMessage(ChatMessage(
             role: .user, content: "🎤 Voice message",
             audioData: audioData, isVoice: true
-        ))
-        isLoading = true
+        ), to: targetConversationId)
+        streamingConversationId = targetConversationId
+        refreshLoadingState()
 
         do {
             let result = try await processStream(
-                streamVoice(audioData: audioData, conversationId: conversationId)
+                streamVoice(audioData: audioData, conversationId: targetConversationId),
+                conversationId: targetConversationId
             )
-            var updated = messages.filter { !$0.isProgress }
+            var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             updated.append(ChatMessage(
                 role: .assistant, content: result.text,
                 audioData: result.audioData, isVoice: true
             ))
-            messages = updated
-            updateMessageCount(by: 2)
-            await updateTitleIfNeeded()
+            setMessages(updated, for: targetConversationId)
+            updateMessageCount(by: 2, conversationId: targetConversationId)
+            await updateTitleIfNeeded(conversationId: targetConversationId)
             if let audio = result.audioData {
                 playAudioResponse(data: audio)
             }
         } catch {
-            var updated = messages.filter { !$0.isProgress }
+            var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             logger.error("Voice error: \(error.localizedDescription)")
             updated.append(ChatMessage(role: .error, content: error.localizedDescription))
-            messages = updated
+            setMessages(updated, for: targetConversationId)
         }
 
-        isLoading = false
+        if streamingConversationId == targetConversationId {
+            streamingConversationId = nil
+        }
+        refreshLoadingState()
         cleanupRecording()
     }
 
@@ -388,7 +422,8 @@ struct Conversation: Identifiable, Codable {
     func startNewConversation() {
         stopPlayback()
         loadingConversationId = nil
-        isLoading = false
+        streamingConversationId = nil
+        refreshLoadingState()
         conversationId = nil
         sessionError = nil
     }
@@ -398,11 +433,11 @@ struct Conversation: Identifiable, Codable {
         conversationId = conv.id
         if cachedMessages[conv.id] != nil {
             loadingConversationId = nil
-            isLoading = false
+            refreshLoadingState()
             return
         }
         loadingConversationId = conv.id
-        isLoading = true
+        refreshLoadingState()
         do {
             let detail = try await fetchConversation(id: conv.id)
             cachedMessages[conv.id] = detail.messages.map { msg in
@@ -421,7 +456,7 @@ struct Conversation: Identifiable, Codable {
         }
         if loadingConversationId == conv.id {
             loadingConversationId = nil
-            isLoading = false
+            refreshLoadingState()
         }
     }
 
@@ -476,8 +511,7 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
-    private func updateTitleIfNeeded() async {
-        guard let convId = conversationId else { return }
+    private func updateTitleIfNeeded(conversationId convId: String) async {
         guard let idx = conversations.firstIndex(where: { $0.id == convId }),
               conversations[idx].title == nil || conversations[idx].title == "New conversation" else { return }
 
@@ -487,7 +521,9 @@ struct Conversation: Identifiable, Codable {
             conversations[idx].title = title
         } catch {
             // Fallback: use first user message truncated
-            guard let firstMessage = messages.first(where: { $0.role == .user })?.content else { return }
+            guard let firstMessage = messages(for: convId).first(where: { $0.role == .user })?.content else {
+                return
+            }
             let title = String(firstMessage.prefix(50))
             do {
                 try await updateConversationTitle(id: convId, title: title)
@@ -498,14 +534,27 @@ struct Conversation: Identifiable, Codable {
         }
     }
 
-    private func updateMessageCount(by count: Int) {
-        guard let convId = conversationId,
-              let index = conversations.firstIndex(where: { $0.id == convId }) else { return }
+    private func updateMessageCount(by count: Int, conversationId convId: String) {
+        guard let index = conversations.firstIndex(where: { $0.id == convId }) else { return }
         conversations[index].messageCount += count
         if index != 0 {
             let conv = conversations.remove(at: index)
             conversations.insert(conv, at: 0)
         }
+    }
+
+    private func appendMessage(_ message: ChatMessage, to conversationId: String) {
+        var conversationMessages = messages(for: conversationId)
+        conversationMessages.append(message)
+        setMessages(conversationMessages, for: conversationId)
+    }
+
+    private func setMessages(_ messages: [ChatMessage], for conversationId: String) {
+        cachedMessages[conversationId] = messages
+    }
+
+    private func refreshLoadingState() {
+        isLoading = streamingConversationId != nil || loadingConversationId != nil
     }
 
     private func cleanupRecording() {

@@ -24,16 +24,17 @@ struct ConversationScrollView: View {
 
     var body: some View {
         let msgs = convMessages
+        let isLoading = chat.isLoadingConversation(convId)
         return Group {
             if ChatTranscriptRenderer.usesWebTranscript && ChatTranscriptRenderer.isAvailable {
                 ConversationWebView(convId: convId, chat: chat)
             } else {
-                nativeTranscript(messages: msgs)
+                nativeTranscript(messages: msgs, isLoading: isLoading)
             }
         }
     }
 
-    private func nativeTranscript(messages msgs: [ChatMessage]) -> some View {
+    private func nativeTranscript(messages msgs: [ChatMessage], isLoading: Bool) -> some View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(msgs) { message in
@@ -52,7 +53,7 @@ struct ConversationScrollView: View {
                     )
                     .id(message.id)
                 }
-                if chat.isLoading {
+                if isLoading {
                     TypingIndicator()
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
@@ -71,8 +72,11 @@ struct ConversationScrollView: View {
         .onChange(of: msgs.last?.id) {
             Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
         }
-        .onChange(of: chat.isLoading) {
-            if chat.isLoading {
+        .onChange(of: msgs.last?.content) {
+            Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
+        }
+        .onChange(of: isLoading) {
+            if isLoading {
                 Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
             }
         }
