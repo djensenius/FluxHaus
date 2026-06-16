@@ -536,6 +536,9 @@ extension Chat {
     }
 
     func deleteConversation(_ conv: Conversation) async {
+        if streamingConversationId == conv.id {
+            cancelActiveStream()
+        }
         do {
             try await deleteConversationRequest(id: conv.id)
             conversations.removeAll { $0.id == conv.id }
