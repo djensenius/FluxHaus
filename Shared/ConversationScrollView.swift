@@ -15,8 +15,10 @@ import SwiftUI
 struct ConversationScrollView: View {
     let convId: String
     @Bindable var chat: Chat
+    private let scrollDebounceMilliseconds: UInt64 = 50
 
     @State private var scrollPosition = ScrollPosition()
+    @State private var pendingScrollTask: Task<Void, Never>?
 
     private var convMessages: [ChatMessage] {
         chat.messages(for: convId)
@@ -24,7 +26,7 @@ struct ConversationScrollView: View {
 
     var body: some View {
         let msgs = convMessages
-        let isLoading = chat.isLoadingConversation(convId)
+        let isLoading = chat.isConversationBusy(convId)
         return Group {
             if ChatTranscriptRenderer.usesWebTranscript && ChatTranscriptRenderer.isAvailable {
                 ConversationWebView(convId: convId, chat: chat)
@@ -73,12 +75,22 @@ struct ConversationScrollView: View {
             Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
         }
         .onChange(of: msgs.last?.content) {
-            Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
+            pendingScrollTask?.cancel()
+            pendingScrollTask = Task { @MainActor in
+                // `scrollDebounceMilliseconds` keeps streamed-text scrolling
+                // smooth without issuing a scroll for every token mutation.
+                try? await Task.sleep(for: .milliseconds(scrollDebounceMilliseconds))
+                scrollPosition.scrollTo(edge: .bottom)
+            }
         }
         .onChange(of: isLoading) {
             if isLoading {
                 Task { @MainActor in scrollPosition.scrollTo(edge: .bottom) }
             }
+        }
+        .onDisappear {
+            pendingScrollTask?.cancel()
+            pendingScrollTask = nil
         }
         #if os(iOS)
         .scrollDismissesKeyboard(.interactively)

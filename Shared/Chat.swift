@@ -51,6 +51,7 @@ struct ChatMessage: Identifiable {
     var serverMessageId: String?
 
     init(
+        id: UUID = UUID(),
         role: ChatRole,
         content: String,
         timestamp: Date = Date(),
@@ -60,7 +61,7 @@ struct ChatMessage: Identifiable {
         isProgress: Bool = false,
         serverMessageId: String? = nil
     ) {
-        self.id = UUID()
+        self.id = id
         self.role = role
         self.content = content
         self.timestamp = timestamp
@@ -69,6 +70,23 @@ struct ChatMessage: Identifiable {
         self.isVoice = isVoice
         self.isProgress = isProgress
         self.serverMessageId = serverMessageId
+    }
+
+    /// Returns a copy with the same `id`, updated `content`/`isVoice`, and all other fields preserved.
+    ///
+    /// Keeping the same `id` avoids transcript row churn while streamed text updates.
+    func updating(content: String, isVoice: Bool) -> ChatMessage {
+        ChatMessage(
+            id: id,
+            role: role,
+            content: content,
+            timestamp: timestamp,
+            audioData: audioData,
+            images: images,
+            isVoice: isVoice,
+            isProgress: isProgress,
+            serverMessageId: serverMessageId
+        )
     }
 }
 
@@ -113,7 +131,7 @@ struct Conversation: Identifiable, Codable {
         cachedMessages[convId] ?? []
     }
 
-    func isLoadingConversation(_ convId: String) -> Bool {
+    func isConversationBusy(_ convId: String) -> Bool {
         streamingConversationId == convId || loadingConversationId == convId
     }
 
@@ -231,18 +249,10 @@ struct Conversation: Identifiable, Codable {
     private func updateUserTranscript(_ text: String?, conversationId: String) {
         guard let text, !text.isEmpty,
               let idx = messages(for: conversationId).lastIndex(where: { $0.role == .user }) else { return }
-        var conversationMessages = messages(for: conversationId)
-        let existing = conversationMessages[idx]
-        conversationMessages[idx] = ChatMessage(
-            role: .user, content: text,
-            timestamp: existing.timestamp,
-            audioData: existing.audioData,
-            images: existing.images,
-            isVoice: true,
-            isProgress: existing.isProgress,
-            serverMessageId: existing.serverMessageId
-        )
-        setMessages(conversationMessages, for: conversationId)
+        mutateMessages(for: conversationId) { conversationMessages in
+            let existing = conversationMessages[idx]
+            conversationMessages[idx] = existing.updating(content: text, isVoice: true)
+        }
     }
 
     private func formatToolName(_ name: String) -> String {
@@ -544,13 +554,25 @@ struct Conversation: Identifiable, Codable {
     }
 
     private func appendMessage(_ message: ChatMessage, to conversationId: String) {
-        var conversationMessages = messages(for: conversationId)
-        conversationMessages.append(message)
-        setMessages(conversationMessages, for: conversationId)
+        cachedMessages[conversationId, default: []].append(message)
     }
 
     private func setMessages(_ messages: [ChatMessage], for conversationId: String) {
         cachedMessages[conversationId] = messages
+    }
+
+    /// Mutates one conversation's cached message array and writes it back once.
+    ///
+    /// This keeps dictionary reads/writes localized to one pass when updating
+    /// an element in-place instead of repeatedly fetching/storing the array.
+    /// Use `setMessages(_:for:)` when replacing the entire conversation payload.
+    private func mutateMessages(
+        for conversationId: String,
+        _ mutate: (inout [ChatMessage]) -> Void
+    ) {
+        var conversationMessages = cachedMessages[conversationId, default: []]
+        mutate(&conversationMessages)
+        cachedMessages[conversationId] = conversationMessages
     }
 
     private func refreshLoadingState() {
