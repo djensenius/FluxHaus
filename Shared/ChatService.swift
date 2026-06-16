@@ -38,7 +38,7 @@ func streamCommand(
     images: [ChatImage] = []
 ) -> AsyncThrowingStream<StreamEvent, Error> {
     AsyncThrowingStream { continuation in
-        Task {
+        let streamTask = Task {
             do {
                 var components = URLComponents()
                 components.scheme = "https"
@@ -94,6 +94,9 @@ func streamCommand(
                 continuation.finish(throwing: error)
             }
         }
+        continuation.onTermination = { _ in
+            streamTask.cancel()
+        }
     }
 }
 
@@ -125,7 +128,7 @@ func streamVoice(
     conversationId: String? = nil
 ) -> AsyncThrowingStream<StreamEvent, Error> {
     AsyncThrowingStream { continuation in
-        Task {
+        let streamTask = Task {
             do {
                 var components = URLComponents()
                 components.scheme = "https"
@@ -178,6 +181,9 @@ func streamVoice(
             } catch {
                 continuation.finish(throwing: error)
             }
+        }
+        continuation.onTermination = { _ in
+            streamTask.cancel()
         }
     }
 }

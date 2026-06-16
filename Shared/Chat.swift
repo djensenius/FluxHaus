@@ -118,6 +118,8 @@ struct Conversation: Identifiable, Codable {
     private var cachedMessages: [String: [ChatMessage]] = [:]
     private let maxCachedConversations = 5
     private var streamingConversationId: String?
+    private var activeStreamId: UUID?
+    private var activeStreamTask: Task<Void, Never>?
 
     var messages: [ChatMessage] {
         get { conversationId.flatMap { cachedMessages[$0] } ?? [] }
@@ -139,7 +141,10 @@ struct Conversation: Identifiable, Codable {
         cachedConversationIds.removeAll { $0 == id }
         cachedConversationIds.insert(id, at: 0)
         while cachedConversationIds.count > maxCachedConversations {
-            let evicted = cachedConversationIds.removeLast()
+            let protectedIds = Set([streamingConversationId, loadingConversationId].compactMap(\.self))
+            let evictionIndex = cachedConversationIds.lastIndex { !protectedIds.contains($0) }
+            guard let evictionIndex else { break }
+            let evicted = cachedConversationIds.remove(at: evictionIndex)
             cachedMessages.removeValue(forKey: evicted)
         }
     }
@@ -163,35 +168,48 @@ struct Conversation: Identifiable, Codable {
             cleanupRecording()
             return
         }
+        guard let streamId = beginStream(conversationId: targetConversationId) else { return }
         appendMessage(
             ChatMessage(role: .user, content: trimmed, images: images),
             to: targetConversationId
         )
-        streamingConversationId = targetConversationId
-        refreshLoadingState()
 
-        do {
-            let result = try await processStream(
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.runTextStream(
                 streamCommand(trimmed, conversationId: targetConversationId, images: images),
-                conversationId: targetConversationId
+                conversationId: targetConversationId,
+                streamId: streamId
             )
+        }
+        activeStreamTask = task
+        await task.value
+    }
+
+    private func runTextStream(
+        _ stream: AsyncThrowingStream<StreamEvent, Error>,
+        conversationId targetConversationId: String,
+        streamId: UUID
+    ) async {
+        defer { finishStream(streamId: streamId, conversationId: targetConversationId) }
+        do {
+            let result = try await processStream(stream, conversationId: targetConversationId, streamId: streamId)
+            guard isActiveStream(streamId) else { return }
             // Batch: remove progress + add assistant in one mutation
             var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             updated.append(ChatMessage(role: .assistant, content: result.text))
             setMessages(updated, for: targetConversationId)
             updateMessageCount(by: 2, conversationId: targetConversationId)
             await updateTitleIfNeeded(conversationId: targetConversationId)
+        } catch is CancellationError {
+            removeProgressMessages(conversationId: targetConversationId)
         } catch {
+            guard isActiveStream(streamId) else { return }
             var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             logger.error("Chat error: \(error.localizedDescription)")
             updated.append(ChatMessage(role: .error, content: error.localizedDescription))
             setMessages(updated, for: targetConversationId)
         }
-
-        if streamingConversationId == targetConversationId {
-            streamingConversationId = nil
-        }
-        refreshLoadingState()
     }
 
     private struct StreamResult {
@@ -202,36 +220,56 @@ struct Conversation: Identifiable, Codable {
 
     private func processStream(
         _ stream: AsyncThrowingStream<StreamEvent, Error>,
-        conversationId: String
+        conversationId: String,
+        streamId: UUID
     ) async throws -> StreamResult {
         var result = StreamResult()
         var hadToolCalls = false
         var receivedDone = false
         for try await event in stream {
-            switch event.type {
-            case "transcript":
-                result.transcript = event.text
-                updateUserTranscript(event.text, conversationId: conversationId)
-            case "progress":
-                appendProgress(event.text, conversationId: conversationId)
-            case "tool_call":
-                hadToolCalls = true
-                appendToolCall(event.tool, conversationId: conversationId)
-            case "done":
-                receivedDone = true
-                if let text = event.text { result.text = text }
-                if let b64 = event.audio, let data = Data(base64Encoded: b64) {
-                    result.audioData = data
-                }
-            case "error":
-                throw ChatServiceError.serverError(event.text ?? "Unknown error")
-            default: break
-            }
+            try Task.checkCancellation()
+            guard isActiveStream(streamId) else { throw CancellationError() }
+            try handleStreamEvent(
+                event,
+                result: &result,
+                hadToolCalls: &hadToolCalls,
+                receivedDone: &receivedDone,
+                conversationId: conversationId
+            )
         }
         if !receivedDone && hadToolCalls {
             result.text = "The request timed out while processing. Please try again."
         }
         return result
+    }
+
+    private func handleStreamEvent(
+        _ event: StreamEvent,
+        result: inout StreamResult,
+        hadToolCalls: inout Bool,
+        receivedDone: inout Bool,
+        conversationId: String
+    ) throws {
+        switch event.type {
+        case "transcript":
+            result.transcript = event.text
+            updateUserTranscript(event.text, conversationId: conversationId)
+        case "progress":
+            appendProgress(event.text, conversationId: conversationId)
+        case "tool_call":
+            hadToolCalls = true
+            appendToolCall(event.tool, conversationId: conversationId)
+        case "done":
+            receivedDone = true
+            if let text = event.text { result.text = text }
+            if let b64 = event.audio, let data = Data(base64Encoded: b64) {
+                result.audioData = data
+            }
+        case "error":
+            throw ChatServiceError.serverError(event.text ?? "Unknown error")
+        default:
+            break
+        }
     }
 
     private func appendProgress(_ text: String?, conversationId: String) {
@@ -319,18 +357,37 @@ extension Chat {
             cleanupRecording()
             return
         }
+        guard let streamId = beginStream(conversationId: targetConversationId) else {
+            cleanupRecording()
+            return
+        }
         appendMessage(ChatMessage(
             role: .user, content: "🎤 Voice message",
             audioData: audioData, isVoice: true
         ), to: targetConversationId)
-        streamingConversationId = targetConversationId
-        refreshLoadingState()
 
-        do {
-            let result = try await processStream(
+        let task = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.runVoiceStream(
                 streamVoice(audioData: audioData, conversationId: targetConversationId),
-                conversationId: targetConversationId
+                conversationId: targetConversationId,
+                streamId: streamId
             )
+        }
+        activeStreamTask = task
+        await task.value
+        cleanupRecording()
+    }
+
+    private func runVoiceStream(
+        _ stream: AsyncThrowingStream<StreamEvent, Error>,
+        conversationId targetConversationId: String,
+        streamId: UUID
+    ) async {
+        defer { finishStream(streamId: streamId, conversationId: targetConversationId) }
+        do {
+            let result = try await processStream(stream, conversationId: targetConversationId, streamId: streamId)
+            guard isActiveStream(streamId) else { return }
             var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             updated.append(ChatMessage(
                 role: .assistant, content: result.text,
@@ -342,18 +399,15 @@ extension Chat {
             if let audio = result.audioData {
                 playAudioResponse(data: audio)
             }
+        } catch is CancellationError {
+            removeProgressMessages(conversationId: targetConversationId)
         } catch {
+            guard isActiveStream(streamId) else { return }
             var updated = messages(for: targetConversationId).filter { !$0.isProgress }
             logger.error("Voice error: \(error.localizedDescription)")
             updated.append(ChatMessage(role: .error, content: error.localizedDescription))
             setMessages(updated, for: targetConversationId)
         }
-
-        if streamingConversationId == targetConversationId {
-            streamingConversationId = nil
-        }
-        refreshLoadingState()
-        cleanupRecording()
     }
 
     private func playAudioResponse(data: Data) {
@@ -437,8 +491,8 @@ extension Chat {
 
     func startNewConversation() {
         stopPlayback()
+        cancelActiveStream()
         loadingConversationId = nil
-        streamingConversationId = nil
         refreshLoadingState()
         conversationId = nil
         sessionError = nil
@@ -568,6 +622,41 @@ extension Chat {
 
     private func setMessages(_ messages: [ChatMessage], for conversationId: String) {
         cachedMessages[conversationId] = messages
+    }
+
+    private func beginStream(conversationId: String) -> UUID? {
+        guard activeStreamTask == nil else { return nil }
+        let streamId = UUID()
+        activeStreamId = streamId
+        streamingConversationId = conversationId
+        refreshLoadingState()
+        return streamId
+    }
+
+    private func finishStream(streamId: UUID, conversationId: String) {
+        guard activeStreamId == streamId else { return }
+        activeStreamId = nil
+        activeStreamTask = nil
+        if streamingConversationId == conversationId {
+            streamingConversationId = nil
+        }
+        refreshLoadingState()
+    }
+
+    private func cancelActiveStream() {
+        activeStreamTask?.cancel()
+        activeStreamTask = nil
+        activeStreamId = nil
+        streamingConversationId = nil
+        refreshLoadingState()
+    }
+
+    private func isActiveStream(_ streamId: UUID) -> Bool {
+        activeStreamId == streamId && !Task.isCancelled
+    }
+
+    private func removeProgressMessages(conversationId: String) {
+        setMessages(messages(for: conversationId).filter { !$0.isProgress }, for: conversationId)
     }
 
     /// Mutates one conversation's cached message array and writes it back once.

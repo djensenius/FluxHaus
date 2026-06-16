@@ -65,6 +65,8 @@ struct ConversationScrollView: View {
         }
         .scrollPosition($scrollPosition)
         .task(id: convId) {
+            pendingScrollTask?.cancel()
+            pendingScrollTask = nil
             // Pre-warm the markdown cache so MarkdownContentView finds hits immediately.
             warmMarkdownCache(for: msgs.map(\.content))
             scrollPosition = ScrollPosition()
@@ -76,10 +78,12 @@ struct ConversationScrollView: View {
         }
         .onChange(of: msgs.last?.content) {
             pendingScrollTask?.cancel()
+            let scheduledConversationId = convId
             pendingScrollTask = Task { @MainActor in
                 // `scrollDebounceMilliseconds` keeps streamed-text scrolling
                 // smooth without issuing a scroll for every token mutation.
                 try? await Task.sleep(for: .milliseconds(scrollDebounceMilliseconds))
+                guard !Task.isCancelled, scheduledConversationId == convId else { return }
                 scrollPosition.scrollTo(edge: .bottom)
             }
         }
