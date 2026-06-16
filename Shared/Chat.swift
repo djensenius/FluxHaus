@@ -537,7 +537,7 @@ extension Chat {
 
     func deleteConversation(_ conv: Conversation) async {
         if streamingConversationId == conv.id {
-            cancelActiveStream()
+            await cancelActiveStreamAndWait()
         }
         do {
             try await deleteConversationRequest(id: conv.id)
@@ -660,6 +660,15 @@ extension Chat {
         activeStreamId = nil
         streamingConversationId = nil
         refreshLoadingState()
+    }
+
+    private func cancelActiveStreamAndWait() async {
+        guard let task = activeStreamTask else {
+            cancelActiveStream()
+            return
+        }
+        task.cancel()
+        await task.value
     }
 
     private func isActiveStream(_ streamId: UUID) -> Bool {
