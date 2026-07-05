@@ -50,7 +50,7 @@ struct PastedTextAttachment: Identifiable, Equatable {
 
     /// Number of characters that triggers converting a paste into an attachment.
     static let characterThreshold = 600
-    /// Number of newlines that triggers converting a paste into an attachment.
+    /// Number of lines that triggers converting a paste into an attachment.
     static let lineThreshold = 15
 
     var charCount: Int { text.count }
