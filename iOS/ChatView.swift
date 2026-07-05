@@ -33,13 +33,15 @@ private func formatRelativeDate(_ isoString: String) -> String {
 struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
-    @FocusState private var isInputFocused: Bool
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var showConversations = false
     @State private var compactNavPath: [String] = []
     @State private var holdRecordStart: Date?
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var pendingImages: [ChatImage] = []
+    @State private var pendingPastedTexts: [PastedTextAttachment] = []
+    @State private var previousInputText = ""
+    @State private var expandedPastedText: PastedTextAttachment?
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
     @State private var showSuggestions = false
@@ -224,6 +226,7 @@ struct ChatView: View {
 
     private var chatDetail: some View {
         VStack(spacing: 0) {
+            ConversationTabBar(chat: chat)
             if let error = chat.sessionError { sessionErrorBanner(error) }
             chatMessages
             if showSuggestions {
@@ -231,12 +234,29 @@ struct ChatView: View {
                     .padding(.vertical, 8)
             }
             Divider()
+            pastedTextBar
             imagePreviewBar
             inputBar
         }
         .background(Theme.Colors.background)
         .navigationTitle(chat.conversationId != nil ? "Assistant" : "New Chat")
         .navigationBarTitleDisplayMode(.inline)
+        .background(tabCycleShortcuts)
+        .onChange(of: inputText) { _, newValue in handleInputChange(newValue) }
+        .sheet(item: $expandedPastedText) { attachment in
+            PastedTextDetailView(attachment: attachment) { expandedPastedText = nil }
+        }
+    }
+
+    private var tabCycleShortcuts: some View {
+        HStack(spacing: 0) {
+            Button(action: { Task { await chat.cycleTab(forward: true) } }, label: { EmptyView() })
+                .keyboardShortcut("]", modifiers: [.command, .shift])
+            Button(action: { Task { await chat.cycleTab(forward: false) } }, label: { EmptyView() })
+                .keyboardShortcut("[", modifiers: [.command, .shift])
+        }
+        .opacity(0)
+        .allowsHitTesting(false)
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
@@ -263,7 +283,36 @@ struct ChatView: View {
         Group {
             if let convId = chat.conversationId {
                 ConversationScrollView(convId: convId, chat: chat)
+            } else {
+                Color.clear
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+extension ChatView {
+    // MARK: - Pasted text preview
+
+    @ViewBuilder
+    private var pastedTextBar: some View {
+        if !pendingPastedTexts.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(pendingPastedTexts) { attachment in
+                        PastedTextChip(
+                            attachment: attachment,
+                            onTap: { expandedPastedText = attachment },
+                            onRemove: {
+                                pendingPastedTexts.removeAll { $0.id == attachment.id }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            Divider()
         }
     }
 
@@ -313,13 +362,13 @@ struct ChatView: View {
                     micButton
                     photoPickerButton
 
-                    TextField("Ask anything…", text: $inputText, axis: .vertical)
-                        .font(Theme.Fonts.bodyLarge)
-                        .textFieldStyle(.plain)
-                        .lineLimit(1...10)
-                        .focused($isInputFocused)
-                        .submitLabel(.send)
-                        .onSubmit { sendMessage() }
+                    ChatComposerTextField(
+                        text: $inputText,
+                        onSubmit: { sendMessage() },
+                        onPasteLargeText: { pending in
+                            pendingPastedTexts.append(PastedTextAttachment(text: pending))
+                        }
+                    )
 
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")
@@ -338,7 +387,8 @@ struct ChatView: View {
     private var canSend: Bool {
         let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasImages = !pendingImages.isEmpty
-        return (hasText || hasImages) && !chat.isLoading
+        let hasPasted = !pendingPastedTexts.isEmpty
+        return (hasText || hasImages || hasPasted) && !chat.isLoading
     }
 
     private var photoPickerButton: some View {
@@ -443,10 +493,23 @@ struct ChatView: View {
     private func sendMessage() {
         let text = inputText
         let images = pendingImages
+        let pasted = pendingPastedTexts
         inputText = ""
+        previousInputText = ""
         pendingImages = []
+        pendingPastedTexts = []
         selectedPhotos = []
-        Task { await chat.send(text, images: images) }
+        Task { await chat.send(text, images: images, pastedTexts: pasted) }
+    }
+
+    private func handleInputChange(_ newValue: String) {
+        if let result = PastedTextAttachment.detectLargeInsertion(old: previousInputText, new: newValue) {
+            pendingPastedTexts.append(PastedTextAttachment(text: result.inserted))
+            inputText = result.remaining
+            previousInputText = result.remaining
+        } else {
+            previousInputText = newValue
+        }
     }
 
     private func loadSelectedPhotos() async {
