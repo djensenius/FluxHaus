@@ -167,6 +167,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Allow the main window group to use native macOS window tabs. New main
+        // windows (opened explicitly) then join the existing window as tabs.
+        NSWindow.allowsAutomaticWindowTabbing = true
         if UserDefaults.standard.string(forKey: quickChatShortcutDefaultsKey) == nil {
             UserDefaults.standard.set(
                 QuickChatShortcut.defaultShortcut.rawValue,
@@ -200,8 +203,13 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         _ sender: NSApplication,
         hasVisibleWindows flag: Bool
     ) -> Bool {
+        let hasExistingWindow = !primaryWindows.isEmpty
         presentMainApp()
-        return true
+        // When a primary window already exists we reuse it and return false so AppKit
+        // does not additionally create/restore an untitled duplicate window (the source
+        // of the occasional duplicate). Only fall back to AppKit's default handling
+        // when there is genuinely no window to restore.
+        return !hasExistingWindow
     }
 
     func requestFullQuit() {
@@ -295,6 +303,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
 
     private func presentMainApp(section: String? = nil) {
         restoreDockPresence()
+        collapseDuplicatePrimaryWindows()
         restorePrimaryWindows()
         NSApp.activate(ignoringOtherApps: true)
         if let section {
@@ -303,6 +312,22 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
                 object: nil,
                 userInfo: ["section": section]
             )
+        }
+    }
+
+    /// Keeps a single primary (main) window alive, closing any accidental duplicates
+    /// created by scene restoration/reopen. Windows that belong to a multi-window tab
+    /// group are user-intended (native window tabs) and are left untouched.
+    private func collapseDuplicatePrimaryWindows() {
+        let windows = primaryWindows.filter { window in
+            (window.tabGroup?.windows.count ?? 1) <= 1
+        }
+        guard windows.count > 1 else { return }
+        let keep = windows.first { $0.isKeyWindow }
+            ?? NSApp.orderedWindows.first(where: { windows.contains($0) })
+            ?? windows[0]
+        for window in windows where window != keep {
+            window.close()
         }
     }
 
@@ -365,9 +390,10 @@ struct MacApp: App {
     @State private var chat = Chat()
     @State private var scooter: Scooter?
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             mainContent
                 .onAppear {
                     appDelegate.configure(sharedChat: chat)
@@ -403,6 +429,11 @@ struct MacApp: App {
                     )
                 }
                 .keyboardShortcut("n", modifiers: .command)
+
+                Button("New Window") {
+                    openWindow(id: "main")
+                }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
             }
 
             CommandMenu("Navigate") {

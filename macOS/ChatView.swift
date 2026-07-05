@@ -19,9 +19,11 @@ struct ChatView: View {
     var style: ChatViewStyle = .full
     private let initialQuickChatExpanded: Bool
     @State private var inputText = ""
-    @FocusState private var isInputFocused: Bool
     @State private var holdRecordStart: Date?
     @State private var pendingImages: [ChatImage] = []
+    @State private var pendingPastedTexts: [PastedTextAttachment] = []
+    @State private var previousInputText = ""
+    @State private var expandedPastedText: PastedTextAttachment?
     @State private var showFilePicker = false
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
@@ -289,6 +291,7 @@ extension ChatView {
 
     private var chatDetail: some View {
         VStack(spacing: 0) {
+            conversationTabBar
             if let error = chat.sessionError {
                 sessionErrorBanner(error)
             }
@@ -301,13 +304,108 @@ extension ChatView {
                 .padding(.vertical, 8)
             }
             Divider()
+            pastedTextBar
             imagePreviewBar
             inputBar
+        }
+        .onChange(of: inputText) { _, newValue in handleInputChange(newValue) }
+        .background(tabCycleShortcuts)
+        .sheet(item: $expandedPastedText) { attachment in
+            PastedTextDetailView(attachment: attachment) { expandedPastedText = nil }
         }
         .onDrop(of: ["public.image"], isTargeted: nil) { providers in
             loadDroppedImages(providers)
             return true
         }
+    }
+
+    // MARK: - Conversation tabs
+
+    @ViewBuilder
+    private var conversationTabBar: some View {
+        let tabs = chat.openTabConversations
+        let showNewTab = chat.conversationId == nil
+        if !tabs.isEmpty || showNewTab {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(tabs) { conv in
+                        conversationTabChip(
+                            title: conv.title ?? "Untitled",
+                            isActive: conv.id == chat.conversationId,
+                            onSelect: { Task { await chat.selectTab(conv.id) } },
+                            onClose: { Task { await chat.closeTab(conv.id) } }
+                        )
+                    }
+                    if showNewTab {
+                        conversationTabChip(
+                            title: "New Chat",
+                            isActive: true,
+                            onSelect: {},
+                            onClose: nil
+                        )
+                    }
+                    Button(action: { chat.startNewConversation() }, label: {
+                        Image(systemName: "plus")
+                            .font(Theme.Fonts.caption)
+                    })
+                    .buttonStyle(.borderless)
+                    .help("New Chat Tab")
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+            }
+            .background(Theme.Colors.secondaryBackground)
+            Divider()
+        }
+    }
+
+    private func conversationTabChip(
+        title: String,
+        isActive: Bool,
+        onSelect: @escaping () -> Void,
+        onClose: (() -> Void)?
+    ) -> some View {
+        HStack(spacing: 6) {
+            Text(title)
+                .font(Theme.Fonts.caption.weight(isActive ? .semibold : .regular))
+                .foregroundColor(isActive ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
+                .lineLimit(1)
+            if let onClose {
+                Button(action: onClose, label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(Theme.Colors.textSecondary)
+                })
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .frame(maxWidth: 160)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isActive ? Theme.Colors.accent.opacity(0.15) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(
+                    isActive ? Theme.Colors.accent.opacity(0.4) : Theme.Colors.textSecondary.opacity(0.2),
+                    lineWidth: 1
+                )
+        )
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onSelect)
+    }
+
+    private var tabCycleShortcuts: some View {
+        HStack(spacing: 0) {
+            Button(action: { Task { await chat.cycleTab(forward: true) } }, label: { EmptyView() })
+                .keyboardShortcut("]", modifiers: [.command, .shift])
+            Button(action: { Task { await chat.cycleTab(forward: false) } }, label: { EmptyView() })
+                .keyboardShortcut("[", modifiers: [.command, .shift])
+        }
+        .opacity(0)
+        .allowsHitTesting(false)
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
@@ -338,6 +436,28 @@ extension ChatView {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private var pastedTextBar: some View {
+        if !pendingPastedTexts.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(pendingPastedTexts) { attachment in
+                        PastedTextChip(
+                            attachment: attachment,
+                            onTap: { expandedPastedText = attachment },
+                            onRemove: {
+                                pendingPastedTexts.removeAll { $0.id == attachment.id }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+            }
+            Divider()
+        }
     }
 
     @ViewBuilder
@@ -399,16 +519,16 @@ extension ChatView {
                         loadFilePickerImages(result)
                     }
 
-                    TextField("Ask anything…", text: $inputText, axis: .vertical)
-                        .font(Theme.Fonts.bodyLarge)
-                        .textFieldStyle(.plain)
-                        .lineLimit(1...10)
-                        .focused($isInputFocused)
-                        .submitLabel(.send)
-                        .onSubmit { sendMessage() }
-                        // Do NOT auto-focus on macOS: activating the NSTextView field
-                        // editor while streaming triggers ViewBridge XPC and can
-                        // contribute to _NSDetectedLayoutRecursion.
+                    // Do NOT auto-focus on macOS: activating the NSTextView field
+                    // editor while streaming triggers ViewBridge XPC and can
+                    // contribute to _NSDetectedLayoutRecursion.
+                    ChatComposerTextField(
+                        text: $inputText,
+                        onSubmit: { sendMessage() },
+                        onPasteLargeText: { pending in
+                            pendingPastedTexts.append(PastedTextAttachment(text: pending))
+                        }
+                    )
 
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")
@@ -427,7 +547,8 @@ extension ChatView {
     private var canSend: Bool {
         let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasImages = !pendingImages.isEmpty
-        return (hasText || hasImages) && !chat.isLoading
+        let hasPasted = !pendingPastedTexts.isEmpty
+        return (hasText || hasImages || hasPasted) && !chat.isLoading
     }
 
     private var micButton: some View {
@@ -492,9 +613,22 @@ extension ChatView {
     private func sendMessage() {
         let text = inputText
         let images = pendingImages
+        let pasted = pendingPastedTexts
         inputText = ""
+        previousInputText = ""
         pendingImages = []
-        Task { await chat.send(text, images: images) }
+        pendingPastedTexts = []
+        Task { await chat.send(text, images: images, pastedTexts: pasted) }
+    }
+
+    private func handleInputChange(_ newValue: String) {
+        if let result = PastedTextAttachment.detectLargeInsertion(old: previousInputText, new: newValue) {
+            pendingPastedTexts.append(PastedTextAttachment(text: result.inserted))
+            inputText = result.remaining
+            previousInputText = result.remaining
+        } else {
+            previousInputText = newValue
+        }
     }
 
     private func loadFilePickerImages(_ result: Result<[URL], Error>) {

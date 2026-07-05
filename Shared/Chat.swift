@@ -39,6 +39,68 @@ struct ChatImage: Identifiable {
     }
 }
 
+/// A large chunk of pasted text represented as a composer attachment.
+///
+/// Emulates ChatGPT/Claude behaviour: rather than dumping a big paste inline into
+/// the text field, it is shown as a collapsible chip. On send the content is inlined
+/// into the outgoing command wrapped in a fenced code block (see `Chat.send`).
+struct PastedTextAttachment: Identifiable, Equatable {
+    let id = UUID()
+    let text: String
+
+    /// Number of characters that triggers converting a paste into an attachment.
+    static let characterThreshold = 600
+    /// Number of lines that triggers converting a paste into an attachment.
+    static let lineThreshold = 15
+
+    var charCount: Int { text.count }
+
+    var lineCount: Int {
+        guard !text.isEmpty else { return 0 }
+        return text.reduce(1) { $1 == "\n" ? $0 + 1 : $0 }
+    }
+
+    /// Short single-line preview used on the chip.
+    var preview: String {
+        let firstLine = text
+            .split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+            .first
+            .map(String.init) ?? text
+        let trimmed = firstLine.trimmingCharacters(in: .whitespaces)
+        if trimmed.count > 48 {
+            return String(trimmed.prefix(48)) + "…"
+        }
+        return trimmed.isEmpty ? "Pasted text" : trimmed
+    }
+
+    /// Whether a freshly pasted string is large enough to become an attachment.
+    static func qualifies(_ candidate: String) -> Bool {
+        if candidate.count >= characterThreshold { return true }
+        let newlines = candidate.reduce(0) { $1 == "\n" ? $0 + 1 : $0 }
+        return newlines + 1 >= lineThreshold
+    }
+
+    /// Detects a single large insertion between two composer states (typically caused
+    /// by a paste). Returns the text with the inserted chunk removed and the chunk
+    /// itself, or `nil` when no qualifying insertion is found.
+    static func detectLargeInsertion(old: String, new: String) -> (remaining: String, inserted: String)? {
+        guard new.count > old.count else { return nil }
+        let prefix = new.commonPrefix(with: old)
+        let oldSuffix = old.dropFirst(prefix.count)
+        let newSuffix = new.dropFirst(prefix.count)
+        let suffixLength = zip(oldSuffix.reversed(), newSuffix.reversed())
+            .prefix { $0 == $1 }
+            .count
+        let insertedStart = new.index(new.startIndex, offsetBy: prefix.count)
+        let insertedEnd = new.index(new.endIndex, offsetBy: -suffixLength)
+        guard insertedStart < insertedEnd else { return nil }
+        let inserted = String(new[insertedStart..<insertedEnd])
+        guard qualifies(inserted) else { return nil }
+        let remaining = String(new[..<insertedStart]) + String(new[insertedEnd...])
+        return (remaining, inserted)
+    }
+}
+
 struct ChatMessage: Identifiable {
     let id: UUID
     let role: ChatRole
@@ -114,6 +176,10 @@ struct Conversation: Identifiable, Codable {
     var playingMessageId: UUID?
     var sessionError: String?
     var conversations: [Conversation] = []
+    /// Ordered list of conversation ids kept open as in-app tabs. The active tab is
+    /// `conversationId`. A brand-new (unsaved) conversation is represented by
+    /// `conversationId == nil` and shown as a transient "New" tab in the UI.
+    var openConversationTabs: [String] = []
     private(set) var cachedConversationIds: [String] = []
     private var cachedMessages: [String: [ChatMessage]] = [:]
     private let maxCachedConversations = 5
@@ -160,9 +226,39 @@ struct Conversation: Identifiable, Codable {
     private var isSyncing = false
     private var loadingConversationIds: Set<String> = []
 
-    func send(_ text: String, images: [ChatImage] = []) async {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+    /// Builds the outgoing command text by appending each pasted-text attachment as a
+    /// fenced code block after the typed message. Uses a fence long enough to safely
+    /// wrap content that itself contains backtick fences.
+    static func composeCommand(text: String, pastedTexts: [PastedTextAttachment]) -> String {
+        let base = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !pastedTexts.isEmpty else { return base }
+        var parts: [String] = base.isEmpty ? [] : [base]
+        for pasted in pastedTexts {
+            let fenceLength = max(3, longestBacktickRun(in: pasted.text) + 1)
+            let fence = String(repeating: "`", count: fenceLength)
+            parts.append("\(fence)\n\(pasted.text)\n\(fence)")
+        }
+        return parts.joined(separator: "\n\n")
+    }
+
+    private static func longestBacktickRun(in text: String) -> Int {
+        var longest = 0
+        var current = 0
+        for char in text {
+            if char == "`" {
+                current += 1
+                longest = max(longest, current)
+            } else {
+                current = 0
+            }
+        }
+        return longest
+    }
+
+    func send(_ text: String, images: [ChatImage] = [], pastedTexts: [PastedTextAttachment] = []) async {
+        let composed = Chat.composeCommand(text: text, pastedTexts: pastedTexts)
+        let trimmed = composed.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty || !images.isEmpty else { return }
 
         guard await ensureConversation() else {
             cleanupRecording()
@@ -504,6 +600,7 @@ extension Chat {
     func loadConversation(_ conv: Conversation) async {
         touchConversation(conv.id)
         conversationId = conv.id
+        openTab(for: conv.id)
         if cachedMessages[conv.id] != nil {
             refreshLoadingState()
             return
@@ -544,6 +641,7 @@ extension Chat {
             conversations.removeAll { $0.id == conv.id }
             cachedMessages.removeValue(forKey: conv.id)
             cachedConversationIds.removeAll { $0 == conv.id }
+            openConversationTabs.removeAll { $0 == conv.id }
             loadingConversationIds.remove(conv.id)
             if conversationId == conv.id {
                 // Select next available conversation instead of creating a new one
@@ -559,6 +657,56 @@ extension Chat {
         }
     }
 
+    // MARK: - Conversation tabs
+
+    /// Conversations currently open as tabs, in tab order.
+    var openTabConversations: [Conversation] {
+        openConversationTabs.compactMap { id in
+            conversations.first(where: { $0.id == id })
+        }
+    }
+
+    /// Adds a conversation id to the open-tab list if not already present.
+    func openTab(for id: String) {
+        if !openConversationTabs.contains(id) {
+            openConversationTabs.append(id)
+        }
+    }
+
+    /// Selects an open tab, loading its conversation.
+    func selectTab(_ id: String) async {
+        guard let conv = conversations.first(where: { $0.id == id }) else { return }
+        await loadConversation(conv)
+    }
+
+    /// Closes a tab. If it was active, activates a neighbouring tab (or a new chat).
+    func closeTab(_ id: String) async {
+        guard let index = openConversationTabs.firstIndex(of: id) else { return }
+        openConversationTabs.remove(at: index)
+        guard conversationId == id else { return }
+        if openConversationTabs.isEmpty {
+            startNewConversation()
+            return
+        }
+        let neighbour = openConversationTabs[min(index, openConversationTabs.count - 1)]
+        await selectTab(neighbour)
+    }
+
+    /// Cycles the active tab forward/backward through the open tabs. When on the
+    /// transient new-chat tab, cycles into the first/last open tab.
+    func cycleTab(forward: Bool) async {
+        guard !openConversationTabs.isEmpty else { return }
+        guard let current = conversationId,
+              let index = openConversationTabs.firstIndex(of: current) else {
+            let target = forward ? openConversationTabs.first : openConversationTabs.last
+            if let target { await selectTab(target) }
+            return
+        }
+        let count = openConversationTabs.count
+        let nextIndex = ((index + (forward ? 1 : -1)) % count + count) % count
+        await selectTab(openConversationTabs[nextIndex])
+    }
+
 }
 
 extension Chat {
@@ -571,6 +719,7 @@ extension Chat {
             let conv = try await createConversation()
             conversationId = conv.id
             touchConversation(conv.id)
+            openTab(for: conv.id)
             conversations.insert(conv, at: 0)
             sessionError = nil
             return true
