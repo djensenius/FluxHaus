@@ -99,7 +99,7 @@ struct PastedTextAttachmentTests {
     func detectsLargeInsertion() throws {
         let pasted = String(repeating: "z", count: 700)
         let result = try #require(
-            PastedTextAttachment.detectLargeInsertion(old: "Hi ", new: "Hi \(pasted)!")
+            PastedTextAttachment.detectLargeInsertion(old: "Hi !", new: "Hi \(pasted)!")
         )
         #expect(result.inserted == pasted)
         #expect(result.remaining == "Hi !")
