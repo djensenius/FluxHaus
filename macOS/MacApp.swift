@@ -420,6 +420,7 @@ struct MacApp: App {
                 }
         }
         .defaultSize(width: 900, height: 700)
+        .defaultLaunchBehavior(.presented)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Conversation") {
