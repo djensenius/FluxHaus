@@ -389,6 +389,8 @@ struct MacApp: App {
     @State private var car: Car?
     @State private var chat = Chat()
     @State private var scooter: Scooter?
+    @State private var airPurifier: AirPurifier?
+    @State private var metrics = MetricsService()
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
     @Environment(\.openWindow) private var openWindow
 
@@ -414,6 +416,7 @@ struct MacApp: App {
                     self.robots = nil
                     self.car = nil
                     self.scooter = nil
+                    self.airPurifier = nil
                 }
                 .onOpenURL { url in
                     handleDeepLink(url)
@@ -513,7 +516,7 @@ struct MacApp: App {
                 ) { object in
                     handleDataUpdated(object)
                 }
-        } else if let hconn, let miele, let robots, let car, let scooter {
+        } else if let hconn, let miele, let robots, let car, let scooter, let airPurifier {
             ContentView(
                 fluxHausConsts: fluxHausConsts,
                 hconn: hconn,
@@ -523,6 +526,8 @@ struct MacApp: App {
                 car: car,
                 scooter: scooter,
                 apiResponse: apiResponse,
+                airPurifier: airPurifier,
+                metrics: metrics,
                 chat: chat
             )
             .onReceive(
@@ -538,6 +543,7 @@ struct MacApp: App {
                     miele.setApiResponse(apiResponse: self.apiResponse)
                     car.setApiResponse(apiResponse: self.apiResponse)
                     scooter.setApiResponse(apiResponse: self.apiResponse)
+                    airPurifier.setApiResponse(apiResponse: self.apiResponse)
                 }
             }
             .task {
@@ -618,6 +624,8 @@ struct MacApp: App {
             self.car?.setApiResponse(apiResponse: self.apiResponse)
             self.scooter = Scooter()
             self.scooter?.setApiResponse(apiResponse: self.apiResponse)
+            self.airPurifier = AirPurifier()
+            self.airPurifier?.setApiResponse(apiResponse: self.apiResponse)
             self.hconn = HomeConnect(apiResponse: self.apiResponse)
         }
     }

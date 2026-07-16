@@ -16,6 +16,9 @@ extension Appliances {
             return getRobotIconColor(robot: robots.mopBot)
         case "BroomBot":
             return getRobotIconColor(robot: robots.broomBot)
+        case "AirPurifier":
+            return airPurifier.status.online && airPurifier.status.fanOn
+                ? Theme.Colors.accent : Theme.Colors.textSecondary
         case "Battery":
             return getBatteryIconColor()
         case "Car":
@@ -76,8 +79,11 @@ extension Appliances {
         switch type {
         case "MopBot":
             Image(systemName: "humidifier.and.droplets")
+                .deviceSymbolAnimation(.variableColor, isActive: robotIsActive(robots.mopBot))
         case "BroomBot":
-            Image(systemName: "fan")
+            Image(systemName: "robotic.vacuum.fill")
+        case "AirPurifier":
+            Image(systemName: "air.purifier")
         case "Battery":
             getDeviceIcon(battery: battery)
         case "Car":
@@ -90,6 +96,10 @@ extension Appliances {
         default:
             applianceIcon(for: hconn.appliances, index: index)
         }
+    }
+
+    private func robotIsActive(_ robot: Robot) -> Bool {
+        robot.running == true || robot.paused == true
     }
 
     private func applianceIcon(for appliances: [Appliance], index: Int) -> Image {
@@ -109,16 +119,10 @@ extension Appliances {
             return "MopBot"
         } else if type == "BroomBot" {
             return "BroomBot"
+        } else if type == "AirPurifier" {
+            return "Air Purifier"
         } else if type == "Battery" {
-            if battery.model == .iPad {
-                return "iPad"
-            } else if battery.model == .mac {
-                return "Computer"
-            } else if battery.model == .visionPro {
-                return "Vision Pro"
-            } else {
-                return "Phone"
-            }
+            return batteryName()
         } else if type == "Car" {
             return "Car"
         } else if type == "Scooter" {
@@ -132,6 +136,18 @@ extension Appliances {
             return text
         }
         return "Fetching"
+    }
+
+    private func batteryName() -> String {
+        if battery.model == .iPad {
+            return "iPad"
+        } else if battery.model == .mac {
+            return "Computer"
+        } else if battery.model == .visionPro {
+            return "Vision Pro"
+        } else {
+            return "Phone"
+        }
     }
 
     func tApplianceValue(tAppliance: [Appliance], index: Int) -> String {
@@ -159,6 +175,8 @@ extension Appliances {
            return getMopBotText()
         } else if type == "BroomBot" {
            return getBroomBotText()
+        } else if type == "AirPurifier" {
+           return getAirPurifierText()
         } else if type == "Battery" {
             if battery.state == .charging {
                 return "Charging"
@@ -204,6 +222,18 @@ extension Appliances {
         return text
     }
 
+    func getAirPurifierText() -> String {
+        guard airPurifier.status.online else { return "Offline" }
+        var parts: [String] = []
+        if airPurifier.status.fanOn {
+            parts.append(airPurifier.status.presetMode?.capitalized ?? "On")
+        }
+        if airPurifier.status.pm25 != nil {
+            parts.append("PM2.5 \(airPurifier.formattedPm25)")
+        }
+        return parts.joined(separator: " | ")
+    }
+
     func tApplianceTimeRemaining(tAppliance: [Appliance], index: Int) -> String {
         if tAppliance.count == 0 { return "" }
         if tAppliance[index].inUse == false {
@@ -220,6 +250,9 @@ extension Appliances {
             return robotStatus(robots.mopBot)
         } else if type == "BroomBot" {
             return robotStatus(robots.broomBot)
+        } else if type == "AirPurifier" {
+            if !airPurifier.status.online { return "Off" }
+            return airPurifier.status.fanOn ? "On" : "Off"
         } else if type == "Battery" {
             return "\(battery.percent)%"
         } else if type == "Car" {

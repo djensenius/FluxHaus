@@ -154,6 +154,8 @@ struct FluxHausApp: App {
     @State private var robots: Robots?
     @State private var car: Car?
     @State private var scooter: Scooter?
+    @State private var airPurifier: AirPurifier?
+    @State private var metrics = MetricsService()
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -220,9 +222,10 @@ struct FluxHausApp: App {
                                 loadCar()
                                 loadScooter()
                                 loadHomeConnect()
+                                loadAirPurifier()
                             }
                         }
-                } else if let hconn, let miele, let robots, let car, let scooter {
+                } else if let hconn, let miele, let robots, let car, let scooter, let airPurifier {
                     ContentView(
                         fluxHausConsts: fluxHausConsts,
                         hconn: hconn,
@@ -231,7 +234,9 @@ struct FluxHausApp: App {
                         battery: battery,
                         car: car,
                         scooter: scooter,
-                        apiResponse: self.apiResponse
+                        apiResponse: self.apiResponse,
+                        airPurifier: airPurifier,
+                        metrics: metrics
                     )
                     .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                         if let response = object.userInfo?["data"] as? LoginResponse {
@@ -242,6 +247,7 @@ struct FluxHausApp: App {
                             miele.setApiResponse(apiResponse: self.apiResponse)
                             car.setApiResponse(apiResponse: self.apiResponse)
                             scooter.setApiResponse(apiResponse: self.apiResponse)
+                            airPurifier.setApiResponse(apiResponse: self.apiResponse)
                             updateLiveActivities(response: response)
                         }
                     }
@@ -266,6 +272,7 @@ struct FluxHausApp: App {
                 robots = nil
                 car = nil
                 scooter = nil
+                airPurifier = nil
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
@@ -345,6 +352,11 @@ struct FluxHausApp: App {
     func loadScooter() {
         scooter = Scooter()
         scooter?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadAirPurifier() {
+        airPurifier = AirPurifier()
+        airPurifier?.setApiResponse(apiResponse: self.apiResponse)
     }
 
     func updateLiveActivities(response: LoginResponse) {

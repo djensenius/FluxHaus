@@ -46,7 +46,8 @@ private func mockAppliances(
         hconn: hconn, miele: miele,
         apiResponse: MockData.createApi(),
         robots: robots, battery: battery,
-        car: car, locationManager: LocationManager()
+        car: car, locationManager: LocationManager(),
+        airPurifier: MockData.createAirPurifier()
     )
 }
 
@@ -135,7 +136,9 @@ struct ViewSmokeTests {
             battery: MockData.createBattery(),
             car: car,
             scooter: MockData.createScooter(),
-            apiResponse: MockData.createApi()
+            apiResponse: MockData.createApi(),
+            airPurifier: MockData.createAirPurifier(),
+            metrics: MetricsService()
         )
 
         let controller = UIHostingController(rootView: view)
@@ -162,7 +165,8 @@ struct ViewSmokeTests {
             robots: robots,
             battery: MockData.createBattery(),
             car: car,
-            locationManager: LocationManager()
+            locationManager: LocationManager(),
+            airPurifier: MockData.createAirPurifier()
         )
 
         let controller = UIHostingController(rootView: view)
@@ -295,7 +299,7 @@ struct ApplianceDisplayTests {
         await drainMainQueue()
 
         let view = mockAppliances(hconn: hconn, miele: miele, robots: robots, car: car)
-        #expect(view.originalAppliances.count == 8)
+        #expect(view.originalAppliances.count == 9)
         let names = view.originalAppliances.map { $0.name }
         #expect(names.contains("HomeConnect"))
         #expect(names.contains("Miele"))
@@ -304,6 +308,7 @@ struct ApplianceDisplayTests {
         #expect(names.contains("Car"))
         #expect(names.contains("Scooter"))
         #expect(names.contains("Battery"))
+        #expect(names.contains("AirPurifier"))
     }
 
     @Test("Appliance names are correct for each type")
@@ -431,7 +436,9 @@ struct NilDataResilienceTests {
             fluxHausConsts: FluxHausConsts(),
             hconn: hconn, miele: miele, robots: robots,
             battery: Battery(), car: car,
-            scooter: MockData.createScooter(), apiResponse: api
+            scooter: MockData.createScooter(), apiResponse: api,
+            airPurifier: MockData.createAirPurifier(),
+            metrics: MetricsService()
         )
         let controller = UIHostingController(rootView: view)
         controller.loadViewIfNeeded()

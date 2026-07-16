@@ -16,7 +16,7 @@ struct NotificationSettingsSection: View {
         ("Dishwasher", "dishwasher"),
         ("Washer", "washer"),
         ("Dryer", "dryer"),
-        ("BroomBot", "fan"),
+        ("BroomBot", "robotic.vacuum"),
         ("MopBot", "humidifier.and.droplets")
     ]
 

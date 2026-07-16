@@ -123,6 +123,18 @@ struct MockData {
                 endBattery: 85,
                 gearMode: 3
             )
+        ),
+        airPurifier: AirPurifierState(
+            timestamp: "2024-12-13T11:55:00Z",
+            online: true,
+            fanOn: true,
+            fanSpeed: nil,
+            presetMode: "auto",
+            presetModes: ["auto", "night"],
+            lightOn: true,
+            brightness: 255,
+            pm25: 4,
+            filterLife: 100
         )
     )
 
@@ -165,6 +177,13 @@ struct MockData {
 
     static func createBattery() -> Battery {
         return Battery()
+    }
+
+    static func createAirPurifier() -> AirPurifier {
+        let purifier = AirPurifier()
+        let api = createApi()
+        purifier.setApiResponse(apiResponse: api)
+        return purifier
     }
 }
 #endif

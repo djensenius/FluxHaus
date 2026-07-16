@@ -256,7 +256,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             CPListItem(
                 text: "BroomBot",
                 detailText: robotStatusText(response.broombot),
-                image: UIImage(systemName: "fan")
+                image: UIImage(systemName: "robotic.vacuum")
             ),
             CPListItem(
                 text: "MopBot",
