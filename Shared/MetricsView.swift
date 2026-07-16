@@ -358,9 +358,30 @@ struct EnvironmentMetricsView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await metrics.refresh() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .symbolEffect(
+                            .rotate,
+                            options: .repeat(.continuous),
+                            isActive: metrics.isLoading || metrics.isRefreshing
+                        )
+                }
+                .disabled(metrics.isLoading || metrics.isRefreshing)
+            }
+        }
         .task {
             if metrics.catalog.isEmpty {
                 await metrics.refresh()
+            } else if metrics.outdoorCatalog.isEmpty {
+                // The catalog may have been cached before the server exposed the
+                // Outdoor group. Re-fetch it so the new metrics appear without
+                // requiring a manual refresh elsewhere in the app.
+                await metrics.loadCatalog()
+                await metrics.loadAllSeries()
             } else if metrics.series.isEmpty {
                 await metrics.loadAllSeries()
             }
