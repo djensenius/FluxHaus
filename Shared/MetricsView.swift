@@ -9,6 +9,72 @@
 import SwiftUI
 import Charts
 
+/// Colour assignment for metric chart series.
+///
+/// Any series that represents the outdoors ("Outside") is pinned to a single
+/// fixed colour so it reads consistently across every chart; the remaining
+/// series are drawn from a stable palette in sorted order.
+enum MetricSeriesPalette {
+    /// Fixed colour for outdoor/"Outside" series.
+    static let outside = Theme.Colors.info
+
+    private static let palette: [Color] = [
+        Theme.Colors.success,
+        Theme.Colors.primary,
+        Theme.Colors.accent,
+        Theme.Colors.secondary,
+        Theme.Colors.warning,
+        Theme.Colors.error,
+        .indigo,
+        .pink,
+        .brown,
+        .mint
+    ]
+
+    static func isOutside(_ name: String) -> Bool {
+        let lower = name.lowercased()
+        return lower == "outside"
+            || lower.contains("outdoor")
+            || lower.contains("environment canada")
+            || lower.contains("patio")
+    }
+
+    /// Deterministic name → colour mapping for a set of series names. "Outside"
+    /// series are pinned to `outside`; everything else cycles the palette in
+    /// sorted order so colours stay stable as data updates.
+    static func colorMap(for names: [String]) -> [String: Color] {
+        var map: [String: Color] = [:]
+        var index = 0
+        for name in names.sorted() {
+            if isOutside(name) {
+                map[name] = outside
+            } else {
+                map[name] = palette[index % palette.count]
+                index += 1
+            }
+        }
+        return map
+    }
+}
+
+/// Segmented range picker shared by the metrics dashboards.
+struct MetricRangePicker: View {
+    @Bindable var metrics: MetricsService
+
+    var body: some View {
+        Picker("Range", selection: $metrics.selectedRange) {
+            ForEach(MetricRange.allCases) { range in
+                Text(range.label).tag(range)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .onChange(of: metrics.selectedRange) {
+            Task { await metrics.loadAllSeries() }
+        }
+    }
+}
+
 struct MetricsView: View {
     @Bindable var metrics: MetricsService
 
@@ -57,16 +123,7 @@ struct MetricsView: View {
     }
 
     private var rangePicker: some View {
-        Picker("Range", selection: $metrics.selectedRange) {
-            ForEach(MetricRange.allCases) { range in
-                Text(range.label).tag(range)
-            }
-        }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .onChange(of: metrics.selectedRange) {
-            Task { await metrics.loadAllSeries() }
-        }
+        MetricRangePicker(metrics: metrics)
     }
 
     @ViewBuilder
@@ -112,6 +169,17 @@ struct MetricChartCard: View {
         (response?.series ?? []).filter { !$0.points.isEmpty }
     }
 
+    /// Series names in the stable (sorted) order used for both the colour scale
+    /// and the legend, so every data source is represented and coloured the same
+    /// way across refreshes.
+    private var sortedNames: [String] {
+        series.map(\.name).sorted()
+    }
+
+    private var colorMap: [String: Color] {
+        MetricSeriesPalette.colorMap(for: sortedNames)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.small) {
             HStack {
@@ -131,6 +199,9 @@ struct MetricChartCard: View {
             } else {
                 readout
                 chart
+                if series.count > 1 {
+                    legend
+                }
             }
         }
         .padding()
@@ -231,13 +302,110 @@ struct MetricChartCard: View {
                 }
             }
         }
-        .chartLegend(series.count > 1 ? .visible : .hidden)
+        .chartForegroundStyleScale(
+            domain: sortedNames,
+            range: sortedNames.map { colorMap[$0] ?? MetricSeriesPalette.outside }
+        )
+        .chartLegend(.hidden)
         .chartYAxis {
             AxisMarks(position: .leading)
         }
         .chartYScale(domain: yDomain ?? 0...1)
         .chartXSelection(value: $selectedDate)
         .frame(height: 180)
+    }
+
+    /// Wrapping legend so every series (data source) is always visible — a
+    /// horizontal legend clips when there are many rooms/hosts.
+    private var legend: some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 92), alignment: .leading)],
+            alignment: .leading,
+            spacing: 4
+        ) {
+            ForEach(sortedNames, id: \.self) { name in
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(colorMap[name] ?? MetricSeriesPalette.outside)
+                        .frame(width: 8, height: 8)
+                    Text(name)
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+        }
+    }
+}
+
+/// Detailed outdoor/weather metrics, reachable from the Weather tab. Shows every
+/// metric the server groups under "Outdoor" (temperature, humidity, dew point,
+/// humidex, UV index, AQHI, and U.S./Chinese AQI).
+struct EnvironmentMetricsView: View {
+    @Bindable var metrics: MetricsService
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+                MetricRangePicker(metrics: metrics)
+                content
+            }
+            .padding(.vertical)
+        }
+        .background(Theme.Colors.background)
+        .navigationTitle("Outdoor Conditions")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    Task { await metrics.refresh() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .symbolEffect(
+                            .rotate,
+                            options: .repeat(.continuous),
+                            isActive: metrics.isLoading || metrics.isRefreshing
+                        )
+                }
+                .disabled(metrics.isLoading || metrics.isRefreshing)
+            }
+        }
+        .task {
+            if metrics.catalog.isEmpty {
+                await metrics.refresh()
+            } else if metrics.outdoorCatalog.isEmpty {
+                // The catalog may have been cached before the server exposed the
+                // Outdoor group. Re-fetch it so the new metrics appear without
+                // requiring a manual refresh elsewhere in the app.
+                await metrics.loadCatalog()
+                await metrics.loadAllSeries()
+            } else if metrics.series.isEmpty {
+                await metrics.loadAllSeries()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if metrics.outdoorCatalog.isEmpty {
+            VStack(spacing: Theme.Spacing.small) {
+                Image(systemName: metrics.isLoading ? "arrow.clockwise" : "cloud.sun")
+                    .font(.largeTitle)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                Text(metrics.isLoading ? "Loading…" : (metrics.lastError ?? "No outdoor metrics available"))
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 40)
+        } else {
+            ForEach(metrics.outdoorCatalog) { metric in
+                MetricChartCard(metric: metric, response: metrics.series[metric.id])
+            }
+        }
     }
 }
 

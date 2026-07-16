@@ -96,22 +96,32 @@ public struct MetricSeriesResponse: Codable, Sendable {
     var isRefreshing = false
     var lastError: String?
 
+    /// Groups shown on the main metrics dashboard. "System" is hidden and the
+    /// "Outdoor" group is surfaced on its own detail screen (reachable from the
+    /// Weather tab), so it is excluded here to avoid duplication.
     var groupedCatalog: [(group: String, metrics: [MetricCatalogItem])] {
-        let visible = catalog.filter { $0.group.lowercased() != "system" }
+        let hidden: Set<String> = ["system", "outdoor"]
+        let visible = catalog.filter { !hidden.contains($0.group.lowercased()) }
         let groups = Dictionary(grouping: visible, by: { $0.group })
         return groups.keys.sorted(by: MetricsService.groupSort).map { key in
             (group: key, metrics: groups[key] ?? [])
         }
     }
 
-    /// Preferred group ordering: Environment first, then Car, then the rest
-    /// alphabetically. "System" is filtered out entirely.
+    /// The detailed outdoor/weather metrics surfaced from the Weather tab.
+    var outdoorCatalog: [MetricCatalogItem] {
+        catalog.filter { $0.group.lowercased() == "outdoor" }
+    }
+
+    /// Preferred group ordering: Environment first, then Car, then Energy, then
+    /// the rest alphabetically. "System" is filtered out entirely.
     private static func groupSort(_ lhs: String, _ rhs: String) -> Bool {
         func rank(_ group: String) -> Int {
             switch group.lowercased() {
             case "environment": return 0
             case "car": return 1
-            default: return 2
+            case "energy": return 2
+            default: return 3
             }
         }
         let lRank = rank(lhs), rRank = rank(rhs)
