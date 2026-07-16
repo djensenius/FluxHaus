@@ -59,6 +59,15 @@ struct ChatView: View {
         }
     }
 
+    /// Whether the conversation list (sidebar) is currently on screen. Tabs are
+    /// redundant while it's visible, so they're only shown when it's hidden.
+    private var isConversationListVisible: Bool {
+        switch style {
+        case .full: return true
+        case .quick: return quickChatExpanded
+        }
+    }
+
     var body: some View {
         Group {
             switch style {
@@ -325,7 +334,7 @@ extension ChatView {
     private var conversationTabBar: some View {
         let tabs = chat.openTabConversations
         let showNewTab = chat.conversationId == nil
-        if !tabs.isEmpty || showNewTab {
+        if !isConversationListVisible && (!tabs.isEmpty || showNewTab) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
                     ForEach(tabs) { conv in
