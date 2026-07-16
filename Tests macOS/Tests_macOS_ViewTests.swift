@@ -77,6 +77,8 @@ struct MacOSViewSmokeTests {
             car: car,
             scooter: MockData.createScooter(),
             apiResponse: MockData.createApi(),
+            airPurifier: MockData.createAirPurifier(),
+            metrics: MetricsService(),
             chat: Chat()
         )
 
@@ -132,6 +134,7 @@ struct MacOSViewSmokeTests {
             car: car,
             scooter: MockData.createScooter(),
             apiResponse: MockData.createApi(),
+            airPurifier: MockData.createAirPurifier(),
             locationManager: LocationManager(),
             radarService: RadarService(),
             onNavigate: { _ in }
@@ -171,7 +174,7 @@ struct SidebarItemTests {
     @Test("SidebarItem has all expected cases")
     func testAllCases() {
         let items = SidebarItem.allCases
-        #expect(items.count == 8)
+        #expect(items.count == 9)
         #expect(items.contains(.dashboard))
         #expect(items.contains(.weather))
         #expect(items.contains(.scenes))
@@ -180,6 +183,7 @@ struct SidebarItemTests {
         #expect(items.contains(.scooter))
         #expect(items.contains(.robots))
         #expect(items.contains(.assistant))
+        #expect(items.contains(.metrics))
     }
 
     @Test("SidebarItem has correct display names")
@@ -192,6 +196,7 @@ struct SidebarItemTests {
         #expect(SidebarItem.scooter.rawValue == "Scooter")
         #expect(SidebarItem.robots.rawValue == "Robots")
         #expect(SidebarItem.assistant.rawValue == "Assistant")
+        #expect(SidebarItem.metrics.rawValue == "Metrics")
     }
 
     @Test("SidebarItem has correct icons")
@@ -207,6 +212,7 @@ struct SidebarItemTests {
             SidebarItem.assistant.icon
             == "bubble.left.and.bubble.right.fill"
         )
+        #expect(SidebarItem.metrics.icon == "chart.xyaxis.line")
     }
 
     @Test("SidebarItem ids are unique")
@@ -417,7 +423,10 @@ struct MacOSNilDataResilienceTests {
             hconn: hconn, miele: miele, robots: robots,
             battery: Battery(), car: car,
             scooter: MockData.createScooter(),
-            apiResponse: api, chat: Chat()
+            apiResponse: api,
+            airPurifier: MockData.createAirPurifier(),
+            metrics: MetricsService(),
+            chat: Chat()
         )
         let controller = NSHostingController(rootView: view)
         controller.loadView()
@@ -443,6 +452,7 @@ struct MacOSNilDataResilienceTests {
             battery: Battery(), car: car,
             scooter: MockData.createScooter(),
             apiResponse: api,
+            airPurifier: MockData.createAirPurifier(),
             locationManager: LocationManager(),
             radarService: RadarService(),
             onNavigate: { _ in }

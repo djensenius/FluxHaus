@@ -136,7 +136,9 @@ struct ViewSmokeTests {
             battery: MockData.createBattery(),
             car: car,
             scooter: MockData.createScooter(),
-            apiResponse: MockData.createApi()
+            apiResponse: MockData.createApi(),
+            airPurifier: MockData.createAirPurifier(),
+            metrics: MetricsService()
         )
 
         let controller = UIHostingController(rootView: view)
@@ -433,7 +435,9 @@ struct NilDataResilienceTests {
             fluxHausConsts: FluxHausConsts(),
             hconn: hconn, miele: miele, robots: robots,
             battery: Battery(), car: car,
-            scooter: MockData.createScooter(), apiResponse: api
+            scooter: MockData.createScooter(), apiResponse: api,
+            airPurifier: MockData.createAirPurifier(),
+            metrics: MetricsService()
         )
         let controller = UIHostingController(rootView: view)
         controller.loadViewIfNeeded()
