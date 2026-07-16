@@ -29,7 +29,6 @@ struct ChatView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ConversationTabBar(chat: chat)
                 if let error = chat.sessionError {
                     sessionErrorBanner(error)
                 }
@@ -91,21 +90,9 @@ struct ChatView: View {
             Task { await loadSelectedPhotos() }
         }
         .onChange(of: inputText) { _, newValue in handleInputChange(newValue) }
-        .background(tabCycleShortcuts)
         .sheet(item: $expandedPastedText) { attachment in
             PastedTextDetailView(attachment: attachment) { expandedPastedText = nil }
         }
-    }
-
-    private var tabCycleShortcuts: some View {
-        HStack(spacing: 0) {
-            Button(action: { Task { await chat.cycleTab(forward: true) } }, label: { EmptyView() })
-                .keyboardShortcut("]", modifiers: [.command, .shift])
-            Button(action: { Task { await chat.cycleTab(forward: false) } }, label: { EmptyView() })
-                .keyboardShortcut("[", modifiers: [.command, .shift])
-        }
-        .opacity(0)
-        .allowsHitTesting(false)
     }
 
     // MARK: - Messages
