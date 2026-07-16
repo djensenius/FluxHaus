@@ -17,6 +17,7 @@
 		0B1E0128C093516D2338D7B8 /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
 		0CC21D2502790A21385B0E63 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		0CEF749139216C90BD12F288 /* AppIntentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFC7684CFC56D913ACB314A /* AppIntentsTests.swift */; };
+		0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		0EBB163D8B0C468A99FB9F63 /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		0FDA7AE0AE986D66811CD243 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E37BE77DA97D1A7B4F3394 /* ContentView.swift */; };
 		1055B6B9BB3C5FAB335B47EE /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
@@ -58,6 +59,7 @@
 		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		3CFA1F5604BA445D83EE6D88 /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
+		3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		40B023B629D97801E4222B9B /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		40EEA00C50058903160511F5 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
@@ -206,7 +208,9 @@
 		77FD37A48518D9CC2AF19BFA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		78F7ECC733E1ED102D2A6036 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		792A9034DF4408D90BF13274 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
+		7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
 		7C912107F52EFE69ABBD2EC9 /* FluxHausShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */; };
+		7FBB022B7D830F6F03DFAA94 /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		84C5DCC07BF2CE1E4D72F885 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
 		863DE0E082704AD840741003 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		863F05984934657C4DFF4C77 /* StatusIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */; };
@@ -227,6 +231,7 @@
 		A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
 		A1319CBC6B75067B33D60A3B /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		A833D279DDED4F415801541F /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
@@ -244,6 +249,7 @@
 		AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD1C7468CA59FAB62BCDD1EC /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
+		AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
 		B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */; };
 		B250E6A2C157F636EA648473 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		B87954247FC0FC7450CF2A8D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
@@ -258,6 +264,7 @@
 		C26CB6CAACD7386DAA031965 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		C326B080083CA782012B624F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		C34D4AD44612F44CC7E6D464 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E37BE77DA97D1A7B4F3394 /* ContentView.swift */; };
+		C356C9664EADA850E438227C /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		C407064D75A040943618FCF3 /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		C5CEC5CCBE620D65D2B1C9BC /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
@@ -296,6 +303,7 @@
 		D8A5836912F3F1DF56628A1C /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		D8D21373FC74A18689317FBB /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		D8DFFD9156EFE9C0279611C5 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
+		D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
 		D97C56BE82C2647B9CAD0455 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD54CBBAC6C6B09392534272 /* CarPlay.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		DA526145341C4A909E252425 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
 		DB270713ED62FAF0BB0921F5 /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
@@ -411,6 +419,8 @@
 		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		1B9B78F7F035E29316F494F7 /* ChatView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		1C755D2CAD40D63EDE9D51C7 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FluxStatusText.swift; sourceTree = "<group>"; };
+		222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceEntity.swift; sourceTree = "<group>"; };
 		2888C94C0601F4FE3B8598E0 /* Metrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
 		292DC949B78661B688E040F2 /* AppIntentsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIntentsTests.swift; sourceTree = "<group>"; };
 		2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusIntents.swift; sourceTree = "<group>"; };
@@ -621,6 +631,8 @@
 				2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */,
 				782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */,
 				C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */,
+				222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */,
+				1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */,
 			);
 			name = Intents;
 			path = Intents;
@@ -1261,6 +1273,8 @@
 				5B438D8B41E74BCE6BC2C17F /* AirPurifierView.swift in Sources */,
 				A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */,
 				21B330CE9408AA1578972F0F /* MetricsView.swift in Sources */,
+				D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */,
+				0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1340,6 +1354,8 @@
 				322919E39C024D5394F91AAB /* AirPurifierView.swift in Sources */,
 				717D4AF7931630A9E88AE624 /* Metrics.swift in Sources */,
 				20EC81A3A000AC07341A686F /* MetricsView.swift in Sources */,
+				3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */,
+				C356C9664EADA850E438227C /* FluxStatusText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1466,6 +1482,8 @@
 				D8DFFD9156EFE9C0279611C5 /* AirPurifierView.swift in Sources */,
 				1D3DB0F80B73727DC42CA95F /* Metrics.swift in Sources */,
 				8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */,
+				7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */,
+				7FBB022B7D830F6F03DFAA94 /* FluxStatusText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1563,6 +1581,8 @@
 				BDD3FF5256362CE98F8141F0 /* AirPurifierView.swift in Sources */,
 				43D36BFDE9C894B41DC54FFC /* Metrics.swift in Sources */,
 				6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */,
+				AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */,
+				A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

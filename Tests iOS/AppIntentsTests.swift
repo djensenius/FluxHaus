@@ -81,4 +81,42 @@ struct AppIntentsTests {
         intent.scene = SceneAppEntity(id: "scene.test", name: "Good Morning")
         await #expect(throws: IntentError.self) { _ = try await intent.perform() }
     }
+
+    // MARK: - Device entity (Phase 2)
+
+    @Test("Device query resolves every device by identifier")
+    func deviceQueryResolvesById() async throws {
+        let query = DeviceEntityQuery()
+        for kind in DeviceKind.allCases {
+            let results = try await query.entities(for: [kind.rawValue])
+            #expect(results.count == 1)
+            #expect(results.first?.kind == kind)
+        }
+    }
+
+    @Test("Device query matches by spoken name")
+    func deviceQueryMatchesByName() async throws {
+        let query = DeviceEntityQuery()
+        let matches = try await query.entities(matching: "dish")
+        #expect(matches.map(\.kind) == [.dishwasher])
+    }
+
+    @Test("Suggested devices cover the full fixed set")
+    func deviceQuerySuggestsAll() async throws {
+        let suggested = try await DeviceEntityQuery().suggestedEntities()
+        #expect(Set(suggested.map(\.kind)) == Set(DeviceKind.allCases))
+    }
+
+    @Test("Unknown device identifier resolves to nothing")
+    func deviceQueryIgnoresUnknownId() async throws {
+        let results = try await DeviceEntityQuery().entities(for: ["not-a-device"])
+        #expect(results.isEmpty)
+    }
+
+    @Test("Device status intent requires sign-in")
+    func deviceStatusRequiresSignIn() async throws {
+        let intent = DeviceStatusIntent()
+        intent.device = DeviceAppEntity(kind: .car)
+        await #expect(throws: IntentError.self) { _ = try await intent.perform() }
+    }
 }
