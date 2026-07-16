@@ -27,7 +27,11 @@ struct AirPurifierView: View {
         HStack {
             Image(systemName: "air.purifier.fill")
                 .font(Theme.Fonts.headerLarge())
-                .foregroundColor(Theme.Colors.accent)
+                .foregroundColor(
+                    purifier.status.online && purifier.status.fanOn
+                        ? Theme.Colors.accent
+                        : Theme.Colors.textSecondary
+                )
             VStack(alignment: .leading) {
                 Text("Air Purifier")
                     .font(Theme.Fonts.headerLarge())
