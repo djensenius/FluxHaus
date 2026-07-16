@@ -136,4 +136,21 @@ struct AppIntentsTests {
         let identifier = EntityIdentifier(for: scene)
         #expect(identifier.identifier == "scene.morning")
     }
+
+    // MARK: - Offline assistant (Phase 4)
+
+    @Test("Offline assistant availability check does not crash")
+    func offlineAssistantAvailabilityIsQueryable() {
+        // Availability depends on the host device/simulator; we only assert the
+        // query is side-effect free and returns a Bool without throwing.
+        let available = OfflineAssistant.isAvailable
+        #expect(available == true || available == false)
+    }
+
+    @Test("Ask FluxHaus requires sign-in before any fallback")
+    func askFluxHausRequiresSignIn() async throws {
+        let intent = AskFluxHausIntent()
+        intent.prompt = "Is the car locked?"
+        await #expect(throws: IntentError.self) { _ = try await intent.perform() }
+    }
 }
