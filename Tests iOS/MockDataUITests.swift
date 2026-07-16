@@ -299,7 +299,7 @@ struct ApplianceDisplayTests {
         await drainMainQueue()
 
         let view = mockAppliances(hconn: hconn, miele: miele, robots: robots, car: car)
-        #expect(view.originalAppliances.count == 8)
+        #expect(view.originalAppliances.count == 9)
         let names = view.originalAppliances.map { $0.name }
         #expect(names.contains("HomeConnect"))
         #expect(names.contains("Miele"))
@@ -308,6 +308,7 @@ struct ApplianceDisplayTests {
         #expect(names.contains("Car"))
         #expect(names.contains("Scooter"))
         #expect(names.contains("Battery"))
+        #expect(names.contains("AirPurifier"))
     }
 
     @Test("Appliance names are correct for each type")
