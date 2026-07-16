@@ -226,7 +226,6 @@ struct ChatView: View {
 
     private var chatDetail: some View {
         VStack(spacing: 0) {
-            ConversationTabBar(chat: chat)
             if let error = chat.sessionError { sessionErrorBanner(error) }
             chatMessages
             if showSuggestions {
@@ -241,22 +240,10 @@ struct ChatView: View {
         .background(Theme.Colors.background)
         .navigationTitle(chat.conversationId != nil ? "Assistant" : "New Chat")
         .navigationBarTitleDisplayMode(.inline)
-        .background(tabCycleShortcuts)
         .onChange(of: inputText) { _, newValue in handleInputChange(newValue) }
         .sheet(item: $expandedPastedText) { attachment in
             PastedTextDetailView(attachment: attachment) { expandedPastedText = nil }
         }
-    }
-
-    private var tabCycleShortcuts: some View {
-        HStack(spacing: 0) {
-            Button(action: { Task { await chat.cycleTab(forward: true) } }, label: { EmptyView() })
-                .keyboardShortcut("]", modifiers: [.command, .shift])
-            Button(action: { Task { await chat.cycleTab(forward: false) } }, label: { EmptyView() })
-                .keyboardShortcut("[", modifiers: [.command, .shift])
-        }
-        .opacity(0)
-        .allowsHitTesting(false)
     }
 
     private func sessionErrorBanner(_ error: String) -> some View {
