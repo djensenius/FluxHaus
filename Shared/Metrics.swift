@@ -148,6 +148,10 @@ public struct MetricSeriesResponse: Codable, Sendable {
                 results[metric.id] = response
             }
         }
+        // The range may have changed while requests were in flight; discard
+        // results that no longer match the current selection so the UI never
+        // shows series for the wrong range.
+        guard range == selectedRange else { return }
         series = results
     }
 
@@ -190,11 +194,14 @@ public struct MetricSeriesResponse: Codable, Sendable {
             let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
             guard (200...299).contains(statusCode) else {
                 logger.error("Metrics GET \(path) returned HTTP \(statusCode)")
+                lastError = "Could not load metrics (HTTP \(statusCode))"
                 return nil
             }
+            lastError = nil
             return data
         } catch {
             logger.error("Metrics GET \(path) failed: \(error.localizedDescription)")
+            lastError = "Could not load metrics"
             return nil
         }
     }
