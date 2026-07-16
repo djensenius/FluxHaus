@@ -13,6 +13,11 @@ struct ApplianceDetailView: View {
     @State private var buttonsDisabled: Bool = false
 
     var body: some View {
+        applianceContent
+            .fluxDeviceAnnotation(.dishwasher)
+    }
+
+    private var applianceContent: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {

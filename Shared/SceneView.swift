@@ -159,6 +159,7 @@ struct SceneView: View {
                                 ? Theme.Colors.accent : nil
                         )
                         .disabled(sceneManager.activatingSceneId != nil)
+                        .fluxSceneAnnotation(SceneAppEntity(scene: scene))
                     }
                 }
                 .padding()
@@ -195,6 +196,7 @@ struct SceneView: View {
                     .glassEffect(.regular.interactive())
                     #endif
                     .disabled(sceneManager.activatingSceneId != nil)
+                    .fluxSceneAnnotation(SceneAppEntity(scene: scene))
                     .padding(.leading)
                 }
             }

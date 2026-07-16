@@ -25,21 +25,31 @@ struct AskFluxHausIntent: AppIntent {
 
         var answer = ""
         var lastError: String?
-        for try await event in streamCommand(prompt) {
-            if event.type == "error" {
-                lastError = event.text
-                continue
+        do {
+            for try await event in streamCommand(prompt) {
+                if event.type == "error" {
+                    lastError = event.text
+                    continue
+                }
+                if let text = event.text {
+                    answer += text
+                }
             }
-            if let text = event.text {
-                answer += text
-            }
+        } catch {
+            lastError = error.localizedDescription
         }
 
         let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty {
-            let message = lastError ?? "I didn't get a response. Please try again."
-            return .result(dialog: "\(message)")
+        if !trimmed.isEmpty {
+            return .result(dialog: "\(trimmed)")
         }
-        return .result(dialog: "\(trimmed)")
+
+        // Server unreachable or gave no answer — fall back to the on-device model.
+        if let offline = await OfflineAssistant.answer(to: prompt) {
+            return .result(dialog: "\(offline)")
+        }
+
+        let message = lastError ?? "I didn't get a response. Please try again."
+        return .result(dialog: "\(message)")
     }
 }

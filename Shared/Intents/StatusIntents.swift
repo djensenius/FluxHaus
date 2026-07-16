@@ -7,7 +7,7 @@
 
 import AppIntents
 
-private func fetchStatus() async throws -> LoginResponse {
+func fetchStatus() async throws -> LoginResponse {
     guard AuthManager.shared.isSignedIn else {
         throw IntentError.notSignedIn
     }
@@ -27,15 +27,7 @@ struct CarStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let response = try await fetchStatus()
-        guard let car = response.car, let evStatus = response.carEvStatus else {
-            return .result(dialog: "Car status isn't available right now.")
-        }
-        let range = evStatus.drvDistance.first?.rangeByFuel.evModeRange.value ?? 0
-        let locked = car.doorLock ? "locked" : "unlocked"
-        let climate = car.airCtrlOn ? " Climate control is on." : ""
-        return .result(dialog: """
-        The car is at \(evStatus.batteryStatus)% with about \(Int(range)) km of range, and it's \(locked).\(climate)
-        """)
+        return .result(dialog: "\(FluxStatusText.car(response))")
     }
 }
 
@@ -45,25 +37,7 @@ struct RobotStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let response = try await fetchStatus()
-        return .result(dialog: "\(describe(response.broombot)) \(describe(response.mopbot))")
-    }
-
-    private func describe(_ robot: Robot) -> String {
-        let name = robot.name ?? "Robot"
-        let state: String
-        if robot.running == true {
-            state = "running"
-        } else if robot.docking == true || robot.charging == true {
-            state = "charging at the dock"
-        } else if robot.paused == true {
-            state = "paused"
-        } else {
-            state = "idle"
-        }
-        if let battery = robot.batteryLevel {
-            return "\(name) is \(state) at \(battery)%."
-        }
-        return "\(name) is \(state)."
+        return .result(dialog: "\(FluxStatusText.robots(response))")
     }
 }
 
@@ -73,18 +47,7 @@ struct ApplianceStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let response = try await fetchStatus()
-        guard let dishwasher = response.dishwasher else {
-            return .result(dialog: "Dishwasher status isn't available right now.")
-        }
-        let state = dishwasher.operationState.rawValue
-        if state == "Inactive" || state == "Finished" {
-            return .result(dialog: "The dishwasher is not running.")
-        }
-        if let remaining = dishwasher.remainingTime, remaining > 0 {
-            let minutes = remaining / 60
-            return .result(dialog: "The dishwasher is \(state) with about \(minutes) minutes remaining.")
-        }
-        return .result(dialog: "The dishwasher is \(state).")
+        return .result(dialog: "\(FluxStatusText.dishwasher(response))")
     }
 }
 
@@ -94,19 +57,6 @@ struct ScooterStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let response = try await fetchStatus()
-        guard let scooter = response.scooter else {
-            return .result(dialog: "Scooter status isn't available right now.")
-        }
-        var parts: [String] = []
-        if let battery = scooter.battery {
-            parts.append("\(battery)% battery")
-        }
-        if let range = scooter.estimatedRange {
-            parts.append("about \(Int(range)) km of range")
-        }
-        if parts.isEmpty {
-            return .result(dialog: "Scooter status isn't available right now.")
-        }
-        return .result(dialog: "The scooter has \(parts.joined(separator: " and ")).")
+        return .result(dialog: "\(FluxStatusText.scooter(response))")
     }
 }
