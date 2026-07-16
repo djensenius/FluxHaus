@@ -189,17 +189,20 @@ struct WeatherForecastSection: View {
 struct WeatherDetailView: View {
     var locationManager: LocationManager
     var radarService: RadarService
+    var metrics: MetricsService
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
     @State private var tilesReady = false
     @State private var showFullRadar = false
+    @State private var showEnvironmentMetrics = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 if let weather = locationManager.weather {
                     currentWeatherCard(weather: weather)
+                    environmentMetricsCard
                     if let alerts = weather.weatherAlerts, !alerts.isEmpty {
                         weatherAlertsCard(alerts: alerts)
                     }
@@ -219,12 +222,58 @@ struct WeatherDetailView: View {
         #else
         .background(Theme.Colors.background)
         #endif
+        .sheet(isPresented: $showEnvironmentMetrics) {
+            NavigationStack {
+                EnvironmentMetricsView(metrics: metrics)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showEnvironmentMetrics = false }
+                        }
+                    }
+            }
+        }
         .task {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
             await radarService.fetchFrames()
             frameIndex = max(0, radarService.pastFrames.count - 1)
         }
+    }
+
+    /// Entry point to the detailed outdoor metrics dashboard (temperature,
+    /// humidity, dew point, UV index, AQHI, U.S./Chinese AQI, …).
+    private var environmentMetricsCard: some View {
+        Button {
+            showEnvironmentMetrics = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.xyaxis.line")
+                    .font(.system(size: 20))
+                    .foregroundColor(Theme.Colors.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Outdoor Conditions")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    Text("Temperature, humidity, UV, air quality & more")
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+            .padding()
+            #if !os(visionOS)
+            .background(Theme.Colors.secondaryBackground)
+            #endif
+            .cornerRadius(12)
+            #if os(visionOS)
+            .glassBackgroundEffect()
+            #endif
+        }
+        .buttonStyle(.plain)
     }
 
     private func currentWeatherCard(weather: Weather) -> some View {
