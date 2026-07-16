@@ -547,7 +547,7 @@ struct ComposerTextView: NSViewRepresentable {
             guard let textView = notification.object as? NSTextView else { return }
             parent.text = textView.string
             textView.needsDisplay = true
-            MainActor.assumeIsolated { recalcHeight() }
+            Task { @MainActor in recalcHeight() }
         }
 
         func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
