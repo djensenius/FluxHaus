@@ -9,6 +9,7 @@ struct AppliancesDetailView: View {
     var miele: Miele
     var apiResponse: Api
     var robots: Robots
+    var airPurifier: AirPurifier
     @State private var showBroomBotSheet = false
     @State private var showMopBotSheet = false
     @State private var robotActionPending: String?
@@ -23,6 +24,7 @@ struct AppliancesDetailView: View {
                 }
                 robotCard(robot: robots.broomBot)
                 robotCard(robot: robots.mopBot)
+                AirPurifierView(purifier: airPurifier)
             }
             .padding()
         }
@@ -44,9 +46,11 @@ struct AppliancesDetailView: View {
         let isActive = robot.running == true || robot.paused == true
         let isPending = robotActionPending == robot.name
         applianceCard(
-            icon: robot.name == "MopBot" ? "humidifier.and.droplets" : "fan.fill",
+            icon: robot.name == "MopBot" ? "humidifier.and.droplets" : "robotic.vacuum.fill",
             name: robot.name ?? "Robot",
-            iconColor: robotIconColor(robot)
+            iconColor: robotIconColor(robot),
+            animation: robot.name == "MopBot" ? .variableColor : nil,
+            animationActive: isActive
         ) {
             VStack(alignment: .leading, spacing: 12) {
                 robotDetails(robot: robot, isActive: isActive)
@@ -167,13 +171,22 @@ struct AppliancesDetailView: View {
         icon: String,
         name: String,
         iconColor: Color,
+        animation: DeviceSymbolAnimation? = nil,
+        animationActive: Bool = false,
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: icon)
-                    .font(Theme.Fonts.headerLarge())
-                    .foregroundColor(iconColor)
+                Group {
+                    if let animation {
+                        Image(systemName: icon)
+                            .deviceSymbolAnimation(animation, isActive: animationActive)
+                    } else {
+                        Image(systemName: icon)
+                    }
+                }
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(iconColor)
                 Text(name)
                     .font(Theme.Fonts.headerLarge())
                     .foregroundColor(Theme.Colors.textPrimary)
@@ -468,7 +481,8 @@ private extension AppliancesDetailView {
         hconn: MockData.createHomeConnect(),
         miele: MockData.createMiele(),
         apiResponse: MockData.createApi(),
-        robots: MockData.createRobots()
+        robots: MockData.createRobots(),
+        airPurifier: MockData.createAirPurifier()
     )
 }
 #endif

@@ -202,7 +202,7 @@ struct SidebarItemTests {
         #expect(SidebarItem.appliances.icon == "washer.fill")
         #expect(SidebarItem.car.icon == "car.fill")
         #expect(SidebarItem.scooter.icon == "scooter")
-        #expect(SidebarItem.robots.icon == "fan.fill")
+        #expect(SidebarItem.robots.icon == "robotic.vacuum.fill")
         #expect(
             SidebarItem.assistant.icon
             == "bubble.left.and.bubble.right.fill"

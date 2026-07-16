@@ -16,6 +16,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
     case scooter = "Scooter"
     case robots = "Robots"
     case assistant = "Assistant"
+    case metrics = "Metrics"
 
     var id: String { rawValue }
 
@@ -27,7 +28,8 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         case .appliances: return "washer.fill"
         case .car: return "car.fill"
         case .scooter: return "scooter"
-        case .robots: return "fan.fill"
+        case .robots: return "robotic.vacuum.fill"
+        case .metrics: return "chart.xyaxis.line"
         case .assistant: return "bubble.left.and.bubble.right.fill"
         }
     }
@@ -42,6 +44,8 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var airPurifier: AirPurifier
+    var metrics: MetricsService
     var chat: Chat
     @State private var locationManager = LocationManager()
     @State private var authManager = AuthManager.shared
@@ -65,12 +69,14 @@ struct ContentView: View {
             }
         }
         .toolbar {
-            ToolbarItem(placement: .automatic) {
-                Button(action: {
-                    queryFlux(password: WhereWeAre.getPassword() ?? "")
-                }, label: {
-                    Image(systemName: "arrow.clockwise")
-                })
+            if selectedItem != .metrics {
+                ToolbarItem(placement: .automatic) {
+                    Button(action: {
+                        queryFlux(password: WhereWeAre.getPassword() ?? "")
+                    }, label: {
+                        Image(systemName: "arrow.clockwise")
+                    })
+                }
             }
         }
     }
@@ -106,6 +112,7 @@ struct ContentView: View {
             Button("") { selectedItem = .scooter }.keyboardShortcut("6")
             Button("") { selectedItem = .robots }.keyboardShortcut("7")
             Button("") { selectedItem = .assistant }.keyboardShortcut("8")
+            Button("") { selectedItem = .metrics }.keyboardShortcut("9")
         }
         .frame(width: 0, height: 0)
         .opacity(0)
@@ -124,6 +131,7 @@ struct ContentView: View {
                 car: car,
                 scooter: scooter,
                 apiResponse: apiResponse,
+                airPurifier: airPurifier,
                 locationManager: locationManager,
                 radarService: radarService,
                 onNavigate: { selectedItem = $0 }
@@ -138,7 +146,7 @@ struct ContentView: View {
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .navigationTitle("Scenes")
         case .appliances:
-            AppliancesMacView(hconn: hconn, miele: miele)
+            AppliancesMacView(hconn: hconn, miele: miele, airPurifier: airPurifier)
                 .navigationTitle("Appliances")
         case .car:
             CarDetailView(car: car, locationManager: locationManager)
@@ -149,6 +157,11 @@ struct ContentView: View {
         case .robots:
             RobotsMacView(robots: robots)
                 .navigationTitle("Robots")
+        case .metrics:
+            ScrollView {
+                MetricsView(metrics: metrics)
+            }
+            .navigationTitle("Metrics")
         case .assistant:
             ChatView(chat: chat)
                 .navigationTitle("Assistant")
@@ -160,6 +173,7 @@ struct ContentView: View {
 struct AppliancesMacView: View {
     var hconn: HomeConnect
     var miele: Miele
+    var airPurifier: AirPurifier
 
     private var allAppliances: [(source: String, appliance: Appliance)] {
         hconn.appliances.map { ("HomeConnect", $0) } +
@@ -169,23 +183,16 @@ struct AppliancesMacView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                if allAppliances.isEmpty {
-                    ContentUnavailableView(
-                        "No Appliances",
-                        systemImage: "washer.fill",
-                        description: Text("All appliances are off")
+                ForEach(
+                    Array(allAppliances.enumerated()),
+                    id: \.offset
+                ) { _, item in
+                    applianceCard(
+                        appliance: item.appliance,
+                        source: item.source
                     )
-                } else {
-                    ForEach(
-                        Array(allAppliances.enumerated()),
-                        id: \.offset
-                    ) { _, item in
-                        applianceCard(
-                            appliance: item.appliance,
-                            source: item.source
-                        )
-                    }
                 }
+                AirPurifierView(purifier: airPurifier)
             }
             .padding()
         }
@@ -286,13 +293,15 @@ struct RobotsMacView: View {
                     title: "BroomBot",
                     robot: robots.broomBot,
                     robotName: "broomBot",
-                    icon: "fan"
+                    icon: "robotic.vacuum.fill",
+                    animation: nil
                 )
                 robotCard(
                     title: "MopBot",
                     robot: robots.mopBot,
                     robotName: "mopBot",
-                    icon: "humidifier.and.droplets"
+                    icon: "humidifier.and.droplets",
+                    animation: .variableColor
                 )
             }
             .padding()
@@ -304,13 +313,15 @@ struct RobotsMacView: View {
         title: String,
         robot: Robot,
         robotName: String,
-        icon: String
+        icon: String,
+        animation: DeviceSymbolAnimation?
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(statusColor(robot))
+                    .deviceSymbolAnimation(animation, isActive: robot.running == true || robot.paused == true)
                 Text(title)
                     .font(Theme.Fonts.headerLarge())
                     .foregroundColor(Theme.Colors.textPrimary)
@@ -454,6 +465,8 @@ struct RobotsMacView: View {
         car: MockData.createCar(),
         scooter: Scooter(),
         apiResponse: MockData.createApi(),
+        airPurifier: MockData.createAirPurifier(),
+        metrics: MetricsService(),
         chat: Chat()
     )
 }

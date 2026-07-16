@@ -88,7 +88,7 @@ struct Provider: AppIntentTimelineProvider {
         WidgetDevice(
             name: "BroomBot",
             progress: 85,
-            icon: "fan",
+            icon: "robotic.vacuum",
             trailingText: "85%",
             shortText: "On",
             running: true
@@ -417,7 +417,7 @@ let staticList = [
     WidgetDevice(
         name: "BroomBot",
         progress: 85,
-        icon: "fan",
+        icon: "robotic.vacuum",
         trailingText: "85%",
         shortText: "Off",
         running: true

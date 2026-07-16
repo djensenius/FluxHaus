@@ -46,7 +46,8 @@ private func mockAppliances(
         hconn: hconn, miele: miele,
         apiResponse: MockData.createApi(),
         robots: robots, battery: battery,
-        car: car, locationManager: LocationManager()
+        car: car, locationManager: LocationManager(),
+        airPurifier: MockData.createAirPurifier()
     )
 }
 
@@ -162,7 +163,8 @@ struct ViewSmokeTests {
             robots: robots,
             battery: MockData.createBattery(),
             car: car,
-            locationManager: LocationManager()
+            locationManager: LocationManager(),
+            airPurifier: MockData.createAirPurifier()
         )
 
         let controller = UIHostingController(rootView: view)

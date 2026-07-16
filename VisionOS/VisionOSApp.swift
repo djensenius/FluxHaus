@@ -23,6 +23,8 @@ struct VisionOSApp: App {
     @State private var battery: Battery?
     @State private var car: Car?
     @State private var scooter: Scooter?
+    @State private var airPurifier: AirPurifier?
+    @State private var metrics = MetricsService()
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -83,6 +85,7 @@ struct VisionOSApp: App {
                                 loadCar()
                                 loadScooter()
                                 loadHomeConnect()
+                                loadAirPurifier()
                             }
                         }
                 } else {
@@ -91,7 +94,8 @@ struct VisionOSApp: App {
                        let robots = robots,
                        let battery = battery,
                        let car = car,
-                       let scooter = scooter {
+                       let scooter = scooter,
+                       let airPurifier = airPurifier {
                         ContentView(
                             fluxHausConsts: fluxHausConsts,
                             hconn: hconn,
@@ -100,7 +104,9 @@ struct VisionOSApp: App {
                             battery: battery,
                             car: car,
                             scooter: scooter,
-                            apiResponse: self.apiResponse
+                            apiResponse: self.apiResponse,
+                            airPurifier: airPurifier,
+                            metrics: metrics
                         )
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                             if let response = object.userInfo?["data"] as? LoginResponse {
@@ -111,6 +117,7 @@ struct VisionOSApp: App {
                                 miele.setApiResponse(apiResponse: self.apiResponse)
                                 car.setApiResponse(apiResponse: self.apiResponse)
                                 scooter.setApiResponse(apiResponse: self.apiResponse)
+                                airPurifier.setApiResponse(apiResponse: self.apiResponse)
                             }
                         }
                         .task {
@@ -135,6 +142,7 @@ struct VisionOSApp: App {
                 robots = nil
                 car = nil
                 scooter = nil
+                airPurifier = nil
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active && AuthManager.shared.isSignedIn {
@@ -186,6 +194,11 @@ struct VisionOSApp: App {
     func loadScooter() {
         scooter = Scooter()
         scooter?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadAirPurifier() {
+        airPurifier = AirPurifier()
+        airPurifier?.setApiResponse(apiResponse: self.apiResponse)
     }
 
     private func runPeriodicRefresh() async {

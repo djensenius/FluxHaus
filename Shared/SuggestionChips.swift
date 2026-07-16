@@ -16,7 +16,7 @@ struct SuggestionChip: Identifiable {
 
 let defaultSuggestions: [SuggestionChip] = [
     SuggestionChip(label: "Home status", icon: "house", command: "What's the home status?"),
-    SuggestionChip(label: "Start BroomBot", icon: "fan", command: "Start the broombot"),
+    SuggestionChip(label: "Start BroomBot", icon: "robotic.vacuum", command: "Start the broombot"),
     SuggestionChip(label: "Appliances", icon: "washer", command: "Check the appliances"),
     SuggestionChip(label: "Car status", icon: "bolt.car", command: "What's the car status?"),
     SuggestionChip(

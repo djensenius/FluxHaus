@@ -149,7 +149,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         WidgetDevice(
             name: "BroomBot",
             progress: fluxData.broomBot?.batteryLevel ?? 0,
-            icon: "fan",
+            icon: "robotic.vacuum",
             trailingText: fluxData.broomBot?.running ?? false ? "On" : "Off",
             shortText: fluxData.broomBot?.running ?? false ? "On" : "Off",
             running: fluxData.broomBot?.running ?? false,

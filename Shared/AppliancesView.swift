@@ -17,11 +17,13 @@ struct Appliances: View {
     var battery: Battery
     var car: Car
     var locationManager: LocationManager
+    var airPurifier: AirPurifier
 
     @State private var showCarModal: Bool = false
     @State private var showScooterModal: Bool = false
     @State private var showBroomBotModal: Bool = false
     @State private var showMopBotModal: Bool = false
+    @State private var showAirPurifierModal: Bool = false
     @State private var showApplianceModal: [String: Bool] = [:]
     @State var theAppliances: [(name: String, index: Int)] = []
 
@@ -35,7 +37,8 @@ struct Appliances: View {
         (name: "MopBot", index: 0),
         (name: "Car", index: 0),
         (name: "Scooter", index: 0),
-        (name: "Battery", index: 0)
+        (name: "Battery", index: 0),
+        (name: "AirPurifier", index: 0)
     ]
 
     var body: some View {
@@ -120,6 +123,8 @@ struct Appliances: View {
                                         self.showMopBotModal = true
                                     } else if theAppliances[app].name == "BroomBot" {
                                         self.showBroomBotModal = true
+                                    } else if theAppliances[app].name == "AirPurifier" {
+                                        self.showAirPurifierModal = true
                                     } else  if theAppliances[app].name != "Battery" {
                                         self.showApplianceModal[
                                             "\(theAppliances[app].name)-\(theAppliances[app].index)"
@@ -149,6 +154,9 @@ struct Appliances: View {
         }
         .sheet(isPresented: self.$showMopBotModal) {
             RobotDetailView(robot: robots.mopBot, robots: robots)
+        }
+        .sheet(isPresented: self.$showAirPurifierModal) {
+            AirPurifierDetailView(purifier: airPurifier)
         }
     }
 
@@ -185,6 +193,7 @@ struct Appliances: View {
             hconn.setApiResponse(apiResponse: self.apiResponse)
             miele.setApiResponse(apiResponse: self.apiResponse)
             car.setApiResponse(apiResponse: apiResponse)
+            airPurifier.setApiResponse(apiResponse: apiResponse)
             self.sortAppliances()
             return
         }
@@ -195,6 +204,7 @@ struct Appliances: View {
             hconn.setApiResponse(apiResponse: self.apiResponse)
             miele.setApiResponse(apiResponse: self.apiResponse)
             car.setApiResponse(apiResponse: apiResponse)
+            airPurifier.setApiResponse(apiResponse: apiResponse)
             self.sortAppliances()
         }
     }
@@ -206,44 +216,34 @@ struct Appliances: View {
         var inactiveAppliances: [(name: String, index: Int)] = []
 
         appliances.forEach { appliance in
-            let name = appliance.name
-            let index = appliance.index
-            switch name {
-            case "Car", "Scooter", "Battery":
+            if isApplianceActive(name: appliance.name, index: appliance.index) {
                 activeAppliances.append(appliance)
-            case "MopBot":
-                if robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true) {
-                    activeAppliances.append(appliance)
-                } else {
-                    inactiveAppliances.append(appliance)
-                }
-            case "BroomBot":
-                if robots.broomBot.running != nil &&
-                    (robots.broomBot.running == true || robots.broomBot.paused == true) {
-                    activeAppliances.append(appliance)
-                } else {
-                    inactiveAppliances.append(appliance)
-                }
-            case "Miele":
-                let tAppliance = miele.appliances
-                if tApplianceTimeRemaining(tAppliance: tAppliance, index: index) == "Off" {
-                    inactiveAppliances.append(appliance)
-                } else {
-                    activeAppliances.append(appliance)
-                }
-            case "HomeConnect":
-                let tAppliance = hconn.appliances
-                if tApplianceTimeRemaining(tAppliance: tAppliance, index: index) == "Off" {
-                    inactiveAppliances.append(appliance)
-                } else {
-                    activeAppliances.append(appliance)
-                }
-            default:
-                break
+            } else {
+                inactiveAppliances.append(appliance)
             }
         }
 
         theAppliances = activeAppliances + inactiveAppliances
+    }
+
+    private func isApplianceActive(name: String, index: Int) -> Bool {
+        switch name {
+        case "Car", "Scooter", "Battery":
+            return true
+        case "MopBot":
+            return robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true)
+        case "AirPurifier":
+            return airPurifier.status.online && airPurifier.status.fanOn
+        case "BroomBot":
+            return robots.broomBot.running != nil &&
+                (robots.broomBot.running == true || robots.broomBot.paused == true)
+        case "Miele":
+            return tApplianceTimeRemaining(tAppliance: miele.appliances, index: index) != "Off"
+        case "HomeConnect":
+            return tApplianceTimeRemaining(tAppliance: hconn.appliances, index: index) != "Off"
+        default:
+            return false
+        }
     }
 }
 
@@ -284,7 +284,8 @@ struct AppliancesPreviewWrapper: View {
             robots: robots,
             battery: battery,
             car: car,
-            locationManager: locationManager
+            locationManager: locationManager,
+            airPurifier: MockData.createAirPurifier()
         )
     }
 }

@@ -16,6 +16,7 @@ struct DashboardView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var airPurifier: AirPurifier
     var locationManager: LocationManager
     var radarService: RadarService
     var onNavigate: (SidebarItem) -> Void
@@ -56,23 +57,32 @@ struct DashboardView: View {
         var cards: [DeviceCard] = []
         let broomActive = robots.broomBot.running == true || robots.broomBot.paused == true
         cards.append(DeviceCard(
-            id: "broomBot", isActive: broomActive, priority: broomActive ? 2 : 0,
-            view: AnyView(robotCard(title: "BroomBot", robot: robots.broomBot, robotName: "broomBot", icon: "fan"))
+            id: "broomBot", isActive: broomActive, priority: broomActive ? 3 : 0,
+            view: AnyView(robotCard(
+                title: "BroomBot", robot: robots.broomBot, robotName: "broomBot",
+                icon: "robotic.vacuum.fill", animation: nil
+            ))
         ))
         let mopActive = robots.mopBot.running == true || robots.mopBot.paused == true
         let mopView = robotCard(
-            title: "MopBot", robot: robots.mopBot, robotName: "mopBot", icon: "humidifier.and.droplets"
+            title: "MopBot", robot: robots.mopBot, robotName: "mopBot",
+            icon: "humidifier.and.droplets", animation: .variableColor
         )
-        cards.append(DeviceCard(id: "mopBot", isActive: mopActive, priority: mopActive ? 2 : 0, view: AnyView(mopView)))
+        cards.append(DeviceCard(id: "mopBot", isActive: mopActive, priority: mopActive ? 3 : 0, view: AnyView(mopView)))
         for (idx, item) in allAppliances.enumerated() {
             cards.append(DeviceCard(
                 id: "appliance-\(idx)", isActive: item.appliance.inUse,
-                priority: item.appliance.inUse ? 2 : 0,
+                priority: item.appliance.inUse ? 3 : 0,
                 view: AnyView(applianceCard(appliance: item.appliance, source: item.source))
             ))
         }
-        cards.append(DeviceCard(id: "car", isActive: false, priority: 1, view: AnyView(carCard)))
-        cards.append(DeviceCard(id: "scooter", isActive: false, priority: 1, view: AnyView(scooterCard)))
+        cards.append(DeviceCard(id: "car", isActive: false, priority: 2, view: AnyView(carCard)))
+        cards.append(DeviceCard(id: "scooter", isActive: false, priority: 2, view: AnyView(scooterCard)))
+        let purifierActive = airPurifier.status.online && airPurifier.status.fanOn
+        cards.append(DeviceCard(
+            id: "airPurifier", isActive: purifierActive, priority: purifierActive ? 1 : 0,
+            view: AnyView(AirPurifierView(purifier: airPurifier))
+        ))
         return cards.sorted { $0.priority > $1.priority }
     }
 
@@ -213,10 +223,15 @@ struct DashboardView: View {
     }
 
     // MARK: - Robots
-    private func robotCard(title: String, robot: Robot, robotName: String, icon: String) -> some View {
+    private func robotCard(
+        title: String, robot: Robot, robotName: String, icon: String,
+        animation: DeviceSymbolAnimation?
+    ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: icon).foregroundColor(robotIconColor(robot))
+                Image(systemName: icon)
+                    .foregroundColor(robotIconColor(robot))
+                    .deviceSymbolAnimation(animation, isActive: robot.running == true || robot.paused == true)
                 Text(title).font(Theme.Fonts.headerLarge()).foregroundColor(Theme.Colors.textPrimary)
             }
             VStack(alignment: .leading, spacing: 8) {
@@ -452,6 +467,7 @@ extension DashboardView {
         car: MockData.createCar(),
         scooter: Scooter(),
         apiResponse: MockData.createApi(),
+        airPurifier: MockData.createAirPurifier(),
         locationManager: LocationManager(),
         radarService: RadarService(),
         onNavigate: { _ in }

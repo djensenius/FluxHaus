@@ -18,15 +18,15 @@ struct RobotsListView: View {
                 robotCard(
                     title: "BroomBot",
                     robot: robots.broomBot,
-                    robotName: "broomBot",
-                    icon: "fan",
+                    icon: "robotic.vacuum.fill",
+                    animation: nil,
                     showSheet: $showBroomBotSheet
                 )
                 robotCard(
                     title: "MopBot",
                     robot: robots.mopBot,
-                    robotName: "mopBot",
                     icon: "humidifier.and.droplets",
+                    animation: .variableColor,
                     showSheet: $showMopBotSheet
                 )
             }
@@ -48,8 +48,8 @@ struct RobotsListView: View {
     private func robotCard(
         title: String,
         robot: Robot,
-        robotName: String,
         icon: String,
+        animation: DeviceSymbolAnimation?,
         showSheet: Binding<Bool>
     ) -> some View {
         Button(action: { showSheet.wrappedValue = true }, label: {
@@ -57,6 +57,7 @@ struct RobotsListView: View {
                 HStack {
                     Image(systemName: icon)
                         .foregroundColor(statusColor(robot))
+                        .deviceSymbolAnimation(animation, isActive: robot.running == true || robot.paused == true)
                     Text(title)
                         .font(Theme.Fonts.headerLarge())
                         .foregroundColor(Theme.Colors.textPrimary)

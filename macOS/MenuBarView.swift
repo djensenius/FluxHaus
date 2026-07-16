@@ -100,7 +100,7 @@ struct MenuBarView: View {
                 openAppToSection(.robots)
             }, label: {
                 HStack {
-                    Image(systemName: "fan.fill")
+                    Image(systemName: "robotic.vacuum.fill")
                         .foregroundColor(
                             robots.broomBot.running == true
                                 ? Theme.Colors.accent
@@ -199,7 +199,7 @@ struct MenuBarView: View {
                     }
                 }
                 if robots != nil {
-                    quickButton("Vacuum", icon: "fan") {
+                    quickButton("Vacuum", icon: "robotic.vacuum") {
                         robots?.performAction(
                             action: "start", robot: "broomBot"
                         )

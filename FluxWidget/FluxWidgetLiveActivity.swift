@@ -431,7 +431,7 @@ extension FluxWidgetMultiAttributes.ContentState {
                 running: true, programName: "Cotton"
             ),
             WidgetDevice(
-                name: "BroomBot", progress: 75, icon: "fan",
+                name: "BroomBot", progress: 75, icon: "robotic.vacuum",
                 trailingText: "Cleaning", shortText: "Cleaning",
                 running: true, battery: 75
             )

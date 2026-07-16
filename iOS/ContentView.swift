@@ -16,6 +16,8 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var airPurifier: AirPurifier
+    var metrics: MetricsService
     @State private var whereWeAre = WhereWeAre()
     @State private var locationManager = LocationManager()
     @State private var authManager = AuthManager.shared
@@ -63,7 +65,7 @@ struct ContentView: View {
                     scenesTab
                 }
                 .customizationID("scenes")
-                Tab("Robots", systemImage: "fan.fill", value: "robots") {
+                Tab("Robots", systemImage: "robotic.vacuum.fill", value: "robots") {
                     robotsTab
                 }
                 .customizationID("robots")
@@ -71,6 +73,10 @@ struct ContentView: View {
                     settingsTab
                 }
                 .customizationID("settings")
+                Tab("Metrics", systemImage: "chart.xyaxis.line", value: "metrics") {
+                    metricsTab
+                }
+                .customizationID("metrics")
             } header: {
                 Label("More", systemImage: "ellipsis")
             }
@@ -108,7 +114,8 @@ struct ContentView: View {
                 robots: robots,
                 battery: battery,
                 car: car,
-                locationManager: locationManager
+                locationManager: locationManager,
+                airPurifier: airPurifier
             )
             Spacer()
             footer
@@ -139,12 +146,20 @@ struct ContentView: View {
         RobotsListView(robots: robots)
     }
 
+    private var metricsTab: some View {
+        ScrollView {
+            MetricsView(metrics: metrics)
+        }
+        .background(Theme.Colors.background)
+    }
+
     private var appliancesTab: some View {
         AppliancesDetailView(
             hconn: hconn,
             miele: miele,
             apiResponse: apiResponse,
-            robots: robots
+            robots: robots,
+            airPurifier: airPurifier
         )
     }
 
@@ -198,7 +213,9 @@ struct ContentView: View {
         battery: MockData.createBattery(),
         car: MockData.createCar(),
         scooter: Scooter(),
-        apiResponse: MockData.createApi()
+        apiResponse: MockData.createApi(),
+        airPurifier: MockData.createAirPurifier(),
+        metrics: MetricsService()
     )
 }
 #endif

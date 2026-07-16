@@ -22,8 +22,12 @@ struct RobotDetailView: View {
                     HStack {
                         if robot.name! == "MopBot" {
                             Image(systemName: "humidifier.and.droplets")
+                                .deviceSymbolAnimation(
+                                    .variableColor,
+                                    isActive: robot.running == true || robot.paused == true
+                                )
                         } else {
-                            Image(systemName: "fan")
+                            Image(systemName: "robotic.vacuum.fill")
                         }
                         Text(robot.name!)
                     }
