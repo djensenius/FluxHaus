@@ -139,7 +139,6 @@
 		636BF1F02C5D8EFB00C1244C /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		636BF1F12C5D8F2600C1244C /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		636BF1F32C5DBFAA00C1244C /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
-		636BF1F62C5DBFBF00C1244C /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		636BF1F72C5DBFC500C1244C /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		636BF1F82C5DBFCE00C1244C /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		637BC62A2C5BDA7F00E7884E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63A39FB42C44391E00E62C09 /* WidgetKit.framework */; };
@@ -196,6 +195,7 @@
 		65AC26A6D238F5635F082B02 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
 		66106D4DFC5F30C42C88F574 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
 		6761CEA937D36001BDB9337C /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
+		6A6F927023CD4F84FD5CC330 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		6C718CFE95C3BC769046E180 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
 		6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
@@ -230,6 +230,7 @@
 		A08741F491FBACE4244D359F /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
 		A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
 		A1319CBC6B75067B33D60A3B /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
+		A152D85348FCC4C08DA290B1 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
 		A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
@@ -252,6 +253,7 @@
 		AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
 		B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */; };
 		B250E6A2C157F636EA648473 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
+		B827CB85322A3D1293DB77D7 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		B87954247FC0FC7450CF2A8D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		B894A7B443EB0DAA9E9BC45B /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
 		BA938AC82C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
@@ -269,6 +271,7 @@
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		C5CEC5CCBE620D65D2B1C9BC /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		C623C52748905A66CF3956EB /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
+		C71F0FF178E911D9C59E3AF4 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		CAEFE947A078AF67A541DD37 /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		CB0002000000000000000001 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		CB0002000000000000000002 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
@@ -509,6 +512,7 @@
 		6BC999E976448F6757BA7155 /* MockDataUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataUITests.swift; sourceTree = "<group>"; };
 		726CDAE4D264490999414676 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		731A02EE588AFF8C715B9DEB /* MacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacApp.swift; sourceTree = "<group>"; };
+		75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ViewAnnotations.swift; sourceTree = "<group>"; };
 		76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_SwiftTesting.swift; sourceTree = "<group>"; };
 		782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskFluxHausIntent.swift; sourceTree = "<group>"; };
@@ -633,6 +637,7 @@
 				C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */,
 				222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */,
 				1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */,
+				75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */,
 			);
 			name = Intents;
 			path = Intents;
@@ -1275,6 +1280,7 @@
 				21B330CE9408AA1578972F0F /* MetricsView.swift in Sources */,
 				D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */,
 				0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */,
+				C71F0FF178E911D9C59E3AF4 /* ViewAnnotations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1356,6 +1362,7 @@
 				20EC81A3A000AC07341A686F /* MetricsView.swift in Sources */,
 				3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */,
 				C356C9664EADA850E438227C /* FluxStatusText.swift in Sources */,
+				A152D85348FCC4C08DA290B1 /* ViewAnnotations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1380,7 +1387,6 @@
 				BA938AC82C5E9763003F3796 /* Theme.swift in Sources */,
 				636BF1F72C5DBFC500C1244C /* ApplianceViewHelpers.swift in Sources */,
 				63BCF7592C63FABB001D4375 /* Api.swift in Sources */,
-				636BF1F62C5DBFBF00C1244C /* ApplianceDetailView.swift in Sources */,
 				636BF1F32C5DBFAA00C1244C /* FluxHausConsts.swift in Sources */,
 				636BF1F12C5D8F2600C1244C /* MieleAppliance.swift in Sources */,
 				636BF1F02C5D8EFB00C1244C /* SystemNotifications.swift in Sources */,
@@ -1484,6 +1490,7 @@
 				8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */,
 				7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */,
 				7FBB022B7D830F6F03DFAA94 /* FluxStatusText.swift in Sources */,
+				B827CB85322A3D1293DB77D7 /* ViewAnnotations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1583,6 +1590,7 @@
 				6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */,
 				AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */,
 				A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */,
+				6A6F927023CD4F84FD5CC330 /* ViewAnnotations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1615,7 +1623,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1681,7 +1689,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1742,7 +1750,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1770,7 +1778,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1803,7 +1811,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1832,7 +1840,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1859,7 +1867,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1898,7 +1906,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1937,7 +1945,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1974,7 +1982,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2012,7 +2020,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2038,7 +2046,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2064,7 +2072,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2111,7 +2119,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2151,7 +2159,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2167,7 +2175,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.9.0;
+				MARKETING_VERSION = 1.10.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

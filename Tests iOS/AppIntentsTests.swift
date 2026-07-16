@@ -119,4 +119,21 @@ struct AppIntentsTests {
         intent.device = DeviceAppEntity(kind: .car)
         await #expect(throws: IntentError.self) { _ = try await intent.perform() }
     }
+
+    // MARK: - View annotations (Phase 3)
+
+    @Test("Device entity identifiers are stable and match the device id")
+    func deviceEntityIdentifierIsStable() {
+        for kind in DeviceKind.allCases {
+            let identifier = EntityIdentifier(for: DeviceAppEntity(kind: kind))
+            #expect(identifier.identifier == kind.rawValue)
+        }
+    }
+
+    @Test("Scene entity identifier matches the scene id")
+    func sceneEntityIdentifierMatchesId() {
+        let scene = SceneAppEntity(id: "scene.morning", name: "Good Morning")
+        let identifier = EntityIdentifier(for: scene)
+        #expect(identifier.identifier == "scene.morning")
+    }
 }
