@@ -64,12 +64,8 @@ extension Appliances {
     }
 
     private func getApplianceIconColor(appliances: [Appliance], index: Int) -> Color {
-        if appliances.count > index {
-            if appliances[index].inUse {
-                return Theme.Colors.accent
-            } else if appliances[index].timeRemaining == 0 && appliances[index].programName != "" {
-                return Theme.Colors.success
-            }
+        if appliances.count > index, appliances[index].inUse {
+            return Theme.Colors.accent
         }
         return Theme.Colors.textSecondary
     }
