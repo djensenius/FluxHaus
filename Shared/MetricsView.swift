@@ -503,20 +503,38 @@ struct EnvironmentMetricsView: View {
     /// Short explainer for the air-quality charts. All readings are for the
     /// local (Kitchener) area; the U.S. and Chinese figures are the same air
     /// expressed on two different national index scales.
+    /// Renders inline Markdown (e.g. **bold**, *italic*) from a runtime string.
+    /// `Text(String)` built via concatenation skips Markdown parsing, so build
+    /// an `AttributedString` to keep the emphasis in the explainer copy.
+    private func aqiText(_ markdown: String) -> Text {
+        if let attributed = try? AttributedString(
+            markdown: markdown,
+            options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        ) {
+            return Text(attributed)
+        }
+        return Text(markdown)
+    }
+
     private var aqiExplainer: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.small) {
             Label("About the air quality indices", systemImage: "info.circle")
                 .font(Theme.Fonts.bodyMedium)
                 .foregroundColor(Theme.Colors.textPrimary)
             Group {
-                Text("Every reading below is for the Kitchener, ON area — the three "
+                aqiText("Every reading below is for the Kitchener, ON area — the three "
                     + "indices just score the *same* air using different national "
                     + "standards, so the numbers don't match.")
-                Text("**AQHI** is Canada's official standard: Environment Canada's Air "
+                aqiText("**AQHI** is Canada's official standard: Environment Canada's Air "
                     + "Quality Health Index. It combines ozone, NO₂ and PM2.5 into a "
                     + "health-risk score on a 1–10+ scale — 1–3 low risk, 4–6 moderate, "
                     + "7–10 high, 10+ very high.")
-                Text("**U.S. AQI** (U.S. EPA standard) and **Chinese AQI** (China MEP "
+                aqiText("The AQHI chart shows two lines: **Environment Canada** is the "
+                    + "official published index, and **Open-Meteo** is the same index "
+                    + "computed on our server from Open-Meteo's pollutant data — it "
+                    + "updates more frequently, so it fills in the gaps between the "
+                    + "official readings.")
+                aqiText("**U.S. AQI** (U.S. EPA standard) and **Chinese AQI** (China MEP "
                     + "standard) are the same local air on each country's 0–500 "
                     + "concentration scale. Canada doesn't use these — they're provided "
                     + "for comparison. For both, higher is worse: 0–50 good, above 150 "
