@@ -6,6 +6,7 @@
 //  series (room, vehicle, host, …).
 //
 
+// swiftlint:disable file_length
 import SwiftUI
 import Charts
 
@@ -57,6 +58,45 @@ enum MetricSeriesPalette {
     }
 }
 
+/// Reusable entry-point card that opens the detailed Kitchener outdoor
+/// conditions dashboard. Shared by the Weather tab and the Metrics dashboard so
+/// the label and styling stay in sync.
+struct OutdoorConditionsCard: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: "chart.xyaxis.line")
+                    .font(.system(size: 20))
+                    .foregroundColor(Theme.Colors.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Kitchener Outdoor Conditions")
+                        .font(Theme.Fonts.bodyMedium)
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    Text("Temperature, humidity, UV, air quality & more")
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+            }
+            .padding()
+            #if !os(visionOS)
+            .background(Theme.Colors.secondaryBackground)
+            #endif
+            .cornerRadius(12)
+            #if os(visionOS)
+            .glassBackgroundEffect()
+            #endif
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 /// Segmented range picker shared by the metrics dashboards.
 struct MetricRangePicker: View {
     @Bindable var metrics: MetricsService
@@ -78,13 +118,27 @@ struct MetricRangePicker: View {
 struct MetricsView: View {
     @Bindable var metrics: MetricsService
 
+    @State private var showEnvironmentMetrics = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.large) {
             header
             rangePicker
+            OutdoorConditionsCard { showEnvironmentMetrics = true }
+                .padding(.horizontal)
             content
         }
         .padding(.vertical)
+        .sheet(isPresented: $showEnvironmentMetrics) {
+            NavigationStack {
+                EnvironmentMetricsView(metrics: metrics)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showEnvironmentMetrics = false }
+                        }
+                    }
+            }
+        }
         .task {
             if metrics.catalog.isEmpty {
                 await metrics.refresh()
@@ -180,6 +234,21 @@ struct MetricChartCard: View {
         MetricSeriesPalette.colorMap(for: sortedNames)
     }
 
+    /// Display name for a series with the chart's own metric title stripped out
+    /// to avoid redundancy (e.g. inside the "Temperature" chart, the series
+    /// "Bedroom Temperature" reads as "Bedroom"). Falls back to the raw name if
+    /// stripping would leave it empty. Only affects presentation — the chart and
+    /// colour map still key off the original series names.
+    private func displayName(_ name: String) -> String {
+        let stripped = name.replacingOccurrences(
+            of: metric.title,
+            with: "",
+            options: [.caseInsensitive]
+        )
+        let cleaned = stripped.split(separator: " ").joined(separator: " ")
+        return cleaned.isEmpty ? name : cleaned
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.small) {
             HStack {
@@ -244,33 +313,43 @@ struct MetricChartCard: View {
         })?.value
     }
 
-    /// Always-visible readout row. Shows values at the hovered/touched time,
-    /// or the most recent reading when nothing is selected. Kept outside the
-    /// chart so it's never clipped, even with many series.
+    /// Always-visible readout. Shows values at the hovered/touched time, or the
+    /// most recent reading when nothing is selected. Wraps so every series is
+    /// visible at once (a single horizontal row clips when there are many
+    /// rooms/hosts).
     private var readout: some View {
         let date = snappedDate ?? latestDate
-        return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                if let date {
-                    Text(date.formatted(date: .omitted, time: .shortened))
-                        .foregroundColor(Theme.Colors.textSecondary)
+        return VStack(alignment: .leading, spacing: 4) {
+            if let date {
+                Text(date.formatted(date: .omitted, time: .shortened))
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 92), alignment: .leading)],
+                    alignment: .leading,
+                    spacing: 4
+                ) {
                     ForEach(series) { line in
                         if let value = value(for: line, at: date) {
                             HStack(spacing: 4) {
                                 if series.count > 1 {
-                                    Text(line.name)
+                                    Circle()
+                                        .fill(colorMap[line.name] ?? MetricSeriesPalette.outside)
+                                        .frame(width: 6, height: 6)
+                                    Text(displayName(line.name))
                                         .foregroundColor(Theme.Colors.textSecondary)
                                 }
                                 Text("\(value, specifier: "%.1f")\(metric.unit)")
                                     .foregroundColor(Theme.Colors.textPrimary)
                             }
+                            .font(Theme.Fonts.caption)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                         }
                     }
                 }
             }
-            .font(Theme.Fonts.caption)
         }
-        .frame(height: 18)
     }
 
     private var chart: some View {
@@ -285,6 +364,18 @@ struct MetricChartCard: View {
                         .foregroundStyle(by: .value("Series", line.name))
                         .interpolationMethod(.catmullRom)
                     }
+                }
+                // A lone point can't draw a line, so surface it as a dot —
+                // otherwise sparse series (e.g. hourly AQHI) look empty.
+                if line.points.count == 1,
+                   let point = line.points.first,
+                   let date = point.date {
+                    PointMark(
+                        x: .value("Time", date),
+                        y: .value(metric.unit, point.value)
+                    )
+                    .foregroundStyle(by: .value("Series", line.name))
+                    .symbolSize(60)
                 }
             }
             if let snappedDate {
@@ -328,7 +419,7 @@ struct MetricChartCard: View {
                     Circle()
                         .fill(colorMap[name] ?? MetricSeriesPalette.outside)
                         .frame(width: 8, height: 8)
-                    Text(name)
+                    Text(displayName(name))
                         .font(Theme.Fonts.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                         .lineLimit(1)
@@ -354,7 +445,7 @@ struct EnvironmentMetricsView: View {
             .padding(.vertical)
         }
         .background(Theme.Colors.background)
-        .navigationTitle("Outdoor Conditions")
+        .navigationTitle("Kitchener Outdoor Conditions")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -405,7 +496,41 @@ struct EnvironmentMetricsView: View {
             ForEach(metrics.outdoorCatalog) { metric in
                 MetricChartCard(metric: metric, response: metrics.series[metric.id])
             }
+            aqiExplainer
         }
+    }
+
+    /// Short explainer for the air-quality charts. All readings are for the
+    /// local (Kitchener) area; the U.S. and Chinese figures are the same air
+    /// expressed on two different national index scales.
+    private var aqiExplainer: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.small) {
+            Label("About the air quality indices", systemImage: "info.circle")
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.textPrimary)
+            Group {
+                Text("Every reading below is for the Kitchener, ON area — the three "
+                    + "indices just score the *same* air using different national "
+                    + "standards, so the numbers don't match.")
+                Text("**AQHI** is Canada's official standard: Environment Canada's Air "
+                    + "Quality Health Index. It combines ozone, NO₂ and PM2.5 into a "
+                    + "health-risk score on a 1–10+ scale — 1–3 low risk, 4–6 moderate, "
+                    + "7–10 high, 10+ very high.")
+                Text("**U.S. AQI** (U.S. EPA standard) and **Chinese AQI** (China MEP "
+                    + "standard) are the same local air on each country's 0–500 "
+                    + "concentration scale. Canada doesn't use these — they're provided "
+                    + "for comparison. For both, higher is worse: 0–50 good, above 150 "
+                    + "unhealthy.")
+            }
+            .font(Theme.Fonts.caption)
+            .foregroundColor(Theme.Colors.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(Theme.cornerRadius)
+        .padding(.horizontal)
     }
 }
 

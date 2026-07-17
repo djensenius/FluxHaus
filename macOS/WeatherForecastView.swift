@@ -202,13 +202,13 @@ struct WeatherDetailView: View {
             VStack(spacing: 16) {
                 if let weather = locationManager.weather {
                     currentWeatherCard(weather: weather)
-                    environmentMetricsCard
                     if let alerts = weather.weatherAlerts, !alerts.isEmpty {
                         weatherAlertsCard(alerts: alerts)
                     }
                     radarCard
                     precipitationTimelineCard(weather: weather)
                     forecastCard(weather: weather)
+                    environmentMetricsCard
                     weatherAttribution
                 } else {
                     loadingView
@@ -240,40 +240,10 @@ struct WeatherDetailView: View {
         }
     }
 
-    /// Entry point to the detailed outdoor metrics dashboard (temperature,
-    /// humidity, dew point, UV index, AQHI, U.S./Chinese AQI, …).
+    /// Entry point to the detailed Kitchener outdoor metrics dashboard
+    /// (temperature, humidity, dew point, UV index, AQHI, U.S./Chinese AQI, …).
     private var environmentMetricsCard: some View {
-        Button {
-            showEnvironmentMetrics = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "chart.xyaxis.line")
-                    .font(.system(size: 20))
-                    .foregroundColor(Theme.Colors.accent)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Outdoor Conditions")
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textPrimary)
-                    Text("Temperature, humidity, UV, air quality & more")
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                        .multilineTextAlignment(.leading)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(Theme.Fonts.caption)
-                    .foregroundColor(Theme.Colors.textSecondary)
-            }
-            .padding()
-            #if !os(visionOS)
-            .background(Theme.Colors.secondaryBackground)
-            #endif
-            .cornerRadius(12)
-            #if os(visionOS)
-            .glassBackgroundEffect()
-            #endif
-        }
-        .buttonStyle(.plain)
+        OutdoorConditionsCard { showEnvironmentMetrics = true }
     }
 
     private func currentWeatherCard(weather: Weather) -> some View {
