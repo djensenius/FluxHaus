@@ -516,6 +516,11 @@ struct EnvironmentMetricsView: View {
                     + "Quality Health Index. It combines ozone, NO₂ and PM2.5 into a "
                     + "health-risk score on a 1–10+ scale — 1–3 low risk, 4–6 moderate, "
                     + "7–10 high, 10+ very high.")
+                Text("The AQHI chart shows two lines: **Environment Canada** is the "
+                    + "official published index, and **Open-Meteo** is the same index "
+                    + "computed on our server from Open-Meteo's pollutant data — it "
+                    + "updates more frequently, so it fills in the gaps between the "
+                    + "official readings.")
                 Text("**U.S. AQI** (U.S. EPA standard) and **Chinese AQI** (China MEP "
                     + "standard) are the same local air on each country's 0–500 "
                     + "concentration scale. Canada doesn't use these — they're provided "
