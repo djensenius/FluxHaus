@@ -14,7 +14,7 @@ import Testing
 import AppIntents
 @testable import FluxHaus
 
-struct AppIntentsTests {
+struct IOSAppIntentsTests {
     private func setSignedOut() {
         AuthManager.shared.authState = .signedOut
         #expect(!AuthManager.shared.isSignedIn)

@@ -33,6 +33,8 @@ enum IntentError: LocalizedError {
 func donateIntent(_ intent: some AppIntent) async {
     do {
         try await intent.donate()
+    } catch is CancellationError {
+        return
     } catch {
         logger.error("Failed to donate intent: \(error.localizedDescription)")
     }

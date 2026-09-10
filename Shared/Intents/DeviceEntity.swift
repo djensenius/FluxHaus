@@ -60,7 +60,7 @@ enum DeviceKind: String, CaseIterable, Sendable {
 struct DeviceAppEntity: IndexedEntity {
     let id: String
 
-    var kind: DeviceKind
+    let kind: DeviceKind
 
     @Property(title: "Name", indexingKey: \.displayName)
     var name: String
