@@ -140,5 +140,6 @@ struct ScooterDetailView: View {
             .navigationTitle("GT3 Pro")
             #endif
         }
+        .fluxDeviceAnnotation(.scooter)
     }
 }

@@ -401,6 +401,7 @@ struct MacApp: App {
                     appDelegate.configure(sharedChat: chat)
                 }
                 .task {
+                    await indexDevices()
                     await AuthManager.shared.validateSessionOnLaunch()
                     if whereWeAre.hasKeyChainPassword && whereWeAre.loading && AuthManager.shared.isSignedIn {
                         _ = await AuthManager.shared.ensureValidToken()

@@ -10,13 +10,9 @@ import CoreSpotlight
 import os
 
 struct SceneAppEntity: IndexedEntity {
-    // iOS 27 readiness note: SwiftUI's `.appEntityUIElements` contextual-cue modifier
-    // (annotating on-screen scenes so Siri can resolve "this scene") is not in the
-    // iOS 26 SDK. Adopt it behind an availability check once the SDK ships it. Until
-    // then, `EntityStringQuery` + Spotlight `IndexedEntity` provide name-based resolution.
     let id: String
 
-    @Property(title: "Name")
+    @Property(title: "Name", indexingKey: \.displayName)
     var name: String
 
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Scene"
@@ -43,14 +39,14 @@ struct SceneAppEntity: IndexedEntity {
 func indexScenes(_ scenes: [HomeScene]) async {
     let entities = scenes.map(SceneAppEntity.init(scene:))
     do {
-        try await CSSearchableIndex.default().indexAppEntities(entities)
+        try await FluxSpotlightIndexes.scenes.indexAppEntities(entities)
     } catch {
         let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "SceneIndex")
         logger.error("Failed to index scenes: \(error.localizedDescription)")
     }
 }
 
-struct SceneEntityQuery: EntityStringQuery {
+struct SceneEntityQuery: EntityStringQuery, IndexedEntityQuery {
     func entities(for identifiers: [SceneAppEntity.ID]) async throws -> [SceneAppEntity] {
         let ids = Set(identifiers)
         let scenes = try await fetchScenes()
@@ -72,6 +68,19 @@ struct SceneEntityQuery: EntityStringQuery {
     func suggestedEntities() async throws -> [SceneAppEntity] {
         let scenes = try await fetchScenes()
         return scenes.map(SceneAppEntity.init(scene:))
+    }
+
+    func reindexEntities(
+        for identifiers: [SceneAppEntity.ID],
+        indexDescription _: CSSearchableIndexDescription
+    ) async throws {
+        let entities = try await entities(for: identifiers)
+        try await FluxSpotlightIndexes.scenes.indexAppEntities(entities)
+    }
+
+    func reindexAllEntities(indexDescription _: CSSearchableIndexDescription) async throws {
+        let scenes = try await fetchScenes()
+        try await FluxSpotlightIndexes.scenes.indexAppEntities(scenes.map(SceneAppEntity.init(scene:)))
     }
 }
 

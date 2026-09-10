@@ -317,6 +317,7 @@ struct CarDetailView: View {
         #else
         .background(Theme.Colors.background)
         #endif
+        .fluxDeviceAnnotation(.car)
     }
 
     func getClimateSummary(weather: Weather) -> String {

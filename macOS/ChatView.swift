@@ -479,7 +479,7 @@ extension ChatView {
                             if let data = img.uiImageData, let nsImage = NSImage(data: data) {
                                 Image(nsImage: nsImage)
                                     .resizable()
-                                    .aspectRatio(contentMode: .fill)
+                                    .scaledToFill()
                                     .frame(width: 56, height: 56)
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                             }

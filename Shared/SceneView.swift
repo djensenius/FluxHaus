@@ -62,7 +62,7 @@ private let logger = Logger(
                 logger.info("Scene activated: \(scene.name)")
                 let intent = ActivateSceneIntent()
                 intent.scene = SceneAppEntity(scene: scene)
-                _ = try? await intent.donate()
+                await donateIntent(intent)
             } catch {
                 logger.error("Scene activation failed: \(error.localizedDescription)")
             }
@@ -159,6 +159,7 @@ struct SceneView: View {
                                 ? Theme.Colors.accent : nil
                         )
                         .disabled(sceneManager.activatingSceneId != nil)
+                        .fluxSceneAnnotation(SceneAppEntity(scene: scene))
                     }
                 }
                 .padding()
@@ -195,6 +196,7 @@ struct SceneView: View {
                     .glassEffect(.regular.interactive())
                     #endif
                     .disabled(sceneManager.activatingSceneId != nil)
+                    .fluxSceneAnnotation(SceneAppEntity(scene: scene))
                     .padding(.leading)
                 }
             }

@@ -201,6 +201,7 @@ struct RobotDetailView: View {
         #else
         .background(Theme.Colors.background)
         #endif
+        .fluxDeviceAnnotation(robot.name == "MopBot" ? .mopBot : .broomBot)
     }
 
     func performAction(action: String) {
