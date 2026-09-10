@@ -69,7 +69,9 @@ enum OfflineAssistant {
     server is currently unavailable, so you cannot read live device state or \
     control any devices right now. Answer the user's question helpfully from \
     general knowledge. If they ask about the current status of a device or want \
-    to control something, briefly let them know you're offline and can't reach \
-    their home at the moment.
+    to control something, or ask about current or historical FluxHaus telemetry, \
+    briefly let them know you're offline and can't reach their home at the moment. \
+    Never invent device history, charging sessions, energy efficiency, or weather \
+    correlations.
     """
 }

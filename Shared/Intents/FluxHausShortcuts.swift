@@ -92,13 +92,13 @@ struct FluxHausShortcuts: AppShortcutsProvider {
             systemImageName: "theatermasks.fill"
         )
         AppShortcut(
-            intent: CarStatusIntent(),
+            intent: AnalyzeCarUsageIntent(),
             phrases: [
-                "What's my car status in \(.applicationName)",
-                "Check my car with \(.applicationName)"
+                "Analyze my car with \(.applicationName)",
+                "How has weather affected my car in \(.applicationName)"
             ],
-            shortTitle: "Car Status",
-            systemImageName: "car.fill"
+            shortTitle: "Car Insights",
+            systemImageName: "chart.xyaxis.line"
         )
     }
 }

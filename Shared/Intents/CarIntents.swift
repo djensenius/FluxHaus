@@ -7,6 +7,54 @@
 
 import AppIntents
 
+extension CarAnalyticsRange: AppEnum {
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Car history period"
+
+    static let caseDisplayRepresentations: [CarAnalyticsRange: DisplayRepresentation] = [
+        .week: "Last 7 days",
+        .month: "Last 30 days",
+        .quarter: "Last 90 days",
+        .year: "Last year",
+        .all: "All retained history"
+    ]
+}
+
+extension CarAnalyticsTopic: AppEnum {
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Car insight"
+
+    static let caseDisplayRepresentations: [CarAnalyticsTopic: DisplayRepresentation] = [
+        .overview: "Overview",
+        .charging: "Charging",
+        .efficiency: "Efficiency",
+        .weather: "Weather impact",
+        .comparison: "Previous-period comparison"
+    ]
+}
+
+struct AnalyzeCarUsageIntent: AppIntent {
+    static let title: LocalizedStringResource = "Car Insights"
+    static let description = IntentDescription(
+        "Analyze charging, distance, efficiency, and weather impact for the FluxHaus car."
+    )
+
+    @Parameter(title: "Period", default: .month)
+    var range: CarAnalyticsRange
+
+    @Parameter(title: "Insight", default: .overview)
+    var topic: CarAnalyticsTopic
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Get \(\.$topic) for \(\.$range)")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let analytics = try await CarAnalyticsClient().fetch(range: range, topic: topic)
+        await donateIntent(self)
+        return .result(dialog: "\(analytics.dialog(for: topic, range: range))")
+    }
+}
+
 struct LockCarIntent: AppIntent {
     static let title: LocalizedStringResource = "Lock Car"
     static let description = IntentDescription("Lock the FluxHaus car.")
