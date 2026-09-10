@@ -121,6 +121,8 @@ struct CarDetailView: View {
                     #endif
                     .cornerRadius(12)
 
+                    CarAnalyticsLink()
+
                     // Controls Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Controls")

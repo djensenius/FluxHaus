@@ -7,6 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CA2700010000000000000001 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000002 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000003 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000004 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000005 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700110000000000000001 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700110000000000000002 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700110000000000000003 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700110000000000000004 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700210000000000000001 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
+		CA2700210000000000000002 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
+		CA2700210000000000000003 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
+		CA2700210000000000000004 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		01CDBF3D1C40C982D9108D0A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
 		0346F947F8AB67D4BD3DB774 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
@@ -420,6 +433,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CA2700000000000000000001 /* CarAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalytics.swift; sourceTree = "<group>"; };
+		CA2700100000000000000001 /* CarAnalyticsLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsLink.swift; sourceTree = "<group>"; };
+		CA2700200000000000000001 /* CarAnalyticsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsView.swift; sourceTree = "<group>"; };
 		023E1C2F41844A628251CE04 /* RobotsListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotsListView.swift; sourceTree = "<group>"; };
 		0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetWatchViews.swift; sourceTree = "<group>"; };
 		0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = WeatherKit.framework; sourceTree = "<group>"; };
@@ -686,6 +702,9 @@
 				CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */,
 				C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */,
 				63610D322BB8864F0048B9FF /* CarDetailView.swift */,
+				CA2700000000000000000001 /* CarAnalytics.swift */,
+				CA2700100000000000000001 /* CarAnalyticsLink.swift */,
+				CA2700200000000000000001 /* CarAnalyticsView.swift */,
 				633F09472BBB8F8F0052C088 /* CarHelper.swift */,
 				632CBC25258682C8003E4988 /* DateTimeView.swift */,
 				632CBC7625870B74003E4988 /* FluxHausConsts.swift */,
@@ -1225,6 +1244,9 @@
 				BEA67E939CA04EFAA36CEACF /* Scooter.swift in Sources */,
 				42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */,
 				FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */,
+				CA2700010000000000000001 /* CarAnalytics.swift in Sources */,
+				CA2700110000000000000001 /* CarAnalyticsLink.swift in Sources */,
+				CA2700210000000000000001 /* CarAnalyticsView.swift in Sources */,
 				E222079D6E3C7E5941D2D5C0 /* CarHelper.swift in Sources */,
 				47DAD3A56DB24CE1A601DE56 /* DateTimeView.swift in Sources */,
 				256B98E625030109C7B0072B /* FluxHausConsts.swift in Sources */,
@@ -1310,6 +1332,9 @@
 				635BD66B2B9DF8A6009CEEA9 /* Robots.swift in Sources */,
 				635BD6752B9E030E009CEEA9 /* ContentView.swift in Sources */,
 				63610D332BB8864F0048B9FF /* CarDetailView.swift in Sources */,
+				CA2700010000000000000002 /* CarAnalytics.swift in Sources */,
+				CA2700110000000000000002 /* CarAnalyticsLink.swift in Sources */,
+				CA2700210000000000000002 /* CarAnalyticsView.swift in Sources */,
 				6399EA312B9D3671000C8CA4 /* Login.swift in Sources */,
 				63EB92652BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */,
 				AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */,
@@ -1417,6 +1442,7 @@
 				0CC21D2502790A21385B0E63 /* FluxIntentActions.swift in Sources */,
 				F3C3D67FDFFEFDA41639835B /* RobotIntents.swift in Sources */,
 				4FD86E14AA62A32A6FF600A8 /* CarIntents.swift in Sources */,
+				CA2700010000000000000003 /* CarAnalytics.swift in Sources */,
 				F595397493CD5FCACB96AE7B /* AirPurifier.swift in Sources */,
 				9B78596D56FBBFD6111E1D9B /* SymbolAnimation.swift in Sources */,
 				78F7ECC733E1ED102D2A6036 /* AirPurifierView.swift in Sources */,
@@ -1446,6 +1472,9 @@
 				FC70519504B244809D095CEC /* ScooterDetailView.swift in Sources */,
 				63DBD7592B954486006603D0 /* HomeKitIntegration.swift in Sources */,
 				63610D352BB8864F0048B9FF /* CarDetailView.swift in Sources */,
+				CA2700010000000000000004 /* CarAnalytics.swift in Sources */,
+				CA2700110000000000000003 /* CarAnalyticsLink.swift in Sources */,
+				CA2700210000000000000003 /* CarAnalyticsView.swift in Sources */,
 				63DBD75A2B954486006603D0 /* WeatherView.swift in Sources */,
 				637CE4C72BE71FC000258158 /* RobotDetailView.swift in Sources */,
 				6399EA2E2B9D2CCF000C8CA4 /* SystemNotifications.swift in Sources */,
@@ -1539,6 +1568,9 @@
 				F0779E97B0AB462F8FA3C9F4 /* Scooter.swift in Sources */,
 				A8FDEEF5BAC3453BB825E1DF /* ScooterDetailView.swift in Sources */,
 				88A694EA13C5590830184818 /* CarDetailView.swift in Sources */,
+				CA2700010000000000000005 /* CarAnalytics.swift in Sources */,
+				CA2700110000000000000004 /* CarAnalyticsLink.swift in Sources */,
+				CA2700210000000000000004 /* CarAnalyticsView.swift in Sources */,
 				4EE7C07CB284872F0B2165AB /* CarHelper.swift in Sources */,
 				92BB68B7C6E3ED9215465CAB /* DateTimeView.swift in Sources */,
 				AACC4A12682B6F5FB8E31A8D /* FluxHausConsts.swift in Sources */,

@@ -67,6 +67,17 @@ struct IOSAppIntentsTests {
         await #expect(throws: IntentError.self) { _ = try await StopCarClimateIntent().perform() }
     }
 
+    @MainActor
+    @Test("Car insights intent requires sign-in")
+    func carInsightsIntentRequiresSignIn() async throws {
+        setSignedOut()
+
+        let intent = AnalyzeCarUsageIntent()
+        intent.range = .month
+        intent.topic = .overview
+        await #expect(throws: IntentError.self) { _ = try await intent.perform() }
+    }
+
     @Test("Status intents require sign-in")
     func statusIntentsRequireSignIn() async throws {
         setSignedOut()
