@@ -137,7 +137,11 @@ struct CarAnalyticsView: View {
 
     private func chargingDetail(_ charging: CarChargingAnalytics) -> String {
         guard let interval = charging.averageIntervalDays else {
-            return charging.sessionCount == 0 ? "No sessions detected" : "One session detected"
+            switch charging.sessionCount {
+            case 0: return "No sessions detected"
+            case 1: return "One session detected"
+            default: return "\(charging.sessionCount) sessions detected"
+            }
         }
         return "About every \(formatted(interval)) days"
     }

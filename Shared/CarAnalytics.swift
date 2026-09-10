@@ -261,8 +261,8 @@ struct CarAnalyticsClient {
         guard AuthManager.shared.isSignedIn else {
             throw IntentError.notSignedIn
         }
-        _ = await AuthManager.shared.ensureValidToken()
-        guard let authorization = AuthManager.shared.authorizationHeader() else {
+        guard await AuthManager.shared.ensureValidToken(),
+              let authorization = AuthManager.shared.authorizationHeader() else {
             throw IntentError.notSignedIn
         }
 
