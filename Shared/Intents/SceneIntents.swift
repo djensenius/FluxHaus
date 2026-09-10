@@ -74,7 +74,8 @@ struct SceneEntityQuery: EntityStringQuery, IndexedEntityQuery {
         for identifiers: [SceneAppEntity.ID],
         indexDescription _: CSSearchableIndexDescription
     ) async throws {
-        try await FluxSpotlightIndexes.scenes.indexAppEntities(entities(for: identifiers))
+        let entities = try await entities(for: identifiers)
+        try await FluxSpotlightIndexes.scenes.indexAppEntities(entities)
     }
 
     func reindexAllEntities(indexDescription _: CSSearchableIndexDescription) async throws {

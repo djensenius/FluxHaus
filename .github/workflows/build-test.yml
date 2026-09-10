@@ -29,7 +29,7 @@ permissions:
 jobs:
   build:
     name: Build ${{ matrix.name }}
-    runs-on: macos-26
+    runs-on: xcode-27
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +64,7 @@ jobs:
 
   test:
     name: Test (VisionOS unit tests)
-    runs-on: macos-26
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
       - name: Show Xcode version
@@ -77,5 +77,5 @@ jobs:
           xcodebuild \
             -project FluxHaus.xcodeproj \
             -scheme "VisionOS" \
-            -destination 'platform=visionOS Simulator,name=Apple Vision Pro' \
+            -destination 'platform=visionOS Simulator,name=Apple Vision Pro,OS=27.0' \
             test | xcbeautify

@@ -13,8 +13,12 @@ struct ApplianceDetailView: View {
     @State private var buttonsDisabled: Bool = false
 
     var body: some View {
-        applianceContent
-            .fluxDeviceAnnotation(.dishwasher)
+        if appliance.name == "Dishwasher" {
+            applianceContent
+                .fluxDeviceAnnotation(.dishwasher)
+        } else {
+            applianceContent
+        }
     }
 
     private var applianceContent: some View {

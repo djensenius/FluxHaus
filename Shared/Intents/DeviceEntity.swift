@@ -137,7 +137,8 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
         for identifiers: [DeviceAppEntity.ID],
         indexDescription _: CSSearchableIndexDescription
     ) async throws {
-        try await FluxSpotlightIndexes.devices.indexAppEntities(entities(for: identifiers))
+        let entities = try await entities(for: identifiers)
+        try await FluxSpotlightIndexes.devices.indexAppEntities(entities)
     }
 
     func reindexAllEntities(indexDescription _: CSSearchableIndexDescription) async throws {
