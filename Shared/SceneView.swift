@@ -62,7 +62,7 @@ private let logger = Logger(
                 logger.info("Scene activated: \(scene.name)")
                 let intent = ActivateSceneIntent()
                 intent.scene = SceneAppEntity(scene: scene)
-                _ = try? await intent.donate()
+                await donateIntent(intent)
             } catch {
                 logger.error("Scene activation failed: \(error.localizedDescription)")
             }

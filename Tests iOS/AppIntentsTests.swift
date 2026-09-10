@@ -107,6 +107,12 @@ struct AppIntentsTests {
         #expect(Set(suggested.map(\.kind)) == Set(DeviceKind.allCases))
     }
 
+    @Test("Spotlight entity indexes use stable production names")
+    func spotlightIndexNamesAreStable() {
+        #expect(FluxSpotlightIndexes.devicesName == "FluxHausDevices")
+        #expect(FluxSpotlightIndexes.scenesName == "FluxHausScenes")
+    }
+
     @Test("Unknown device identifier resolves to nothing")
     func deviceQueryIgnoresUnknownId() async throws {
         let results = try await DeviceEntityQuery().entities(for: ["not-a-device"])

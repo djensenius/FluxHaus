@@ -155,19 +155,19 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Car")
     ) async {
         switch action {
         case "lock":
-            _ = try? await LockCarIntent().donate()
+            await donateIntent(LockCarIntent())
         case "unlock":
-            _ = try? await UnlockCarIntent().donate()
+            await donateIntent(UnlockCarIntent())
         case "start":
             let intent = StartCarClimateIntent()
             intent.defrost = defrost
             intent.heatedFeatures = heatedFeatures
             intent.temperature = temperature
-            _ = try? await intent.donate()
+            await donateIntent(intent)
         case "stop":
-            _ = try? await StopCarClimateIntent().donate()
+            await donateIntent(StopCarClimateIntent())
         case "resync", "rsync":
-            _ = try? await ResyncCarIntent().donate()
+            await donateIntent(ResyncCarIntent())
         default:
             break
         }

@@ -62,7 +62,7 @@ struct DeviceAppEntity: IndexedEntity {
 
     var kind: DeviceKind
 
-    @Property(title: "Name")
+    @Property(title: "Name", indexingKey: \.displayName)
     var name: String
 
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Device"
@@ -90,19 +90,32 @@ struct DeviceAppEntity: IndexedEntity {
     }
 }
 
+enum FluxSpotlightIndexes {
+    static let devicesName = "FluxHausDevices"
+    static let scenesName = "FluxHausScenes"
+
+    static var devices: CSSearchableIndex {
+        CSSearchableIndex(name: devicesName)
+    }
+
+    static var scenes: CSSearchableIndex {
+        CSSearchableIndex(name: scenesName)
+    }
+}
+
 /// Adds every FluxHaus device to the Spotlight index so it's searchable and so
 /// Siri / Apple Intelligence can resolve it as a parameter.
 func indexDevices() async {
     let entities = DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
     do {
-        try await CSSearchableIndex.default().indexAppEntities(entities)
+        try await FluxSpotlightIndexes.devices.indexAppEntities(entities)
     } catch {
         let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "DeviceIndex")
         logger.error("Failed to index devices: \(error.localizedDescription)")
     }
 }
 
-struct DeviceEntityQuery: EntityStringQuery {
+struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
     func entities(for identifiers: [DeviceAppEntity.ID]) async throws -> [DeviceAppEntity] {
         identifiers.compactMap(DeviceAppEntity.init(id:))
     }
@@ -118,6 +131,19 @@ struct DeviceEntityQuery: EntityStringQuery {
 
     func suggestedEntities() async throws -> [DeviceAppEntity] {
         DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
+    }
+
+    func reindexEntities(
+        for identifiers: [DeviceAppEntity.ID],
+        indexDescription _: CSSearchableIndexDescription
+    ) async throws {
+        try await FluxSpotlightIndexes.devices.indexAppEntities(entities(for: identifiers))
+    }
+
+    func reindexAllEntities(indexDescription _: CSSearchableIndexDescription) async throws {
+        try await FluxSpotlightIndexes.devices.indexAppEntities(
+            DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
+        )
     }
 }
 

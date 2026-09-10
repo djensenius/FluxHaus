@@ -51,13 +51,13 @@ struct ChatImageGrid: View {
         if let uiImage = UIImage(data: data) {
             Image(uiImage: uiImage)
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
         }
         #elseif canImport(AppKit)
         if let nsImage = NSImage(data: data) {
             Image(nsImage: nsImage)
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
         }
         #endif
     }

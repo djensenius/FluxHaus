@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import AppIntents
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxIntentActions")
@@ -26,6 +27,14 @@ enum IntentError: LocalizedError {
         case .invalidURL:
             return "Could not build the request."
         }
+    }
+}
+
+func donateIntent(_ intent: some AppIntent) async {
+    do {
+        try await intent.donate()
+    } catch {
+        logger.error("Failed to donate intent: \(error.localizedDescription)")
     }
 }
 

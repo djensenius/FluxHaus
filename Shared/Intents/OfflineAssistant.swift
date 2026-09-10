@@ -8,11 +8,17 @@
 //
 
 import Foundation
+import os
 #if canImport(FoundationModels)
 import FoundationModels
 #endif
 
 enum OfflineAssistant {
+    private static let logger = Logger(
+        subsystem: "io.fluxhaus.FluxHaus",
+        category: "OfflineAssistant"
+    )
+
     /// Whether the on-device model is ready to answer right now.
     static var isAvailable: Bool {
         #if canImport(FoundationModels)
@@ -38,7 +44,19 @@ enum OfflineAssistant {
             let response = try await session.respond(to: prompt)
             let text = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
             return text.isEmpty ? nil : text
+        } catch is CancellationError {
+            return nil
+        } catch let error as LanguageModelError {
+            logger.error("On-device model rejected generation: \(error.localizedDescription)")
+            return nil
+        } catch let error as SystemLanguageModel.Error {
+            logger.error("On-device model unavailable during generation: \(error.localizedDescription)")
+            return nil
+        } catch let error as LanguageModelSession.Error {
+            logger.error("On-device model session failed: \(error.localizedDescription)")
+            return nil
         } catch {
+            logger.error("Unexpected on-device model failure: \(error.localizedDescription)")
             return nil
         }
         #else

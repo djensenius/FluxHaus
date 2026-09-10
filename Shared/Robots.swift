@@ -132,13 +132,13 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Robots
         case "start":
             let intent = StartRobotIntent()
             intent.robot = choice
-            _ = try? await intent.donate()
+            await donateIntent(intent)
         case "stop":
             let intent = StopRobotIntent()
             intent.robot = choice
-            _ = try? await intent.donate()
+            await donateIntent(intent)
         case "deepClean":
-            _ = try? await DeepCleanIntent().donate()
+            await donateIntent(DeepCleanIntent())
         default:
             break
         }
