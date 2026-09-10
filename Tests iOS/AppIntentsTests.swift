@@ -5,10 +5,9 @@
 //  Phase 1 of the iOS 27 Siri AI work: validate that every FluxHaus App Intent
 //  is well-formed and behaves deterministically when the user is signed out.
 //
-//  These tests exercise the real `perform()` pathway. Because every network-backed
-//  intent checks `AuthManager.shared.isSignedIn` before doing any I/O, a fresh
-//  (signed-out) test process lets us assert the guard fires with `IntentError.notSignedIn`
-//  without hitting api.fluxhaus.io — keeping the suite hermetic and CI-safe.
+//  These tests exercise the real `perform()` pathway. Each signed-out test
+//  explicitly sets the in-memory authentication state before invoking an intent,
+//  keeping the suite hermetic even when the simulator keychain contains tokens.
 //
 
 import Testing
@@ -16,6 +15,10 @@ import AppIntents
 @testable import FluxHaus
 
 struct AppIntentsTests {
+    private func setSignedOut() {
+        AuthManager.shared.authState = .signedOut
+        #expect(!AuthManager.shared.isSignedIn)
+    }
 
     // MARK: - Metadata
 
@@ -40,6 +43,8 @@ struct AppIntentsTests {
     @MainActor
     @Test("Robot control intents require sign-in")
     func robotIntentsRequireSignIn() async throws {
+        setSignedOut()
+
         let start = StartRobotIntent()
         start.robot = .broomBot
         await #expect(throws: IntentError.self) { _ = try await start.perform() }
@@ -54,6 +59,8 @@ struct AppIntentsTests {
     @MainActor
     @Test("Car control intents require sign-in")
     func carIntentsRequireSignIn() async throws {
+        setSignedOut()
+
         await #expect(throws: IntentError.self) { _ = try await LockCarIntent().perform() }
         await #expect(throws: IntentError.self) { _ = try await UnlockCarIntent().perform() }
         await #expect(throws: IntentError.self) { _ = try await StartCarClimateIntent().perform() }
@@ -62,6 +69,8 @@ struct AppIntentsTests {
 
     @Test("Status intents require sign-in")
     func statusIntentsRequireSignIn() async throws {
+        setSignedOut()
+
         await #expect(throws: IntentError.self) { _ = try await CarStatusIntent().perform() }
         await #expect(throws: IntentError.self) { _ = try await RobotStatusIntent().perform() }
         await #expect(throws: IntentError.self) { _ = try await ApplianceStatusIntent().perform() }
@@ -70,6 +79,8 @@ struct AppIntentsTests {
 
     @Test("Ask FluxHaus intent requires sign-in")
     func askIntentRequiresSignIn() async throws {
+        setSignedOut()
+
         let intent = AskFluxHausIntent()
         intent.prompt = "Is the dishwasher running?"
         await #expect(throws: IntentError.self) { _ = try await intent.perform() }
@@ -77,6 +88,8 @@ struct AppIntentsTests {
 
     @Test("Activate Scene intent requires sign-in")
     func activateSceneRequiresSignIn() async throws {
+        setSignedOut()
+
         let intent = ActivateSceneIntent()
         intent.scene = SceneAppEntity(id: "scene.test", name: "Good Morning")
         await #expect(throws: IntentError.self) { _ = try await intent.perform() }
@@ -121,6 +134,8 @@ struct AppIntentsTests {
 
     @Test("Device status intent requires sign-in")
     func deviceStatusRequiresSignIn() async throws {
+        setSignedOut()
+
         let intent = DeviceStatusIntent()
         intent.device = DeviceAppEntity(kind: .car)
         await #expect(throws: IntentError.self) { _ = try await intent.perform() }

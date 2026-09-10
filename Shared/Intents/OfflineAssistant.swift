@@ -33,8 +33,8 @@ enum OfflineAssistant {
     ///
     /// Returns `nil` when the model is unavailable (device not eligible, Apple
     /// Intelligence disabled, model not ready) or generation fails, so callers
-    /// can fall back to their own error handling.
-    static func answer(to prompt: String) async -> String? {
+    /// can fall back to their own error handling. Cancellation is propagated.
+    static func answer(to prompt: String) async throws -> String? {
         #if canImport(FoundationModels)
         guard case .available = SystemLanguageModel.default.availability else {
             return nil
@@ -44,8 +44,8 @@ enum OfflineAssistant {
             let response = try await session.respond(to: prompt)
             let text = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
             return text.isEmpty ? nil : text
-        } catch is CancellationError {
-            return nil
+        } catch let error as CancellationError {
+            throw error
         } catch let error as LanguageModelError {
             logger.error("On-device model rejected generation: \(error.localizedDescription)")
             return nil

@@ -35,6 +35,8 @@ struct AskFluxHausIntent: AppIntent {
                     answer += text
                 }
             }
+        } catch let error as CancellationError {
+            throw error
         } catch {
             lastError = error.localizedDescription
         }
@@ -45,7 +47,7 @@ struct AskFluxHausIntent: AppIntent {
         }
 
         // Server unreachable or gave no answer — fall back to the on-device model.
-        if let offline = await OfflineAssistant.answer(to: prompt) {
+        if let offline = try await OfflineAssistant.answer(to: prompt) {
             return .result(dialog: "\(offline)")
         }
 
