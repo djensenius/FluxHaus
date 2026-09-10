@@ -108,7 +108,8 @@ struct ContentView: View {
     private var weatherTab: some View {
         WeatherDetailView(
             locationManager: locationManager,
-            radarService: radarService
+            radarService: radarService,
+            metrics: metrics
         )
     }
 

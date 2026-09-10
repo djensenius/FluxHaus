@@ -139,7 +139,8 @@ struct ContentView: View {
         case .weather:
             WeatherDetailView(
                 locationManager: locationManager,
-                radarService: radarService
+                radarService: radarService,
+                metrics: metrics
             )
             .navigationTitle("Weather")
         case .scenes:
