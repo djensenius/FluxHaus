@@ -198,6 +198,14 @@ struct BusinessLogicTests {
 // Test utility functions
 struct UtilityFunctionTests {
 
+    @Test("Appliance display text humanizes identifiers and preserves display names")
+    func testFormatApplianceDisplayText() {
+        #expect(formatApplianceDisplayText("main_wash") == "Main Wash")
+        #expect(formatApplianceDisplayText("main_wash (normal)") == "Main Wash (Normal)")
+        #expect(formatApplianceDisplayText("QuickWash45") == "QuickWash45")
+        #expect(formatApplianceDisplayText("  End programmed  ") == "End programmed")
+    }
+
     @Test("getDeviceIcon returns correct icons for different battery models")
     func testGetDeviceIcon() async {
         await MainActor.run {

@@ -276,7 +276,7 @@ struct AppliancesDetailView: View {
             if wdm.inUse {
                 detailRow(
                     label: "Status",
-                    value: wdm.status ?? "Running",
+                    value: wdm.status.map { formatApplianceDisplayText($0) } ?? "Running",
                     icon: "play.circle.fill",
                     color: Theme.Colors.accent
                 )
@@ -285,7 +285,7 @@ struct AppliancesDetailView: View {
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Program",
-                        value: formatApplianceProgramName(programName),
+                        value: formatApplianceDisplayText(programName),
                         icon: "list.bullet"
                     )
                 }
@@ -294,7 +294,7 @@ struct AppliancesDetailView: View {
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Step",
-                        value: formatApplianceProgramName(step),
+                        value: formatApplianceDisplayText(step),
                         icon: "arrow.triangle.2.circlepath"
                     )
                 }
@@ -318,7 +318,7 @@ struct AppliancesDetailView: View {
             } else {
                 detailRow(
                     label: "Status",
-                    value: wdm.status ?? "Off",
+                    value: wdm.status.map { formatApplianceDisplayText($0) } ?? "Off",
                     icon: "power.circle",
                     color: Theme.Colors.textSecondary
                 )
@@ -327,7 +327,7 @@ struct AppliancesDetailView: View {
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Program",
-                        value: formatApplianceProgramName(programName),
+                        value: formatApplianceDisplayText(programName),
                         icon: "list.bullet"
                     )
                 }
@@ -336,7 +336,7 @@ struct AppliancesDetailView: View {
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Step",
-                        value: formatApplianceProgramName(step),
+                        value: formatApplianceDisplayText(step),
                         icon: "arrow.triangle.2.circlepath"
                     )
                 }

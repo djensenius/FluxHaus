@@ -336,13 +336,13 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             parts.append("Running")
             if let program = device.programName,
                !program.trimmingCharacters(in: .whitespaces).isEmpty {
-                parts.append(program)
+                parts.append(formatApplianceDisplayText(program))
             }
             if let remaining = device.timeRemaining, remaining > 0 {
                 parts.append(formatDurationMinutes(remaining))
             }
         } else {
-            parts.append(device.status ?? "Idle")
+            parts.append(device.status.map { formatApplianceDisplayText($0) } ?? "Idle")
         }
         return parts.joined(separator: " · ")
     }

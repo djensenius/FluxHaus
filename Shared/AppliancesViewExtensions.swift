@@ -151,14 +151,14 @@ extension Appliances {
             return ""
         }
         if tAppliance.count > index && tAppliance[index].programName != "" {
-            let step = formatApplianceProgramName(tAppliance[index].step)
-            let programName = formatApplianceProgramName(tAppliance[index].programName)
+            let step = formatApplianceDisplayText(tAppliance[index].step)
+            let programName = formatApplianceDisplayText(tAppliance[index].programName)
             if step.isEmpty {
                 return programName
             }
             return "\(step) (\(programName))"
         } else if tAppliance.count > index {
-            return formatApplianceProgramName(tAppliance[index].step)
+            return formatApplianceDisplayText(tAppliance[index].step)
         }
         return ""
     }
