@@ -217,7 +217,7 @@ struct AppliancesDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             detailRow(
                 label: "Status",
-                value: operationStateDisplay(dwm.operationState),
+                value: dwm.operationState.displayText,
                 icon: operationStateIcon(dwm.operationState),
                 color: operationStateColor(dwm.operationState)
             )
@@ -227,7 +227,11 @@ struct AppliancesDetailView: View {
             if let program = dwm.activeProgram {
                 detailRow(label: "Program", value: programDisplay(program), icon: "list.bullet")
             } else if let selected = dwm.selectedProgram, !selected.isEmpty {
-                detailRow(label: "Selected Program", value: selected, icon: "list.bullet")
+                detailRow(
+                    label: "Selected Program",
+                    value: formatApplianceDisplayText(selected),
+                    icon: "list.bullet"
+                )
             }
 
             if let progress = dwm.programProgress, progress > 0 {
@@ -276,7 +280,7 @@ struct AppliancesDetailView: View {
             if wdm.inUse {
                 detailRow(
                     label: "Status",
-                    value: wdm.status ?? "Running",
+                    value: wdm.status.map { formatApplianceDisplayText($0) } ?? "Running",
                     icon: "play.circle.fill",
                     color: Theme.Colors.accent
                 )
@@ -285,7 +289,7 @@ struct AppliancesDetailView: View {
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Program",
-                        value: formatApplianceProgramName(programName),
+                        value: formatApplianceDisplayText(programName),
                         icon: "list.bullet"
                     )
                 }
@@ -294,7 +298,7 @@ struct AppliancesDetailView: View {
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Step",
-                        value: formatApplianceProgramName(step),
+                        value: formatApplianceDisplayText(step),
                         icon: "arrow.triangle.2.circlepath"
                     )
                 }
@@ -318,7 +322,7 @@ struct AppliancesDetailView: View {
             } else {
                 detailRow(
                     label: "Status",
-                    value: wdm.status ?? "Off",
+                    value: wdm.status.map { formatApplianceDisplayText($0) } ?? "Off",
                     icon: "power.circle",
                     color: Theme.Colors.textSecondary
                 )
@@ -327,7 +331,7 @@ struct AppliancesDetailView: View {
                    !programName.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Program",
-                        value: formatApplianceProgramName(programName),
+                        value: formatApplianceDisplayText(programName),
                         icon: "list.bullet"
                     )
                 }
@@ -336,7 +340,7 @@ struct AppliancesDetailView: View {
                    !step.trimmingCharacters(in: .whitespaces).isEmpty {
                     detailRow(
                         label: "Last Step",
-                        value: formatApplianceProgramName(step),
+                        value: formatApplianceDisplayText(step),
                         icon: "arrow.triangle.2.circlepath"
                     )
                 }
@@ -374,19 +378,6 @@ private extension AppliancesDetailView {
             byAdding: .minute, value: minutesRemaining, to: Date()
         ) ?? Date()
         return Self.timeFormatter.string(from: finishTime)
-    }
-    func operationStateDisplay(_ state: OperationState) -> String {
-        switch state {
-        case .inactive: return "Inactive"
-        case .ready: return "Ready"
-        case .delayedStart: return "Delayed Start"
-        case .run: return "Running"
-        case .pause: return "Paused"
-        case .actionRequired: return "Action Required"
-        case .finished: return "Finished"
-        case .error: return "Error"
-        case .aborting: return "Aborting"
-        }
     }
     func operationStateIcon(_ state: OperationState) -> String {
         switch state {

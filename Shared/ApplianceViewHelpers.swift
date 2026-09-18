@@ -18,15 +18,39 @@ struct Appliance {
     let inUse: Bool
 }
 
-/// Formats raw appliance program/step strings from the API into title-cased display strings.
-/// Converts underscores to spaces and applies title-case capitalization.
+/// Formats raw appliance strings from the API into human-readable display text.
+/// Identifier-style values are title-cased while existing display names keep their casing.
 /// e.g. "main_wash (normal)" → "Main Wash (Normal)"
-func formatApplianceProgramName(_ raw: String) -> String {
-    let trimmed = raw.trimmingCharacters(in: .whitespaces)
+func formatApplianceDisplayText(_ raw: String) -> String {
+    let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return trimmed }
-    return trimmed
+
+    let normalized = trimmed
         .replacingOccurrences(of: "_", with: " ")
-        .capitalized
+        .split(whereSeparator: \.isWhitespace)
+        .joined(separator: " ")
+    let hasUppercase = normalized.contains(where: \.isUppercase)
+    let hasLowercase = normalized.contains(where: \.isLowercase)
+    if !trimmed.contains("_"), hasUppercase && hasLowercase {
+        return normalized
+    }
+    return normalized.capitalized
+}
+
+extension OperationState {
+    var displayText: String {
+        switch self {
+        case .inactive: return "Inactive"
+        case .ready: return "Ready"
+        case .delayedStart: return "Delayed Start"
+        case .run: return "Running"
+        case .pause: return "Paused"
+        case .actionRequired: return "Action Required"
+        case .finished: return "Finished"
+        case .error: return "Error"
+        case .aborting: return "Aborting"
+        }
+    }
 }
 
 @MainActor

@@ -57,7 +57,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         dishwasherTrailingText = "\(programName) ⋅ \(dishwasherTrailingText)"
     }
     if fluxData.dishwasher != nil && fluxData.dishwasher?.operationState.rawValue != "Run" {
-        dishwasherTrailingText = fluxData.dishwasher!.operationState.rawValue + " ⋅ \(dishwasherTrailingText)"
+        dishwasherTrailingText = fluxData.dishwasher!.operationState.displayText
+            + " ⋅ \(dishwasherTrailingText)"
     }
 
     if fluxData.dishwasher?.operationState.rawValue == "Finished" {
@@ -97,11 +98,11 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     var washerTrailingText = washerRemainingTime
     if let programName = fluxData.washer?.programName,
        !programName.trimmingCharacters(in: .whitespaces).isEmpty {
-        washerTrailingText = "\(formatApplianceProgramName(programName)) ⋅ \(washerTrailingText)"
+        washerTrailingText = "\(formatApplianceDisplayText(programName)) ⋅ \(washerTrailingText)"
     }
     if fluxData.washer != nil && fluxData.washer?.status != "In use",
        let status = fluxData.washer?.status {
-        washerTrailingText = "\(status) ⋅ \(washerTrailingText)"
+        washerTrailingText = "\(formatApplianceDisplayText(status)) ⋅ \(washerTrailingText)"
     }
 
     returnValue.append(
@@ -112,7 +113,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             trailingText: washerTrailingText,
             shortText: washerRemainingTime,
             running: fluxData.washer?.timeRemaining ?? 0 > 0,
-            programName: fluxData.washer?.programName.map { formatApplianceProgramName($0) }
+            programName: fluxData.washer?.programName.map { formatApplianceDisplayText($0) }
         )
     )
 
@@ -126,11 +127,11 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     var dryerTrailingText = dryerRemainingTime
     if let programName = fluxData.dryer?.programName,
        !programName.trimmingCharacters(in: .whitespaces).isEmpty {
-        dryerTrailingText = "\(formatApplianceProgramName(programName)) ⋅ \(dryerTrailingText)"
+        dryerTrailingText = "\(formatApplianceDisplayText(programName)) ⋅ \(dryerTrailingText)"
     }
     if fluxData.dryer != nil && fluxData.dryer?.status != "In use",
        let status = fluxData.dryer?.status {
-        dryerTrailingText = "\(status) ⋅ \(dryerTrailingText)"
+        dryerTrailingText = "\(formatApplianceDisplayText(status)) ⋅ \(dryerTrailingText)"
     }
 
     returnValue.append(
@@ -141,7 +142,7 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             trailingText: dryerTrailingText,
             shortText: dryerRemainingTime,
             running: fluxData.dryer?.timeRemaining ?? 0 > 0,
-            programName: fluxData.dryer?.programName.map { formatApplianceProgramName($0) }
+            programName: fluxData.dryer?.programName.map { formatApplianceDisplayText($0) }
         )
     )
 

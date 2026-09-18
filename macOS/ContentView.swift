@@ -242,7 +242,7 @@ struct AppliancesMacView: View {
                     }
                     if !appliance.programName.trimmingCharacters(in: .whitespaces).isEmpty {
                         Label(
-                            formatApplianceProgramName(appliance.programName),
+                            formatApplianceDisplayText(appliance.programName),
                             systemImage: "list.bullet"
                         )
                         .font(Theme.Fonts.bodyMedium)
@@ -250,7 +250,7 @@ struct AppliancesMacView: View {
                     }
                     if !appliance.step.trimmingCharacters(in: .whitespaces).isEmpty {
                         Label(
-                            formatApplianceProgramName(appliance.step),
+                            formatApplianceDisplayText(appliance.step),
                             systemImage: "arrow.triangle.2.circlepath"
                         )
                         .font(Theme.Fonts.bodyMedium)

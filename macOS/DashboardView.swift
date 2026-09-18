@@ -312,11 +312,11 @@ extension DashboardView {
                         ).font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textPrimary)
                     }
                     if !appliance.programName.isEmpty {
-                        Text("Program: \(appliance.programName)")
+                        Text("Program: \(formatApplianceDisplayText(appliance.programName))")
                             .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textSecondary)
                     }
                     if !appliance.step.isEmpty {
-                        Text("Step: \(appliance.step)")
+                        Text("Step: \(formatApplianceDisplayText(appliance.step))")
                             .font(Theme.Fonts.bodyMedium).foregroundColor(Theme.Colors.textSecondary)
                     }
                 } else {

@@ -48,10 +48,10 @@ enum FluxStatusText {
         guard let dishwasher = response.dishwasher else {
             return "Dishwasher status isn't available right now."
         }
-        let state = dishwasher.operationState.rawValue
-        if state == "Inactive" || state == "Finished" {
+        if dishwasher.operationState == .inactive || dishwasher.operationState == .finished {
             return "The dishwasher is not running."
         }
+        let state = dishwasher.operationState.displayText
         if let remaining = dishwasher.remainingTime, remaining > 0 {
             let minutes = remaining / 60
             return "The dishwasher is \(state) with about \(minutes) minutes remaining."

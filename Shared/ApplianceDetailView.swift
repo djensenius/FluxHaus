@@ -72,14 +72,14 @@ struct ApplianceDetailView: View {
                                     .foregroundColor(Theme.Colors.textPrimary)
 
                                 if !appliance.programName.trimmingCharacters(in: .whitespaces).isEmpty {
-                                    Label(formatApplianceProgramName(appliance.programName),
+                                    Label(formatApplianceDisplayText(appliance.programName),
                                           systemImage: "list.bullet")
                                         .font(Theme.Fonts.bodyMedium)
                                         .foregroundColor(Theme.Colors.textSecondary)
                                 }
 
                                 if !appliance.step.trimmingCharacters(in: .whitespaces).isEmpty {
-                                    Label(formatApplianceProgramName(appliance.step),
+                                    Label(formatApplianceDisplayText(appliance.step),
                                           systemImage: "arrow.triangle.2.circlepath")
                                         .font(Theme.Fonts.bodyMedium)
                                         .foregroundColor(Theme.Colors.textSecondary)
