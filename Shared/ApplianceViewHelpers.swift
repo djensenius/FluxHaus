@@ -29,13 +29,26 @@ func formatApplianceDisplayText(_ raw: String) -> String {
         .replacingOccurrences(of: "_", with: " ")
         .split(whereSeparator: \.isWhitespace)
         .joined(separator: " ")
-    guard let firstLetter = normalized.first(where: \.isLetter) else {
-        return normalized
-    }
-    if !trimmed.contains("_") && firstLetter.isUppercase {
+    if !trimmed.contains("_"), normalized.contains(where: \.isUppercase) {
         return normalized
     }
     return normalized.capitalized
+}
+
+extension OperationState {
+    var displayText: String {
+        switch self {
+        case .inactive: return "Inactive"
+        case .ready: return "Ready"
+        case .delayedStart: return "Delayed Start"
+        case .run: return "Running"
+        case .pause: return "Paused"
+        case .actionRequired: return "Action Required"
+        case .finished: return "Finished"
+        case .error: return "Error"
+        case .aborting: return "Aborting"
+        }
+    }
 }
 
 @MainActor

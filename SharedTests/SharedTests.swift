@@ -204,6 +204,10 @@ struct UtilityFunctionTests {
         #expect(formatApplianceDisplayText("main_wash (normal)") == "Main Wash (Normal)")
         #expect(formatApplianceDisplayText("QuickWash45") == "QuickWash45")
         #expect(formatApplianceDisplayText("  End programmed  ") == "End programmed")
+        #expect(formatApplianceDisplayText("i-DOS") == "i-DOS")
+        #expect(OperationState.run.displayText == "Running")
+        #expect(OperationState.delayedStart.displayText == "Delayed Start")
+        #expect(OperationState.actionRequired.displayText == "Action Required")
     }
 
     @Test("getDeviceIcon returns correct icons for different battery models")

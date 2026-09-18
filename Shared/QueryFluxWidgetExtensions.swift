@@ -57,7 +57,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         dishwasherTrailingText = "\(programName) ⋅ \(dishwasherTrailingText)"
     }
     if fluxData.dishwasher != nil && fluxData.dishwasher?.operationState.rawValue != "Run" {
-        dishwasherTrailingText = fluxData.dishwasher!.operationState.rawValue + " ⋅ \(dishwasherTrailingText)"
+        dishwasherTrailingText = fluxData.dishwasher!.operationState.displayText
+            + " ⋅ \(dishwasherTrailingText)"
     }
 
     if fluxData.dishwasher?.operationState.rawValue == "Finished" {

@@ -217,7 +217,7 @@ struct AppliancesDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             detailRow(
                 label: "Status",
-                value: operationStateDisplay(dwm.operationState),
+                value: dwm.operationState.displayText,
                 icon: operationStateIcon(dwm.operationState),
                 color: operationStateColor(dwm.operationState)
             )
@@ -374,19 +374,6 @@ private extension AppliancesDetailView {
             byAdding: .minute, value: minutesRemaining, to: Date()
         ) ?? Date()
         return Self.timeFormatter.string(from: finishTime)
-    }
-    func operationStateDisplay(_ state: OperationState) -> String {
-        switch state {
-        case .inactive: return "Inactive"
-        case .ready: return "Ready"
-        case .delayedStart: return "Delayed Start"
-        case .run: return "Running"
-        case .pause: return "Paused"
-        case .actionRequired: return "Action Required"
-        case .finished: return "Finished"
-        case .error: return "Error"
-        case .aborting: return "Aborting"
-        }
     }
     func operationStateIcon(_ state: OperationState) -> String {
         switch state {

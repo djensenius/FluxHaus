@@ -320,7 +320,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func dishwasherStatusText(_ dishwasher: DishWasher) -> String {
         var parts: [String] = []
-        parts.append(dishwasher.operationState.rawValue)
+        parts.append(dishwasher.operationState.displayText)
         if let program = dishwasher.activeProgram {
             parts.append(program.displayName)
         }
