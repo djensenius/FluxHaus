@@ -29,7 +29,9 @@ func formatApplianceDisplayText(_ raw: String) -> String {
         .replacingOccurrences(of: "_", with: " ")
         .split(whereSeparator: \.isWhitespace)
         .joined(separator: " ")
-    if !trimmed.contains("_"), normalized.contains(where: \.isUppercase) {
+    let hasUppercase = normalized.contains(where: \.isUppercase)
+    let hasLowercase = normalized.contains(where: \.isLowercase)
+    if !trimmed.contains("_"), hasUppercase && hasLowercase {
         return normalized
     }
     return normalized.capitalized

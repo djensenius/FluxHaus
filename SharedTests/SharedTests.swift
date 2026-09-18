@@ -205,9 +205,29 @@ struct UtilityFunctionTests {
         #expect(formatApplianceDisplayText("QuickWash45") == "QuickWash45")
         #expect(formatApplianceDisplayText("  End programmed  ") == "End programmed")
         #expect(formatApplianceDisplayText("i-DOS") == "i-DOS")
+        #expect(formatApplianceDisplayText("OFF") == "Off")
         #expect(OperationState.run.displayText == "Running")
         #expect(OperationState.delayedStart.displayText == "Delayed Start")
         #expect(OperationState.actionRequired.displayText == "Action Required")
+    }
+
+    @Test("Dishwasher status uses the display operation state")
+    func testDishwasherStatusUsesDisplayOperationState() {
+        let response = LoginResponse(
+            timestamp: "",
+            favouriteHomeKit: [],
+            broombot: Robot(),
+            mopbot: Robot(),
+            dishwasher: DishWasher(
+                remainingTime: 1_800,
+                operationState: .run
+            )
+        )
+
+        #expect(
+            FluxStatusText.dishwasher(response)
+                == "The dishwasher is Running with about 30 minutes remaining."
+        )
     }
 
     @Test("getDeviceIcon returns correct icons for different battery models")

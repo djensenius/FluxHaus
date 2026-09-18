@@ -227,7 +227,11 @@ struct AppliancesDetailView: View {
             if let program = dwm.activeProgram {
                 detailRow(label: "Program", value: programDisplay(program), icon: "list.bullet")
             } else if let selected = dwm.selectedProgram, !selected.isEmpty {
-                detailRow(label: "Selected Program", value: selected, icon: "list.bullet")
+                detailRow(
+                    label: "Selected Program",
+                    value: formatApplianceDisplayText(selected),
+                    icon: "list.bullet"
+                )
             }
 
             if let progress = dwm.programProgress, progress > 0 {
