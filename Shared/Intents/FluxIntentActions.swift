@@ -15,6 +15,7 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxIn
 
 enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
     case notSignedIn
+    case sessionRefreshFailed
     case requestFailed(Int)
     case invalidURL
 
@@ -22,6 +23,8 @@ enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
         switch self {
         case .notSignedIn:
             return "Please sign in to FluxHaus first."
+        case .sessionRefreshFailed:
+            return "FluxHaus couldn't refresh your session. Please try again."
         case .requestFailed(let code):
             return "The request failed (HTTP \(code))."
         case .invalidURL:
@@ -35,6 +38,11 @@ enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
             return AppIntentError(
                 predefinedError: .UserActionRequired.signin,
                 description: "Please sign in to FluxHaus first."
+            )
+        case .sessionRefreshFailed:
+            return AppIntentError(
+                predefinedError: .Unrecoverable.networkFailure,
+                description: "FluxHaus couldn't refresh your session. Please try again."
             )
         case .requestFailed(let code):
             return AppIntentError(
@@ -56,7 +64,10 @@ func requireIntentAuthentication() async throws {
     }
     if AuthManager.shared.isOIDC {
         guard await AuthManager.shared.ensureValidToken() else {
-            throw IntentError.notSignedIn
+            if AuthManager.shared.isSignedOut || AuthManager.shared.getAccessToken() == nil {
+                throw IntentError.notSignedIn
+            }
+            throw IntentError.sessionRefreshFailed
         }
     }
     guard AuthManager.shared.authorizationHeader() != nil else {
