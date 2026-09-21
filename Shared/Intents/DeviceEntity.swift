@@ -60,8 +60,8 @@ enum DeviceKind: String, CaseIterable, Sendable {
         case .broomBot: return ["broombot", "broom bot", "robot vacuum", "vacuum"]
         case .mopBot: return ["mopbot", "mop bot", "robot mop", "mop"]
         case .dishwasher: return ["dishwasher", "dish washer"]
-        case .washer: return ["washer", "washing machine"]
-        case .dryer: return ["dryer", "tumble dryer"]
+        case .washer: return ["washer", "washing machine", "laundry washer"]
+        case .dryer: return ["dryer", "tumble dryer", "laundry dryer"]
         case .scooter: return ["scooter"]
         case .airPurifier: return ["air purifier", "purifier", "air filter"]
         }

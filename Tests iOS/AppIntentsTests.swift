@@ -63,6 +63,15 @@ struct IOSAppIntentsTests {
 
         await #expect(throws: IntentError.self) { _ = try await LockCarIntent().perform() }
         await #expect(throws: IntentError.self) { _ = try await UnlockCarIntent().perform() }
+
+        let setLock = SetCarLockIntent()
+        setLock.action = .lock
+        await #expect(throws: IntentError.self) { _ = try await setLock.perform() }
+
+        let setUnlock = SetCarLockIntent()
+        setUnlock.action = .unlock
+        await #expect(throws: IntentError.self) { _ = try await setUnlock.perform() }
+
         await #expect(throws: IntentError.self) { _ = try await StartCarClimateIntent().perform() }
         await #expect(throws: IntentError.self) { _ = try await StopCarClimateIntent().perform() }
     }
@@ -128,6 +137,9 @@ struct IOSAppIntentsTests {
         #expect(try await query.entities(matching: "my dishwasher").map(\.kind) == [.dishwasher])
         #expect(try await query.entities(matching: "washing machine").map(\.kind) == [.washer])
         #expect(try await query.entities(matching: "tumble dryer").map(\.kind) == [.dryer])
+        #expect(try await query.entities(matching: "laundry washer").map(\.kind) == [.washer])
+        #expect(try await query.entities(matching: "laundry dryer").map(\.kind) == [.dryer])
+        #expect(try await query.entities(matching: "laundry").map(\.kind) == [.washer, .dryer])
         #expect(try await query.entities(matching: "air filter").map(\.kind) == [.airPurifier])
     }
 
