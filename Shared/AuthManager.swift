@@ -162,6 +162,8 @@ private actor RefreshCoordinator {
 
     // Serializes concurrent refresh attempts via actor isolation
     private let refreshCoordinator = RefreshCoordinator()
+    private let sessionGenerationLock = NSLock()
+    private var sessionGeneration: UInt64 = 0
 
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
@@ -363,7 +365,7 @@ private actor RefreshCoordinator {
     @MainActor func signOut() {
         logger.warning("signOut() called — clearing all tokens and credentials")
         isCompletingOIDCLogin = false
-        clearOIDCTokens()
+        invalidateOIDCSession()
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
@@ -415,10 +417,20 @@ private actor RefreshCoordinator {
     }
 
     @MainActor func markOIDCSessionValid() {
-        guard getAccessToken() != nil else { return }
+        guard getAccessToken() != nil else {
+            return
+        }
         if !isOIDC {
             authState = .signedIn(method: .oidc)
         }
+    }
+
+    @MainActor private func markRefreshedOIDCSessionValid(for generation: UInt64) -> Bool {
+        guard isSessionGenerationCurrent(generation), getAccessToken() != nil else {
+            return false
+        }
+        markOIDCSessionValid()
+        return true
     }
 
     /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
@@ -432,8 +444,13 @@ private actor RefreshCoordinator {
     }
 
     func refreshTokenIfNeeded() async -> Bool {
+        let generation = sessionGenerationSnapshot()
+
         // If another refresh is in-flight, wait for its result (actor-serialized)
         if let coalescedResult = await refreshCoordinator.acquireOrWait() {
+            guard isSessionGenerationCurrent(generation) else {
+                return false
+            }
             logger.debug("refreshTokenIfNeeded: coalesced with in-flight refresh, result=\(coalescedResult)")
             return coalescedResult
         }
@@ -441,7 +458,7 @@ private actor RefreshCoordinator {
         guard let refreshToken = getKeychainItem(account: "oidc_refresh_token") else {
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(success: false)
-            await MainActor.run { signOut() }
+            await signOutIfSessionGenerationMatches(generation)
             return false
         }
 
@@ -449,21 +466,61 @@ private actor RefreshCoordinator {
 
         do {
             let tokens = try await refreshAccessToken(refreshToken)
-            storeTokens(tokens)
-            await markOIDCSessionValid()
+            guard storeRefreshedTokens(tokens, for: generation),
+                  await markRefreshedOIDCSessionValid(for: generation) else {
+                logger.info("Discarding token refresh because the authentication session changed")
+                await refreshCoordinator.complete(success: false)
+                return false
+            }
             logger.info("Token refreshed (expiresIn=\(tokens.expiresIn ?? -1))")
             await refreshCoordinator.complete(success: true)
             return true
         } catch AuthError.refreshTokenInvalid(let reason) {
             logger.error("Refresh token rejected by server — signing out: \(reason)")
             await refreshCoordinator.complete(success: false)
-            await MainActor.run { signOut() }
+            await signOutIfSessionGenerationMatches(generation)
             return false
         } catch {
             logger.warning("refreshTokenIfNeeded: transient failure, keeping session — \(error.localizedDescription)")
             await refreshCoordinator.complete(success: false)
             return false
         }
+    }
+
+    private func sessionGenerationSnapshot() -> UInt64 {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        return sessionGeneration
+    }
+
+    private func isSessionGenerationCurrent(_ generation: UInt64) -> Bool {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        return sessionGeneration == generation
+    }
+
+    private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        guard sessionGeneration == generation else {
+            return false
+        }
+        storeTokens(tokens)
+        return true
+    }
+
+    private func invalidateOIDCSession() {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        sessionGeneration &+= 1
+        clearOIDCTokens()
+    }
+
+    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64) {
+        guard isSessionGenerationCurrent(generation) else {
+            return
+        }
+        signOut()
     }
 
     // MARK: - Token Exchange

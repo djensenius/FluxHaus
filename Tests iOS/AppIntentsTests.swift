@@ -138,6 +138,14 @@ struct IOSAppIntentsTests {
         #expect(suggested.count == 8)
     }
 
+    @Test("Appliance names map to the correct Siri device")
+    func applianceNamesMapToDevice() {
+        #expect(DeviceKind(applianceName: "Dishwasher") == .dishwasher)
+        #expect(DeviceKind(applianceName: "Laundry Washer") == .washer)
+        #expect(DeviceKind(applianceName: "Laundry Dryer") == .dryer)
+        #expect(DeviceKind(applianceName: "Laundry") == nil)
+    }
+
     @MainActor
     @Test("Appliance status includes completion timing")
     func applianceStatusIncludesCompletionTiming() {

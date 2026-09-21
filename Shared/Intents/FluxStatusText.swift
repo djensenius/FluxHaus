@@ -152,7 +152,7 @@ enum FluxStatusText {
 
     private static func durationInMinutes(value: Int, unit: String?) -> Int {
         switch unit?.lowercased() {
-        case "sec", "second", "seconds":
+        case nil, "", "s", "sec", "second", "seconds":
             return max(1, Int(ceil(Double(value) / 60)))
         case "hour", "hours", "hr", "hrs":
             return value * 60

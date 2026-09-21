@@ -71,7 +71,7 @@ enum DeviceKind: String, CaseIterable, Sendable {
         let name = applianceName.lowercased()
         if name.contains("dish") {
             self = .dishwasher
-        } else if name.contains("dryer") || name.contains("dry") {
+        } else if name.contains("dryer") {
             self = .dryer
         } else if name.contains("wash") {
             self = .washer
