@@ -141,6 +141,8 @@ struct IOSAppIntentsTests {
         #expect(try await query.entities(matching: "laundry dryer").map(\.kind) == [.dryer])
         #expect(try await query.entities(matching: "laundry").map(\.kind) == [.washer, .dryer])
         #expect(try await query.entities(matching: "air filter").map(\.kind) == [.airPurifier])
+        #expect(try await query.entities(matching: "my").isEmpty)
+        #expect(try await query.entities(matching: "the").isEmpty)
     }
 
     @Test("Suggested devices cover the full fixed set")

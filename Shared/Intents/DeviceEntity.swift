@@ -167,6 +167,9 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
             word == "a" || word == "an" || word == "my" || word == "the"
         })
         let needle = meaningfulWords.joined(separator: " ")
+        guard !needle.isEmpty else {
+            return []
+        }
 
         let exactMatches = DeviceKind.allCases.filter { $0.searchTerms.contains(needle) }
         if !exactMatches.isEmpty {
