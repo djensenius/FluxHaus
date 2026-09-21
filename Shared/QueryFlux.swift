@@ -302,6 +302,26 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
     }
 }
 
+enum FluxFetchError: Error {
+    case httpStatus(Int)
+    case invalidResponse
+    case refreshFailed
+}
+
+private func decodeFluxResponse(data: Data, response: URLResponse) throws -> LoginResponse {
+    guard let httpResponse = response as? HTTPURLResponse else {
+        throw FluxFetchError.invalidResponse
+    }
+    guard (200...299).contains(httpResponse.statusCode) else {
+        throw FluxFetchError.httpStatus(httpResponse.statusCode)
+    }
+    do {
+        return try JSONDecoder().decode(LoginResponse.self, from: data)
+    } catch {
+        throw FluxFetchError.invalidResponse
+    }
+}
+
 func getFlux(password: String) async throws -> LoginResponse? {
     var components = URLComponents()
     components.scheme = "https"
@@ -331,13 +351,16 @@ func getFlux(password: String) async throws -> LoginResponse? {
             if let newAuth = AuthManager.shared.authorizationHeader() {
                 retryRequest.setValue(newAuth, forHTTPHeaderField: "Authorization")
             }
-            let (retryData, _) = try await session.data(for: retryRequest)
-            return try JSONDecoder().decode(LoginResponse.self, from: retryData)
+            let (retryData, retryResponse) = try await session.data(for: retryRequest)
+            return try decodeFluxResponse(data: retryData, response: retryResponse)
         }
+        if await MainActor.run(body: { AuthManager.shared.isSignedOut }) {
+            throw FluxFetchError.httpStatus(401)
+        }
+        throw FluxFetchError.refreshFailed
     }
 
-    let value = try JSONDecoder().decode(LoginResponse.self, from: data)
-    return value
+    return try decodeFluxResponse(data: data, response: response)
 }
 struct FluxData {
     var mopBot: Robot?

@@ -110,6 +110,14 @@ struct AppIntentsTests {
             IntentError.sessionRefreshFailed.errorDescription
                 == "FluxHaus couldn't refresh your session. Please try again."
         )
+        #expect(
+            IntentError.networkUnavailable.errorDescription
+                == "FluxHaus couldn't connect to the server. Please try again."
+        )
+        #expect(
+            IntentError.invalidResponse.errorDescription
+                == "FluxHaus returned an invalid response. Please try again."
+        )
         #expect(IntentError.requestFailed(503).errorDescription == "The request failed (HTTP 503).")
         #expect(IntentError.invalidURL.errorDescription == "Could not build the request.")
         #expect(
