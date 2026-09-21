@@ -150,6 +150,12 @@ struct IOSAppIntentsTests {
         let suggested = try await DeviceEntityQuery().suggestedEntities()
         #expect(Set(suggested.map(\.kind)) == Set(DeviceKind.allCases))
         #expect(suggested.count == 8)
+        for entity in suggested {
+            #expect(
+                Set(entity.searchableAliases.components(separatedBy: "\n"))
+                    == Set(entity.kind.searchTerms)
+            )
+        }
     }
 
     @Test("Appliance names map to the correct Siri device")

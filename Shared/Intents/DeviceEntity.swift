@@ -103,6 +103,9 @@ struct DeviceAppEntity: IndexedEntity {
     @Property(title: "Name", indexingKey: \.displayName)
     var name: String
 
+    @Property(title: "Search Aliases", indexingKey: \.textContent)
+    var searchableAliases: String
+
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Device"
 
     var displayRepresentation: DisplayRepresentation {
@@ -118,6 +121,7 @@ struct DeviceAppEntity: IndexedEntity {
         self.id = kind.rawValue
         self.kind = kind
         self.name = kind.displayName
+        self.searchableAliases = kind.searchTerms.joined(separator: "\n")
     }
 
     init?(id: String) {
@@ -125,6 +129,7 @@ struct DeviceAppEntity: IndexedEntity {
         self.id = kind.rawValue
         self.kind = kind
         self.name = kind.displayName
+        self.searchableAliases = kind.searchTerms.joined(separator: "\n")
     }
 }
 

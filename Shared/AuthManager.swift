@@ -118,6 +118,13 @@ private actor RefreshCoordinator {
 @Observable class AuthManager: @unchecked Sendable {
     static let shared = AuthManager()
 
+    private enum RefreshTokenState {
+        case available(String)
+        case sessionChanged
+        case signInInProgress
+        case missing
+    }
+
     // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
     private static let issuerBase: String = {
         Bundle.main.object(forInfoDictionaryKey: "OIDCIssuerBase") as? String
@@ -165,6 +172,7 @@ private actor RefreshCoordinator {
     private let refreshCoordinator = RefreshCoordinator()
     private let sessionGenerationLock = NSLock()
     private var sessionGeneration: UInt64 = 0
+    private var oidcSignInGeneration: UInt64?
 
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
@@ -278,6 +286,7 @@ private actor RefreshCoordinator {
         let generation = beginOIDCSignIn()
         isCompletingOIDCLogin = true
         defer {
+            finishOIDCSignIn(for: generation)
             if !isSignedIn {
                 isCompletingOIDCLogin = false
             }
@@ -458,7 +467,18 @@ private actor RefreshCoordinator {
             return coalescedResult
         }
 
-        guard let refreshToken = refreshToken(for: generation) else {
+        let refreshToken: String
+        switch refreshTokenState(for: generation) {
+        case .available(let token):
+            refreshToken = token
+        case .sessionChanged:
+            await refreshCoordinator.complete(for: generation, success: false)
+            return false
+        case .signInInProgress:
+            logger.debug("refreshTokenIfNeeded: OIDC sign-in is replacing the current session")
+            await refreshCoordinator.complete(for: generation, success: false)
+            return false
+        case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(for: generation, success: false)
             await signOutIfSessionGenerationMatches(generation)
@@ -502,13 +522,19 @@ private actor RefreshCoordinator {
         return sessionGeneration == generation
     }
 
-    private func refreshToken(for generation: UInt64) -> String? {
+    private func refreshTokenState(for generation: UInt64) -> RefreshTokenState {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }
         guard sessionGeneration == generation else {
-            return nil
+            return .sessionChanged
         }
-        return getKeychainItem(account: "oidc_refresh_token")
+        guard oidcSignInGeneration != generation else {
+            return .signInInProgress
+        }
+        guard let refreshToken = getKeychainItem(account: "oidc_refresh_token") else {
+            return .missing
+        }
+        return .available(refreshToken)
     }
 
     private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
@@ -525,13 +551,14 @@ private actor RefreshCoordinator {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }
         sessionGeneration &+= 1
+        oidcSignInGeneration = sessionGeneration
         return sessionGeneration
     }
 
     private func storeSignedInTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }
-        guard sessionGeneration == generation else {
+        guard sessionGeneration == generation, oidcSignInGeneration == generation else {
             return false
         }
         clearOIDCTokens()
@@ -539,10 +566,19 @@ private actor RefreshCoordinator {
         return true
     }
 
+    private func finishOIDCSignIn(for generation: UInt64) {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        if oidcSignInGeneration == generation {
+            oidcSignInGeneration = nil
+        }
+    }
+
     private func invalidateOIDCSession() {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }
         sessionGeneration &+= 1
+        oidcSignInGeneration = nil
         clearOIDCTokens()
     }
 
