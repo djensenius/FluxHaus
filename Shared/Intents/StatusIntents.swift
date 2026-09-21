@@ -8,17 +8,31 @@
 import AppIntents
 
 func fetchStatus() async throws -> LoginResponse {
-    guard AuthManager.shared.isSignedIn else {
-        throw IntentError.notSignedIn
+    try await requireIntentAuthentication()
+    do {
+        guard let response = try await getFlux(password: "") else {
+            throw IntentError.invalidResponse
+        }
+        return response
+    } catch let error as CancellationError {
+        throw error
+    } catch let error as FluxFetchError {
+        switch error {
+        case .httpStatus(401):
+            await MainActor.run {
+                AuthManager.shared.signOut()
+            }
+            throw IntentError.notSignedIn
+        case .httpStatus(let statusCode):
+            throw IntentError.requestFailed(statusCode)
+        case .invalidResponse:
+            throw IntentError.invalidResponse
+        case .refreshFailed:
+            throw IntentError.sessionRefreshFailed
+        }
+    } catch {
+        throw IntentError.networkUnavailable
     }
-    guard await AuthManager.shared.ensureValidToken(),
-          AuthManager.shared.authorizationHeader() != nil else {
-        throw IntentError.notSignedIn
-    }
-    guard let response = try await getFlux(password: "") else {
-        throw IntentError.requestFailed(-1)
-    }
-    return response
 }
 
 struct CarStatusIntent: AppIntent {

@@ -20,22 +20,13 @@ struct FluxHausShortcuts: AppShortcutsProvider {
             systemImageName: "sparkles"
         )
         AppShortcut(
-            intent: LockCarIntent(),
+            intent: SetCarLockIntent(),
             phrases: [
-                "Lock my car with \(.applicationName)",
-                "Lock the car in \(.applicationName)"
+                "\(\.$action) my car with \(.applicationName)",
+                "\(\.$action) the car in \(.applicationName)"
             ],
-            shortTitle: "Lock Car",
+            shortTitle: "Car Lock",
             systemImageName: "lock.fill"
-        )
-        AppShortcut(
-            intent: UnlockCarIntent(),
-            phrases: [
-                "Unlock my car with \(.applicationName)",
-                "Unlock the car in \(.applicationName)"
-            ],
-            shortTitle: "Unlock Car",
-            systemImageName: "lock.open.fill"
         )
         AppShortcut(
             intent: StartCarClimateIntent(),
@@ -58,6 +49,7 @@ struct FluxHausShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: StartRobotIntent(),
             phrases: [
+                "Start \(\.$robot) with \(.applicationName)",
                 "Start a robot with \(.applicationName)",
                 "Start cleaning with \(.applicationName)"
             ],
@@ -67,6 +59,7 @@ struct FluxHausShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: StopRobotIntent(),
             phrases: [
+                "Stop \(\.$robot) with \(.applicationName)",
                 "Stop a robot with \(.applicationName)",
                 "Stop cleaning with \(.applicationName)"
             ],
@@ -85,11 +78,23 @@ struct FluxHausShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: ActivateSceneIntent(),
             phrases: [
+                "Activate \(\.$scene) with \(.applicationName)",
                 "Activate a scene with \(.applicationName)",
                 "Run a \(.applicationName) scene"
             ],
             shortTitle: "Activate Scene",
             systemImageName: "theatermasks.fill"
+        )
+        AppShortcut(
+            intent: DeviceStatusIntent(),
+            phrases: [
+                "Get \(\.$device) status with \(.applicationName)",
+                "Check \(\.$device) in \(.applicationName)",
+                "How much time is left on \(\.$device) in \(.applicationName)",
+                "When will \(\.$device) be done in \(.applicationName)"
+            ],
+            shortTitle: "Device Status",
+            systemImageName: "gauge.with.dots.needle.67percent"
         )
         AppShortcut(
             intent: AnalyzeCarUsageIntent(),

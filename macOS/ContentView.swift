@@ -192,8 +192,10 @@ struct AppliancesMacView: View {
                         appliance: item.appliance,
                         source: item.source
                     )
+                    .fluxDeviceAnnotation(DeviceKind(applianceName: item.appliance.name))
                 }
                 AirPurifierView(purifier: airPurifier)
+                    .fluxDeviceAnnotation(.airPurifier)
             }
             .padding()
         }

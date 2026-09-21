@@ -31,6 +31,42 @@ extension CarAnalyticsTopic: AppEnum {
     ]
 }
 
+enum CarLockAction: String, AppEnum {
+    case lock
+    case unlock
+
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Car lock action"
+
+    static let caseDisplayRepresentations: [CarLockAction: DisplayRepresentation] = [
+        .lock: "Lock",
+        .unlock: "Unlock"
+    ]
+}
+
+struct SetCarLockIntent: AppIntent {
+    static let title: LocalizedStringResource = "Set Car Lock"
+    static let description = IntentDescription("Lock or unlock the FluxHaus car.")
+
+    @Parameter(title: "Action", requestValueDialog: "Do you want to lock or unlock the car?")
+    var action: CarLockAction
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("\(\.$action) the car")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        switch action {
+        case .lock:
+            try await FluxIntentActions.lockCar()
+            return .result(dialog: "Locking the car.")
+        case .unlock:
+            try await FluxIntentActions.unlockCar()
+            return .result(dialog: "Unlocking the car.")
+        }
+    }
+}
+
 struct AnalyzeCarUsageIntent: AppIntent {
     static let title: LocalizedStringResource = "Car Insights"
     static let description = IntentDescription(
@@ -49,6 +85,7 @@ struct AnalyzeCarUsageIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await requireIntentAuthentication()
         let analytics = try await CarAnalyticsClient().fetch(range: range, topic: topic)
         await donateIntent(self)
         return .result(dialog: "\(analytics.dialog(for: topic, range: range))")

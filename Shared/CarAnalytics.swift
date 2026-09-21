@@ -258,11 +258,8 @@ struct CarAnalyticsClient {
         range: CarAnalyticsRange,
         topic: CarAnalyticsTopic = .overview
     ) async throws -> CarAnalyticsResponse {
-        guard AuthManager.shared.isSignedIn else {
-            throw IntentError.notSignedIn
-        }
-        guard await AuthManager.shared.ensureValidToken(),
-              let authorization = AuthManager.shared.authorizationHeader() else {
+        try await requireIntentAuthentication()
+        guard let authorization = AuthManager.shared.authorizationHeader() else {
             throw IntentError.notSignedIn
         }
 

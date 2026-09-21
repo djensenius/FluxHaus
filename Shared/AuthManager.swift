@@ -92,23 +92,24 @@ struct OIDCTokens: Codable {
     }
 }
 
-/// Thread-safe coordination for token refresh to prevent concurrent refreshes.
+/// Coalesces concurrent token refreshes within the same authentication session.
 private actor RefreshCoordinator {
-    private var isRefreshing = false
-    private var continuations: [CheckedContinuation<Bool, Never>] = []
+    private var refreshingGenerations: Set<UInt64> = []
+    private var continuations: [UInt64: [CheckedContinuation<Bool, Never>]] = [:]
 
-    func acquireOrWait() async -> Bool? {
-        if isRefreshing {
-            return await withCheckedContinuation { cont in continuations.append(cont) }
+    func acquireOrWait(for generation: UInt64) async -> Bool? {
+        if refreshingGenerations.contains(generation) {
+            return await withCheckedContinuation { continuation in
+                continuations[generation, default: []].append(continuation)
+            }
         }
-        isRefreshing = true
+        refreshingGenerations.insert(generation)
         return nil
     }
 
-    func complete(success: Bool) {
-        let waiters = continuations
-        continuations.removeAll()
-        isRefreshing = false
+    func complete(for generation: UInt64, success: Bool) {
+        let waiters = continuations.removeValue(forKey: generation) ?? []
+        refreshingGenerations.remove(generation)
         for waiter in waiters { waiter.resume(returning: success) }
     }
 }
@@ -116,6 +117,13 @@ private actor RefreshCoordinator {
 // swiftlint:disable:next type_body_length
 @Observable class AuthManager: @unchecked Sendable {
     static let shared = AuthManager()
+
+    private enum RefreshTokenState {
+        case available(String)
+        case sessionChanged
+        case signInInProgress
+        case missing
+    }
 
     // OIDC configuration — set OIDCClientID and OIDCIssuerBase in Info.plist
     private static let issuerBase: String = {
@@ -162,6 +170,9 @@ private actor RefreshCoordinator {
 
     // Serializes concurrent refresh attempts via actor isolation
     private let refreshCoordinator = RefreshCoordinator()
+    private let sessionGenerationLock = NSLock()
+    private var sessionGeneration: UInt64 = 0
+    private var oidcSignInGeneration: UInt64?
 
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
@@ -272,8 +283,10 @@ private actor RefreshCoordinator {
 
     // MARK: - OIDC Sign In
     @MainActor func signInWithOIDC() async throws {
+        let generation = beginOIDCSignIn()
         isCompletingOIDCLogin = true
         defer {
+            finishOIDCSignIn(for: generation)
             if !isSignedIn {
                 isCompletingOIDCLogin = false
             }
@@ -339,7 +352,9 @@ private actor RefreshCoordinator {
 
         // Exchange code for tokens
         let tokens = try await exchangeCode(code, codeVerifier: codeVerifier)
-        storeTokens(tokens)
+        guard storeSignedInTokens(tokens, for: generation) else {
+            throw AuthError.cancelled
+        }
         authState = .signedIn(method: .oidc)
         if tokens.refreshToken == nil {
             logger.error("OIDC sign in: NO refresh token! Expires in \(tokens.expiresIn ?? -1)s with no renewal.")
@@ -349,11 +364,10 @@ private actor RefreshCoordinator {
     // MARK: - Demo Sign In
     @MainActor func signInDemo(password: String) {
         guard !password.isEmpty else {
-            var whereWeAre = WhereWeAre()
-            whereWeAre.deleteKeyChainPasword()
-            authState = .signedOut
+            signOut()
             return
         }
+        invalidateOIDCSession()
         var whereWeAre = WhereWeAre()
         whereWeAre.setPassword(password: password)
         authState = .signedIn(method: .demo)
@@ -363,7 +377,7 @@ private actor RefreshCoordinator {
     @MainActor func signOut() {
         logger.warning("signOut() called — clearing all tokens and credentials")
         isCompletingOIDCLogin = false
-        clearOIDCTokens()
+        invalidateOIDCSession()
         var whereWeAre = WhereWeAre()
         whereWeAre.deleteKeyChainPasword()
         authState = .signedOut
@@ -415,10 +429,20 @@ private actor RefreshCoordinator {
     }
 
     @MainActor func markOIDCSessionValid() {
-        guard getAccessToken() != nil else { return }
+        guard getAccessToken() != nil else {
+            return
+        }
         if !isOIDC {
             authState = .signedIn(method: .oidc)
         }
+    }
+
+    @MainActor private func markRefreshedOIDCSessionValid(for generation: UInt64) -> Bool {
+        guard isSessionGenerationCurrent(generation), getAccessToken() != nil else {
+            return false
+        }
+        markOIDCSessionValid()
+        return true
     }
 
     /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
@@ -432,16 +456,32 @@ private actor RefreshCoordinator {
     }
 
     func refreshTokenIfNeeded() async -> Bool {
+        let generation = sessionGenerationSnapshot()
+
         // If another refresh is in-flight, wait for its result (actor-serialized)
-        if let coalescedResult = await refreshCoordinator.acquireOrWait() {
+        if let coalescedResult = await refreshCoordinator.acquireOrWait(for: generation) {
+            guard isSessionGenerationCurrent(generation) else {
+                return false
+            }
             logger.debug("refreshTokenIfNeeded: coalesced with in-flight refresh, result=\(coalescedResult)")
             return coalescedResult
         }
 
-        guard let refreshToken = getKeychainItem(account: "oidc_refresh_token") else {
+        let refreshToken: String
+        switch refreshTokenState(for: generation) {
+        case .available(let token):
+            refreshToken = token
+        case .sessionChanged:
+            await refreshCoordinator.complete(for: generation, success: false)
+            return false
+        case .signInInProgress:
+            logger.debug("refreshTokenIfNeeded: OIDC sign-in is replacing the current session")
+            await refreshCoordinator.complete(for: generation, success: false)
+            return false
+        case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
-            await refreshCoordinator.complete(success: false)
-            await MainActor.run { signOut() }
+            await refreshCoordinator.complete(for: generation, success: false)
+            await signOutIfSessionGenerationMatches(generation)
             return false
         }
 
@@ -449,20 +489,104 @@ private actor RefreshCoordinator {
 
         do {
             let tokens = try await refreshAccessToken(refreshToken)
-            storeTokens(tokens)
+            guard storeRefreshedTokens(tokens, for: generation),
+                  await markRefreshedOIDCSessionValid(for: generation) else {
+                logger.info("Discarding token refresh because the authentication session changed")
+                await refreshCoordinator.complete(for: generation, success: false)
+                return false
+            }
             logger.info("Token refreshed (expiresIn=\(tokens.expiresIn ?? -1))")
-            await refreshCoordinator.complete(success: true)
+            await refreshCoordinator.complete(for: generation, success: true)
             return true
         } catch AuthError.refreshTokenInvalid(let reason) {
             logger.error("Refresh token rejected by server — signing out: \(reason)")
-            await refreshCoordinator.complete(success: false)
-            await MainActor.run { signOut() }
+            await refreshCoordinator.complete(for: generation, success: false)
+            await signOutIfSessionGenerationMatches(generation)
             return false
         } catch {
             logger.warning("refreshTokenIfNeeded: transient failure, keeping session — \(error.localizedDescription)")
-            await refreshCoordinator.complete(success: false)
+            await refreshCoordinator.complete(for: generation, success: false)
             return false
         }
+    }
+
+    private func sessionGenerationSnapshot() -> UInt64 {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        return sessionGeneration
+    }
+
+    private func isSessionGenerationCurrent(_ generation: UInt64) -> Bool {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        return sessionGeneration == generation
+    }
+
+    private func refreshTokenState(for generation: UInt64) -> RefreshTokenState {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        guard sessionGeneration == generation else {
+            return .sessionChanged
+        }
+        guard oidcSignInGeneration != generation else {
+            return .signInInProgress
+        }
+        guard let refreshToken = getKeychainItem(account: "oidc_refresh_token") else {
+            return .missing
+        }
+        return .available(refreshToken)
+    }
+
+    private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        guard sessionGeneration == generation else {
+            return false
+        }
+        storeTokens(tokens)
+        return true
+    }
+
+    private func beginOIDCSignIn() -> UInt64 {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        sessionGeneration &+= 1
+        oidcSignInGeneration = sessionGeneration
+        return sessionGeneration
+    }
+
+    private func storeSignedInTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        guard sessionGeneration == generation, oidcSignInGeneration == generation else {
+            return false
+        }
+        clearOIDCTokens()
+        storeTokens(tokens)
+        return true
+    }
+
+    private func finishOIDCSignIn(for generation: UInt64) {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        if oidcSignInGeneration == generation {
+            oidcSignInGeneration = nil
+        }
+    }
+
+    private func invalidateOIDCSession() {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        sessionGeneration &+= 1
+        oidcSignInGeneration = nil
+        clearOIDCTokens()
+    }
+
+    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64) {
+        guard isSessionGenerationCurrent(generation) else {
+            return
+        }
+        signOut()
     }
 
     // MARK: - Token Exchange

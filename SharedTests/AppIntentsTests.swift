@@ -106,8 +106,28 @@ struct AppIntentsTests {
     @Test("IntentError provides user-facing descriptions")
     func intentErrorDescriptions() {
         #expect(IntentError.notSignedIn.errorDescription == "Please sign in to FluxHaus first.")
+        #expect(
+            IntentError.sessionRefreshFailed.errorDescription
+                == "FluxHaus couldn't refresh your session. Please try again."
+        )
+        #expect(
+            IntentError.networkUnavailable.errorDescription
+                == "FluxHaus couldn't connect to the server. Please try again."
+        )
+        #expect(
+            IntentError.invalidResponse.errorDescription
+                == "FluxHaus returned an invalid response. Please try again."
+        )
         #expect(IntentError.requestFailed(503).errorDescription == "The request failed (HTTP 503).")
         #expect(IntentError.invalidURL.errorDescription == "Could not build the request.")
+        #expect(
+            String(localized: IntentError.notSignedIn.appIntentError.localizedStringResource)
+                == "Please sign in to FluxHaus first."
+        )
+        #expect(
+            String(localized: IntentError.sessionRefreshFailed.appIntentError.localizedStringResource)
+                == "FluxHaus couldn't refresh your session. Please try again."
+        )
     }
 
     @Test("Car analytics decodes server provenance")

@@ -213,6 +213,7 @@ struct UtilityFunctionTests {
 
     @Test("Dishwasher status uses the display operation state")
     func testDishwasherStatusUsesDisplayOperationState() {
+        let now = Date(timeIntervalSince1970: 0)
         let response = LoginResponse(
             timestamp: "",
             favouriteHomeKit: [],
@@ -223,11 +224,11 @@ struct UtilityFunctionTests {
                 operationState: .run
             )
         )
+        let status = FluxStatusText.dishwasher(response, now: now)
 
-        #expect(
-            FluxStatusText.dishwasher(response)
-                == "The dishwasher is Running with about 30 minutes remaining."
-        )
+        #expect(status.hasPrefix("The dishwasher is running."))
+        #expect(status.contains("30 min remaining"))
+        #expect(status.contains("finish around"))
     }
 
     @Test("getDeviceIcon returns correct icons for different battery models")

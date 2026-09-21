@@ -18,6 +18,15 @@ extension View {
         appEntityIdentifier(EntityIdentifier(for: DeviceAppEntity(kind: kind)))
     }
 
+    @ViewBuilder
+    func fluxDeviceAnnotation(_ kind: DeviceKind?) -> some View {
+        if let kind {
+            appEntityIdentifier(EntityIdentifier(for: DeviceAppEntity(kind: kind)))
+        } else {
+            self
+        }
+    }
+
     /// Annotates the view as representing a FluxHaus HomeKit scene so Siri can
     /// resolve on-screen references (e.g. "activate this scene").
     func fluxSceneAnnotation(_ scene: SceneAppEntity) -> some View {
