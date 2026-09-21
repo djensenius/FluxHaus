@@ -13,7 +13,7 @@ import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxIntentActions")
 
-enum IntentError: LocalizedError {
+enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
     case notSignedIn
     case requestFailed(Int)
     case invalidURL
@@ -27,6 +27,40 @@ enum IntentError: LocalizedError {
         case .invalidURL:
             return "Could not build the request."
         }
+    }
+
+    var appIntentError: AppIntentError {
+        switch self {
+        case .notSignedIn:
+            return AppIntentError(
+                predefinedError: .UserActionRequired.signin,
+                description: "Please sign in to FluxHaus first."
+            )
+        case .requestFailed(let code):
+            return AppIntentError(
+                predefinedError: .Unrecoverable.networkFailure,
+                description: "The request failed with HTTP status \(code)."
+            )
+        case .invalidURL:
+            return AppIntentError(description: "FluxHaus couldn't create the request.")
+        }
+    }
+}
+
+/// Restores an OIDC session when an App Intent starts outside the app lifecycle,
+/// then verifies that a usable authorization header is available.
+func requireIntentAuthentication() async throws {
+    await AuthManager.shared.validateSessionOnLaunch()
+    guard AuthManager.shared.isSignedIn else {
+        throw IntentError.notSignedIn
+    }
+    if AuthManager.shared.isOIDC {
+        guard await AuthManager.shared.ensureValidToken() else {
+            throw IntentError.notSignedIn
+        }
+    }
+    guard AuthManager.shared.authorizationHeader() != nil else {
+        throw IntentError.notSignedIn
     }
 }
 
@@ -46,9 +80,7 @@ enum FluxIntentActions {
 
     /// Performs an authenticated POST to the given API path and throws on a non-2xx response.
     static func post(path: String, body: [String: Any]? = nil) async throws {
-        guard AuthManager.shared.isSignedIn else {
-            throw IntentError.notSignedIn
-        }
+        try await requireIntentAuthentication()
 
         var components = URLComponents()
         components.scheme = scheme
@@ -58,7 +90,6 @@ enum FluxIntentActions {
             throw IntentError.invalidURL
         }
 
-        _ = await AuthManager.shared.ensureValidToken()
         let csrfToken = await fetchCsrfToken()
 
         var request = URLRequest(url: url)

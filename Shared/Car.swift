@@ -155,9 +155,13 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Car")
     ) async {
         switch action {
         case "lock":
-            await donateIntent(LockCarIntent())
+            let intent = SetCarLockIntent()
+            intent.action = .lock
+            await donateIntent(intent)
         case "unlock":
-            await donateIntent(UnlockCarIntent())
+            let intent = SetCarLockIntent()
+            intent.action = .unlock
+            await donateIntent(intent)
         case "start":
             let intent = StartCarClimateIntent()
             intent.defrost = defrost

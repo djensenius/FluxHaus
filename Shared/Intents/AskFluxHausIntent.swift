@@ -19,9 +19,7 @@ struct AskFluxHausIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard AuthManager.shared.isSignedIn else {
-            throw IntentError.notSignedIn
-        }
+        try await requireIntentAuthentication()
 
         var answer = ""
         var lastError: String?

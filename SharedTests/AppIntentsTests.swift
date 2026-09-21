@@ -108,6 +108,10 @@ struct AppIntentsTests {
         #expect(IntentError.notSignedIn.errorDescription == "Please sign in to FluxHaus first.")
         #expect(IntentError.requestFailed(503).errorDescription == "The request failed (HTTP 503).")
         #expect(IntentError.invalidURL.errorDescription == "Could not build the request.")
+        #expect(
+            String(localized: IntentError.notSignedIn.appIntentError.localizedStringResource)
+                == "Please sign in to FluxHaus first."
+        )
     }
 
     @Test("Car analytics decodes server provenance")

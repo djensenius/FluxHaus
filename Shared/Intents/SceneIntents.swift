@@ -44,6 +44,7 @@ func indexScenes(_ scenes: [HomeScene]) async {
         let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "SceneIndex")
         logger.error("Failed to index scenes: \(error.localizedDescription)")
     }
+    FluxHausShortcuts.updateAppShortcutParameters()
 }
 
 struct SceneEntityQuery: EntityStringQuery, IndexedEntityQuery {
@@ -96,9 +97,7 @@ struct ActivateSceneIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard AuthManager.shared.isSignedIn else {
-            throw IntentError.notSignedIn
-        }
+        try await requireIntentAuthentication()
         try await activateScene(entityId: scene.id)
         return .result(dialog: "Activating \(scene.name).")
     }

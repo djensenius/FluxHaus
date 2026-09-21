@@ -27,9 +27,9 @@ struct IOSAppIntentsTests {
         #expect(!FluxHausShortcuts.appShortcuts.isEmpty)
     }
 
-    @Test("Shortcut count stays within the system limit of 10")
-    func shortcutCountWithinLimit() {
-        #expect(FluxHausShortcuts.appShortcuts.count <= 10)
+    @Test("Shortcut layout uses the 10 supported slots")
+    func shortcutCountUsesSupportedSlots() {
+        #expect(FluxHausShortcuts.appShortcuts.count == 10)
     }
 
     @Test("Robot enum exposes a display name for every case")
@@ -123,12 +123,42 @@ struct IOSAppIntentsTests {
         let query = DeviceEntityQuery()
         let matches = try await query.entities(matching: "dish")
         #expect(matches.map(\.kind) == [.dishwasher])
+        #expect(try await query.entities(matching: "dishwasher").map(\.kind) == [.dishwasher])
+        #expect(try await query.entities(matching: "washer").map(\.kind) == [.washer])
+        #expect(try await query.entities(matching: "my dishwasher").map(\.kind) == [.dishwasher])
+        #expect(try await query.entities(matching: "washing machine").map(\.kind) == [.washer])
+        #expect(try await query.entities(matching: "tumble dryer").map(\.kind) == [.dryer])
+        #expect(try await query.entities(matching: "air filter").map(\.kind) == [.airPurifier])
     }
 
     @Test("Suggested devices cover the full fixed set")
     func deviceQuerySuggestsAll() async throws {
         let suggested = try await DeviceEntityQuery().suggestedEntities()
         #expect(Set(suggested.map(\.kind)) == Set(DeviceKind.allCases))
+        #expect(suggested.count == 8)
+    }
+
+    @MainActor
+    @Test("Appliance status includes completion timing")
+    func applianceStatusIncludesCompletionTiming() {
+        let response = MockData.loginResponse
+        let dishwasher = FluxStatusText.dishwasher(response)
+        let washer = FluxStatusText.washer(response)
+
+        #expect(dishwasher.contains("45 min remaining"))
+        #expect(dishwasher.contains("finish around"))
+        #expect(washer.contains("15 min remaining"))
+        #expect(washer.contains("finish around"))
+        #expect(FluxStatusText.dryer(response) == "The dryer is finished.")
+    }
+
+    @MainActor
+    @Test("Air purifier status includes live readings")
+    func airPurifierStatusIncludesLiveReadings() {
+        let status = FluxStatusText.airPurifier(MockData.loginResponse)
+        #expect(status.contains("fan is on"))
+        #expect(status.contains("PM2.5 is 4"))
+        #expect(status.contains("Filter life is 100 percent"))
     }
 
     @Test("Spotlight entity indexes use stable production names")

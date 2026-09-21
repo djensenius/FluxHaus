@@ -450,6 +450,7 @@ private actor RefreshCoordinator {
         do {
             let tokens = try await refreshAccessToken(refreshToken)
             storeTokens(tokens)
+            await markOIDCSessionValid()
             logger.info("Token refreshed (expiresIn=\(tokens.expiresIn ?? -1))")
             await refreshCoordinator.complete(success: true)
             return true

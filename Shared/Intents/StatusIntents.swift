@@ -8,13 +8,7 @@
 import AppIntents
 
 func fetchStatus() async throws -> LoginResponse {
-    guard AuthManager.shared.isSignedIn else {
-        throw IntentError.notSignedIn
-    }
-    guard await AuthManager.shared.ensureValidToken(),
-          AuthManager.shared.authorizationHeader() != nil else {
-        throw IntentError.notSignedIn
-    }
+    try await requireIntentAuthentication()
     guard let response = try await getFlux(password: "") else {
         throw IntentError.requestFailed(-1)
     }

@@ -25,6 +25,7 @@ struct AppliancesDetailView: View {
                 robotCard(robot: robots.broomBot)
                 robotCard(robot: robots.mopBot)
                 AirPurifierView(purifier: airPurifier)
+                    .fluxDeviceAnnotation(.airPurifier)
             }
             .padding()
         }
@@ -90,6 +91,7 @@ struct AppliancesDetailView: View {
                     }
                 }
             }
+            .fluxDeviceAnnotation(robot.name == "MopBot" ? .mopBot : .broomBot)
         }
     }
 
@@ -132,6 +134,7 @@ struct AppliancesDetailView: View {
                 noDataLabel()
             }
         }
+        .fluxDeviceAnnotation(.dishwasher)
     }
 
     @ViewBuilder
@@ -148,6 +151,7 @@ struct AppliancesDetailView: View {
                 noDataLabel()
             }
         }
+        .fluxDeviceAnnotation(.washer)
     }
 
     @ViewBuilder
@@ -164,6 +168,7 @@ struct AppliancesDetailView: View {
                 noDataLabel()
             }
         }
+        .fluxDeviceAnnotation(.dryer)
     }
 
     @ViewBuilder

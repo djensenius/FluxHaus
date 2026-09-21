@@ -23,7 +23,10 @@ enum DeviceKind: String, CaseIterable, Sendable {
     case broomBot
     case mopBot
     case dishwasher
+    case washer
+    case dryer
     case scooter
+    case airPurifier
 
     var displayName: String {
         switch self {
@@ -31,7 +34,10 @@ enum DeviceKind: String, CaseIterable, Sendable {
         case .broomBot: return "BroomBot"
         case .mopBot: return "MopBot"
         case .dishwasher: return "Dishwasher"
+        case .washer: return "Washer"
+        case .dryer: return "Dryer"
         case .scooter: return "Scooter"
+        case .airPurifier: return "Air Purifier"
         }
     }
 
@@ -41,7 +47,36 @@ enum DeviceKind: String, CaseIterable, Sendable {
         case .broomBot: return "robotic.vacuum.cleaner"
         case .mopBot: return "robotic.vacuum.cleaner.fill"
         case .dishwasher: return "dishwasher.fill"
+        case .washer: return "washer.fill"
+        case .dryer: return "dryer.fill"
         case .scooter: return "scooter"
+        case .airPurifier: return "air.purifier.fill"
+        }
+    }
+
+    var searchTerms: [String] {
+        switch self {
+        case .car: return ["car", "vehicle", "electric car", "ev"]
+        case .broomBot: return ["broombot", "broom bot", "robot vacuum", "vacuum"]
+        case .mopBot: return ["mopbot", "mop bot", "robot mop", "mop"]
+        case .dishwasher: return ["dishwasher", "dish washer"]
+        case .washer: return ["washer", "washing machine"]
+        case .dryer: return ["dryer", "tumble dryer"]
+        case .scooter: return ["scooter"]
+        case .airPurifier: return ["air purifier", "purifier", "air filter"]
+        }
+    }
+
+    init?(applianceName: String) {
+        let name = applianceName.lowercased()
+        if name.contains("dish") {
+            self = .dishwasher
+        } else if name.contains("dryer") || name.contains("dry") {
+            self = .dryer
+        } else if name.contains("wash") {
+            self = .washer
+        } else {
+            return nil
         }
     }
 
@@ -52,7 +87,10 @@ enum DeviceKind: String, CaseIterable, Sendable {
         case .broomBot: return FluxStatusText.robot(response.broombot)
         case .mopBot: return FluxStatusText.robot(response.mopbot)
         case .dishwasher: return FluxStatusText.dishwasher(response)
+        case .washer: return FluxStatusText.washer(response)
+        case .dryer: return FluxStatusText.dryer(response)
         case .scooter: return FluxStatusText.scooter(response)
+        case .airPurifier: return FluxStatusText.airPurifier(response)
         }
     }
 }
@@ -113,6 +151,7 @@ func indexDevices() async {
         let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "DeviceIndex")
         logger.error("Failed to index devices: \(error.localizedDescription)")
     }
+    FluxHausShortcuts.updateAppShortcutParameters()
 }
 
 struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
@@ -123,10 +162,23 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
     /// Lets Siri / Apple Intelligence resolve a device the user names out loud
     /// (e.g. "what's the status of the dishwasher").
     func entities(matching string: String) async throws -> [DeviceAppEntity] {
-        let needle = string.lowercased()
-        return DeviceKind.allCases
-            .filter { $0.displayName.lowercased().contains(needle) }
-            .map(DeviceAppEntity.init(kind:))
+        let words = string.lowercased().split { !$0.isLetter && !$0.isNumber }
+        let meaningfulWords = words.drop(while: { word in
+            word == "a" || word == "an" || word == "my" || word == "the"
+        })
+        let needle = meaningfulWords.joined(separator: " ")
+
+        let exactMatches = DeviceKind.allCases.filter { $0.searchTerms.contains(needle) }
+        if !exactMatches.isEmpty {
+            return exactMatches.map(DeviceAppEntity.init(kind:))
+        }
+
+        return DeviceKind.allCases.filter { kind in
+            kind.searchTerms.contains { term in
+                term.hasPrefix(needle) || needle.hasPrefix("\(term) ")
+            }
+        }
+        .map(DeviceAppEntity.init(kind:))
     }
 
     func suggestedEntities() async throws -> [DeviceAppEntity] {
@@ -152,7 +204,7 @@ struct DeviceStatusIntent: AppIntent {
     static let title: LocalizedStringResource = "Device Status"
     static let description = IntentDescription("Get the status of a FluxHaus device.")
 
-    @Parameter(title: "Device")
+    @Parameter(title: "Device", requestValueDialog: "Which FluxHaus device?")
     var device: DeviceAppEntity
 
     static var parameterSummary: some ParameterSummary {
