@@ -58,8 +58,8 @@ struct WeatherAlertView: View {
                         #endif
                         .toolbar {
                             // Semantic placements (rather than topBarLeading/topBarTrailing) ensure these
-                            // buttons still render when the system presents bars vertically, such as on
-                            // iPhone Duo's outer display or inner-display sheets.
+                            // buttons still render when the system adapts toolbar layout for compact,
+                            // wide, or otherwise unusual container geometry.
                             ToolbarItem(placement: .cancellationAction) {
                                 if alerts.count > 1 {
                                     Button("Back") { selectedAlert = nil }

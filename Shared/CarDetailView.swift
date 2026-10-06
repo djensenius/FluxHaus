@@ -16,12 +16,16 @@ struct CarDetailView: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     var car: Car
     var locationManager: LocationManager
+    var showsDismissButton = false
     @State private var buttonsDisabled: Bool = false
     @State var apiResponse: Api?
 
     private var usesTabletopControlBase: Bool {
         #if os(iOS)
-        horizontalSizeClass == .regular && verticalSizeClass == .compact
+        AdaptiveLayout.usesTabletopControlBase(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
         #else
         false
         #endif
@@ -150,6 +154,7 @@ struct CarDetailView: View {
                 }
                 .padding()
             }
+            .background(Theme.Colors.background)
             .safeAreaInset(edge: .bottom) {
                 if usesTabletopControlBase {
                     carControlsCard
@@ -160,9 +165,11 @@ struct CarDetailView: View {
             }
             #if !os(macOS)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Dismiss") {
-                        self.presentationMode.wrappedValue.dismiss()
+                if showsDismissButton {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Dismiss") {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }
                     }
                 }
             }
@@ -171,7 +178,7 @@ struct CarDetailView: View {
         #if os(visionOS)
         .glassBackgroundEffect()
         #else
-        .background(Theme.Colors.background)
+        .background(Theme.Colors.background.ignoresSafeArea())
         #endif
         .fluxDeviceAnnotation(.car)
     }

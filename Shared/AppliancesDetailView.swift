@@ -16,7 +16,15 @@ struct AppliancesDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            LazyVGrid(
+                columns: [
+                    GridItem(
+                        .adaptive(minimum: AdaptiveLayout.cardMinimumWidth),
+                        spacing: 16
+                    )
+                ],
+                spacing: 16
+            ) {
                 if let response = apiResponse.response {
                     dishwasherCard(response: response)
                     washerCard(response: response)

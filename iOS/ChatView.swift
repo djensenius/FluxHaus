@@ -343,7 +343,10 @@ extension ChatView {
     // MARK: - Input bar
 
     private var usesTabletopControlBase: Bool {
-        horizontalSizeClass == .regular && verticalSizeClass == .compact
+        AdaptiveLayout.usesTabletopControlBase(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
     }
 
     private var inputBar: some View {

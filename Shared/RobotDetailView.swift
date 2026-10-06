@@ -17,7 +17,10 @@ struct RobotDetailView: View {
 
     private var usesTabletopControlBase: Bool {
         #if os(iOS)
-        horizontalSizeClass == .regular && verticalSizeClass == .compact
+        AdaptiveLayout.usesTabletopControlBase(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
         #else
         false
         #endif
