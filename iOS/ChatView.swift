@@ -34,6 +34,7 @@ struct ChatView: View {
     @Bindable var chat: Chat
     @State private var inputText = ""
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var showConversations = false
     @State private var compactNavPath: [String] = []
     @State private var holdRecordStart: Date?
@@ -135,7 +136,7 @@ struct ChatView: View {
                                 Button(action: {
                                     chat.startNewConversation()
                                 }, label: {
-                                    Image(systemName: "plus")
+                                    Label("New Conversation", systemImage: "plus")
                                         .foregroundColor(Theme.Colors.accent)
                                 })
                             }
@@ -206,7 +207,7 @@ struct ChatView: View {
                 Button(action: {
                     chat.startNewConversation()
                 }, label: {
-                    Image(systemName: "plus")
+                    Label("New Conversation", systemImage: "plus")
                         .foregroundColor(Theme.Colors.accent)
                 })
             }
@@ -238,6 +239,7 @@ struct ChatView: View {
             inputBar
         }
         .background(Theme.Colors.background)
+        .safeAreaPadding(.horizontal, usesTabletopControlBase ? 20 : 0)
         .navigationTitle(chat.conversationId != nil ? "Assistant" : "New Chat")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: inputText) { _, newValue in handleInputChange(newValue) }
@@ -340,6 +342,10 @@ extension ChatView {
 
     // MARK: - Input bar
 
+    private var usesTabletopControlBase: Bool {
+        horizontalSizeClass == .regular && verticalSizeClass == .compact
+    }
+
     private var inputBar: some View {
         Group {
             if chat.isRecording {
@@ -366,6 +372,15 @@ extension ChatView {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
+            }
+        }
+        .padding(.horizontal, usesTabletopControlBase ? 16 : 0)
+        .padding(.bottom, usesTabletopControlBase ? 12 : 0)
+        .background {
+            if usesTabletopControlBase {
+                Theme.Colors.secondaryBackground
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .black.opacity(0.08), radius: 16, y: 4)
             }
         }
         .animation(.easeInOut(duration: 0.2), value: chat.isRecording)
@@ -414,25 +429,43 @@ extension ChatView {
             .allowsHitTesting(!chat.isLoading)
     }
 
+    @ViewBuilder
     private var recordingOverlay: some View {
-        HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Theme.Colors.accent.opacity(0.15))
-                    .frame(width: 50, height: 50)
-                    .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.5)
-                Circle()
-                    .fill(Theme.Colors.accent.opacity(0.3))
-                    .frame(width: 36, height: 36)
-                    .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
-                Image(systemName: "mic.fill")
+        if usesTabletopControlBase {
+            VStack(spacing: 12) {
+                microphonePulse
+                    .onTapGesture {
+                        Task { await chat.stopRecordingAndSend() }
+                    }
+
+                Text("Listening…")
                     .font(Theme.Fonts.headerLarge())
-                    .foregroundColor(Theme.Colors.accent)
+                    .foregroundColor(Theme.Colors.textPrimary)
+
+                audioLevelBars
+
+                Button(action: {
+                    Task { await chat.stopRecordingAndSend() }
+                }, label: {
+                    Label("Stop and Send", systemImage: "stop.circle.fill")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                })
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.Colors.error)
             }
-            .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
-            .onTapGesture {
-                Task { await chat.stopRecordingAndSend() }
-            }
+            .padding()
+        } else {
+            compactRecordingOverlay
+        }
+    }
+
+    private var compactRecordingOverlay: some View {
+        HStack(spacing: 16) {
+            microphonePulse
+                .onTapGesture {
+                    Task { await chat.stopRecordingAndSend() }
+                }
 
             Text("Listening…")
                 .font(Theme.Fonts.bodyLarge)
@@ -449,6 +482,23 @@ extension ChatView {
             })
         }
         .padding()
+    }
+
+    private var microphonePulse: some View {
+        ZStack {
+            Circle()
+                .fill(Theme.Colors.accent.opacity(0.15))
+                .frame(width: 50, height: 50)
+                .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.5)
+            Circle()
+                .fill(Theme.Colors.accent.opacity(0.3))
+                .frame(width: 36, height: 36)
+                .scaleEffect(1.0 + CGFloat(chat.audioLevel) * 0.3)
+            Image(systemName: "mic.fill")
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.accent)
+        }
+        .animation(.easeOut(duration: 0.08), value: chat.audioLevel)
     }
 
     private var audioLevelBars: some View {
@@ -586,7 +636,7 @@ struct ConversationListView: View {
                 Button(action: {
                     onStartNewConversation()
                 }, label: {
-                    Image(systemName: "square.and.pencil")
+                    Label("New Conversation", systemImage: "square.and.pencil")
                         .foregroundColor(Theme.Colors.accent)
                 })
             }
