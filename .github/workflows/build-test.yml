@@ -36,7 +36,9 @@ jobs:
         include:
           - name: iOS
             scheme: 'FluxHaus (iOS)'
-            destination: 'generic/platform=iOS Simulator'
+            # Pin an explicit simulator/runtime; the runner default currently selects
+            # iPhone 16 Pro Max, which is not supported by the default Xcode 27 runtime.
+            destination: 'platform=iOS Simulator,name=iPhone 17 Pro,OS=27.0'
             extra: ''
           - name: visionOS
             scheme: 'VisionOS'
