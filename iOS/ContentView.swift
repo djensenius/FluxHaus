@@ -46,39 +46,8 @@ struct ContentView: View {
                 carTab
             }
             .customizationID("car")
-            Tab(value: "scooter") {
-                scooterTab
-            } label: {
-                Label {
-                    Text("Scooter")
-                } icon: {
-                    Image.flippedScooter
-                }
-            }
-            .customizationID("scooter")
-            TabSection {
-                Tab("Appliances", systemImage: "washer.fill", value: "appliances") {
-                    appliancesTab
-                }
-                .customizationID("appliances")
-                Tab("Scenes", systemImage: "lightbulb.fill", value: "scenes") {
-                    scenesTab
-                }
-                .customizationID("scenes")
-                Tab("Robots", systemImage: "robotic.vacuum.fill", value: "robots") {
-                    robotsTab
-                }
-                .customizationID("robots")
-                Tab("Settings", systemImage: "gearshape", value: "settings") {
-                    settingsTab
-                }
-                .customizationID("settings")
-                Tab("Metrics", systemImage: "chart.xyaxis.line", value: "metrics") {
-                    metricsTab
-                }
-                .customizationID("metrics")
-            } header: {
-                Label("More", systemImage: "ellipsis")
+            Tab("More", systemImage: "ellipsis.circle", value: "more") {
+                moreTab
             }
             .customizationID("more")
         }
@@ -89,38 +58,121 @@ struct ContentView: View {
             NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
         ) { notification in
             if let section = notification.userInfo?["section"] as? String {
-                selectedTab = section
+                selectedTab = primaryTabValues.contains(section) ? section : "more"
             }
         }
     }
 
+    private var primaryTabValues: Set<String> {
+        authManager.isOIDC ? ["home", "weather", "assistant", "car", "more"] : ["home", "weather", "car", "more"]
+    }
+
+    private var moreTab: some View {
+        NavigationStack {
+            List {
+                Section("Devices") {
+                    NavigationLink(destination: scooterTab) {
+                        Label {
+                            Text("Scooter")
+                        } icon: {
+                            Image.flippedScooter
+                        }
+                    }
+                    NavigationLink(destination: robotsTab) {
+                        Label("Robots", systemImage: "robotic.vacuum.fill")
+                    }
+                    NavigationLink(destination: appliancesTab) {
+                        Label("Appliances", systemImage: "washer.fill")
+                    }
+                }
+
+                Section("Home") {
+                    NavigationLink(destination: scenesTab) {
+                        Label("Scenes", systemImage: "lightbulb.fill")
+                    }
+                    NavigationLink(destination: metricsTab) {
+                        Label("Metrics", systemImage: "chart.xyaxis.line")
+                    }
+                    NavigationLink(destination: settingsTab) {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+                }
+            }
+            .navigationTitle("More")
+            .scrollContentBackground(.hidden)
+            .background(Theme.Colors.background.ignoresSafeArea())
+        }
+        .background(Theme.Colors.background.ignoresSafeArea())
+    }
+
     private var homeTab: some View {
+        GeometryReader { proxy in
+            if AdaptiveLayout.usesWideDashboard(width: proxy.size.width) {
+                wideHomeLayout(width: proxy.size.width)
+            } else {
+                compactHomeLayout
+            }
+        }
+        .background(Theme.Colors.background)
+    }
+
+    private var compactHomeLayout: some View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-            HStack {
-                Text("Appliances")
-                    .font(Theme.Fonts.headerLarge())
-                    .foregroundColor(Theme.Colors.textPrimary)
-                    .padding(.leading)
-                Spacer()
-            }
-            Appliances(
-                fluxHausConsts: fluxHausConsts,
-                hconn: hconn,
-                miele: miele,
-                apiResponse: apiResponse,
-                robots: robots,
-                battery: battery,
-                car: car,
-                locationManager: locationManager,
-                airPurifier: airPurifier
-            )
+            appliancesHeader
+            appliancesGrid
             Spacer()
             footer
         }
-        .background(Theme.Colors.background)
+    }
+
+    private func wideHomeLayout(width: CGFloat) -> some View {
+        let sidebarWidth = min(max(width * 0.34, 320), 440)
+        return HStack(alignment: .top, spacing: Theme.Spacing.large) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+                    DateTimeView()
+                    WeatherView(lman: locationManager)
+                    HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                    footer
+                }
+                .padding()
+            }
+            .frame(width: sidebarWidth)
+            .background(Theme.Colors.secondaryBackground.opacity(0.55))
+
+            VStack(alignment: .leading, spacing: Theme.Spacing.small) {
+                appliancesHeader
+                appliancesGrid
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private var appliancesHeader: some View {
+        HStack {
+            Text("Appliances")
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
+                .padding(.leading)
+            Spacer()
+        }
+    }
+
+    private var appliancesGrid: some View {
+        Appliances(
+            fluxHausConsts: fluxHausConsts,
+            hconn: hconn,
+            miele: miele,
+            apiResponse: apiResponse,
+            robots: robots,
+            battery: battery,
+            car: car,
+            locationManager: locationManager,
+            airPurifier: airPurifier
+        )
     }
 
     private var weatherTab: some View {
@@ -187,13 +239,14 @@ struct ContentView: View {
         Group {
             Button("") { selectedTab = "home" }.keyboardShortcut("1")
             Button("") { selectedTab = "weather" }.keyboardShortcut("2")
-            Button("") { selectedTab = "assistant" }.keyboardShortcut("3")
-            Button("") { selectedTab = "car" }.keyboardShortcut("4")
-            Button("") { selectedTab = "scooter" }.keyboardShortcut("5")
-            Button("") { selectedTab = "appliances" }.keyboardShortcut("6")
-            Button("") { selectedTab = "scenes" }.keyboardShortcut("7")
-            Button("") { selectedTab = "robots" }.keyboardShortcut("8")
-            Button("") { selectedTab = "settings" }.keyboardShortcut("9")
+            if authManager.isOIDC {
+                Button("") { selectedTab = "assistant" }.keyboardShortcut("3")
+                Button("") { selectedTab = "car" }.keyboardShortcut("4")
+                Button("") { selectedTab = "more" }.keyboardShortcut("5")
+            } else {
+                Button("") { selectedTab = "car" }.keyboardShortcut("3")
+                Button("") { selectedTab = "more" }.keyboardShortcut("4")
+            }
         }
         .frame(width: 0, height: 0)
         .opacity(0)

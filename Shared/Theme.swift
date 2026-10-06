@@ -240,6 +240,33 @@ extension ButtonStyle where Self == FluxButtonStyle {
     }
 }
 
+/// Shared adaptive-layout thresholds based on available scene/container space.
+/// Prefer geometry, size classes, adaptive system containers, and safe areas over
+/// device-name checks so these improvements scale across current and future form factors.
+enum AdaptiveLayout {
+    static let dashboardBreakpoint: CGFloat = 700
+    static let cardMinimumWidth: CGFloat = 300
+
+    static func usesWideDashboard(width: CGFloat) -> Bool {
+        width >= dashboardBreakpoint
+    }
+
+    static func equalSplitWidth(totalWidth: CGFloat, spacing: CGFloat) -> CGFloat {
+        max((totalWidth - spacing) / 2, 0)
+    }
+}
+
+#if os(iOS)
+extension AdaptiveLayout {
+    static func usesTabletopControlBase(
+        horizontalSizeClass: UserInterfaceSizeClass?,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> Bool {
+        horizontalSizeClass == .regular && verticalSizeClass == .compact
+    }
+}
+#endif
+
 // MARK: - Flipped Scooter Icon
 extension Image {
     /// A horizontally flipped "scooter" SF Symbol for use in tab bars and navigation

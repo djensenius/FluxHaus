@@ -198,23 +198,28 @@ struct WeatherDetailView: View {
     @State private var showEnvironmentMetrics = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                if let weather = locationManager.weather {
-                    currentWeatherCard(weather: weather)
-                    if let alerts = weather.weatherAlerts, !alerts.isEmpty {
-                        weatherAlertsCard(alerts: alerts)
-                    }
-                    radarCard
-                    precipitationTimelineCard(weather: weather)
-                    forecastCard(weather: weather)
-                    environmentMetricsCard
-                    weatherAttribution
+        GeometryReader { proxy in
+            if let weather = locationManager.weather {
+                if AdaptiveLayout.usesWideDashboard(width: proxy.size.width) {
+                    weatherWideContent(
+                        weather: weather,
+                        width: proxy.size.width,
+                        height: proxy.size.height
+                            + proxy.safeAreaInsets.top
+                            + proxy.safeAreaInsets.bottom
+                    )
                 } else {
+                    ScrollView {
+                        weatherCompactContent(weather: weather)
+                            .padding()
+                    }
+                }
+            } else {
+                ScrollView {
                     loadingView
+                        .padding()
                 }
             }
-            .padding()
         }
         .onDisappear { stopAnimation() }
         #if os(visionOS)
@@ -232,11 +237,55 @@ struct WeatherDetailView: View {
                     }
             }
         }
+        .sheet(isPresented: $showFullRadar) {
+            fullRadarSheet
+        }
         .task {
             await locationManager.startMonitoring()
             await locationManager.fetchTheWeather()
             await radarService.fetchFrames()
             frameIndex = max(0, radarService.pastFrames.count - 1)
+        }
+    }
+
+    private func weatherWideContent(weather: Weather, width: CGFloat, height: CGFloat) -> some View {
+        let spacing = Theme.Spacing.extraLarge
+        let columnWidth = AdaptiveLayout.equalSplitWidth(totalWidth: width, spacing: spacing)
+
+        return HStack(alignment: .top, spacing: spacing) {
+            fullHeightRadarPane(height: max(360, height))
+                .frame(width: columnWidth)
+                .clipped()
+                .ignoresSafeArea(edges: [.top, .bottom, .leading])
+
+            ScrollView {
+                VStack(spacing: 16) {
+                    currentWeatherCard(weather: weather)
+                    if let alerts = weather.weatherAlerts, !alerts.isEmpty {
+                        weatherAlertsCard(alerts: alerts)
+                    }
+                    precipitationTimelineCard(weather: weather)
+                    forecastCard(weather: weather)
+                    environmentMetricsCard
+                    weatherAttribution
+                }
+                .padding()
+            }
+            .frame(width: columnWidth)
+        }
+    }
+
+    private func weatherCompactContent(weather: Weather) -> some View {
+        VStack(spacing: 16) {
+            currentWeatherCard(weather: weather)
+            if let alerts = weather.weatherAlerts, !alerts.isEmpty {
+                weatherAlertsCard(alerts: alerts)
+            }
+            radarCard
+            precipitationTimelineCard(weather: weather)
+            forecastCard(weather: weather)
+            environmentMetricsCard
+            weatherAttribution
         }
     }
 
@@ -302,8 +351,9 @@ struct WeatherDetailView: View {
     private func detailsGrid(weather: Weather) -> some View {
         let cur = weather.currentWeather
         let today = weather.dailyForecast.first
-        let columns = [GridItem(.flexible()), GridItem(.flexible()),
-                       GridItem(.flexible()), GridItem(.flexible())]
+        let columns = [
+            GridItem(.adaptive(minimum: 92), spacing: 12, alignment: .center)
+        ]
         return VStack(spacing: 12) {
             LazyVGrid(columns: columns, spacing: 12) {
                 detailItem(icon: "thermometer.medium", label: "Feels Like",
@@ -473,6 +523,52 @@ struct WeatherDetailView: View {
         }
     }
 
+    private func fullHeightRadarPane(height: CGFloat) -> some View {
+        ZStack(alignment: .bottom) {
+            if radarService.isLoaded {
+                InteractiveRadarMapView(
+                    coordinate: locationManager.coordinate,
+                    radarService: radarService,
+                    frameIndex: frameIndex,
+                    onPreloadComplete: { Task { @MainActor in tilesReady = true } }
+                )
+                .frame(maxWidth: .infinity)
+                .frame(height: height)
+                .clipped()
+            } else {
+                Rectangle()
+                    .fill(Theme.Colors.secondaryBackground)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: height)
+                    .overlay { ProgressView("Loading radar…").font(Theme.Fonts.caption) }
+            }
+
+            VStack(spacing: 12) {
+                HStack {
+                    Label("Radar", systemImage: "antenna.radiowaves.left.and.right")
+                        .font(Theme.Fonts.bodySmall).fontWeight(.semibold)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                        .textCase(.uppercase)
+                    Spacer()
+                    if radarService.isLoaded {
+                        Button(action: { showFullRadar = true }, label: {
+                            Label("Expand", systemImage: "arrow.up.left.and.arrow.down.right")
+                                .font(.caption2)
+                        })
+                        .buttonStyle(.borderless)
+                    }
+                }
+
+                if radarService.isLoaded {
+                    radarControls
+                }
+            }
+            .padding()
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding()
+        }
+    }
+
     private var radarCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -515,25 +611,39 @@ struct WeatherDetailView: View {
         #if os(visionOS)
         .glassBackgroundEffect()
         #endif
-        .sheet(isPresented: $showFullRadar) {
-            fullRadarSheet
-        }
     }
 
     private var fullRadarSheet: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Weather Radar").font(Theme.Fonts.bodyMedium).fontWeight(.semibold)
-                Spacer()
-                Button("Done") { showFullRadar = false }
+        ZStack(alignment: .bottom) {
+            if radarService.isLoaded {
+                InteractiveRadarMapView(
+                    coordinate: locationManager.coordinate,
+                    radarService: radarService,
+                    frameIndex: frameIndex,
+                    onPreloadComplete: { Task { @MainActor in tilesReady = true } }
+                )
+                .ignoresSafeArea()
+            } else {
+                Theme.Colors.background
+                    .ignoresSafeArea()
+                    .overlay { ProgressView("Loading radar…").font(Theme.Fonts.caption) }
+            }
+
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Weather Radar")
+                        .font(Theme.Fonts.bodyMedium)
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Button("Done") { showFullRadar = false }
+                }
+                if radarService.isLoaded {
+                    radarControls
+                }
             }
             .padding()
-            InteractiveRadarMapView(
-                coordinate: locationManager.coordinate,
-                radarService: radarService,
-                frameIndex: frameIndex
-            )
-            radarControls.padding()
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .padding()
         }
         #if os(macOS)
         .frame(minWidth: 700, minHeight: 550)
