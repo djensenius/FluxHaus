@@ -454,7 +454,7 @@ struct EnvironmentMetricsView: View {
                 Button {
                     Task { await metrics.refresh() }
                 } label: {
-                    Image(systemName: "arrow.clockwise")
+                    Label("Refresh", systemImage: "arrow.clockwise")
                         .symbolEffect(
                             .rotate,
                             options: .repeat(.continuous),
