@@ -79,5 +79,7 @@ jobs:
           xcodebuild \
             -project FluxHaus.xcodeproj \
             -scheme "VisionOS" \
-            -destination 'platform=visionOS Simulator,name=Apple Vision Pro,OS=27.0' \
+            # Pin the 4K simulator explicitly; the runner's default Apple Vision Pro
+            # profile (at 2732x2048) is not supported by the Xcode 27 runtime.
+            -destination 'platform=visionOS Simulator,name=Apple Vision Pro 4K,OS=27.0' \
             test | xcbeautify
