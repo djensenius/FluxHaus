@@ -5,16 +5,31 @@
 //  Created by David Jensenius on 2024-03-30.
 //
 
+// swiftlint:disable file_length
 import SwiftUI
 import WeatherKit
 import CoreLocation
 
 struct CarDetailView: View {
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     var car: Car
     var locationManager: LocationManager
+    var showsDismissButton = false
     @State private var buttonsDisabled: Bool = false
     @State var apiResponse: Api?
+
+    private var usesTabletopControlBase: Bool {
+        #if os(iOS)
+        AdaptiveLayout.usesTabletopControlBase(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         NavigationStack {
@@ -123,174 +138,9 @@ struct CarDetailView: View {
 
                     CarAnalyticsLink()
 
-                    // Controls Section
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Controls")
-                            .font(Theme.Fonts.headerLarge())
-                            .foregroundColor(Theme.Colors.textPrimary)
-
-                        #if os(macOS) || os(visionOS)
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 8) {
-                                if car.vehicle.hvac {
-                                    Button(action: { performAction(action: "stop") }, label: {
-                                        Label("Climate Off", systemImage: "snowflake.slash")
-                                    })
-                                    .tint(.red)
-                                } else {
-                                    Button(action: { performAction(action: "start") }, label: {
-                                        Label("Start Climate", systemImage: "snowflake")
-                                    })
-                                    .tint(Theme.Colors.accent)
-                                }
-
-                                if car.vehicle.locked {
-                                    Button(action: { performAction(action: "unlock") }, label: {
-                                        Label("Unlock", systemImage: "lock.open.fill")
-                                    })
-                                } else {
-                                    Button(action: { performAction(action: "lock") }, label: {
-                                        Label("Lock", systemImage: "lock.fill")
-                                    })
-                                }
-
-                                Button(action: { performAction(action: "rsync") }, label: {
-                                    Label("Resync", systemImage: "arrow.triangle.2.circlepath")
-                                })
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(buttonsDisabled)
-
-                            if !car.vehicle.hvac {
-                                if let weather = locationManager.weather {
-                                    HStack {
-                                        Image(systemName: "thermometer.snowflake")
-                                        Text(getClimateSummary(weather: weather))
-                                    }
-                                    .font(Theme.Fonts.caption)
-                                    .foregroundColor(Theme.Colors.textSecondary)
-                                }
-
-                                NavigationLink(
-                                    destination: CarClimateView(
-                                        car: car, locationManager: locationManager
-                                    )
-                                ) {
-                                    Text("Climate Settings →")
-                                        .font(Theme.Fonts.bodyMedium)
-                                        .foregroundColor(Theme.Colors.accent)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        #else
-                        VStack(spacing: 12) {
-                            if car.vehicle.hvac {
-                                Button(action: { performAction(action: "stop") }, label: {
-                                    Text("Turn Climate Off")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Theme.Colors.error.opacity(0.2))
-                                        .foregroundColor(Theme.Colors.error)
-                                        .cornerRadius(8)
-                                })
-                                .disabled(self.buttonsDisabled)
-                            } else {
-                                Button(action: { performAction(action: "start") }, label: {
-                                    Text("Start Climate")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Theme.Colors.accent.opacity(0.2))
-                                        .foregroundColor(Theme.Colors.accent)
-                                        .cornerRadius(8)
-                                })
-                                .disabled(self.buttonsDisabled)
-
-                                if let weather = locationManager.weather {
-                                    HStack {
-                                        Image(systemName: "thermometer.snowflake")
-                                        Text(getClimateSummary(weather: weather))
-                                    }
-                                    .font(Theme.Fonts.caption)
-                                    .foregroundColor(Theme.Colors.textSecondary)
-                                    .padding(.horizontal, 4)
-                                }
-
-                                NavigationLink(
-                                    destination: CarClimateView(
-                                        car: car, locationManager: locationManager
-                                    )
-                                ) {
-                                    HStack {
-                                        Text("Climate Settings")
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                    }
-                                    .padding()
-                                    #if os(visionOS)
-                                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                    #else
-                                    .background(Theme.Colors.secondaryBackground)
-                                    .cornerRadius(8)
-                                    #endif
-                                    .foregroundColor(Theme.Colors.textPrimary)
-                                }
-                            }
-
-                            HStack(spacing: 12) {
-                                if car.vehicle.locked {
-                                    Button(action: { performAction(action: "unlock") }, label: {
-                                        Label("Unlock", systemImage: "lock.open.fill")
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            #if os(visionOS)
-                                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                            #else
-                                            .background(Theme.Colors.secondaryBackground)
-                                            .cornerRadius(8)
-                                            #endif
-                                            .foregroundColor(Theme.Colors.textPrimary)
-                                    })
-                                    .disabled(self.buttonsDisabled)
-                                } else {
-                                    Button(action: { performAction(action: "lock") }, label: {
-                                        Label("Lock", systemImage: "lock.fill")
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            #if os(visionOS)
-                                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                            #else
-                                            .background(Theme.Colors.secondaryBackground)
-                                            .cornerRadius(8)
-                                            #endif
-                                            .foregroundColor(Theme.Colors.textPrimary)
-                                    })
-                                    .disabled(self.buttonsDisabled)
-                                }
-
-                                Button(action: { performAction(action: "rsync") }, label: {
-                                    Label("Resync", systemImage: "arrow.triangle.2.circlepath")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        #if os(visionOS)
-                                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                        #else
-                                        .background(Theme.Colors.secondaryBackground)
-                                        .cornerRadius(8)
-                                        #endif
-                                        .foregroundColor(Theme.Colors.textPrimary)
-                                })
-                                .disabled(self.buttonsDisabled)
-                            }
-                        }
-                        #endif
+                    if !usesTabletopControlBase {
+                        carControlsCard
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    #if !os(visionOS)
-                    .background(Theme.Colors.secondaryBackground)
-                    #endif
-                    .cornerRadius(12)
 
                     if self.buttonsDisabled {
                         HStack {
@@ -304,11 +154,22 @@ struct CarDetailView: View {
                 }
                 .padding()
             }
+            .background(Theme.Colors.background)
+            .safeAreaInset(edge: .bottom) {
+                if usesTabletopControlBase {
+                    carControlsCard
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .background(.bar)
+                }
+            }
             #if !os(macOS)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Dismiss") {
-                        self.presentationMode.wrappedValue.dismiss()
+                if showsDismissButton {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Dismiss") {
+                            self.presentationMode.wrappedValue.dismiss()
+                        }
                     }
                 }
             }
@@ -317,9 +178,179 @@ struct CarDetailView: View {
         #if os(visionOS)
         .glassBackgroundEffect()
         #else
-        .background(Theme.Colors.background)
+        .background(Theme.Colors.background.ignoresSafeArea())
         #endif
         .fluxDeviceAnnotation(.car)
+    }
+
+    private var carControlsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Controls")
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
+
+            #if os(macOS) || os(visionOS)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    if car.vehicle.hvac {
+                        Button(action: { performAction(action: "stop") }, label: {
+                            Label("Climate Off", systemImage: "snowflake.slash")
+                        })
+                        .tint(.red)
+                    } else {
+                        Button(action: { performAction(action: "start") }, label: {
+                            Label("Start Climate", systemImage: "snowflake")
+                        })
+                        .tint(Theme.Colors.accent)
+                    }
+
+                    if car.vehicle.locked {
+                        Button(action: { performAction(action: "unlock") }, label: {
+                            Label("Unlock", systemImage: "lock.open.fill")
+                        })
+                    } else {
+                        Button(action: { performAction(action: "lock") }, label: {
+                            Label("Lock", systemImage: "lock.fill")
+                        })
+                    }
+
+                    Button(action: { performAction(action: "rsync") }, label: {
+                        Label("Resync", systemImage: "arrow.triangle.2.circlepath")
+                    })
+                }
+                .buttonStyle(.bordered)
+                .disabled(buttonsDisabled)
+
+                if !car.vehicle.hvac {
+                    if let weather = locationManager.weather {
+                        HStack {
+                            Image(systemName: "thermometer.snowflake")
+                            Text(getClimateSummary(weather: weather))
+                        }
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                    }
+
+                    NavigationLink(
+                        destination: CarClimateView(
+                            car: car, locationManager: locationManager
+                        )
+                    ) {
+                        Text("Climate Settings →")
+                            .font(Theme.Fonts.bodyMedium)
+                            .foregroundColor(Theme.Colors.accent)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            #else
+            VStack(spacing: 12) {
+                if car.vehicle.hvac {
+                    Button(action: { performAction(action: "stop") }, label: {
+                        Text("Turn Climate Off")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Theme.Colors.error.opacity(0.2))
+                            .foregroundColor(Theme.Colors.error)
+                            .cornerRadius(8)
+                    })
+                    .disabled(self.buttonsDisabled)
+                } else {
+                    Button(action: { performAction(action: "start") }, label: {
+                        Text("Start Climate")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Theme.Colors.accent.opacity(0.2))
+                            .foregroundColor(Theme.Colors.accent)
+                            .cornerRadius(8)
+                    })
+                    .disabled(self.buttonsDisabled)
+
+                    if let weather = locationManager.weather {
+                        HStack {
+                            Image(systemName: "thermometer.snowflake")
+                            Text(getClimateSummary(weather: weather))
+                        }
+                        .font(Theme.Fonts.caption)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                        .padding(.horizontal, 4)
+                    }
+
+                    NavigationLink(
+                        destination: CarClimateView(
+                            car: car, locationManager: locationManager
+                        )
+                    ) {
+                        HStack {
+                            Text("Climate Settings")
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                        }
+                        .padding()
+                        #if os(visionOS)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                        #else
+                        .background(Theme.Colors.secondaryBackground)
+                        .cornerRadius(8)
+                        #endif
+                        .foregroundColor(Theme.Colors.textPrimary)
+                    }
+                }
+
+                HStack(spacing: 12) {
+                    if car.vehicle.locked {
+                        Button(action: { performAction(action: "unlock") }, label: {
+                            Label("Unlock", systemImage: "lock.open.fill")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                #if os(visionOS)
+                                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                #else
+                                .background(Theme.Colors.secondaryBackground)
+                                .cornerRadius(8)
+                                #endif
+                                .foregroundColor(Theme.Colors.textPrimary)
+                        })
+                        .disabled(self.buttonsDisabled)
+                    } else {
+                        Button(action: { performAction(action: "lock") }, label: {
+                            Label("Lock", systemImage: "lock.fill")
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                #if os(visionOS)
+                                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                #else
+                                .background(Theme.Colors.secondaryBackground)
+                                .cornerRadius(8)
+                                #endif
+                                .foregroundColor(Theme.Colors.textPrimary)
+                        })
+                        .disabled(self.buttonsDisabled)
+                    }
+
+                    Button(action: { performAction(action: "rsync") }, label: {
+                        Label("Resync", systemImage: "arrow.triangle.2.circlepath")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            #if os(visionOS)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                            #else
+                            .background(Theme.Colors.secondaryBackground)
+                            .cornerRadius(8)
+                            #endif
+                            .foregroundColor(Theme.Colors.textPrimary)
+                    })
+                    .disabled(self.buttonsDisabled)
+                }
+            }
+            #endif
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        #if !os(visionOS)
+        .background(Theme.Colors.secondaryBackground)
+        #endif
+        .cornerRadius(12)
     }
 
     func getClimateSummary(weather: Weather) -> String {

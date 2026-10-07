@@ -9,9 +9,22 @@ import SwiftUI
 
 struct RobotDetailView: View {
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     var robot: Robot
     var robots: Robots
     @State private var buttonsDisabled: Bool = false
+
+    private var usesTabletopControlBase: Bool {
+        #if os(iOS)
+        AdaptiveLayout.usesTabletopControlBase(
+            horizontalSizeClass: horizontalSizeClass,
+            verticalSizeClass: verticalSizeClass
+        )
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
         NavigationStack {
@@ -87,91 +100,9 @@ struct RobotDetailView: View {
                     #endif
                     .cornerRadius(12)
 
-                    // Controls Card
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Controls")
-                            .font(Theme.Fonts.headerLarge())
-                            .foregroundColor(Theme.Colors.textPrimary)
-
-                        #if os(macOS) || os(visionOS)
-                        HStack(spacing: 8) {
-                            if robot.running == true {
-                                Button(action: { performAction(action: "stop") }, label: {
-                                    Label("Stop", systemImage: "stop.fill")
-                                })
-                                .tint(Theme.Colors.error)
-                            } else {
-                                Button(action: { performAction(action: "start") }, label: {
-                                    Label("Start", systemImage: "play.fill")
-                                })
-                                .tint(Theme.Colors.accent)
-
-                                if robots.broomBot.running != true
-                                    && robots.mopBot.running != true {
-                                    Button(action: { performAction(action: "deepClean") }, label: {
-                                        Label("Deep Clean", systemImage: "sparkles")
-                                    })
-                                }
-                            }
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(buttonsDisabled)
-                        #else
-                        VStack(spacing: 12) {
-                            if robot.running == true {
-                                Button(action: { performAction(action: "stop") }, label: {
-                                    Label("Stop", systemImage: "stop.fill")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        #if os(visionOS)
-                                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                        #else
-                                        .background(Theme.Colors.secondaryBackground)
-                                        .cornerRadius(8)
-                                        #endif
-                                        .foregroundColor(Theme.Colors.textPrimary)
-                                })
-                                .disabled(self.buttonsDisabled)
-                            } else {
-                                Button(action: { performAction(action: "start") }, label: {
-                                    Label("Start Cleaning", systemImage: "play.fill")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Theme.Colors.accent)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                })
-                                .disabled(self.buttonsDisabled)
-
-                                if robots.broomBot.running != true
-                                    && robots.mopBot.running != true {
-                                    Button(action: { performAction(action: "deepClean") }, label: {
-                                        Label(
-                                            "Deep Clean (BroomBot + MopBot)",
-                                            systemImage: "sparkles"
-                                        )
-                                            .frame(maxWidth: .infinity)
-                                            .padding()
-                                            #if os(visionOS)
-                                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-                                            #else
-                                            .background(Theme.Colors.secondaryBackground)
-                                            .cornerRadius(8)
-                                            #endif
-                                            .foregroundColor(Theme.Colors.textPrimary)
-                                    })
-                                    .disabled(self.buttonsDisabled)
-                                }
-                            }
-                        }
-                        #endif
+                    if !usesTabletopControlBase {
+                        robotControlsCard
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    #if !os(visionOS)
-                    .background(Theme.Colors.secondaryBackground)
-                    #endif
-                    .cornerRadius(12)
 
                     if self.buttonsDisabled {
                         VStack {
@@ -185,6 +116,14 @@ struct RobotDetailView: View {
                     }
                 }
                 .padding()
+            }
+            .safeAreaInset(edge: .bottom) {
+                if usesTabletopControlBase {
+                    robotControlsCard
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .background(.bar)
+                }
             }
             #if !os(macOS)
             .toolbar {
@@ -202,6 +141,93 @@ struct RobotDetailView: View {
         .background(Theme.Colors.background)
         #endif
         .fluxDeviceAnnotation(robot.name == "MopBot" ? .mopBot : .broomBot)
+    }
+
+    private var robotControlsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Controls")
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
+
+            #if os(macOS) || os(visionOS)
+            HStack(spacing: 8) {
+                if robot.running == true {
+                    Button(action: { performAction(action: "stop") }, label: {
+                        Label("Stop", systemImage: "stop.fill")
+                    })
+                    .tint(Theme.Colors.error)
+                } else {
+                    Button(action: { performAction(action: "start") }, label: {
+                        Label("Start", systemImage: "play.fill")
+                    })
+                    .tint(Theme.Colors.accent)
+
+                    if robots.broomBot.running != true
+                        && robots.mopBot.running != true {
+                        Button(action: { performAction(action: "deepClean") }, label: {
+                            Label("Deep Clean", systemImage: "sparkles")
+                        })
+                    }
+                }
+            }
+            .buttonStyle(.bordered)
+            .disabled(buttonsDisabled)
+            #else
+            VStack(spacing: 12) {
+                if robot.running == true {
+                    Button(action: { performAction(action: "stop") }, label: {
+                        Label("Stop", systemImage: "stop.fill")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            #if os(visionOS)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                            #else
+                            .background(Theme.Colors.secondaryBackground)
+                            .cornerRadius(8)
+                            #endif
+                            .foregroundColor(Theme.Colors.textPrimary)
+                    })
+                    .disabled(self.buttonsDisabled)
+                } else {
+                    Button(action: { performAction(action: "start") }, label: {
+                        Label("Start Cleaning", systemImage: "play.fill")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Theme.Colors.accent)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    })
+                    .disabled(self.buttonsDisabled)
+
+                    if robots.broomBot.running != true
+                        && robots.mopBot.running != true {
+                        Button(action: { performAction(action: "deepClean") }, label: {
+                            Label(
+                                "Deep Clean (BroomBot + MopBot)",
+                                systemImage: "sparkles"
+                            )
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                #if os(visionOS)
+                                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
+                                #else
+                                .background(Theme.Colors.secondaryBackground)
+                                .cornerRadius(8)
+                                #endif
+                                .foregroundColor(Theme.Colors.textPrimary)
+                        })
+                        .disabled(self.buttonsDisabled)
+                    }
+                }
+            }
+            #endif
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        #if !os(visionOS)
+        .background(Theme.Colors.secondaryBackground)
+        #endif
+        .cornerRadius(12)
     }
 
     func performAction(action: String) {

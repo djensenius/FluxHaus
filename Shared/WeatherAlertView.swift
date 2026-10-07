@@ -57,16 +57,9 @@ struct WeatherAlertView: View {
                         .navigationBarTitleDisplayMode(.inline)
                         #endif
                         .toolbar {
-                            #if !os(macOS)
-                            ToolbarItem(placement: .topBarLeading) {
-                                if alerts.count > 1 {
-                                    Button("Back") { selectedAlert = nil }
-                                }
-                            }
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button("Done") { dismiss() }
-                            }
-                            #else
+                            // Semantic placements (rather than topBarLeading/topBarTrailing) ensure these
+                            // buttons still render when the system adapts toolbar layout for compact,
+                            // wide, or otherwise unusual container geometry.
                             ToolbarItem(placement: .cancellationAction) {
                                 if alerts.count > 1 {
                                     Button("Back") { selectedAlert = nil }
@@ -75,7 +68,6 @@ struct WeatherAlertView: View {
                             ToolbarItem(placement: .confirmationAction) {
                                 Button("Done") { dismiss() }
                             }
-                            #endif
                         }
                 } else {
                     alertList
@@ -110,15 +102,9 @@ struct WeatherAlertView: View {
             .padding(.horizontal)
         }
         .toolbar {
-            #if !os(macOS)
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Done") { dismiss() }
-            }
-            #else
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done") { dismiss() }
             }
-            #endif
         }
         #if !os(visionOS)
         .background(Theme.Colors.background)

@@ -27,7 +27,9 @@ struct Appliances: View {
     @State private var showApplianceModal: [String: Bool] = [:]
     @State var theAppliances: [(name: String, index: Int)] = []
 
-    private let gridItemLayout = [GridItem(.flexible())]
+    private let gridItemLayout = [
+        GridItem(.adaptive(minimum: AdaptiveLayout.cardMinimumWidth), spacing: 10)
+    ]
 
     var originalAppliances = [
         (name: "HomeConnect", index: 0),
@@ -43,7 +45,7 @@ struct Appliances: View {
 
     var body: some View {
         ScrollView {
-                LazyVGrid(columns: gridItemLayout, spacing: 5) {
+                LazyVGrid(columns: gridItemLayout, spacing: 10) {
                     ForEach((0..<theAppliances.count), id: \.self) { app in
                         if !(theAppliances[app].name == "Battery" && battery.model == .mac) {
                             if getApplianceName(
@@ -138,7 +140,7 @@ struct Appliances: View {
         }
         .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
         .sheet(isPresented: self.$showCarModal) {
-            CarDetailView(car: car, locationManager: locationManager)
+            CarDetailView(car: car, locationManager: locationManager, showsDismissButton: true)
         }
         .sheet(isPresented: self.$showScooterModal) {
             ScooterDetailView(
