@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var chat = Chat()
     @State private var radarService = RadarService()
     @State private var selectedTab = "home"
+    @State private var morePath: [String] = []
     @State private var tabCustomization = TabViewCustomization()
 
     var body: some View {
@@ -53,12 +54,11 @@ struct ContentView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .tabViewCustomization($tabCustomization)
-        .background { tabKeyboardShortcuts }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
         ) { notification in
             if let section = notification.userInfo?["section"] as? String {
-                selectedTab = primaryTabValues.contains(section) ? section : "more"
+                handleNavigationRequest(section)
             }
         }
     }
@@ -67,42 +67,84 @@ struct ContentView: View {
         authManager.isOIDC ? ["home", "weather", "assistant", "car", "more"] : ["home", "weather", "car", "more"]
     }
 
+    private var moreDestinationValues: Set<String> {
+        ["scooter", "robots", "appliances", "scenes", "metrics", "settings"]
+    }
+
+    private func handleNavigationRequest(_ requestedSection: String) {
+        let section = requestedSection.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !section.isEmpty else { return }
+
+        if primaryTabValues.contains(section) {
+            selectedTab = section
+            if section != "more" {
+                morePath = []
+            }
+        } else if moreDestinationValues.contains(section) {
+            selectedTab = "more"
+            morePath = [section]
+        }
+    }
+
     private var moreTab: some View {
-        NavigationStack {
+        NavigationStack(path: $morePath) {
             List {
                 Section("Devices") {
-                    NavigationLink(destination: scooterTab) {
+                    NavigationLink(value: "scooter") {
                         Label {
                             Text("Scooter")
                         } icon: {
                             Image.flippedScooter
                         }
                     }
-                    NavigationLink(destination: robotsTab) {
+                    NavigationLink(value: "robots") {
                         Label("Robots", systemImage: "robotic.vacuum.fill")
                     }
-                    NavigationLink(destination: appliancesTab) {
+                    NavigationLink(value: "appliances") {
                         Label("Appliances", systemImage: "washer.fill")
                     }
                 }
 
                 Section("Home") {
-                    NavigationLink(destination: scenesTab) {
+                    NavigationLink(value: "scenes") {
                         Label("Scenes", systemImage: "lightbulb.fill")
                     }
-                    NavigationLink(destination: metricsTab) {
+                    NavigationLink(value: "metrics") {
                         Label("Metrics", systemImage: "chart.xyaxis.line")
                     }
-                    NavigationLink(destination: settingsTab) {
+                    NavigationLink(value: "settings") {
                         Label("Settings", systemImage: "gearshape")
                     }
                 }
+            }
+            .navigationDestination(for: String.self) { destination in
+                moreDestination(for: destination)
             }
             .navigationTitle("More")
             .scrollContentBackground(.hidden)
             .background(Theme.Colors.background.ignoresSafeArea())
         }
         .background(Theme.Colors.background.ignoresSafeArea())
+    }
+
+    @ViewBuilder
+    private func moreDestination(for destination: String) -> some View {
+        switch destination {
+        case "scooter":
+            scooterTab
+        case "robots":
+            robotsTab
+        case "appliances":
+            appliancesTab
+        case "scenes":
+            scenesTab
+        case "metrics":
+            metricsTab
+        case "settings":
+            settingsTab
+        default:
+            ContentUnavailableView("Unknown Destination", systemImage: "questionmark.circle")
+        }
     }
 
     private var homeTab: some View {
@@ -235,22 +277,6 @@ struct ContentView: View {
         }
     }
 
-    private var tabKeyboardShortcuts: some View {
-        Group {
-            Button("") { selectedTab = "home" }.keyboardShortcut("1")
-            Button("") { selectedTab = "weather" }.keyboardShortcut("2")
-            if authManager.isOIDC {
-                Button("") { selectedTab = "assistant" }.keyboardShortcut("3")
-                Button("") { selectedTab = "car" }.keyboardShortcut("4")
-                Button("") { selectedTab = "more" }.keyboardShortcut("5")
-            } else {
-                Button("") { selectedTab = "car" }.keyboardShortcut("3")
-                Button("") { selectedTab = "more" }.keyboardShortcut("4")
-            }
-        }
-        .frame(width: 0, height: 0)
-        .opacity(0)
-    }
 }
 
 #if DEBUG
