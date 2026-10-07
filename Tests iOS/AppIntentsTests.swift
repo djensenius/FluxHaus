@@ -34,8 +34,8 @@ struct IOSAppIntentsTests {
 
     @Test("Robot enum exposes a display name for every case")
     func robotChoiceDisplayNames() {
-        #expect(RobotChoice.broomBot.kind.displayName == "BroomBot")
-        #expect(RobotChoice.mopBot.kind.displayName == "MopBot")
+        #expect(RobotChoice.cleanBot.kind.displayName == "Cleanbot")
+        #expect(RobotChoice.cleanBot.kind.displayName == "Cleanbot")
     }
 
     // MARK: - Signed-out behaviour
@@ -46,11 +46,11 @@ struct IOSAppIntentsTests {
         setSignedOut()
 
         let start = StartRobotIntent()
-        start.robot = .broomBot
+        start.robot = .cleanBot
         await #expect(throws: IntentError.self) { _ = try await start.perform() }
 
         let stop = StopRobotIntent()
-        stop.robot = .mopBot
+        stop.robot = .cleanBot
         await #expect(throws: IntentError.self) { _ = try await stop.perform() }
 
         await #expect(throws: IntentError.self) { _ = try await DeepCleanIntent().perform() }
@@ -149,7 +149,7 @@ struct IOSAppIntentsTests {
     func deviceQuerySuggestsAll() async throws {
         let suggested = try await DeviceEntityQuery().suggestedEntities()
         #expect(Set(suggested.map(\.kind)) == Set(DeviceKind.allCases))
-        #expect(suggested.count == 8)
+        #expect(suggested.count == DeviceKind.allCases.count)
         for entity in suggested {
             #expect(
                 Set(entity.searchableAliases.components(separatedBy: "\n"))

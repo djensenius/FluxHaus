@@ -293,17 +293,10 @@ struct RobotsMacView: View {
         ScrollView {
             VStack(spacing: 16) {
                 robotCard(
-                    title: "BroomBot",
-                    robot: robots.broomBot,
-                    robotName: "broomBot",
+                    title: "Cleanbot",
+                    robot: robots.cleanBot,
+                    robotName: "cleanBot",
                     icon: "robotic.vacuum.fill",
-                    animation: nil
-                )
-                robotCard(
-                    title: "MopBot",
-                    robot: robots.mopBot,
-                    robotName: "mopBot",
-                    icon: "humidifier.and.droplets",
                     animation: .variableColor
                 )
             }
@@ -397,8 +390,7 @@ struct RobotsMacView: View {
                     Label("Dock", systemImage: "house.fill")
                 })
 
-                if robots.broomBot.running != true
-                    && robots.mopBot.running != true {
+                if robots.cleanBot.running != true {
                     Button(action: {
                         robots.performAction(
                             action: "deepClean", robot: robotName

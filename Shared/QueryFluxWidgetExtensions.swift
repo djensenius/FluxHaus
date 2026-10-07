@@ -146,27 +146,22 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         )
     )
 
+    let cleanbotRunning = fluxData.cleanBot?.running ?? false
+    let cleanbotProgress = fluxData.cleanBot?.progressPercent.map { Int($0.rounded()) }
+    let cleanbotTime = fluxData.cleanBot?.estimatedRemainingMinutes.map { "~\(Int($0.rounded())) min" }
+    let cleanbotRoom = fluxData.cleanBot?.currentRoom
+    let cleanbotDetail = [cleanbotTime, cleanbotRoom].compactMap { $0 }.joined(separator: " ⋅ ")
     returnValue.append(
         WidgetDevice(
-            name: "BroomBot",
-            progress: fluxData.broomBot?.batteryLevel ?? 0,
-            icon: "robotic.vacuum",
-            trailingText: fluxData.broomBot?.running ?? false ? "On" : "Off",
-            shortText: fluxData.broomBot?.running ?? false ? "On" : "Off",
-            running: fluxData.broomBot?.running ?? false,
-            battery: fluxData.broomBot?.batteryLevel
-        )
-    )
-
-    returnValue.append(
-        WidgetDevice(
-            name: "MopBot",
-            progress: fluxData.mopBot?.batteryLevel ?? 0,
-            icon: "humidifier.and.droplets",
-            trailingText: fluxData.mopBot?.running ?? false ? "On" : "Off",
-            shortText: fluxData.mopBot?.running ?? false ? "On" : "Off",
-            running: fluxData.mopBot?.running ?? false,
-            battery: fluxData.mopBot?.batteryLevel
+            name: "Cleanbot",
+            progress: cleanbotProgress ?? 0,
+            icon: "robotic.vacuum.fill",
+            trailingText: cleanbotRunning
+                ? (cleanbotDetail.isEmpty ? "On" : cleanbotDetail)
+                : "Off",
+            shortText: cleanbotRunning ? cleanbotProgress.map { "\($0)%" } ?? "On" : "Off",
+            running: cleanbotRunning,
+            battery: fluxData.cleanBot?.batteryLevel
         )
     )
 

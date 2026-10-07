@@ -363,35 +363,41 @@ func getFlux(password: String) async throws -> LoginResponse? {
     return try decodeFluxResponse(data: data, response: response)
 }
 struct FluxData {
-    var mopBot: Robot?
-    var broomBot: Robot?
+    var cleanBot: Robot?
     var car: CarDetails?
     var dishwasher: DishWasher?
     var dryer: WasherDryer?
     let washer: WasherDryer?
 }
 func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
-    let mopBot = Robot(
-        name: "MopBot",
-        timestamp: response.mopbot.timestamp,
-        batteryLevel: response.mopbot.batteryLevel,
-        binFull: response.mopbot.binFull,
-        running: response.mopbot.running,
-        charging: response.mopbot.charging,
-        docking: response.mopbot.docking,
-        paused: response.mopbot.paused,
-        timeStarted: response.mopbot.timeStarted
-    )
-    let broomBot = Robot(
-        name: "BroomBot",
-        timestamp: response.broombot.timestamp,
-        batteryLevel: response.broombot.batteryLevel,
-        binFull: response.broombot.binFull,
-        running: response.broombot.running,
-        charging: response.broombot.charging,
-        docking: response.broombot.docking,
-        paused: response.broombot.paused,
-        timeStarted: response.broombot.timeStarted
+    let cleanBot = Robot(
+        name: response.cleanbot.name ?? "Cleanbot",
+        timestamp: response.cleanbot.timestamp,
+        batteryLevel: response.cleanbot.batteryLevel,
+        binFull: response.cleanbot.binFull,
+        running: response.cleanbot.running,
+        charging: response.cleanbot.charging,
+        docking: response.cleanbot.docking,
+        paused: response.cleanbot.paused,
+        timeStarted: response.cleanbot.timeStarted,
+        progressPercent: response.cleanbot.progressPercent,
+        elapsedMinutes: response.cleanbot.elapsedMinutes,
+        estimatedRemainingMinutes: response.cleanbot.estimatedRemainingMinutes,
+        cleanedArea: response.cleanbot.cleanedArea,
+        cleaningMode: response.cleanbot.cleaningMode,
+        suctionLevel: response.cleanbot.suctionLevel,
+        currentRoom: response.cleanbot.currentRoom,
+        currentRoomId: response.cleanbot.currentRoomId,
+        cleanWaterTankStatus: response.cleanbot.cleanWaterTankStatus,
+        dirtyWaterTankStatus: response.cleanbot.dirtyWaterTankStatus,
+        dustBagStatus: response.cleanbot.dustBagStatus,
+        detergentStatus: response.cleanbot.detergentStatus,
+        lowWaterWarning: response.cleanbot.lowWaterWarning,
+        autoEmptyStatus: response.cleanbot.autoEmptyStatus,
+        drainageStatus: response.cleanbot.drainageStatus,
+        selfWashBaseStatus: response.cleanbot.selfWashBaseStatus,
+        maintenance: response.cleanbot.maintenance,
+        rooms: response.cleanbot.rooms
     )
     var car: CarDetails?
     if let fluxCar = response.car, let evStatus = response.carEvStatus {
@@ -421,8 +427,7 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
     let dryer = response.dryer
     let washer = response.washer
     return FluxData(
-        mopBot: mopBot,
-        broomBot: broomBot,
+        cleanBot: cleanBot,
         car: car,
         dishwasher: dishwasher,
         dryer: dryer,

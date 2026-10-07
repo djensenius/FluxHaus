@@ -31,7 +31,7 @@ Shortcuts app, and Apple Intelligence.
 
 Intent definitions live in `Shared/Intents/`:
 
-- **Robots** — start, stop, and deep clean (BroomBot & MopBot)
+- **Robots** — start, stop, and deep clean (Cleanbot)
 - **Car** — lock, unlock, start/stop climate (defrost, heated features, temperature), and resync
 - **Scenes** — activate a HomeKit scene (the scene list is provided dynamically)
 - **Status** — car, robot, dishwasher, and scooter status queries

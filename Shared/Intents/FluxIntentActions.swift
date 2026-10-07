@@ -145,15 +145,19 @@ enum FluxIntentActions {
     // MARK: - Robots
 
     static func startRobot(_ robot: RobotKind) async throws {
-        try await post(path: robot == .mopBot ? "/turnOnMopbot" : "/turnOnBroombot")
+        try await post(path: "/turnOnCleanbot")
     }
 
     static func stopRobot(_ robot: RobotKind) async throws {
-        try await post(path: robot == .mopBot ? "/turnOffMopbot" : "/turnOffBroombot")
+        try await post(path: "/turnOffCleanbot")
     }
 
     static func deepClean() async throws {
         try await post(path: "/turnOnDeepClean")
+    }
+
+    static func cleanRoom(_ room: CleanbotRoom) async throws {
+        try await post(path: "/cleanbot/rooms", body: ["rooms": [room.displayName]])
     }
 
     // MARK: - Car
@@ -183,15 +187,40 @@ enum FluxIntentActions {
     }
 }
 
-/// The two robots FluxHaus controls. Shared by the action layer and the robot App Intents.
+/// The robot FluxHaus controls. Shared by the action layer and the robot App Intents.
 enum RobotKind: String {
-    case broomBot
-    case mopBot
+    case cleanBot
+
+    var displayName: String { "Cleanbot" }
+}
+
+enum CleanbotRoom: String, CaseIterable, AppEnum {
+    case hallway
+    case kitchen
+    case bathroom
+    case livingRoom
+    case primaryBedroom
+    case office
+
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Room"
+
+    static let caseDisplayRepresentations: [CleanbotRoom: DisplayRepresentation] = [
+        .hallway: "Hallway",
+        .kitchen: "Kitchen",
+        .bathroom: "Bathroom",
+        .livingRoom: "Living Room",
+        .primaryBedroom: "Master Bedroom",
+        .office: "Office"
+    ]
 
     var displayName: String {
         switch self {
-        case .broomBot: return "BroomBot"
-        case .mopBot: return "MopBot"
+        case .hallway: return "Hallway"
+        case .kitchen: return "Kitchen"
+        case .bathroom: return "Bathroom"
+        case .livingRoom: return "Living Room"
+        case .primaryBedroom: return "Master Bedroom"
+        case .office: return "Office"
         }
     }
 }

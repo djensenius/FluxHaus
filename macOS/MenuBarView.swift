@@ -102,33 +102,14 @@ struct MenuBarView: View {
                 HStack {
                     Image(systemName: "robotic.vacuum.fill")
                         .foregroundColor(
-                            robots.broomBot.running == true
+                            robots.cleanBot.running == true
                                 ? Theme.Colors.accent
                                 : Theme.Colors.textSecondary
                         )
                         .frame(width: 16)
-                    Text("BroomBot").font(Theme.Fonts.bodySmall)
+                    Text("Cleanbot").font(Theme.Fonts.bodySmall)
                     Spacer()
-                    Text(robotShortStatus(robots.broomBot))
-                        .font(Theme.Fonts.caption)
-                        .foregroundColor(Theme.Colors.textSecondary)
-                }
-            })
-            menuRow(action: {
-                dismiss()
-                openAppToSection(.robots)
-            }, label: {
-                HStack {
-                    Image(systemName: "humidifier.and.droplets")
-                        .foregroundColor(
-                            robots.mopBot.running == true
-                                ? Theme.Colors.accent
-                                : Theme.Colors.textSecondary
-                        )
-                        .frame(width: 16)
-                    Text("MopBot").font(Theme.Fonts.bodySmall)
-                    Spacer()
-                    Text(robotShortStatus(robots.mopBot))
+                    Text(robotShortStatus(robots.cleanBot))
                         .font(Theme.Fonts.caption)
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
@@ -201,12 +182,12 @@ struct MenuBarView: View {
                 if robots != nil {
                     quickButton("Vacuum", icon: "robotic.vacuum") {
                         robots?.performAction(
-                            action: "start", robot: "broomBot"
+                            action: "start", robot: "cleanBot"
                         )
                     }
                     quickButton("Deep Clean", icon: "sparkles") {
                         robots?.performAction(
-                            action: "deepClean", robot: "broomBot"
+                            action: "deepClean", robot: "cleanBot"
                         )
                     }
                 }

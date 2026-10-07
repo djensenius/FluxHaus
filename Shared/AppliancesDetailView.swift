@@ -10,8 +10,7 @@ struct AppliancesDetailView: View {
     var apiResponse: Api
     var robots: Robots
     var airPurifier: AirPurifier
-    @State private var showBroomBotSheet = false
-    @State private var showMopBotSheet = false
+    @State private var showCleanbotSheet = false
     @State private var robotActionPending: String?
 
     var body: some View {
@@ -30,18 +29,14 @@ struct AppliancesDetailView: View {
                     washerCard(response: response)
                     dryerCard(response: response)
                 }
-                robotCard(robot: robots.broomBot)
-                robotCard(robot: robots.mopBot)
+                robotCard(robot: robots.cleanBot)
                 AirPurifierView(purifier: airPurifier)
                     .fluxDeviceAnnotation(.airPurifier)
             }
             .padding()
         }
-        .sheet(isPresented: $showBroomBotSheet) {
-            RobotDetailView(robot: robots.broomBot, robots: robots)
-        }
-        .sheet(isPresented: $showMopBotSheet) {
-            RobotDetailView(robot: robots.mopBot, robots: robots)
+        .sheet(isPresented: $showCleanbotSheet) {
+            RobotDetailView(robot: robots.cleanBot, robots: robots)
         }
         #if os(visionOS)
         .glassBackgroundEffect()
@@ -55,10 +50,10 @@ struct AppliancesDetailView: View {
         let isActive = robot.running == true || robot.paused == true
         let isPending = robotActionPending == robot.name
         applianceCard(
-            icon: robot.name == "MopBot" ? "humidifier.and.droplets" : "robotic.vacuum.fill",
+            icon: "robotic.vacuum.fill",
             name: robot.name ?? "Robot",
             iconColor: robotIconColor(robot),
-            animation: robot.name == "MopBot" ? .variableColor : nil,
+            animation: .variableColor,
             animationActive: isActive
         ) {
             VStack(alignment: .leading, spacing: 12) {
@@ -84,11 +79,7 @@ struct AppliancesDetailView: View {
                         .disabled(isPending)
                     }
                     Button {
-                        if robot.name == "BroomBot" {
-                            showBroomBotSheet = true
-                        } else {
-                            showMopBotSheet = true
-                        }
+                        showCleanbotSheet = true
                     } label: {
                         Label("More", systemImage: "ellipsis.circle")
                     }
@@ -99,7 +90,7 @@ struct AppliancesDetailView: View {
                     }
                 }
             }
-            .fluxDeviceAnnotation(robot.name == "MopBot" ? .mopBot : .broomBot)
+            .fluxDeviceAnnotation(.cleanBot)
         }
     }
 
@@ -112,6 +103,19 @@ struct AppliancesDetailView: View {
                 icon: robotStatusIcon(robot),
                 color: robotIconColor(robot)
             )
+            if let progress = robot.progressPercent {
+                detailRow(
+                    label: "Progress",
+                    value: "\(Int(progress.rounded()))%",
+                    icon: "gauge.with.dots.needle.67percent"
+                )
+            }
+            if let remaining = robot.estimatedRemainingMinutes, isActive {
+                detailRow(label: "Remaining", value: "~\(Int(remaining.rounded())) min", icon: "timer")
+            }
+            if let room = robot.currentRoom, isActive {
+                detailRow(label: "Room", value: room, icon: "house")
+            }
             if let battery = robot.batteryLevel {
                 detailRow(
                     label: "Battery",

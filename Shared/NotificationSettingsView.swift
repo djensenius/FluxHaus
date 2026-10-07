@@ -16,8 +16,7 @@ struct NotificationSettingsSection: View {
         ("Dishwasher", "dishwasher"),
         ("Washer", "washer"),
         ("Dryer", "dryer"),
-        ("BroomBot", "robotic.vacuum"),
-        ("MopBot", "humidifier.and.droplets")
+        ("Cleanbot", "robotic.vacuum.fill")
     ]
 
     private var activitiesEnabled: Bool {

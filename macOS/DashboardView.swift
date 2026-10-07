@@ -55,20 +55,14 @@ struct DashboardView: View {
 
     private var sortedDeviceCards: [DeviceCard] {
         var cards: [DeviceCard] = []
-        let broomActive = robots.broomBot.running == true || robots.broomBot.paused == true
+        let cleanbotActive = robots.cleanBot.running == true || robots.cleanBot.paused == true
         cards.append(DeviceCard(
-            id: "broomBot", isActive: broomActive, priority: broomActive ? 3 : 0,
+            id: "cleanBot", isActive: cleanbotActive, priority: cleanbotActive ? 3 : 0,
             view: AnyView(robotCard(
-                title: "BroomBot", robot: robots.broomBot, robotName: "broomBot",
-                icon: "robotic.vacuum.fill", animation: nil
+                title: "Cleanbot", robot: robots.cleanBot, robotName: "cleanBot",
+                icon: "robotic.vacuum.fill", animation: .variableColor
             ))
         ))
-        let mopActive = robots.mopBot.running == true || robots.mopBot.paused == true
-        let mopView = robotCard(
-            title: "MopBot", robot: robots.mopBot, robotName: "mopBot",
-            icon: "humidifier.and.droplets", animation: .variableColor
-        )
-        cards.append(DeviceCard(id: "mopBot", isActive: mopActive, priority: mopActive ? 3 : 0, view: AnyView(mopView)))
         for (idx, item) in allAppliances.enumerated() {
             cards.append(DeviceCard(
                 id: "appliance-\(idx)", isActive: item.appliance.inUse,
@@ -264,7 +258,7 @@ struct DashboardView: View {
                 Button(action: { robots.performAction(action: "dock", robot: robotName) }, label: {
                     Label("Dock", systemImage: "house.fill")
                 })
-                if robots.broomBot.running != true && robots.mopBot.running != true {
+                if robots.cleanBot.running != true {
                     Button(action: { robots.performAction(action: "deepClean", robot: robotName) }, label: {
                         Label("Deep Clean", systemImage: "sparkles")
                     })

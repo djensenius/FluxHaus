@@ -23,19 +23,8 @@ struct MockData {
         timestamp: "2024-12-13T12:00:00Z",
         favouriteHomeKit: ["Light 1", "Light 2"],
         favouriteScenes: ["Good Morning", "Bedtime"],
-        broombot: Robot(
-            name: "BroomBot",
-            timestamp: "2024-12-13T11:00:00Z",
-            batteryLevel: 85,
-            binFull: false,
-            running: false,
-            charging: true,
-            docking: false,
-            paused: false,
-            timeStarted: "2024-12-13T10:00:00Z"
-        ),
-        mopbot: Robot(
-            name: "MopBot",
+        cleanbot: Robot(
+            name: "Cleanbot",
             timestamp: "2024-12-13T11:00:00Z",
             batteryLevel: 90,
             binFull: false,

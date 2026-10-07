@@ -29,7 +29,7 @@ class FluxWidgetNetwork {
             switch device.name {
             case "Car", "Battery":
                 constantDevices.append(device)
-            case "MopBot", "BroomBot":
+            case "Cleanbot":
                 if device.running {
                     runningDevices.append(device)
                 } else {
@@ -86,19 +86,11 @@ struct Provider: AppIntentTimelineProvider {
             running: true
         ),
         WidgetDevice(
-            name: "BroomBot",
+            name: "Cleanbot",
             progress: 85,
-            icon: "robotic.vacuum",
+            icon: "robotic.vacuum.fill",
             trailingText: "85%",
             shortText: "On",
-            running: true
-        ),
-        WidgetDevice(
-            name: "MopBot",
-            progress: 96,
-            icon: "humidifier.and.droplets",
-            trailingText: "96%",
-            shortText: "Off",
             running: true
         ),
         WidgetDevice(
@@ -415,18 +407,10 @@ let staticList = [
         running: true
     ),
     WidgetDevice(
-        name: "BroomBot",
+        name: "Cleanbot",
         progress: 85,
-        icon: "robotic.vacuum",
+        icon: "robotic.vacuum.fill",
         trailingText: "85%",
-        shortText: "Off",
-        running: true
-    ),
-    WidgetDevice(
-        name: "MopBot",
-        progress: 96,
-        icon: "humidifier.and.droplets",
-        trailingText: "96%",
         shortText: "On",
         running: true
     ),

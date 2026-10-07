@@ -254,14 +254,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         guard let response = latestResponse else { return nil }
         let items = [
             CPListItem(
-                text: "BroomBot",
-                detailText: robotStatusText(response.broombot),
-                image: UIImage(systemName: "robotic.vacuum")
-            ),
-            CPListItem(
-                text: "MopBot",
-                detailText: robotStatusText(response.mopbot),
-                image: UIImage(systemName: "humidifier.and.droplets")
+                text: "Cleanbot",
+                detailText: robotStatusText(response.cleanbot),
+                image: UIImage(systemName: "robotic.vacuum.fill")
             )
         ]
         return CPListSection(items: items, header: "Robots", sectionIndexTitle: nil)

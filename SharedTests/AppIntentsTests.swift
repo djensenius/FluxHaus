@@ -85,14 +85,14 @@ struct AppIntentsTests {
 
     @Test("RobotChoice maps to the matching RobotKind")
     func robotChoiceMapsToKind() {
-        #expect(RobotChoice.broomBot.kind == .broomBot)
-        #expect(RobotChoice.mopBot.kind == .mopBot)
+        #expect(RobotChoice.cleanBot.kind == .cleanBot)
+        #expect(RobotChoice.cleanBot.kind == .cleanBot)
     }
 
     @Test("RobotKind exposes the expected display names")
     func robotKindDisplayNames() {
-        #expect(RobotKind.broomBot.displayName == "BroomBot")
-        #expect(RobotKind.mopBot.displayName == "MopBot")
+        #expect(RobotKind.cleanBot.displayName == "Cleanbot")
+        #expect(RobotKind.cleanBot.displayName == "Cleanbot")
     }
 
     @Test("SceneAppEntity is built from a HomeScene")

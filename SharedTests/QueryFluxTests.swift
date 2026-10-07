@@ -13,8 +13,8 @@ struct QueryFluxTests {
 
     @Test("FluxData model can be created with all properties")
     func testFluxDataModel() {
-        let mopBot = Robot(
-            name: "MopBot",
+        let cleanBot = Robot(
+            name: "Cleanbot",
             timestamp: "2024-12-01T12:00:00Z",
             batteryLevel: 85,
             binFull: false,
@@ -23,18 +23,6 @@ struct QueryFluxTests {
             docking: false,
             paused: false,
             timeStarted: "2024-12-01T11:30:00Z"
-        )
-
-        let broomBot = Robot(
-            name: "BroomBot",
-            timestamp: "2024-12-01T12:00:00Z",
-            batteryLevel: 92,
-            binFull: false,
-            running: false,
-            charging: true,
-            docking: true,
-            paused: false,
-            timeStarted: nil
         )
 
         let car = CarDetails(
@@ -90,16 +78,14 @@ struct QueryFluxTests {
         )
 
         let fluxData = FluxData(
-            mopBot: mopBot,
-            broomBot: broomBot,
+            cleanBot: cleanBot,
             car: car,
             dishwasher: dishwasher,
             dryer: dryer,
             washer: washer
         )
 
-        #expect(fluxData.mopBot?.name == "MopBot")
-        #expect(fluxData.broomBot?.name == "BroomBot")
+        #expect(fluxData.cleanBot?.name == "Cleanbot")
         #expect(fluxData.car?.batteryLevel == 75)
         #expect(fluxData.dishwasher?.operationState == .run)
         #expect(fluxData.dryer?.inUse == false)
