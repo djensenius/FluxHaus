@@ -230,7 +230,7 @@ struct ContentView: View {
     }
 
     private var scooterTab: some View {
-        ScooterDetailView(scooter: scooter)
+        ScooterDetailView(scooter: scooter, embedsInNavigationStack: false)
     }
 
     private var scenesTab: some View {
@@ -272,9 +272,7 @@ struct ContentView: View {
     }
 
     private var settingsTab: some View {
-        NavigationStack {
-            SettingsView()
-        }
+        SettingsView()
     }
 
 }

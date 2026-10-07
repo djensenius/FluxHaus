@@ -12,8 +12,10 @@ import CoreLocation
 
 struct CarDetailView: View {
     @Environment(\.presentationMode) var presentationMode
+    #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    #endif
     var car: Car
     var locationManager: LocationManager
     var showsDismissButton = false
