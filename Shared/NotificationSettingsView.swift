@@ -40,6 +40,7 @@ struct NotificationSettingsSection: View {
                         .foregroundStyle(.yellow)
                 }
             }
+            .listRowBackground(Theme.Colors.secondaryBackground)
         }
 
         Section {
@@ -55,6 +56,7 @@ struct NotificationSettingsSection: View {
         } footer: {
             Text("Choose which devices appear in Live Activities and which finish alerts are sent.")
         }
+        .listRowBackground(Theme.Colors.secondaryBackground)
     }
 
     private func binding(for name: String) -> Binding<Bool> {
@@ -90,6 +92,7 @@ struct SettingsView: View {
                     Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                 }
             }
+            .listRowBackground(Theme.Colors.secondaryBackground)
 
             Section {
                 Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
@@ -103,8 +106,8 @@ struct SettingsView: View {
             } header: {
                 Text("About")
             }
+            .listRowBackground(Theme.Colors.secondaryBackground)
         }
-        .listRowBackground(Theme.Colors.secondaryBackground)
         .scrollContentBackground(.hidden)
         .background(Theme.Colors.background)
         .navigationTitle("Settings")
