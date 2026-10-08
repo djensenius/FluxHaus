@@ -15,7 +15,20 @@ struct RobotDetailView: View {
     #endif
     var robot: Robot
     var robots: Robots
+    var embedsInNavigationStack: Bool = true
     @State private var buttonsDisabled: Bool = false
+
+    private struct DetailRow: Identifiable {
+        let label: String
+        let value: String
+        let icon: String
+
+        var id: String { label }
+    }
+
+    private var isCleaning: Bool {
+        robot.running == true || robot.paused == true
+    }
 
     private var usesTabletopControlBase: Bool {
         #if os(iOS)
@@ -29,114 +42,23 @@ struct RobotDetailView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    #if !os(macOS)
-                    // Header
-                    HStack {
-                        Image(systemName: "robotic.vacuum.fill")
-                            .deviceSymbolAnimation(
-                                .variableColor,
-                                isActive: robot.running == true || robot.paused == true
-                            )
-                        Text(robot.name ?? "Cleanbot")
-                    }
-                    .font(Theme.Fonts.headerXL())
-                    .foregroundColor(Theme.Colors.textPrimary)
-                    .padding(.top)
-                    #endif
-
-                    // Status Card
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Status")
-                            .font(Theme.Fonts.headerLarge())
-                            .foregroundColor(Theme.Colors.textPrimary)
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Battery: \(robot.batteryLevel ?? 0)%")
-                                .font(Theme.Fonts.bodyLarge)
-                                .foregroundColor(Theme.Colors.textPrimary)
-
-                            if robot.charging == true && robot.batteryLevel ?? 0 < 100 {
-                                Label("Charging", systemImage: "bolt.fill")
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(Theme.Colors.success)
-                            } else if robot.running == true {
-                                let startedTime = relativeTimeString(
-                                    from: robot.timeStarted ?? robot.timestamp
-                                )
-                                Label(
-                                    "Cleaning started \(startedTime)",
-                                    systemImage: "fan.fill"
-                                )
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(Theme.Colors.accent)
-                            } else if robot.docking == true {
-                                Label("Docking", systemImage: "house.fill")
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(Theme.Colors.textSecondary)
-                            } else if robot.paused == true {
-                                Label("Paused", systemImage: "pause.circle.fill")
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(Theme.Colors.warning)
-                            } else {
-                                Label("Idle", systemImage: "zzz")
-                                    .font(Theme.Fonts.bodyMedium)
-                                    .foregroundColor(Theme.Colors.textSecondary)
+        Group {
+            if embedsInNavigationStack {
+                NavigationStack {
+                    detailContent
+                        #if !os(macOS)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Dismiss") {
+                                    self.presentationMode.wrappedValue.dismiss()
+                                }
                             }
-
-                            Text("Data Updated \(relativeTimeString(from: robot.timestamp))")
-                                .font(Theme.Fonts.caption)
-                                .foregroundColor(Theme.Colors.textSecondary)
                         }
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    #if !os(visionOS)
-                    .background(Theme.Colors.secondaryBackground)
-                    #endif
-                    .cornerRadius(12)
-
-                    cleanStatsCard
-                    baseStationCard
-                    maintenanceCard
-                    roomCleaningCard
-
-                    if !usesTabletopControlBase {
-                        robotControlsCard
-                    }
-
-                    if self.buttonsDisabled {
-                        VStack {
-                            Text("It takes about 30 seconds for requests to finish, feel free to dismiss this window.")
-                                .font(Theme.Fonts.caption)
-                                .foregroundColor(Theme.Colors.textSecondary)
-                                .multilineTextAlignment(.center)
-                                .padding()
-                            ProgressView()
-                        }
-                    }
+                        #endif
                 }
-                .padding()
+            } else {
+                detailContent
             }
-            .safeAreaInset(edge: .bottom) {
-                if usesTabletopControlBase {
-                    robotControlsCard
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        .background(.bar)
-                }
-            }
-            #if !os(macOS)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Dismiss") {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
-                }
-            }
-            #endif
         }
         #if os(visionOS)
         .glassBackgroundEffect()
@@ -146,9 +68,115 @@ struct RobotDetailView: View {
         .fluxDeviceAnnotation(.cleanBot)
     }
 
+    private var detailContent: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if !os(macOS)
+                if embedsInNavigationStack {
+                    // Header
+                    HStack {
+                        Image(systemName: "robotic.vacuum.fill")
+                            .deviceSymbolAnimation(
+                                .variableColor,
+                                isActive: isCleaning
+                            )
+                        Text(robot.name ?? "Cleanbot")
+                    }
+                    .font(Theme.Fonts.headerXL())
+                    .foregroundColor(Theme.Colors.textPrimary)
+                    .padding(.top)
+                }
+                #endif
+
+                // Status Card
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Status")
+                        .font(Theme.Fonts.headerLarge())
+                        .foregroundColor(Theme.Colors.textPrimary)
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Battery: \(robot.batteryLevel ?? 0)%")
+                            .font(Theme.Fonts.bodyLarge)
+                            .foregroundColor(Theme.Colors.textPrimary)
+
+                        if robot.charging == true && robot.batteryLevel ?? 0 < 100 {
+                            Label("Charging", systemImage: "bolt.fill")
+                                .font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.success)
+                        } else if robot.running == true {
+                            let startedTime = relativeTimeString(
+                                from: robot.timeStarted ?? robot.timestamp
+                            )
+                            Label(
+                                "Cleaning started \(startedTime)",
+                                systemImage: "fan.fill"
+                            )
+                                .font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.accent)
+                        } else if robot.docking == true {
+                            Label("Docking", systemImage: "house.fill")
+                                .font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        } else if robot.paused == true {
+                            Label("Paused", systemImage: "pause.circle.fill")
+                                .font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.warning)
+                        } else {
+                            Label("Idle", systemImage: "zzz")
+                                .font(Theme.Fonts.bodyMedium)
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+
+                        Text("Data Updated \(relativeTimeString(from: robot.timestamp))")
+                            .font(Theme.Fonts.caption)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                #if !os(visionOS)
+                .background(Theme.Colors.secondaryBackground)
+                #endif
+                .cornerRadius(12)
+
+                cleanStatsCard
+                baseStationCard
+                maintenanceCard
+                roomCleaningCard
+
+                if !usesTabletopControlBase {
+                    robotControlsCard
+                }
+
+                if self.buttonsDisabled {
+                    VStack {
+                        Text("It takes about 30 seconds for requests to finish, feel free to dismiss this window.")
+                            .font(Theme.Fonts.caption)
+                            .foregroundColor(Theme.Colors.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                        ProgressView()
+                    }
+                }
+            }
+            .padding()
+        }
+        .safeAreaInset(edge: .bottom) {
+            if usesTabletopControlBase {
+                robotControlsCard
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .background(.bar)
+            }
+        }
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.large)
+        #endif
+    }
+
     private var cleanStatsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Current Clean")
+            Text(isCleaning ? "Current Clean" : "Last Clean")
                 .font(Theme.Fonts.headerLarge())
                 .foregroundColor(Theme.Colors.textPrimary)
             if let progress = robot.progressPercent {
@@ -165,7 +193,7 @@ struct RobotDetailView: View {
                 detailLine("Cleaned", "\(Int(area.rounded())) m²", icon: "ruler")
             }
             if let room = robot.currentRoom {
-                detailLine("Current Room", room, icon: "house")
+                detailLine(isCleaning ? "Current Room" : "Last Room", room, icon: "house")
             }
             if let mode = robot.cleaningMode {
                 detailLine("Mode", mode.capitalized, icon: "sparkles")
@@ -187,14 +215,9 @@ struct RobotDetailView: View {
             Text("Base Station")
                 .font(Theme.Fonts.headerLarge())
                 .foregroundColor(Theme.Colors.textPrimary)
-            detailLine("Clean Water", displayStatus(robot.cleanWaterTankStatus), icon: "drop.fill")
-            detailLine("Dirty Water", displayStatus(robot.dirtyWaterTankStatus), icon: "drop.triangle.fill")
-            detailLine("Dust Bag", displayStatus(robot.dustBagStatus), icon: "trash.fill")
-            detailLine("Detergent", displayStatus(robot.detergentStatus), icon: "drop")
-            detailLine("Low Water", displayStatus(robot.lowWaterWarning), icon: "exclamationmark.triangle")
-            detailLine("Auto Empty", displayStatus(robot.autoEmptyStatus), icon: "trash")
-            detailLine("Drainage", displayStatus(robot.drainageStatus), icon: "water.waves")
-            detailLine("Self-Wash Base", displayStatus(robot.selfWashBaseStatus), icon: "water.waves")
+            ForEach(baseStationRows) { row in
+                detailLine(row.label, row.value, icon: row.icon)
+            }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -260,6 +283,47 @@ struct RobotDetailView: View {
         .cornerRadius(12)
     }
 
+    private var baseStationRows: [DetailRow] {
+        let supplies = [
+            DetailRow(label: "Clean Water", value: displayStatus(robot.cleanWaterTankStatus), icon: "drop.fill"),
+            DetailRow(
+                label: "Dirty Water",
+                value: displayStatus(robot.dirtyWaterTankStatus),
+                icon: "drop.triangle.fill"
+            ),
+            DetailRow(label: "Dust Bag", value: displayStatus(robot.dustBagStatus), icon: "trash.fill"),
+            DetailRow(label: "Detergent", value: displayStatus(robot.detergentStatus), icon: "drop")
+        ]
+        let supplyProblems = supplies.filter { !isReadySupply($0.value) }
+
+        let dockTasks = [
+            DetailRow(label: "Auto Empty", value: displayStatus(robot.autoEmptyStatus), icon: "trash"),
+            DetailRow(label: "Drainage", value: displayStatus(robot.drainageStatus), icon: "water.waves"),
+            DetailRow(label: "Self-Wash Base", value: displayStatus(robot.selfWashBaseStatus), icon: "water.waves")
+        ]
+        let activeDockTasks = dockTasks.filter { !isIdleTask($0.value) }
+
+        var rows: [DetailRow] = []
+        rows.append(
+            contentsOf: supplyProblems.isEmpty
+                ? [DetailRow(label: "Supplies", value: "Ready", icon: "checkmark.circle")]
+                : supplyProblems
+        )
+
+        let lowWater = displayStatus(robot.lowWaterWarning)
+        if !isNoWarning(lowWater) {
+            rows.append(DetailRow(label: "Low Water", value: lowWater, icon: "exclamationmark.triangle"))
+        }
+
+        rows.append(
+            contentsOf: activeDockTasks.isEmpty
+                ? [DetailRow(label: "Dock Tasks", value: "Ready", icon: "checkmark.circle")]
+                : activeDockTasks
+        )
+
+        return rows
+    }
+
     @ViewBuilder
     private func detailLine(_ label: String, _ value: String, icon: String) -> some View {
         HStack {
@@ -275,6 +339,22 @@ struct RobotDetailView: View {
     private func displayStatus(_ value: String?) -> String {
         guard let value, !value.isEmpty else { return "—" }
         return value.replacingOccurrences(of: "_", with: " ").capitalized
+    }
+
+    private func normalizedStatus(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private func isReadySupply(_ value: String) -> Bool {
+        ["installed", "ok", "normal", "ready", "present"].contains(normalizedStatus(value))
+    }
+
+    private func isNoWarning(_ value: String) -> Bool {
+        ["no warning", "none", "ok", "normal", "false"].contains(normalizedStatus(value))
+    }
+
+    private func isIdleTask(_ value: String) -> Bool {
+        ["idle", "standby", "ready", "none", "ok", "normal"].contains(normalizedStatus(value))
     }
 
     private func percentText(_ value: Double?) -> String {

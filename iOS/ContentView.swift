@@ -68,7 +68,7 @@ struct ContentView: View {
     }
 
     private var moreDestinationValues: Set<String> {
-        ["scooter", "robots", "appliances", "scenes", "metrics", "settings"]
+        ["scooter", "cleanbot", "robots", "appliances", "scenes", "metrics", "settings"]
     }
 
     private func handleNavigationRequest(_ requestedSection: String) {
@@ -82,7 +82,7 @@ struct ContentView: View {
             }
         } else if moreDestinationValues.contains(section) {
             selectedTab = "more"
-            morePath = [section]
+            morePath = [section == "robots" ? "cleanbot" : section]
         }
     }
 
@@ -97,13 +97,14 @@ struct ContentView: View {
                             Image.flippedScooter
                         }
                     }
-                    NavigationLink(value: "robots") {
-                        Label("Robots", systemImage: "robotic.vacuum.fill")
+                    NavigationLink(value: "cleanbot") {
+                        Label("Cleanbot", systemImage: "robotic.vacuum.fill")
                     }
                     NavigationLink(value: "appliances") {
                         Label("Appliances", systemImage: "washer.fill")
                     }
                 }
+                .listRowBackground(Theme.Colors.secondaryBackground)
 
                 Section("Home") {
                     NavigationLink(value: "scenes") {
@@ -116,7 +117,9 @@ struct ContentView: View {
                         Label("Settings", systemImage: "gearshape")
                     }
                 }
+                .listRowBackground(Theme.Colors.secondaryBackground)
             }
+            .listStyle(.insetGrouped)
             .navigationDestination(for: String.self) { destination in
                 moreDestination(for: destination)
             }
@@ -132,8 +135,9 @@ struct ContentView: View {
         switch destination {
         case "scooter":
             scooterTab
-        case "robots":
-            robotsTab
+        case "cleanbot", "robots":
+            RobotDetailView(robot: robots.cleanBot, robots: robots, embedsInNavigationStack: false)
+                .navigationTitle("Cleanbot")
         case "appliances":
             appliancesTab
         case "scenes":

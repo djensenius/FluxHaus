@@ -99,8 +99,8 @@ public struct Theme {
         // Background Colors
         public static let background = dynamicColor(light: CatppuccinLatte.base, dark: CatppuccinMocha.base)
         public static let secondaryBackground = dynamicColor(
-            light: CatppuccinLatte.mantle,
-            dark: CatppuccinMocha.mantle
+            light: CatppuccinLatte.surface0,
+            dark: CatppuccinMocha.surface0
         )
 
         // Text Colors
