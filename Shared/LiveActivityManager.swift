@@ -59,7 +59,7 @@ class LiveActivityManager {
     }
 
     /// User's subscription preferences (which device types to show)
-    var subscribedDeviceTypes: Set<String> = Set(["Dishwasher", "Washer", "Dryer", "BroomBot", "MopBot"]) {
+    var subscribedDeviceTypes: Set<String> = Set(["Dishwasher", "Washer", "Dryer", "Cleanbot"]) {
         didSet { saveSubscriptionPreferences() }
     }
 
@@ -176,7 +176,7 @@ class LiveActivityManager {
 
     /// Fetch broadcast channel IDs from the server for all device types.
     private func fetchChannelIds() async {
-        let types = ["dishwasher", "washer", "dryer", "broombot", "mopbot", "consolidated"]
+        let types = ["dishwasher", "washer", "dryer", "cleanbot", "consolidated"]
         for type in types {
             if let channelId = await fetchChannelId(for: type) {
                 channelIds[type] = channelId
@@ -379,7 +379,13 @@ class LiveActivityManager {
 
     private func loadSubscriptionPreferences() {
         if let saved = UserDefaults.standard.stringArray(forKey: "liveActivitySubscriptions") {
-            subscribedDeviceTypes = Set(saved)
+            var migrated = Set(saved)
+            let hadBroomBot = migrated.remove("BroomBot") != nil
+            let hadMopBot = migrated.remove("MopBot") != nil
+            if hadBroomBot || hadMopBot {
+                migrated.insert("Cleanbot")
+            }
+            subscribedDeviceTypes = migrated
         }
     }
 

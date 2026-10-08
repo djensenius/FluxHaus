@@ -12,10 +12,8 @@ extension Appliances {
         switch type {
         case "Miele":
             return getApplianceIconColor(appliances: miele.appliances, index: index)
-        case "MopBot":
-            return getRobotIconColor(robot: robots.mopBot)
-        case "BroomBot":
-            return getRobotIconColor(robot: robots.broomBot)
+        case "Cleanbot":
+            return getRobotIconColor(robot: robots.cleanBot)
         case "AirPurifier":
             return airPurifier.status.online && airPurifier.status.fanOn
                 ? Theme.Colors.accent : Theme.Colors.textSecondary
@@ -73,11 +71,9 @@ extension Appliances {
     @ViewBuilder
     func getIcon(type: String, index: Int) -> some View {
         switch type {
-        case "MopBot":
-            Image(systemName: "humidifier.and.droplets")
-                .deviceSymbolAnimation(.variableColor, isActive: robotIsActive(robots.mopBot))
-        case "BroomBot":
+        case "Cleanbot":
             Image(systemName: "robotic.vacuum.fill")
+                .deviceSymbolAnimation(.variableColor, isActive: robotIsActive(robots.cleanBot))
         case "AirPurifier":
             Image(systemName: "air.purifier")
         case "Battery":
@@ -111,10 +107,8 @@ extension Appliances {
         var tAppliance: [Appliance]
         if type == "Miele" {
             tAppliance = miele.appliances
-        } else if type == "MopBot" {
-            return "MopBot"
-        } else if type == "BroomBot" {
-            return "BroomBot"
+        } else if type == "Cleanbot" {
+            return "Cleanbot"
         } else if type == "AirPurifier" {
             return "Air Purifier"
         } else if type == "Battery" {
@@ -167,10 +161,8 @@ extension Appliances {
         var tAppliance: [Appliance]
         if type == "Miele" {
             tAppliance = miele.appliances
-        } else if type == "MopBot" {
-           return getMopBotText()
-        } else if type == "BroomBot" {
-           return getBroomBotText()
+        } else if type == "Cleanbot" {
+           return getCleanbotText()
         } else if type == "AirPurifier" {
            return getAirPurifierText()
         } else if type == "Battery" {
@@ -194,26 +186,14 @@ extension Appliances {
         return ""
     }
 
-    func getMopBotText() -> String {
+    func getCleanbotText() -> String {
         var text = ""
-        if robots.mopBot.running == true && robots.mopBot.timeStarted != nil {
-            text = "Started at \(clockTimeString(from: robots.mopBot.timeStarted!)) "
+        if robots.cleanBot.running == true && robots.cleanBot.timeStarted != nil {
+            text = "Started at \(clockTimeString(from: robots.cleanBot.timeStarted!)) "
         }
-        if robots.mopBot.batteryLevel != nil && robots.mopBot.batteryLevel! < 100 {
-            text += robots.mopBot.charging! ?
-                "Charging (\(robots.mopBot.batteryLevel!)%)" : "Battery (\(robots.mopBot.batteryLevel!)%)"
-        }
-        return text
-    }
-
-    func getBroomBotText() -> String {
-        var text = ""
-        if robots.broomBot.running == true && robots.broomBot.timeStarted != nil {
-            text = "Started at \(clockTimeString(from: robots.broomBot.timeStarted!)) "
-        }
-        if robots.broomBot.batteryLevel != nil && robots.broomBot.batteryLevel! < 100 {
-            text += robots.broomBot.charging! ?
-                "Charging (\(robots.broomBot.batteryLevel!)%)" : "Battery (\(robots.broomBot.batteryLevel!)%)"
+        if let batteryLevel = robots.cleanBot.batteryLevel, batteryLevel < 100 {
+            text += robots.cleanBot.charging == true
+                ? "Charging (\(batteryLevel)%)" : "Battery (\(batteryLevel)%)"
         }
         return text
     }
@@ -242,10 +222,8 @@ extension Appliances {
         var tAppliance: [Appliance]
         if type == "Miele" {
             tAppliance = miele.appliances
-        } else if type == "MopBot" {
-            return robotStatus(robots.mopBot)
-        } else if type == "BroomBot" {
-            return robotStatus(robots.broomBot)
+        } else if type == "Cleanbot" {
+            return robotStatus(robots.cleanBot)
         } else if type == "AirPurifier" {
             if !airPurifier.status.online { return "Off" }
             return airPurifier.status.fanOn ? "On" : "Off"

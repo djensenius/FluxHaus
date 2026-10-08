@@ -20,8 +20,7 @@ import os
 /// The fixed set of FluxHaus devices that can be queried by name.
 enum DeviceKind: String, CaseIterable, Sendable {
     case car
-    case broomBot
-    case mopBot
+    case cleanBot
     case dishwasher
     case washer
     case dryer
@@ -31,8 +30,7 @@ enum DeviceKind: String, CaseIterable, Sendable {
     var displayName: String {
         switch self {
         case .car: return "Car"
-        case .broomBot: return "BroomBot"
-        case .mopBot: return "MopBot"
+        case .cleanBot: return "Cleanbot"
         case .dishwasher: return "Dishwasher"
         case .washer: return "Washer"
         case .dryer: return "Dryer"
@@ -44,8 +42,7 @@ enum DeviceKind: String, CaseIterable, Sendable {
     var symbolName: String {
         switch self {
         case .car: return "car.fill"
-        case .broomBot: return "robotic.vacuum.cleaner"
-        case .mopBot: return "robotic.vacuum.cleaner.fill"
+        case .cleanBot: return "robotic.vacuum.cleaner.fill"
         case .dishwasher: return "dishwasher.fill"
         case .washer: return "washer.fill"
         case .dryer: return "dryer.fill"
@@ -57,8 +54,7 @@ enum DeviceKind: String, CaseIterable, Sendable {
     var searchTerms: [String] {
         switch self {
         case .car: return ["car", "vehicle", "electric car", "ev"]
-        case .broomBot: return ["broombot", "broom bot", "robot vacuum", "vacuum"]
-        case .mopBot: return ["mopbot", "mop bot", "robot mop", "mop"]
+        case .cleanBot: return ["cleanbot", "mova", "v70", "robot vacuum", "robot mop", "vacuum", "mop"]
         case .dishwasher: return ["dishwasher", "dish washer"]
         case .washer: return ["washer", "washing machine", "laundry washer"]
         case .dryer: return ["dryer", "tumble dryer", "laundry dryer"]
@@ -84,8 +80,7 @@ enum DeviceKind: String, CaseIterable, Sendable {
     func status(from response: LoginResponse) -> String {
         switch self {
         case .car: return FluxStatusText.car(response)
-        case .broomBot: return FluxStatusText.robot(response.broombot)
-        case .mopBot: return FluxStatusText.robot(response.mopbot)
+        case .cleanBot: return FluxStatusText.robot(response.cleanbot)
         case .dishwasher: return FluxStatusText.dishwasher(response)
         case .washer: return FluxStatusText.washer(response)
         case .dryer: return FluxStatusText.dryer(response)
@@ -125,8 +120,18 @@ struct DeviceAppEntity: IndexedEntity {
     }
 
     init?(id: String) {
-        guard let kind = DeviceKind(rawValue: id) else { return nil }
-        self.id = kind.rawValue
+        let normalizedId: String
+        let outputId: String
+        switch id {
+        case "broomBot", "mopBot":
+            normalizedId = DeviceKind.cleanBot.rawValue
+            outputId = id
+        default:
+            normalizedId = id
+            outputId = id
+        }
+        guard let kind = DeviceKind(rawValue: normalizedId) else { return nil }
+        self.id = outputId
         self.kind = kind
         self.name = kind.displayName
         self.searchableAliases = kind.searchTerms.joined(separator: "\n")
@@ -146,11 +151,16 @@ enum FluxSpotlightIndexes {
     }
 }
 
+func removeLegacyDeviceIndexEntries() async throws {
+    try await FluxSpotlightIndexes.devices.deleteSearchableItems(withIdentifiers: ["broomBot", "mopBot"])
+}
+
 /// Adds every FluxHaus device to the Spotlight index so it's searchable and so
 /// Siri / Apple Intelligence can resolve it as a parameter.
 func indexDevices() async {
     let entities = DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
     do {
+        try await removeLegacyDeviceIndexEntries()
         try await FluxSpotlightIndexes.devices.indexAppEntities(entities)
     } catch {
         let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "DeviceIndex")
@@ -202,6 +212,7 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
     }
 
     func reindexAllEntities(indexDescription _: CSSearchableIndexDescription) async throws {
+        try await removeLegacyDeviceIndexEntries()
         try await FluxSpotlightIndexes.devices.indexAppEntities(
             DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
         )

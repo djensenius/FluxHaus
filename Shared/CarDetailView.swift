@@ -12,26 +12,11 @@ import CoreLocation
 
 struct CarDetailView: View {
     @Environment(\.presentationMode) var presentationMode
-    #if os(iOS)
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-    #endif
     var car: Car
     var locationManager: LocationManager
     var showsDismissButton = false
     @State private var buttonsDisabled: Bool = false
     @State var apiResponse: Api?
-
-    private var usesTabletopControlBase: Bool {
-        #if os(iOS)
-        AdaptiveLayout.usesTabletopControlBase(
-            horizontalSizeClass: horizontalSizeClass,
-            verticalSizeClass: verticalSizeClass
-        )
-        #else
-        false
-        #endif
-    }
 
     var body: some View {
         NavigationStack {
@@ -140,9 +125,7 @@ struct CarDetailView: View {
 
                     CarAnalyticsLink()
 
-                    if !usesTabletopControlBase {
-                        carControlsCard
-                    }
+                    carControlsCard
 
                     if self.buttonsDisabled {
                         HStack {
@@ -157,14 +140,6 @@ struct CarDetailView: View {
                 .padding()
             }
             .background(Theme.Colors.background)
-            .safeAreaInset(edge: .bottom) {
-                if usesTabletopControlBase {
-                    carControlsCard
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        .background(.bar)
-                }
-            }
             #if !os(macOS)
             .toolbar {
                 if showsDismissButton {

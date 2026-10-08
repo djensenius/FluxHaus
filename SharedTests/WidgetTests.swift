@@ -16,10 +16,8 @@ struct WidgetTests {
         // Create test devices
         let car = WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false)
         let battery = WidgetDevice(name: "Battery", battery: 85, status: "Charging", running: false)
-        let mopBotRunning = WidgetDevice(name: "MopBot", battery: 65, status: "Cleaning", running: true)
-        let mopBotOff = WidgetDevice(name: "MopBot", battery: 85, status: "Docked", running: false)
-        let broomBotRunning = WidgetDevice(name: "BroomBot", battery: 70, status: "Cleaning", running: true)
-        let broomBotOff = WidgetDevice(name: "BroomBot", battery: 90, status: "Charging", running: false)
+        let cleanBotRunning = WidgetDevice(name: "Cleanbot", battery: 65, status: "Cleaning", running: true)
+        let cleanBotOff = WidgetDevice(name: "Cleanbot", battery: 85, status: "Docked", running: false)
         let dishwasherRunning = WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true)
         let dishwasherOff = WidgetDevice(name: "Dishwasher", battery: 0, status: "Ready", running: false)
 
@@ -30,10 +28,8 @@ struct WidgetTests {
         #expect(!battery.running)
 
         // Test robot devices
-        #expect(mopBotRunning.running == true)
-        #expect(mopBotOff.running == false)
-        #expect(broomBotRunning.running == true)
-        #expect(broomBotOff.running == false)
+        #expect(cleanBotRunning.running == true)
+        #expect(cleanBotOff.running == false)
 
         // Test appliance devices
         #expect(dishwasherRunning.running == true)
@@ -47,21 +43,21 @@ struct WidgetTests {
 
         let devices = [
             WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false),
-            WidgetDevice(name: "MopBot", battery: 65, status: "Cleaning", running: true),
-            WidgetDevice(name: "BroomBot", battery: 90, status: "Charging", running: false),
+            WidgetDevice(name: "Cleanbot", battery: 65, status: "Cleaning", running: true),
+            WidgetDevice(name: "Cleanbot", battery: 90, status: "Charging", running: false),
             WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true),
             WidgetDevice(name: "Battery", battery: 85, status: "Charging", running: false)
         ]
 
         // Sort devices into categories like the widget would
         let constantDevices = devices.filter { $0.name == "Car" || $0.name == "Battery" }
-        let runningRobots = devices.filter { ($0.name == "MopBot" || $0.name == "BroomBot") && $0.running }
-        let offRobots = devices.filter { ($0.name == "MopBot" || $0.name == "BroomBot") && !$0.running }
+        let runningRobots = devices.filter { $0.name == "Cleanbot" && $0.running }
+        let offRobots = devices.filter { $0.name == "Cleanbot" && !$0.running }
         let runningAppliances = devices.filter {
-            $0.name != "Car" && $0.name != "Battery" && $0.name != "MopBot" && $0.name != "BroomBot" && $0.running
+            $0.name != "Car" && $0.name != "Battery" && $0.name != "Cleanbot" && $0.running
         }
         let offAppliances = devices.filter {
-            $0.name != "Car" && $0.name != "Battery" && $0.name != "MopBot" && $0.name != "BroomBot" && !$0.running
+            $0.name != "Car" && $0.name != "Battery" && $0.name != "Cleanbot" && !$0.running
         }
 
         #expect(constantDevices.count == 2)
@@ -72,16 +68,16 @@ struct WidgetTests {
 
         #expect(constantDevices.contains { $0.name == "Car" })
         #expect(constantDevices.contains { $0.name == "Battery" })
-        #expect(runningRobots.first?.name == "MopBot")
-        #expect(offRobots.first?.name == "BroomBot")
+        #expect(runningRobots.first?.name == "Cleanbot")
+        #expect(offRobots.first?.name == "Cleanbot")
         #expect(runningAppliances.first?.name == "Dishwasher")
     }
 
     @Test("WidgetDevice battery level handling works correctly")
     func testWidgetDeviceBatteryLevels() {
-        let deviceWithBattery = WidgetDevice(name: "MopBot", battery: 85, status: "Charging", running: false)
+        let deviceWithBattery = WidgetDevice(name: "Cleanbot", battery: 85, status: "Charging", running: false)
         let deviceWithoutBattery = WidgetDevice(name: "Dishwasher", battery: 0, status: "Ready", running: false)
-        let deviceWithLowBattery = WidgetDevice(name: "BroomBot", battery: 15, status: "Low Battery", running: false)
+        let deviceWithLowBattery = WidgetDevice(name: "Cleanbot", battery: 15, status: "Low Battery", running: false)
 
         #expect(deviceWithBattery.battery == 85)
         #expect(deviceWithoutBattery.battery == 0)
@@ -95,8 +91,8 @@ struct WidgetTests {
 
     @Test("WidgetDevice status strings are meaningful")
     func testWidgetDeviceStatusStrings() {
-        let runningBot = WidgetDevice(name: "MopBot", battery: 70, status: "Cleaning", running: true)
-        let chargingBot = WidgetDevice(name: "BroomBot", battery: 95, status: "Charging", running: false)
+        let runningBot = WidgetDevice(name: "Cleanbot", battery: 70, status: "Cleaning", running: true)
+        let chargingBot = WidgetDevice(name: "Cleanbot", battery: 95, status: "Charging", running: false)
         let runningAppliance = WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true)
         let readyAppliance = WidgetDevice(name: "Dryer", battery: 0, status: "Ready", running: false)
         let car = WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false)
@@ -118,20 +114,20 @@ struct WidgetTests {
     @Test("WidgetDevice data consistency checks")
     func testWidgetDeviceDataConsistency() {
         // Test that devices have consistent data
-        let mopBot = WidgetDevice(name: "MopBot", battery: 65, status: "Cleaning", running: true)
+        let cleanBot = WidgetDevice(name: "Cleanbot", battery: 65, status: "Cleaning", running: true)
 
         // Running device should have appropriate status
-        #expect(mopBot.running == true)
-        #expect(mopBot.status != "Ready" && mopBot.status != "Idle")
+        #expect(cleanBot.running == true)
+        #expect(cleanBot.status != "Ready" && cleanBot.status != "Idle")
 
-        let idleBot = WidgetDevice(name: "BroomBot", battery: 90, status: "Docked", running: false)
+        let idleBot = WidgetDevice(name: "Cleanbot", battery: 90, status: "Docked", running: false)
 
         // Non-running device should have appropriate status
         #expect(idleBot.running == false)
         #expect(idleBot.status != "Cleaning" && idleBot.status != "Running")
 
         // Battery levels should be in valid range
-        #expect(mopBot.battery >= 0 && mopBot.battery <= 100)
+        #expect(cleanBot.battery >= 0 && cleanBot.battery <= 100)
         #expect(idleBot.battery >= 0 && idleBot.battery <= 100)
     }
 
@@ -139,7 +135,7 @@ struct WidgetTests {
     func testWidgetDeviceEdgeCases() {
         // Test edge cases
         let noBatteryDevice = WidgetDevice(name: "Dishwasher", battery: 0, status: "Ready", running: false)
-        let fullBatteryDevice = WidgetDevice(name: "MopBot", battery: 100, status: "Ready", running: false)
+        let fullBatteryDevice = WidgetDevice(name: "Cleanbot", battery: 100, status: "Ready", running: false)
         let emptyStatusDevice = WidgetDevice(name: "Unknown", battery: 50, status: "", running: false)
 
         #expect(noBatteryDevice.battery == 0)

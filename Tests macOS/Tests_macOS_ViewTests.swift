@@ -28,7 +28,7 @@ private func emptyViewResponse() -> LoginResponse {
     return LoginResponse(
         timestamp: "", favouriteHomeKit: [],
         favouriteScenes: [],
-        broombot: emptyRobot, mopbot: emptyRobot,
+        cleanbot: emptyRobot,
         car: nil, carEvStatus: nil, carOdometer: nil,
         dishwasher: nil, dryer: nil, washer: nil
     )
@@ -399,10 +399,10 @@ struct MacOSNilDataResilienceTests {
         robots.setApiResponse(apiResponse: api)
         await drainMainQueueForViews()
 
-        #expect(robots.broomBot.batteryLevel == nil)
-        #expect(robots.broomBot.running == nil)
-        #expect(robots.mopBot.batteryLevel == nil)
-        #expect(robots.mopBot.running == nil)
+        #expect(robots.cleanBot.batteryLevel == nil)
+        #expect(robots.cleanBot.running == nil)
+        #expect(robots.cleanBot.batteryLevel == nil)
+        #expect(robots.cleanBot.running == nil)
     }
 
     @Test("ContentView renders with empty data without crashing")

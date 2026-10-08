@@ -7,6 +7,8 @@
 
 import Foundation
 
+// swiftlint:disable file_length
+
 public struct LoginRequest: Encodable {
     public let password: String
 
@@ -132,6 +134,40 @@ public struct FluxCar: Codable {
     }
 }
 
+public struct RobotRoom: Codable, Identifiable, Hashable {
+    public let id: Int
+    public let name: String
+    public let icon: String?
+
+    public init(id: Int, name: String, icon: String? = nil) {
+        self.id = id
+        self.name = name
+        self.icon = icon
+    }
+}
+
+public struct RobotMaintenance: Codable {
+    public let mainBrushPercent: Double?
+    public let sideBrushPercent: Double?
+    public let filterPercent: Double?
+    public let sensorPercent: Double?
+    public let wheelPercent: Double?
+
+    public init(
+        mainBrushPercent: Double? = nil,
+        sideBrushPercent: Double? = nil,
+        filterPercent: Double? = nil,
+        sensorPercent: Double? = nil,
+        wheelPercent: Double? = nil
+    ) {
+        self.mainBrushPercent = mainBrushPercent
+        self.sideBrushPercent = sideBrushPercent
+        self.filterPercent = filterPercent
+        self.sensorPercent = sensorPercent
+        self.wheelPercent = wheelPercent
+    }
+}
+
 public struct Robot: Codable {
     public let name: String?
     public let timestamp: String
@@ -142,6 +178,24 @@ public struct Robot: Codable {
     public let docking: Bool?
     public let paused: Bool?
     public let timeStarted: String?
+    public let progressPercent: Double?
+    public let elapsedMinutes: Double?
+    public let estimatedRemainingMinutes: Double?
+    public let cleanedArea: Double?
+    public let cleaningMode: String?
+    public let suctionLevel: String?
+    public let currentRoom: String?
+    public let currentRoomId: Int?
+    public let cleanWaterTankStatus: String?
+    public let dirtyWaterTankStatus: String?
+    public let dustBagStatus: String?
+    public let detergentStatus: String?
+    public let lowWaterWarning: String?
+    public let autoEmptyStatus: String?
+    public let drainageStatus: String?
+    public let selfWashBaseStatus: String?
+    public let maintenance: RobotMaintenance?
+    public let rooms: [RobotRoom]?
 
     public init(
         name: String? = nil,
@@ -152,7 +206,25 @@ public struct Robot: Codable {
         charging: Bool? = nil,
         docking: Bool? = nil,
         paused: Bool? = nil,
-        timeStarted: String? = nil
+        timeStarted: String? = nil,
+        progressPercent: Double? = nil,
+        elapsedMinutes: Double? = nil,
+        estimatedRemainingMinutes: Double? = nil,
+        cleanedArea: Double? = nil,
+        cleaningMode: String? = nil,
+        suctionLevel: String? = nil,
+        currentRoom: String? = nil,
+        currentRoomId: Int? = nil,
+        cleanWaterTankStatus: String? = nil,
+        dirtyWaterTankStatus: String? = nil,
+        dustBagStatus: String? = nil,
+        detergentStatus: String? = nil,
+        lowWaterWarning: String? = nil,
+        autoEmptyStatus: String? = nil,
+        drainageStatus: String? = nil,
+        selfWashBaseStatus: String? = nil,
+        maintenance: RobotMaintenance? = nil,
+        rooms: [RobotRoom]? = nil
     ) {
         self.name = name
         self.timestamp = timestamp
@@ -163,6 +235,24 @@ public struct Robot: Codable {
         self.docking = docking
         self.paused = paused
         self.timeStarted = timeStarted
+        self.progressPercent = progressPercent
+        self.elapsedMinutes = elapsedMinutes
+        self.estimatedRemainingMinutes = estimatedRemainingMinutes
+        self.cleanedArea = cleanedArea
+        self.cleaningMode = cleaningMode
+        self.suctionLevel = suctionLevel
+        self.currentRoom = currentRoom
+        self.currentRoomId = currentRoomId
+        self.cleanWaterTankStatus = cleanWaterTankStatus
+        self.dirtyWaterTankStatus = dirtyWaterTankStatus
+        self.dustBagStatus = dustBagStatus
+        self.detergentStatus = detergentStatus
+        self.lowWaterWarning = lowWaterWarning
+        self.autoEmptyStatus = autoEmptyStatus
+        self.drainageStatus = drainageStatus
+        self.selfWashBaseStatus = selfWashBaseStatus
+        self.maintenance = maintenance
+        self.rooms = rooms
     }
 }
 
@@ -358,8 +448,7 @@ public struct LoginResponse: Codable {
     public let timestamp: String
     public let favouriteHomeKit: [String]
     public let favouriteScenes: [String]?
-    public let broombot: Robot
-    public let mopbot: Robot
+    public let cleanbot: Robot
     public let car: FluxCar?
     public let carEvStatus: EVStatus?
     public let carOdometer: Double?
@@ -373,8 +462,7 @@ public struct LoginResponse: Codable {
         timestamp: String,
         favouriteHomeKit: [String],
         favouriteScenes: [String]? = nil,
-        broombot: Robot,
-        mopbot: Robot,
+        cleanbot: Robot,
         car: FluxCar? = nil,
         carEvStatus: EVStatus? = nil,
         carOdometer: Double? = nil,
@@ -387,8 +475,7 @@ public struct LoginResponse: Codable {
         self.timestamp = timestamp
         self.favouriteHomeKit = favouriteHomeKit
         self.favouriteScenes = favouriteScenes
-        self.broombot = broombot
-        self.mopbot = mopbot
+        self.cleanbot = cleanbot
         self.car = car
         self.carEvStatus = carEvStatus
         self.carOdometer = carOdometer

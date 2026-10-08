@@ -22,8 +22,8 @@ struct IntegrationTests {
 
             // Initial state validation
             #expect(api.response == nil)
-            #expect(robots.mopBot.name == "MopBot")
-            #expect(robots.broomBot.name == "BroomBot")
+            #expect(robots.cleanBot.name == "Cleanbot")
+            #expect(robots.cleanBot.name == "Cleanbot")
             #expect(car.vehicle.batteryLevel == 0)
             #expect(homeConnect.appliances.count == 0)
 
@@ -120,19 +120,16 @@ struct IntegrationTests {
             // This tests the switch statement logic conceptually
 
             let actionToPathMapping = [
-                "start": ["BroomBot": "/turnOnBroombot", "MopBot": "/turnOnMopbot"],
-                "stop": ["BroomBot": "/turnOffBroombot", "MopBot": "/turnOffMopbot"],
-                "deepClean": ["BroomBot": "/turnOnDeepClean", "MopBot": "/turnOnDeepClean"],
-                "default": ["BroomBot": "/", "MopBot": "/"]
+                "start": ["Cleanbot": "/turnOnCleanbot"],
+                "stop": ["Cleanbot": "/turnOffCleanbot"],
+                "deepClean": ["Cleanbot": "/turnOnDeepClean"],
+                "default": ["Cleanbot": "/"]
             ]
 
             // Verify the mapping logic
-            #expect(actionToPathMapping["start"]?["BroomBot"] == "/turnOnBroombot")
-            #expect(actionToPathMapping["start"]?["MopBot"] == "/turnOnMopbot")
-            #expect(actionToPathMapping["stop"]?["BroomBot"] == "/turnOffBroombot")
-            #expect(actionToPathMapping["stop"]?["MopBot"] == "/turnOffMopbot")
-            #expect(actionToPathMapping["deepClean"]?["BroomBot"] == "/turnOnDeepClean")
-            #expect(actionToPathMapping["deepClean"]?["MopBot"] == "/turnOnDeepClean")
+            #expect(actionToPathMapping["start"]?["Cleanbot"] == "/turnOnCleanbot")
+            #expect(actionToPathMapping["stop"]?["Cleanbot"] == "/turnOffCleanbot")
+            #expect(actionToPathMapping["deepClean"]?["Cleanbot"] == "/turnOnDeepClean")
         }
     }
 
@@ -218,8 +215,8 @@ struct IntegrationTests {
             car.setApiResponse(apiResponse: api) // API response is nil
 
             // Should not crash and maintain default state
-            #expect(robots.mopBot.timestamp == "")
-            #expect(robots.broomBot.timestamp == "")
+            #expect(robots.cleanBot.timestamp == "")
+            #expect(robots.cleanBot.timestamp == "")
             #expect(car.vehicle.batteryLevel == 0)
 
             // Test partial data scenarios

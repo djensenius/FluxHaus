@@ -9,34 +9,23 @@ import SwiftUI
 
 struct RobotsListView: View {
     var robots: Robots
-    @State private var showBroomBotSheet = false
-    @State private var showMopBotSheet = false
+    @State private var showCleanbotSheet = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
                 robotCard(
-                    title: "BroomBot",
-                    robot: robots.broomBot,
+                    title: "Cleanbot",
+                    robot: robots.cleanBot,
                     icon: "robotic.vacuum.fill",
-                    animation: nil,
-                    showSheet: $showBroomBotSheet
-                )
-                robotCard(
-                    title: "MopBot",
-                    robot: robots.mopBot,
-                    icon: "humidifier.and.droplets",
                     animation: .variableColor,
-                    showSheet: $showMopBotSheet
+                    showSheet: $showCleanbotSheet
                 )
             }
             .padding()
         }
-        .sheet(isPresented: $showBroomBotSheet) {
-            RobotDetailView(robot: robots.broomBot, robots: robots)
-        }
-        .sheet(isPresented: $showMopBotSheet) {
-            RobotDetailView(robot: robots.mopBot, robots: robots)
+        .sheet(isPresented: $showCleanbotSheet) {
+            RobotDetailView(robot: robots.cleanBot, robots: robots)
         }
         #if os(visionOS)
         .glassBackgroundEffect()

@@ -21,8 +21,7 @@ struct Appliances: View {
 
     @State private var showCarModal: Bool = false
     @State private var showScooterModal: Bool = false
-    @State private var showBroomBotModal: Bool = false
-    @State private var showMopBotModal: Bool = false
+    @State private var showCleanbotModal: Bool = false
     @State private var showAirPurifierModal: Bool = false
     @State private var showApplianceModal: [String: Bool] = [:]
     @State var theAppliances: [(name: String, index: Int)] = []
@@ -35,8 +34,7 @@ struct Appliances: View {
         (name: "HomeConnect", index: 0),
         (name: "Miele", index: 0),
         (name: "Miele", index: 1),
-        (name: "BroomBot", index: 0),
-        (name: "MopBot", index: 0),
+        (name: "Cleanbot", index: 0),
         (name: "Car", index: 0),
         (name: "Scooter", index: 0),
         (name: "Battery", index: 0),
@@ -121,10 +119,8 @@ struct Appliances: View {
                                         self.showCarModal = true
                                     } else if theAppliances[app].name == "Scooter" {
                                         self.showScooterModal = true
-                                    } else if theAppliances[app].name == "MopBot" {
-                                        self.showMopBotModal = true
-                                    } else if theAppliances[app].name == "BroomBot" {
-                                        self.showBroomBotModal = true
+                                    } else if theAppliances[app].name == "Cleanbot" {
+                                        self.showCleanbotModal = true
                                     } else if theAppliances[app].name == "AirPurifier" {
                                         self.showAirPurifierModal = true
                                     } else  if theAppliances[app].name != "Battery" {
@@ -151,11 +147,8 @@ struct Appliances: View {
                 }()
             )
         }
-        .sheet(isPresented: self.$showBroomBotModal) {
-            RobotDetailView(robot: robots.broomBot, robots: robots)
-        }
-        .sheet(isPresented: self.$showMopBotModal) {
-            RobotDetailView(robot: robots.mopBot, robots: robots)
+        .sheet(isPresented: self.$showCleanbotModal) {
+            RobotDetailView(robot: robots.cleanBot, robots: robots)
         }
         .sheet(isPresented: self.$showAirPurifierModal) {
             AirPurifierDetailView(purifier: airPurifier)
@@ -232,13 +225,10 @@ struct Appliances: View {
         switch name {
         case "Car", "Scooter", "Battery":
             return true
-        case "MopBot":
-            return robots.mopBot.running != nil && (robots.mopBot.running == true || robots.mopBot.paused == true)
+        case "Cleanbot":
+            return robots.cleanBot.running != nil && (robots.cleanBot.running == true || robots.cleanBot.paused == true)
         case "AirPurifier":
             return airPurifier.status.online && airPurifier.status.fanOn
-        case "BroomBot":
-            return robots.broomBot.running != nil &&
-                (robots.broomBot.running == true || robots.broomBot.paused == true)
         case "Miele":
             return tApplianceTimeRemaining(tAppliance: miele.appliances, index: index) != "Off"
         case "HomeConnect":

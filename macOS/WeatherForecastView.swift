@@ -205,8 +205,6 @@ struct WeatherDetailView: View {
                         weather: weather,
                         width: proxy.size.width,
                         height: proxy.size.height
-                            + proxy.safeAreaInsets.top
-                            + proxy.safeAreaInsets.bottom
                     )
                 } else {
                     ScrollView {
@@ -253,10 +251,9 @@ struct WeatherDetailView: View {
         let columnWidth = AdaptiveLayout.equalSplitWidth(totalWidth: width, spacing: spacing)
 
         return HStack(alignment: .top, spacing: spacing) {
-            fullHeightRadarPane(height: max(360, height))
-                .frame(width: columnWidth)
+            fullHeightRadarPane(height: height)
+                .frame(width: columnWidth, height: height)
                 .clipped()
-                .ignoresSafeArea(edges: [.top, .bottom, .leading])
 
             ScrollView {
                 VStack(spacing: 16) {

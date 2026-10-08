@@ -67,13 +67,14 @@ struct FluxHausShortcuts: AppShortcutsProvider {
             systemImageName: "robotic.vacuum.cleaner.fill"
         )
         AppShortcut(
-            intent: DeepCleanIntent(),
+            intent: CleanRoomIntent(),
             phrases: [
-                "Start a deep clean with \(.applicationName)",
-                "Deep clean with \(.applicationName)"
+                "Clean \(\.$room) with \(.applicationName)",
+                "Tell Cleanbot to clean \(\.$room) with \(.applicationName)",
+                "Vacuum \(\.$room) with \(.applicationName)"
             ],
-            shortTitle: "Deep Clean",
-            systemImageName: "sparkles"
+            shortTitle: "Clean Room",
+            systemImageName: "house"
         )
         AppShortcut(
             intent: ActivateSceneIntent(),

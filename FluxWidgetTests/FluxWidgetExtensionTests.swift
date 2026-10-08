@@ -50,7 +50,7 @@ struct FluxWidgetExtensionTests {
     func testWidgetEntryCreation() {
         let currentDate = Date()
         let devices = [
-            WidgetDevice(name: "MopBot", battery: 85, status: "Cleaning", running: true),
+            WidgetDevice(name: "Cleanbot", battery: 85, status: "Cleaning", running: true),
             WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false),
             WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true)
         ]
@@ -63,7 +63,7 @@ struct FluxWidgetExtensionTests {
 
         #expect(widgetEntry.date == currentDate)
         #expect(widgetEntry.devices.count == 3)
-        #expect(widgetEntry.devices.contains { $0.name == "MopBot" })
+        #expect(widgetEntry.devices.contains { $0.name == "Cleanbot" })
         #expect(widgetEntry.devices.contains { $0.name == "Car" })
         #expect(widgetEntry.devices.contains { $0.name == "Dishwasher" })
     }
@@ -76,8 +76,8 @@ struct FluxWidgetExtensionTests {
         let maxDevicesInLargeWidget = 6
 
         let allDevices = [
-            WidgetDevice(name: "MopBot", battery: 85, status: "Cleaning", running: true),
-            WidgetDevice(name: "BroomBot", battery: 90, status: "Docked", running: false),
+            WidgetDevice(name: "Cleanbot", battery: 85, status: "Cleaning", running: true),
+            WidgetDevice(name: "Cleanbot", battery: 90, status: "Docked", running: false),
             WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false),
             WidgetDevice(name: "Dishwasher", battery: 0, status: "Washing", running: true),
             WidgetDevice(name: "Dryer", battery: 0, status: "Ready", running: false),
@@ -147,9 +147,9 @@ struct FluxWidgetExtensionTests {
     func testWidgetDataPrioritization() {
         let devices = [
             // Priority: Low battery
-            WidgetDevice(name: "MopBot", battery: 15, status: "Low Battery", running: false),
+            WidgetDevice(name: "Cleanbot", battery: 15, status: "Low Battery", running: false),
             // Priority: Running
-            WidgetDevice(name: "BroomBot", battery: 85, status: "Cleaning", running: true),
+            WidgetDevice(name: "Cleanbot", battery: 85, status: "Cleaning", running: true),
             // Priority: Constant
             WidgetDevice(name: "Car", battery: 75, status: "Locked", running: false),
             // Priority: Running timed
@@ -163,16 +163,16 @@ struct FluxWidgetExtensionTests {
         let lowBatteryDevices = devices.filter { $0.battery > 0 && $0.battery < 20 }
         let constantDevices = devices.filter { $0.name == "Car" || $0.name == "Battery" }
 
-        #expect(runningDevices.count == 2) // BroomBot and Dishwasher
-        #expect(lowBatteryDevices.count == 1) // MopBot with 15% battery
+        #expect(runningDevices.count == 2) // Cleanbot and Dishwasher
+        #expect(lowBatteryDevices.count == 1) // Cleanbot with 15% battery
         #expect(constantDevices.count == 2) // Car and Battery
 
         // Running devices should be prioritized
-        #expect(runningDevices.contains { $0.name == "BroomBot" })
+        #expect(runningDevices.contains { $0.name == "Cleanbot" })
         #expect(runningDevices.contains { $0.name == "Dishwasher" })
 
         // Low battery devices should be flagged
-        #expect(lowBatteryDevices.first?.name == "MopBot")
+        #expect(lowBatteryDevices.first?.name == "Cleanbot")
     }
 }
 

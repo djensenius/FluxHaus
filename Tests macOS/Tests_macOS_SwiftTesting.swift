@@ -26,7 +26,7 @@ private func emptyResponse() -> LoginResponse {
     return LoginResponse(
         timestamp: "", favouriteHomeKit: [],
         favouriteScenes: [],
-        broombot: emptyRobot, mopbot: emptyRobot,
+        cleanbot: emptyRobot,
         car: nil, carEvStatus: nil, carOdometer: nil,
         dishwasher: nil, dryer: nil, washer: nil
     )
@@ -42,8 +42,8 @@ struct MacOSMockDataValidationTests {
 
         #expect(response.timestamp == "2024-12-13T12:00:00Z")
         #expect(response.favouriteHomeKit == ["Light 1", "Light 2"])
-        #expect(response.broombot.name == "BroomBot")
-        #expect(response.mopbot.name == "MopBot")
+        #expect(response.cleanbot.name == "Cleanbot")
+        #expect(response.cleanbot.name == "Cleanbot")
         #expect(response.car != nil)
         #expect(response.carEvStatus != nil)
         #expect(response.carOdometer == 15000.0)
@@ -56,7 +56,7 @@ struct MacOSMockDataValidationTests {
     @MainActor func testMockFactories() async {
         let api = MockData.createApi()
         #expect(api.response != nil)
-        #expect(api.response?.broombot.name == "BroomBot")
+        #expect(api.response?.cleanbot.name == "Cleanbot")
 
         let car = MockData.createCar()
         let robots = MockData.createRobots()
@@ -68,10 +68,9 @@ struct MacOSMockDataValidationTests {
         #expect(car.vehicle.distance == 350)
         #expect(car.vehicle.locked == true)
 
-        #expect(robots.broomBot.batteryLevel == 85)
-        #expect(robots.broomBot.charging == true)
-        #expect(robots.mopBot.batteryLevel == 90)
-        #expect(robots.mopBot.running == true)
+        #expect(robots.cleanBot.batteryLevel == 90)
+        #expect(robots.cleanBot.running == true)
+        #expect(robots.cleanBot.charging == false)
 
         #expect(hconn.appliances.count > 0)
         #expect(miele.appliances.count == 2)
@@ -107,15 +106,10 @@ struct MacOSDataFlowTests {
         robots.setApiResponse(apiResponse: api)
         await drainMainQueue()
 
-        #expect(robots.broomBot.name == "BroomBot")
-        #expect(robots.broomBot.batteryLevel == 85)
-        #expect(robots.broomBot.charging == true)
-        #expect(robots.broomBot.running == false)
-
-        #expect(robots.mopBot.name == "MopBot")
-        #expect(robots.mopBot.batteryLevel == 90)
-        #expect(robots.mopBot.running == true)
-        #expect(robots.mopBot.charging == false)
+        #expect(robots.cleanBot.name == "Cleanbot")
+        #expect(robots.cleanBot.batteryLevel == 90)
+        #expect(robots.cleanBot.running == true)
+        #expect(robots.cleanBot.charging == false)
     }
 
     @Test("Api response flows correctly to HomeConnect")
@@ -160,14 +154,14 @@ struct MacOSDataFlowTests {
         await drainMainQueue()
 
         #expect(car.vehicle.batteryLevel == 75)
-        #expect(robots.mopBot.running == true)
+        #expect(robots.cleanBot.running == true)
 
         let modified = LoginResponse(
             timestamp: "2024-12-13T13:00:00Z",
             favouriteHomeKit: ["Light 1"],
             favouriteScenes: [],
-            broombot: Robot(
-                name: "BroomBot",
+            cleanbot: Robot(
+                name: "Cleanbot",
                 timestamp: "2024-12-13T12:00:00Z",
                 batteryLevel: 50,
                 binFull: true,
@@ -176,14 +170,13 @@ struct MacOSDataFlowTests {
                 docking: false,
                 paused: false,
                 timeStarted: nil
-            ),
-            mopbot: MockData.loginResponse.mopbot
+            )
         )
         api.setApiResponse(apiResponse: modified)
         robots.setApiResponse(apiResponse: api)
         await drainMainQueue()
 
-        #expect(robots.broomBot.batteryLevel == 50)
-        #expect(robots.broomBot.binFull == true)
+        #expect(robots.cleanBot.batteryLevel == 50)
+        #expect(robots.cleanBot.binFull == true)
     }
 }

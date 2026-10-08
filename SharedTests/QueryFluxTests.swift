@@ -13,8 +13,8 @@ struct QueryFluxTests {
 
     @Test("FluxData model can be created with all properties")
     func testFluxDataModel() {
-        let mopBot = Robot(
-            name: "MopBot",
+        let cleanBot = Robot(
+            name: "Cleanbot",
             timestamp: "2024-12-01T12:00:00Z",
             batteryLevel: 85,
             binFull: false,
@@ -23,18 +23,6 @@ struct QueryFluxTests {
             docking: false,
             paused: false,
             timeStarted: "2024-12-01T11:30:00Z"
-        )
-
-        let broomBot = Robot(
-            name: "BroomBot",
-            timestamp: "2024-12-01T12:00:00Z",
-            batteryLevel: 92,
-            binFull: false,
-            running: false,
-            charging: true,
-            docking: true,
-            paused: false,
-            timeStarted: nil
         )
 
         let car = CarDetails(
@@ -90,20 +78,97 @@ struct QueryFluxTests {
         )
 
         let fluxData = FluxData(
-            mopBot: mopBot,
-            broomBot: broomBot,
+            cleanBot: cleanBot,
             car: car,
             dishwasher: dishwasher,
             dryer: dryer,
             washer: washer
         )
 
-        #expect(fluxData.mopBot?.name == "MopBot")
-        #expect(fluxData.broomBot?.name == "BroomBot")
+        #expect(fluxData.cleanBot?.name == "Cleanbot")
         #expect(fluxData.car?.batteryLevel == 75)
         #expect(fluxData.dishwasher?.operationState == .run)
         #expect(fluxData.dryer?.inUse == false)
         #expect(fluxData.washer?.inUse == false)
+    }
+
+    @Test("Cleanbot telemetry decodes and survives conversions")
+    func testCleanbotTelemetryDecodeAndConversion() async throws {
+        let json = """
+        {
+          "timestamp": "2024-12-01T12:00:00Z",
+          "favouriteHomeKit": [],
+          "cleanbot": {
+            "timestamp": "2024-12-01T12:00:00Z",
+            "batteryLevel": 84,
+            "running": true,
+            "progressPercent": 67,
+            "elapsedMinutes": 34,
+            "estimatedRemainingMinutes": 12,
+            "cleanedArea": 26,
+            "cleaningMode": "Sweeping",
+            "suctionLevel": "Standard",
+            "currentRoom": "Kitchen",
+            "currentRoomId": 2,
+            "cleanWaterTankStatus": "installed",
+            "dirtyWaterTankStatus": "installed",
+            "dustBagStatus": "installed",
+            "detergentStatus": "installed",
+            "lowWaterWarning": "no_warning",
+            "maintenance": {
+              "mainBrushPercent": 100,
+              "sideBrushPercent": 90,
+              "filterPercent": 80,
+              "sensorPercent": 70,
+              "wheelPercent": 60
+            },
+            "rooms": [
+              { "id": 2, "name": "Kitchen", "icon": "mdi:chef-hat" }
+            ]
+          }
+        }
+        """
+        let response = try JSONDecoder().decode(LoginResponse.self, from: Data(json.utf8))
+        #expect(response.cleanbot.progressPercent == 67)
+        #expect(response.cleanbot.estimatedRemainingMinutes == 12)
+        #expect(response.cleanbot.currentRoom == "Kitchen")
+        #expect(response.cleanbot.maintenance?.filterPercent == 80)
+        #expect(response.cleanbot.rooms?.first?.id == 2)
+
+        let fluxData = convertLoginResponseToAppData(response: response)
+        #expect(fluxData.cleanBot?.progressPercent == 67)
+        #expect(fluxData.cleanBot?.rooms?.first?.name == "Kitchen")
+
+        await MainActor.run {
+            let api = Api()
+            api.setApiResponse(apiResponse: response)
+            let robots = Robots()
+            robots.setApiResponse(apiResponse: api)
+            #expect(robots.cleanBot.name == "Cleanbot")
+            #expect(robots.cleanBot.currentRoom == "Kitchen")
+            #expect(robots.cleanBot.maintenance?.wheelPercent == 60)
+        }
+    }
+
+    @Test("Cleanbot missing optional telemetry decodes")
+    func testCleanbotMissingOptionalTelemetryDecode() throws {
+        let json = """
+        {
+          "timestamp": "2024-12-01T12:00:00Z",
+          "favouriteHomeKit": [],
+          "cleanbot": {
+            "timestamp": "2024-12-01T12:00:00Z",
+            "batteryLevel": null,
+            "running": null,
+            "maintenance": null,
+            "rooms": null
+          }
+        }
+        """
+        let response = try JSONDecoder().decode(LoginResponse.self, from: Data(json.utf8))
+        #expect(response.cleanbot.batteryLevel == nil)
+        #expect(response.cleanbot.maintenance == nil)
+        #expect(response.cleanbot.rooms == nil)
     }
 
     @Test("WidgetDevice model can be created and compared")

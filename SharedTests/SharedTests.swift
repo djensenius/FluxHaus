@@ -148,12 +148,12 @@ struct BusinessLogicTests {
         await MainActor.run {
             let robots = Robots()
 
-            #expect(robots.mopBot.name == "MopBot")
-            #expect(robots.broomBot.name == "BroomBot")
-            #expect(robots.mopBot.timestamp == "")
-            #expect(robots.broomBot.timestamp == "")
-            #expect(robots.mopBot.batteryLevel == nil)
-            #expect(robots.broomBot.batteryLevel == nil)
+            #expect(robots.cleanBot.name == "Cleanbot")
+            #expect(robots.cleanBot.name == "Cleanbot")
+            #expect(robots.cleanBot.timestamp == "")
+            #expect(robots.cleanBot.timestamp == "")
+            #expect(robots.cleanBot.batteryLevel == nil)
+            #expect(robots.cleanBot.batteryLevel == nil)
         }
     }
 
@@ -168,8 +168,8 @@ struct BusinessLogicTests {
 
             // This is more of an integration test that would require network mocking
             // For now, we verify the robots object is properly initialized
-            #expect(robots.mopBot.name == "MopBot")
-            #expect(robots.broomBot.name == "BroomBot")
+            #expect(robots.cleanBot.name == "Cleanbot")
+            #expect(robots.cleanBot.name == "Cleanbot")
         }
     }
 
@@ -217,8 +217,7 @@ struct UtilityFunctionTests {
         let response = LoginResponse(
             timestamp: "",
             favouriteHomeKit: [],
-            broombot: Robot(),
-            mopbot: Robot(),
+            cleanbot: Robot(),
             dishwasher: DishWasher(
                 remainingTime: 1_800,
                 operationState: .run

@@ -298,8 +298,7 @@ func tintColor(for deviceName: String) -> Color {
     case "Dishwasher": return .blue
     case "Washer": return .cyan
     case "Dryer": return .orange
-    case "BroomBot": return .green
-    case "MopBot": return .teal
+    case "Cleanbot": return .green
     default: return .accentColor
     }
 }
@@ -313,7 +312,7 @@ func batteryColor(level: Int) -> Color {
 }
 
 func isRobot(_ name: String) -> Bool {
-    name == "BroomBot" || name == "MopBot"
+    name == "Cleanbot"
 }
 
 func batteryIcon(level: Int) -> String {
@@ -431,7 +430,7 @@ extension FluxWidgetMultiAttributes.ContentState {
                 running: true, programName: "Cotton"
             ),
             WidgetDevice(
-                name: "BroomBot", progress: 75, icon: "robotic.vacuum",
+                name: "Cleanbot", progress: 75, icon: "robotic.vacuum.fill",
                 trailingText: "Cleaning", shortText: "Cleaning",
                 running: true, battery: 75
             )

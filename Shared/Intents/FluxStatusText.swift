@@ -23,7 +23,7 @@ enum FluxStatusText {
     }
 
     static func robots(_ response: LoginResponse) -> String {
-        "\(robot(response.broombot)) \(robot(response.mopbot))"
+        robot(response.cleanbot)
     }
 
     static func robot(_ robot: Robot) -> String {
@@ -39,10 +39,13 @@ enum FluxStatusText {
             state = "idle"
         }
         let binStatus = robot.binFull == true ? " Its bin is full." : ""
+        let progress = robot.progressPercent.map { " It is \(Int($0.rounded()))% done." } ?? ""
+        let remaining = robot.estimatedRemainingMinutes.map { " About \(Int($0.rounded())) minutes remain." } ?? ""
+        let room = robot.currentRoom.map { " It is currently in \($0)." } ?? ""
         if let battery = robot.batteryLevel {
-            return "\(name) is \(state) at \(battery)%.\(binStatus)"
+            return "\(name) is \(state) at \(battery)%.\(progress)\(remaining)\(room)\(binStatus)"
         }
-        return "\(name) is \(state).\(binStatus)"
+        return "\(name) is \(state).\(progress)\(remaining)\(room)\(binStatus)"
     }
 
     static func dishwasher(_ response: LoginResponse, now: Date = Date()) -> String {
