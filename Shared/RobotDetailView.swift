@@ -346,15 +346,15 @@ struct RobotDetailView: View {
     }
 
     private func isReadySupply(_ value: String) -> Bool {
-        ["installed", "ok", "normal", "ready", "present", "—"].contains(normalizedStatus(value))
+        ["installed", "ok", "normal", "ready", "present"].contains(normalizedStatus(value))
     }
 
     private func isNoWarning(_ value: String) -> Bool {
-        ["no warning", "none", "ok", "normal", "false", "—"].contains(normalizedStatus(value))
+        ["no warning", "none", "ok", "normal", "false"].contains(normalizedStatus(value))
     }
 
     private func isIdleTask(_ value: String) -> Bool {
-        ["idle", "standby", "ready", "none", "ok", "normal", "—"].contains(normalizedStatus(value))
+        ["idle", "standby", "ready", "none", "ok", "normal"].contains(normalizedStatus(value))
     }
 
     private func percentText(_ value: Double?) -> String {
