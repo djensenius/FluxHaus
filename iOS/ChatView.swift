@@ -178,7 +178,7 @@ struct ChatView: View {
                 .contentShape(Rectangle())
                 .listRowBackground(
                     conv.id == chat.conversationId
-                        ? Theme.Colors.accent.opacity(0.15) : nil
+                        ? Theme.Colors.accent.opacity(0.15) : Theme.Colors.secondaryBackground
                 )
                 .contextMenu {
                     Button(action: {
@@ -201,6 +201,8 @@ struct ChatView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Theme.Colors.background)
         .navigationTitle("Conversations")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -609,7 +611,7 @@ struct ConversationListView: View {
                 .contentShape(Rectangle())
                 .listRowBackground(
                     conv.id == chat.conversationId
-                        ? Theme.Colors.accent.opacity(0.15) : nil
+                        ? Theme.Colors.accent.opacity(0.15) : Theme.Colors.secondaryBackground
                 )
                 .contextMenu {
                     Button(action: {
@@ -632,6 +634,8 @@ struct ConversationListView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Theme.Colors.background)
         .searchable(text: $searchText, prompt: "Search conversations")
         .navigationTitle("Conversations")
         .toolbar {

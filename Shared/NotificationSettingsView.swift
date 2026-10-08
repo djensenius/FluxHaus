@@ -104,6 +104,9 @@ struct SettingsView: View {
                 Text("About")
             }
         }
+        .listRowBackground(Theme.Colors.secondaryBackground)
+        .scrollContentBackground(.hidden)
+        .background(Theme.Colors.background)
         .navigationTitle("Settings")
     }
 }
