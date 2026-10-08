@@ -20,6 +20,8 @@ enum RobotChoice: String, AppEnum {
         .mopBot: "Cleanbot"
     ]
 
+    static var allCases: [RobotChoice] { [.cleanBot] }
+
     var kind: RobotKind { .cleanBot }
 }
 

@@ -9,8 +9,10 @@ import SwiftUI
 
 struct RobotDetailView: View {
     @Environment(\.presentationMode) var presentationMode
+    #if os(iOS)
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+    #endif
     var robot: Robot
     var robots: Robots
     @State private var buttonsDisabled: Bool = false

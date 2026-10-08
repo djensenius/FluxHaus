@@ -163,8 +163,6 @@ extension Appliances {
             tAppliance = miele.appliances
         } else if type == "Cleanbot" {
            return getCleanbotText()
-        } else if type == "Cleanbot" {
-           return getCleanbotText()
         } else if type == "AirPurifier" {
            return getAirPurifierText()
         } else if type == "Battery" {
@@ -193,9 +191,9 @@ extension Appliances {
         if robots.cleanBot.running == true && robots.cleanBot.timeStarted != nil {
             text = "Started at \(clockTimeString(from: robots.cleanBot.timeStarted!)) "
         }
-        if robots.cleanBot.batteryLevel != nil && robots.cleanBot.batteryLevel! < 100 {
-            text += robots.cleanBot.charging! ?
-                "Charging (\(robots.cleanBot.batteryLevel!)%)" : "Battery (\(robots.cleanBot.batteryLevel!)%)"
+        if let batteryLevel = robots.cleanBot.batteryLevel, batteryLevel < 100 {
+            text += robots.cleanBot.charging == true
+                ? "Charging (\(batteryLevel)%)" : "Battery (\(batteryLevel)%)"
         }
         return text
     }

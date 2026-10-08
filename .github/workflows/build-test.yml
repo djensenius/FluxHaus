@@ -80,4 +80,5 @@ jobs:
             -project FluxHaus.xcodeproj \
             -scheme "VisionOS" \
             -destination 'platform=visionOS Simulator,name=Apple Vision Pro,OS=27.0' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             test | xcbeautify

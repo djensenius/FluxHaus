@@ -156,8 +156,12 @@ enum FluxIntentActions {
         try await post(path: "/turnOnDeepClean")
     }
 
+    static func cleanRoomBody(_ room: CleanbotRoom) -> [String: Any] {
+        ["rooms": [room.displayName]]
+    }
+
     static func cleanRoom(_ room: CleanbotRoom) async throws {
-        try await post(path: "/cleanbot/rooms", body: ["rooms": [room.displayName]])
+        try await post(path: "/cleanbot/rooms", body: cleanRoomBody(room))
     }
 
     // MARK: - Car

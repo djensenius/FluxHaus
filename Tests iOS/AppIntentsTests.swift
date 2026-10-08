@@ -32,10 +32,12 @@ struct IOSAppIntentsTests {
         #expect(FluxHausShortcuts.appShortcuts.count == 10)
     }
 
-    @Test("Robot enum exposes a display name for every case")
+    @Test("Robot enum exposes Cleanbot for new shortcuts and legacy saved values")
     func robotChoiceDisplayNames() {
+        #expect(RobotChoice.allCases == [.cleanBot])
         #expect(RobotChoice.cleanBot.kind.displayName == "Cleanbot")
-        #expect(RobotChoice.cleanBot.kind.displayName == "Cleanbot")
+        #expect(RobotChoice.broomBot.kind.displayName == "Cleanbot")
+        #expect(RobotChoice.mopBot.kind.displayName == "Cleanbot")
     }
 
     // MARK: - Signed-out behaviour
@@ -54,6 +56,22 @@ struct IOSAppIntentsTests {
         await #expect(throws: IntentError.self) { _ = try await stop.perform() }
 
         await #expect(throws: IntentError.self) { _ = try await DeepCleanIntent().perform() }
+
+        let cleanRoom = CleanRoomIntent()
+        cleanRoom.room = .kitchen
+        await #expect(throws: IntentError.self) { _ = try await cleanRoom.perform() }
+    }
+
+    @MainActor
+    @Test("Clean room intent and UI payloads target rooms consistently")
+    func cleanRoomPayloads() {
+        let intentBody = FluxIntentActions.cleanRoomBody(.kitchen)
+        #expect((intentBody["rooms"] as? [String]) == ["Kitchen"])
+
+        let room = RobotRoom(id: 9, name: "Kitchen")
+        let robots = Robots()
+        let uiBody = robots.cleanRoomBody(room)
+        #expect((uiBody["segments"] as? [Int]) == [9])
     }
 
     @MainActor

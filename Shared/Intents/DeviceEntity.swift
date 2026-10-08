@@ -121,14 +121,17 @@ struct DeviceAppEntity: IndexedEntity {
 
     init?(id: String) {
         let normalizedId: String
+        let outputId: String
         switch id {
         case "broomBot", "mopBot":
             normalizedId = DeviceKind.cleanBot.rawValue
+            outputId = id
         default:
             normalizedId = id
+            outputId = id
         }
         guard let kind = DeviceKind(rawValue: normalizedId) else { return nil }
-        self.id = kind.rawValue
+        self.id = outputId
         self.kind = kind
         self.name = kind.displayName
         self.searchableAliases = kind.searchTerms.joined(separator: "\n")
@@ -148,11 +151,16 @@ enum FluxSpotlightIndexes {
     }
 }
 
+func removeLegacyDeviceIndexEntries() async throws {
+    try await FluxSpotlightIndexes.devices.deleteSearchableItems(withIdentifiers: ["broomBot", "mopBot"])
+}
+
 /// Adds every FluxHaus device to the Spotlight index so it's searchable and so
 /// Siri / Apple Intelligence can resolve it as a parameter.
 func indexDevices() async {
     let entities = DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
     do {
+        try await removeLegacyDeviceIndexEntries()
         try await FluxSpotlightIndexes.devices.indexAppEntities(entities)
     } catch {
         let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "DeviceIndex")
@@ -204,6 +212,7 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
     }
 
     func reindexAllEntities(indexDescription _: CSSearchableIndexDescription) async throws {
+        try await removeLegacyDeviceIndexEntries()
         try await FluxSpotlightIndexes.devices.indexAppEntities(
             DeviceKind.allCases.map(DeviceAppEntity.init(kind:))
         )

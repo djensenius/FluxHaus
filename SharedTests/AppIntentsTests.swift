@@ -83,15 +83,16 @@ struct AppIntentsTests {
         return try JSONDecoder().decode(CarAnalyticsResponse.self, from: Data(json.utf8))
     }
 
-    @Test("RobotChoice maps to the matching RobotKind")
+    @Test("RobotChoice maps current and legacy values to Cleanbot")
     func robotChoiceMapsToKind() {
+        #expect(RobotChoice.allCases == [.cleanBot])
         #expect(RobotChoice.cleanBot.kind == .cleanBot)
-        #expect(RobotChoice.cleanBot.kind == .cleanBot)
+        #expect(RobotChoice.broomBot.kind == .cleanBot)
+        #expect(RobotChoice.mopBot.kind == .cleanBot)
     }
 
     @Test("RobotKind exposes the expected display names")
     func robotKindDisplayNames() {
-        #expect(RobotKind.cleanBot.displayName == "Cleanbot")
         #expect(RobotKind.cleanBot.displayName == "Cleanbot")
     }
 

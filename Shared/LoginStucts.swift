@@ -7,6 +7,8 @@
 
 import Foundation
 
+// swiftlint:disable file_length
+
 public struct LoginRequest: Encodable {
     public let password: String
 

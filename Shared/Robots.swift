@@ -73,8 +73,12 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Robots
         )
     }
 
+    func cleanRoomBody(_ room: RobotRoom) -> [String: Any] {
+        ["segments": [room.id]]
+    }
+
     func cleanRoom(_ room: RobotRoom) {
-        postRobotRequest(path: "/cleanbot/rooms", body: ["segments": [room.id]])
+        postRobotRequest(path: "/cleanbot/rooms", body: cleanRoomBody(room))
     }
 
     func performAction(action: String, robot: String) {
