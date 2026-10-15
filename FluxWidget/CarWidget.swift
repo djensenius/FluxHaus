@@ -32,6 +32,8 @@ struct CarOverride: Codable {
         if let climateOn { value.climateOn = climateOn }
         value.expires = Date().addingTimeInterval(3 * 60)
         WidgetCache.saveCurrent(value, key: key)
+        // Commands can come from Control Center, which only refreshes the control itself.
+        WidgetCenter.shared.reloadTimelines(ofKind: FluxCarWidget.kindID)
     }
 
     func apply(to car: CarSnapshot) -> CarSnapshot {
@@ -352,7 +354,8 @@ struct CarWidgetEntryView: View {
 }
 
 struct FluxCarWidget: Widget {
-    let kind = "FluxCarWidget"
+    static let kindID = "FluxCarWidget"
+    let kind = FluxCarWidget.kindID
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: CarProvider()) { entry in

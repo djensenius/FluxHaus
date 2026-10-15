@@ -26,6 +26,8 @@ struct CleanbotRunIntent: SetValueIntent {
             try await FluxIntentActions.stopRobot(.cleanBot)
         }
         PendingValue.set(value, key: CleanbotValueProvider.pendingKey)
+        WidgetCenter.shared.reloadTimelines(ofKind: "FluxWidget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "FluxWidgetSmall")
         return .result()
     }
 }

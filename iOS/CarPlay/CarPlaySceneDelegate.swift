@@ -21,6 +21,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var scenesTemplate: CPListTemplate?
     private var scenes: [HomeScene] = []
     private var scenesState: ScenesState = .loading
+    /// Auth session the displayed scenes (and their handlers) belong to.
+    private var scenesSession: String?
 
     private enum ScenesState {
         case loading
@@ -44,6 +46,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         NotificationCenter.default.addObserver(
             self, selector: #selector(dataDidUpdate(_:)),
             name: .dataUpdated, object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(authDidSignOut(_:)),
+            name: .authDidSignOut, object: nil
         )
 
         voiceManager = CarPlayVoiceManager()
@@ -80,8 +86,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             return
         }
         let password = WhereWeAre.getPassword() ?? ""
+        let session = AuthManager.shared.widgetSessionID()
         do {
-            if let response = try await getFlux(password: password) {
+            if let response = try await getFlux(password: password),
+               session != nil, AuthManager.shared.widgetSessionID() == session {
                 await MainActor.run {
                     self.latestResponse = response
                     self.refreshTemplates()
@@ -90,6 +98,16 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         } catch {
             logger.error("CarPlay: failed to load data: \(error.localizedDescription)")
         }
+    }
+
+    @objc private func authDidSignOut(_ notification: Notification) {
+        // Never keep showing (or acting on) the previous account's data.
+        latestResponse = nil
+        scenes = []
+        scenesSession = nil
+        scenesState = .loading
+        scenesTemplate?.updateSections(sceneSections())
+        refreshTemplates()
     }
 
     @objc private func dataDidUpdate(_ notification: Notification) {
@@ -102,10 +120,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 await self?.loadInitialData()
-                // Retry scenes until they load (e.g. after a transient failure on connect).
-                if let self, self.scenesState != .loaded {
-                    await self.loadScenes()
-                }
+                // Keep scenes current (active state, additions, account changes, retries).
+                await self?.loadScenes()
             }
         }
     }
@@ -223,12 +239,25 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     // MARK: - Scenes tab
 
     private func loadScenes() async {
+        guard let session = AuthManager.shared.widgetSessionID() else {
+            scenes = []
+            scenesSession = nil
+            scenesState = .loading
+            scenesTemplate?.updateSections(sceneSections())
+            return
+        }
         do {
-            scenes = try await fetchScenes()
+            let fetched = try await fetchScenes()
+            // Discard results from a request that started under a different account.
+            guard AuthManager.shared.widgetSessionID() == session else { return }
+            scenes = fetched
+            scenesSession = session
             scenesState = .loaded
         } catch {
             logger.error("CarPlay: failed to load scenes: \(error.localizedDescription)")
-            scenesState = .failed
+            guard AuthManager.shared.widgetSessionID() == session else { return }
+            if scenesSession != session { scenes = [] }
+            scenesState = scenes.isEmpty ? .failed : .loaded
         }
         scenesTemplate?.updateSections(sceneSections())
     }
@@ -267,8 +296,14 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                 detailText: scene.isActive == true ? "Active" : nil,
                 image: UIImage(systemName: "lightbulb.fill")
             )
+            let session = scenesSession
             item.handler = { [weak item] _, completion in
                 Task { @MainActor in
+                    guard session != nil, AuthManager.shared.widgetSessionID() == session else {
+                        item?.setDetailText("Signed out")
+                        completion()
+                        return
+                    }
                     item?.setDetailText("Activating…")
                     do {
                         try await activateScene(entityId: scene.entityId)

@@ -103,6 +103,8 @@ enum SceneStore {
 
     static func markActivated(_ id: String) {
         WidgetCache.saveCurrent(Activation(id: id, date: Date()), key: activatedKey)
+        // The Scene control doesn't refresh the Scenes widget on its own.
+        WidgetCenter.shared.reloadTimelines(ofKind: FluxScenesWidget.kindID)
     }
 
     /// Scene tapped in the last couple of minutes, to confirm the tap visually.
@@ -291,7 +293,8 @@ struct ScenesWidgetEntryView: View {
 }
 
 struct FluxScenesWidget: Widget {
-    let kind = "FluxScenesWidget"
+    static let kindID = "FluxScenesWidget"
+    let kind = FluxScenesWidget.kindID
 
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ScenesConfigIntent.self, provider: ScenesProvider()) { entry in

@@ -259,13 +259,17 @@ struct IslandMinimal: View {
                     } currentValueLabel: {
                         Image(systemName: device.icon).font(.caption2)
                     }
+                    .progressViewStyle(.circular)
                 } else {
-                    ProgressView(value: liveActivityProgressValue(for: device)) {
+                    // No timing (older payloads): a determinate ring, not a spinner.
+                    Gauge(value: liveActivityProgressValue(for: device)) {
+                        EmptyView()
+                    } currentValueLabel: {
                         Image(systemName: device.icon).font(.caption2)
                     }
+                    .gaugeStyle(.accessoryCircularCapacity)
                 }
             }
-            .progressViewStyle(.circular)
             .tint(liveActivityProgressColor(for: device))
         }
     }
