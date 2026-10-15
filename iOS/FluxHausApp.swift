@@ -275,6 +275,7 @@ struct FluxHausApp: App {
                 car = nil
                 scooter = nil
                 airPurifier = nil
+                WidgetReloader.reset()
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
@@ -400,6 +401,12 @@ enum WidgetReloader {
     static func reloadIfChanged(devices: [WidgetDevice]) {
         guard devices != lastDevices else { return }
         lastDevices = devices
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Signed out: forget what we showed so widgets re-fetch (and blank) immediately.
+    static func reset() {
+        lastDevices = nil
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 //
 //  FluxWidget.swift
 //  FluxWidget
@@ -21,8 +22,10 @@ enum FluxWidgetNetwork {
     static func fetchStatus() async -> [WidgetDevice]? {
         let password = WhereWeAre.getPassword() ?? ""
         guard AuthManager.shared.authorizationHeader() != nil || !password.isEmpty else {
+            // Signed out: never show the previous session's data.
             widgetLogger.warning("Widget: no credentials available")
-            return cachedDevices()
+            UserDefaults.standard.removeObject(forKey: cacheKey)
+            return nil
         }
         do {
             guard let loginData = try await getFlux(password: password) else {
@@ -93,6 +96,27 @@ enum FluxWidgetNetwork {
     }
 }
 
+private func minutesRemaining(_ device: WidgetDevice) -> Int? {
+    guard device.running, !isRobot(device.name), device.shortText.hasSuffix("m"),
+          let value = Int(device.shortText.dropLast()) else { return nil }
+    return value
+}
+
+func hasMinuteCountdown(_ device: WidgetDevice) -> Bool {
+    minutesRemaining(device) != nil
+}
+
+/// Returns `device` with a "Nm" short countdown reduced by `elapsedMinutes` (floored at 1m).
+func projectCountdown(_ device: WidgetDevice, elapsedMinutes: Int) -> WidgetDevice {
+    guard elapsedMinutes > 0, let remaining = minutesRemaining(device) else { return device }
+    var projected = device
+    let original = device.shortText
+    let updated = "\(max(remaining - elapsedMinutes, 1))m"
+    projected.shortText = updated
+    projected.trailingText = device.trailingText.replacingOccurrences(of: original, with: updated)
+    return projected
+}
+
 /// A device that is doing something right now (excludes always-on constants like Car).
 func isActive(_ device: WidgetDevice) -> Bool {
     device.running && device.name != "Car" && device.name != "Battery"
@@ -120,8 +144,21 @@ struct Provider: AppIntentTimelineProvider {
             let entry = SimpleEntry(date: now, configuration: configuration, widgetDevices: [])
             return Timeline(entries: [entry], policy: .after(now.addingTimeInterval(15 * 60)))
         }
-        let entry = SimpleEntry(date: now, configuration: configuration, widgetDevices: devices)
-        return Timeline(entries: [entry], policy: .after(FluxWidgetNetwork.nextRefresh(for: devices, from: now)))
+        let refresh = FluxWidgetNetwork.nextRefresh(for: devices, from: now)
+        // Project minute countdowns ("25m" -> "24m" ...) between network refreshes.
+        // Extra entries are free; only reloads count against the WidgetKit budget.
+        var entries: [SimpleEntry] = []
+        var minute = 0
+        while let date = Calendar.current.date(byAdding: .minute, value: minute, to: now), date < refresh {
+            entries.append(SimpleEntry(
+                date: date,
+                configuration: configuration,
+                widgetDevices: devices.map { projectCountdown($0, elapsedMinutes: minute) }
+            ))
+            if !devices.contains(where: hasMinuteCountdown) { break }
+            minute += 1
+        }
+        return Timeline(entries: entries, policy: .after(refresh))
     }
 }
 
@@ -234,6 +271,8 @@ struct DeviceRow: View {
     let device: WidgetDevice
     var showsProgress = true
 
+    private var isLive: Bool { device.running || device.name == "Car" }
+
     var body: some View {
         PaletteReader { palette in
             VStack(spacing: 4) {
@@ -242,8 +281,8 @@ struct DeviceRow: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(device.name)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(device.running || device.name == "Car" ? palette.primary : palette.secondary)
-                        if device.running || device.name == "Car" {
+                            .foregroundStyle(isLive ? palette.primary : palette.secondary)
+                        if isLive {
                             Text(widgetSubtitle(for: device))
                                 .font(.caption2)
                                 .foregroundStyle(palette.secondary)
@@ -254,11 +293,44 @@ struct DeviceRow: View {
                     Text(widgetMetric(for: device))
                         .font(.subheadline.weight(.semibold))
                         .monospacedDigit()
-                        .foregroundStyle(device.running || device.name == "Car" ? palette.primary : palette.secondary)
+                        .foregroundStyle(isLive ? palette.primary : palette.secondary)
                         .lineLimit(1)
                 }
-                if showsProgress && (device.running || device.name == "Car") {
+                if showsProgress && isLive {
                     DeviceProgressBar(device: device)
+                }
+            }
+        }
+    }
+}
+
+/// Narrow cell for two-column medium widgets: icon + metric, name, progress.
+struct CompactDeviceCell: View {
+    let device: WidgetDevice
+
+    private var isLive: Bool { device.running || device.name == "Car" }
+
+    var body: some View {
+        PaletteReader { palette in
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    DeviceIcon(device: device, size: 22)
+                    Spacer(minLength: 2)
+                    Text(widgetMetric(for: device))
+                        .font(.subheadline.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(isLive ? palette.primary : palette.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                Text(device.name)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(palette.secondary)
+                    .lineLimit(1)
+                if isLive {
+                    DeviceProgressBar(device: device)
+                } else {
+                    Capsule().fill(palette.secondary.opacity(0.2)).frame(height: 4)
                 }
             }
         }
@@ -290,9 +362,14 @@ struct SmallFeaturedView: View {
         if let device = entry.featured {
             PaletteReader { palette in
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        DeviceIcon(device: device, size: 30)
-                        Spacer()
+                    HStack(spacing: 6) {
+                        DeviceIcon(device: device, size: 28)
+                        Text(device.name)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(palette.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        Spacer(minLength: 0)
                         let others = entry.activeDevices.filter { $0.name != device.name }.count
                         if others > 0 {
                             Text("+\(others)")
@@ -301,10 +378,6 @@ struct SmallFeaturedView: View {
                         }
                     }
                     Spacer(minLength: 0)
-                    Text(device.name)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(palette.secondary)
-                        .lineLimit(1)
                     Text(widgetMetric(for: device))
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .monospacedDigit()
@@ -345,7 +418,7 @@ struct SmallDeviceGridView: View {
     }
 }
 
-/// systemMedium / systemLarge: list of rows.
+/// systemLarge: header plus a list of rows.
 struct DeviceListView: View {
     let entry: SimpleEntry
     let limit: Int
@@ -383,9 +456,12 @@ struct DeviceListView: View {
     }
 }
 
-/// systemExtraLarge (iPad): two columns of rows.
+/// systemMedium (2x2) and systemExtraLarge (iPad): two columns of rows.
 struct DeviceColumnsView: View {
     let entry: SimpleEntry
+    var limit = Int.max
+    var showsHeader = true
+    var compact = false
 
     private let columns = [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)]
 
@@ -394,11 +470,17 @@ struct DeviceColumnsView: View {
             EmptyStateView()
         } else {
             VStack(alignment: .leading, spacing: 12) {
-                Text("FluxHaus")
-                    .font(.title3.weight(.semibold))
-                LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
-                    ForEach(entry.widgetDevices, id: \.name) { device in
-                        DeviceRow(device: device)
+                if showsHeader {
+                    Text("FluxHaus")
+                        .font(.title3.weight(.semibold))
+                }
+                LazyVGrid(columns: columns, alignment: .leading, spacing: compact ? 10 : 16) {
+                    ForEach(entry.widgetDevices.prefix(limit), id: \.name) { device in
+                        if compact {
+                            CompactDeviceCell(device: device)
+                        } else {
+                            DeviceRow(device: device)
+                        }
                     }
                 }
                 Spacer(minLength: 0)
@@ -535,7 +617,7 @@ struct FluxWidgetEntryView: View {
                 SmallFeaturedView(entry: entry)
             }
         case .systemMedium:
-            DeviceListView(entry: entry, limit: 3)
+            DeviceColumnsView(entry: entry, limit: 4, showsHeader: false, compact: true)
         case .systemLarge:
             DeviceListView(entry: entry, limit: 6, showsHeader: true)
         case .systemExtraLarge:
