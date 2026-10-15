@@ -25,15 +25,20 @@ struct CleanbotRunIntent: SetValueIntent {
         } else {
             try await FluxIntentActions.stopRobot(.cleanBot)
         }
+        PendingValue.set(value, key: CleanbotValueProvider.pendingKey)
         return .result()
     }
 }
 
 struct CleanbotValueProvider: ControlValueProvider {
+    static let pendingKey = "FluxWidget.cleanbotPending"
+
     var previewValue: Bool { false }
 
     func currentValue() async throws -> Bool {
-        await FluxWidgetNetwork.fetchSnapshot()?.devices.first { $0.name == "Cleanbot" }?.running ?? false
+        // The robot's reported state lags the command; show the requested state briefly.
+        if let pending = PendingValue<Bool>.current(key: Self.pendingKey) { return pending }
+        return await FluxWidgetNetwork.fetchSnapshot()?.devices.first { $0.name == "Cleanbot" }?.running ?? false
     }
 }
 

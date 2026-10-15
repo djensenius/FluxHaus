@@ -22,7 +22,7 @@ struct CarOverride: Codable {
     private static let key = "FluxWidget.carOverride"
 
     static func current(now: Date = Date()) -> CarOverride? {
-        guard let value = WidgetCache.load(CarOverride.self, key: key), value.expires > now else { return nil }
+        guard let value = WidgetCache.loadCurrent(CarOverride.self, key: key), value.expires > now else { return nil }
         return value
     }
 
@@ -31,7 +31,7 @@ struct CarOverride: Codable {
         if let locked { value.locked = locked }
         if let climateOn { value.climateOn = climateOn }
         value.expires = Date().addingTimeInterval(3 * 60)
-        WidgetCache.save(value, key: key)
+        WidgetCache.saveCurrent(value, key: key)
     }
 
     func apply(to car: CarSnapshot) -> CarSnapshot {

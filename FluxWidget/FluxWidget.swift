@@ -23,7 +23,7 @@ struct Provider: AppIntentTimelineProvider {
         if context.isPreview {
             return SimpleEntry(date: Date(), configuration: configuration, snapshot: .preview)
         }
-        let snapshot = await FluxWidgetNetwork.fetchSnapshot() ?? .preview
+        let snapshot = await FluxWidgetNetwork.fetchSnapshot()
         return SimpleEntry(date: Date(), configuration: configuration, snapshot: snapshot)
     }
 

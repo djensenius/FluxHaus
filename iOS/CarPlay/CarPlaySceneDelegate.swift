@@ -20,6 +20,13 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var assistantItem: CPListItem?
     private var scenesTemplate: CPListTemplate?
     private var scenes: [HomeScene] = []
+    private var scenesState: ScenesState = .loading
+
+    private enum ScenesState {
+        case loading
+        case loaded
+        case failed
+    }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -93,8 +100,12 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func startRefreshTimer() {
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 await self?.loadInitialData()
+                // Retry scenes until they load (e.g. after a transient failure on connect).
+                if let self, self.scenesState != .loaded {
+                    await self.loadScenes()
+                }
             }
         }
     }
@@ -213,12 +224,13 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func loadScenes() async {
         do {
-            let fetched = try await fetchScenes()
-            scenes = fetched
-            scenesTemplate?.updateSections(sceneSections())
+            scenes = try await fetchScenes()
+            scenesState = .loaded
         } catch {
             logger.error("CarPlay: failed to load scenes: \(error.localizedDescription)")
+            scenesState = .failed
         }
+        scenesTemplate?.updateSections(sceneSections())
     }
 
     private func buildScenesTab() -> CPListTemplate {
@@ -230,7 +242,24 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func sceneSections() -> [CPListSection] {
         guard !scenes.isEmpty else {
-            return [CPListSection(items: [CPListItem(text: "No scenes", detailText: "Loading scenes…")])]
+            let item: CPListItem
+            switch scenesState {
+            case .loading:
+                item = CPListItem(text: "Loading scenes…", detailText: nil)
+            case .failed:
+                item = CPListItem(text: "Couldn't load scenes", detailText: "Tap to retry")
+                item.handler = { [weak self] _, completion in
+                    Task { @MainActor in
+                        self?.scenesState = .loading
+                        self?.scenesTemplate?.updateSections(self?.sceneSections() ?? [])
+                        await self?.loadScenes()
+                        completion()
+                    }
+                }
+            case .loaded:
+                item = CPListItem(text: "No scenes", detailText: "Add scenes in Home Assistant")
+            }
+            return [CPListSection(items: [item])]
         }
         let items = scenes.map { scene in
             let item = CPListItem(

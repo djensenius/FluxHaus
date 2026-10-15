@@ -372,9 +372,11 @@ struct FluxHausApp: App {
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
         Task { await LiveActivityManager.shared.reconcile(devices: devices) }
         #endif
-        WidgetReloader.reloadIfChanged(devices: convertDataToWidgetDevices(
-            fluxData: convertLoginResponseToAppData(response: response)
-        ))
+        let widgetData = convertLoginResponseToAppData(response: response)
+        WidgetReloader.reloadIfChanged(
+            devices: convertDataToWidgetDevices(fluxData: widgetData),
+            car: widgetData.car
+        )
     }
 
     private func postNavigation(_ section: String) {
@@ -400,23 +402,40 @@ struct FluxHausApp: App {
 /// a meaningful change, so widgets don't have to wait for their own refresh budget.
 @MainActor
 enum WidgetReloader {
-    private static var lastDevices: [WidgetDevice]?
-    private static var lastTimingKnown: [Bool]?
+    private static var lastKey: String?
 
-    static func reloadIfChanged(devices: [WidgetDevice]) {
-        // WidgetDevice equality ignores timing (it drifts with "now"), so also reload when
-        // timing becomes available or goes away, which switches widgets to live timers.
-        let timingKnown = devices.map { $0.endsAt != nil }
-        guard devices != lastDevices || timingKnown != lastTimingKnown else { return }
-        lastDevices = devices
-        lastTimingKnown = timingKnown
+    static func reloadIfChanged(devices: [WidgetDevice], car: CarDetails?) {
+        let key = changeKey(devices: devices, car: car)
+        guard key != lastKey else { return }
+        lastKey = key
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Everything the widgets display. Timing is reduced to whether it's known (exact
+    /// values drift with "now"), and the car's lock/climate/charging/openings are
+    /// included because the car's WidgetDevice only carries battery and range.
+    private static func changeKey(devices: [WidgetDevice], car: CarDetails?) -> String {
+        let deviceKey = devices.map { device in
+            [
+                device.name, String(device.progress), device.shortText, device.trailingText,
+                String(device.running), device.battery.map(String.init) ?? "-",
+                device.programName ?? "-", device.endsAt == nil ? "untimed" : "timed"
+            ].joined(separator: "|")
+        }
+        let carKey = car.map { car in
+            let doors = car.doorsOpen
+            return [
+                car.batteryLevel, car.distance, car.locked ? 1 : 0, car.hvac ? 1 : 0,
+                car.pluggedIn ? 1 : 0, car.batteryCharge ? 1 : 0, car.trunkOpen ? 1 : 0,
+                car.hoodOpen ? 1 : 0, doors.frontLeft, doors.frontRight, doors.backLeft, doors.backRight
+            ].map(String.init).joined(separator: "|")
+        } ?? "no-car"
+        return (deviceKey + [carKey]).joined(separator: "\n")
     }
 
     /// Signed out: forget what we showed so widgets re-fetch (and blank) immediately.
     static func reset() {
-        lastDevices = nil
-        lastTimingKnown = nil
+        lastKey = nil
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

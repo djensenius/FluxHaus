@@ -87,26 +87,27 @@ enum SceneStore {
     }
 
     static func load() async -> [HomeScene] {
-        guard WidgetCache.hasCredentials else {
+        guard let session = await WidgetCache.currentSession() else {
             WidgetCache.clear(key: cacheKey)
             return []
         }
         do {
             let scenes = try await fetchScenes()
-            WidgetCache.save(scenes, key: cacheKey)
+            guard WidgetCache.isCurrent(session) else { return [] }
+            WidgetCache.save(scenes, key: cacheKey, session: session)
             return scenes
         } catch {
-            return WidgetCache.load([HomeScene].self, key: cacheKey) ?? []
+            return WidgetCache.load([HomeScene].self, key: cacheKey, session: session) ?? []
         }
     }
 
     static func markActivated(_ id: String) {
-        WidgetCache.save(Activation(id: id, date: Date()), key: activatedKey)
+        WidgetCache.saveCurrent(Activation(id: id, date: Date()), key: activatedKey)
     }
 
     /// Scene tapped in the last couple of minutes, to confirm the tap visually.
     static func recentlyActivated(now: Date = Date()) -> String? {
-        guard let value = WidgetCache.load(Activation.self, key: activatedKey),
+        guard let value = WidgetCache.loadCurrent(Activation.self, key: activatedKey),
               now.timeIntervalSince(value.date) < 120 else { return nil }
         return value.id
     }
@@ -208,7 +209,7 @@ struct ScenesProvider: AppIntentTimelineProvider {
                 justTapped: justTapped
             )
         }
-        return ScenesEntry(date: Date(), scenes: Array(items), signedIn: WidgetCache.hasCredentials)
+        return ScenesEntry(date: Date(), scenes: Array(items), signedIn: AuthManager.shared.widgetSessionID() != nil)
     }
 }
 

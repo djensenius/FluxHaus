@@ -384,6 +384,27 @@ private actor RefreshCoordinator {
         NotificationCenter.default.post(name: .authDidSignOut, object: nil)
     }
 
+    // MARK: - Widget Session
+
+    private static let widgetSessionAccount = "widget_session_id"
+
+    /// Identifies the current signed-in session for caches kept outside the app process
+    /// (widgets, controls). It is deleted synchronously whenever credentials are cleared
+    /// (sign-out, account switch), so data cached under a previous session is never shown.
+    /// Returns nil when signed out.
+    func widgetSessionID() -> String? {
+        guard authorizationHeader() != nil else { return nil }
+        if let id = getKeychainItem(account: Self.widgetSessionAccount) { return id }
+        let id = UUID().uuidString
+        setKeychainItem(account: Self.widgetSessionAccount, value: id)
+        return id
+    }
+
+    /// Invalidates widget caches tied to the current session.
+    func rotateWidgetSession() {
+        deleteKeychainItem(account: Self.widgetSessionAccount)
+    }
+
     // MARK: - Token Management
     func getAccessToken() -> String? {
         return getKeychainItem(account: "oidc_access_token")
@@ -715,6 +736,8 @@ private actor RefreshCoordinator {
     }
 
     private func clearOIDCTokens() {
+        // Rotate the widget session so caches written under the old session are discarded.
+        rotateWidgetSession()
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
         deleteKeychainItem(account: "oidc_token_expiry")

@@ -132,7 +132,12 @@ struct DeviceProgressBar: View {
     var body: some View {
         PaletteReader { palette in
             Group {
-                if device.name != "Car", let interval = device.timerInterval(now: date), device.startDate != nil {
+                if device.name != "Car", device.running, let end = device.endDate, end <= date {
+                    // Expected end reached: stay full until fresh data arrives.
+                    ProgressView(value: 1.0)
+                        .progressViewStyle(.linear)
+                } else if device.name != "Car", device.startDate != nil,
+                          let interval = device.timerInterval(now: date) {
                     ProgressView(timerInterval: interval, countsDown: false) {
                         EmptyView()
                     } currentValueLabel: {
@@ -207,23 +212,71 @@ struct EmptyStateView: View {
 // MARK: - Cache
 
 /// Small JSON cache in the extension's own defaults, used when a fetch fails.
+/// Every record is tagged with the auth session it was written under (see
+/// `AuthManager.widgetSessionID()`), and is only ever returned for that same session,
+/// so nothing cached before a sign-out or account switch can be shown afterwards.
 enum WidgetCache {
-    static func load<T: Decodable>(_ type: T.Type, key: String) -> T? {
-        guard let data = UserDefaults.standard.data(forKey: key) else { return nil }
-        return try? JSONDecoder().decode(type, from: data)
+    private struct Record<Value: Codable>: Codable {
+        let session: String
+        let value: Value
     }
 
-    static func save<T: Encodable>(_ value: T, key: String) {
-        guard let data = try? JSONEncoder().encode(value) else { return }
+    /// The current session, refreshing an expiring OIDC token first. Nil when signed out.
+    static func currentSession() async -> String? {
+        if AuthManager.shared.getAccessToken() != nil {
+            _ = await AuthManager.shared.ensureValidToken()
+        }
+        return AuthManager.shared.widgetSessionID()
+    }
+
+    /// True if `session` is still the signed-in session (checked after awaiting requests).
+    static func isCurrent(_ session: String) -> Bool {
+        AuthManager.shared.widgetSessionID() == session
+    }
+
+    static func load<Value: Codable>(_ type: Value.Type, key: String, session: String) -> Value? {
+        guard isCurrent(session),
+              let data = UserDefaults.standard.data(forKey: key),
+              let record = try? JSONDecoder().decode(Record<Value>.self, from: data),
+              record.session == session else { return nil }
+        return record.value
+    }
+
+    static func save<Value: Codable>(_ value: Value, key: String, session: String) {
+        guard isCurrent(session),
+              let data = try? JSONEncoder().encode(Record(session: session, value: value)) else { return }
         UserDefaults.standard.set(data, forKey: key)
+    }
+
+    /// Synchronous variants for short-lived state (optimistic overrides) in the current session.
+    static func loadCurrent<Value: Codable>(_ type: Value.Type, key: String) -> Value? {
+        AuthManager.shared.widgetSessionID().flatMap { load(type, key: key, session: $0) }
+    }
+
+    static func saveCurrent<Value: Codable>(_ value: Value, key: String) {
+        guard let session = AuthManager.shared.widgetSessionID() else { return }
+        save(value, key: key, session: session)
     }
 
     static func clear(key: String) {
         UserDefaults.standard.removeObject(forKey: key)
     }
+}
 
-    /// True when the user is signed in (OIDC token or demo password).
-    static var hasCredentials: Bool {
-        AuthManager.shared.authorizationHeader() != nil || !(WhereWeAre.getPassword() ?? "").isEmpty
+/// Short-lived optimistic value shown after a widget/control command, because device
+/// state reported by the server lags behind commands.
+struct PendingValue<Value: Codable>: Codable {
+    let value: Value
+    let expires: Date
+
+    static func current(key: String, now: Date = Date()) -> Value? {
+        guard let pending = WidgetCache.loadCurrent(PendingValue.self, key: key), pending.expires > now else {
+            return nil
+        }
+        return pending.value
+    }
+
+    static func set(_ value: Value, key: String, for duration: TimeInterval = 180) {
+        WidgetCache.saveCurrent(PendingValue(value: value, expires: Date().addingTimeInterval(duration)), key: key)
     }
 }

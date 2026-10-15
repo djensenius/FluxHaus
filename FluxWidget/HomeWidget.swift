@@ -31,16 +31,19 @@ enum HomeStore {
     private static let cacheKey = "FluxWidget.home"
 
     static func load() async -> HomeSnapshot? {
-        guard WidgetCache.hasCredentials else {
+        // currentSession() refreshes an expiring OIDC token before the metrics requests,
+        // which (unlike the main API call) don't retry on 401.
+        guard let session = await WidgetCache.currentSession() else {
             WidgetCache.clear(key: cacheKey)
             return nil
         }
         let fetched = await fetchSeries()
+        guard WidgetCache.isCurrent(session) else { return nil }
         let temp = fetched.temperature, air = fetched.airQuality
         let aqhiSeries = fetched.aqhi, powerSeries = fetched.power
 
         guard temp != nil || air != nil || aqhiSeries != nil || powerSeries != nil else {
-            return WidgetCache.load(HomeSnapshot.self, key: cacheKey)
+            return WidgetCache.load(HomeSnapshot.self, key: cacheKey, session: session)
         }
 
         let outdoor = temp?.series.first { $0.name.lowercased() == "outside" }
@@ -59,7 +62,7 @@ enum HomeStore {
             pm25Outdoor: air?.series.first { $0.name.lowercased() == "outdoor" }?.points.last?.value,
             powerWatts: powerSeries?.series.first?.points.last?.value
         )
-        WidgetCache.save(snapshot, key: cacheKey)
+        WidgetCache.save(snapshot, key: cacheKey, session: session)
         return snapshot
     }
 }

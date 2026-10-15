@@ -57,34 +57,50 @@ struct FluxSnapshot: Codable {
     var finishedAt: [String: Date]
 }
 
+/// Coalesces concurrent fetches (several widgets and controls often refresh together)
+/// without suppressing later, separately requested refreshes.
+private actor SnapshotFetcher {
+    private var inFlight: Task<FluxSnapshot?, Never>?
+
+    func fetch() async -> FluxSnapshot? {
+        if let inFlight { return await inFlight.value }
+        let task = Task { await FluxWidgetNetwork.performFetch() }
+        inFlight = task
+        let result = await task.value
+        inFlight = nil
+        return result
+    }
+}
+
 enum FluxWidgetNetwork {
     private static let cacheKey = "FluxWidget.snapshot"
-    /// Several widgets refresh together; share one network fetch between them.
-    private static let reuseWindow: TimeInterval = 60
+    private static let fetcher = SnapshotFetcher()
 
     /// Fetches the latest snapshot. Never crashes: on any auth/network/decoding failure
-    /// it falls back to the last good snapshot. Returns nil when signed out.
+    /// it falls back to the last good snapshot for the same session. Nil when signed out.
     static func fetchSnapshot() async -> FluxSnapshot? {
-        guard WidgetCache.hasCredentials else {
+        await fetcher.fetch()
+    }
+
+    fileprivate static func performFetch() async -> FluxSnapshot? {
+        guard let session = await WidgetCache.currentSession() else {
             // Signed out: never show the previous session's data.
             widgetLogger.warning("Widget: no credentials available")
             WidgetCache.clear(key: cacheKey)
             return nil
         }
-        let cached = WidgetCache.load(FluxSnapshot.self, key: cacheKey)
-        if let cached, Date().timeIntervalSince(cached.fetchedAt) < reuseWindow {
-            return cached
-        }
+        let cached = WidgetCache.load(FluxSnapshot.self, key: cacheKey, session: session)
         do {
-            guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? "") else {
-                return cached
+            guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),
+                  WidgetCache.isCurrent(session) else {
+                return WidgetCache.load(FluxSnapshot.self, key: cacheKey, session: session)
             }
             let snapshot = makeSnapshot(from: response, previous: cached)
-            WidgetCache.save(snapshot, key: cacheKey)
+            WidgetCache.save(snapshot, key: cacheKey, session: session)
             return snapshot
         } catch {
             widgetLogger.error("Widget: fetch failed: \(error.localizedDescription)")
-            return cached
+            return WidgetCache.load(FluxSnapshot.self, key: cacheKey, session: session)
         }
     }
 
@@ -139,12 +155,12 @@ enum FluxWidgetNetwork {
         return sortTimedDevices(devices: timedRunningDevices) + runningDevices + constantDevices + offDevices
     }
 
-    /// Soonest to finish first (by end time when known, else most progressed).
+    /// Soonest to finish first: devices with a known end time (earliest first), then the
+    /// rest by most progressed. Two separate orders keep the comparison transitive.
     static func sortTimedDevices(devices: [WidgetDevice]) -> [WidgetDevice] {
-        devices.sorted { lhs, rhs in
-            if let lhsEnd = lhs.endsAt, let rhsEnd = rhs.endsAt { return lhsEnd < rhsEnd }
-            return lhs.progress > rhs.progress
-        }
+        let timed = devices.filter { $0.endsAt != nil }.sorted { ($0.endsAt ?? 0) < ($1.endsAt ?? 0) }
+        let untimed = devices.filter { $0.endsAt == nil }.sorted { $0.progress > $1.progress }
+        return timed + untimed
     }
 
     /// Refresh more often while an appliance is running and back off when idle to
