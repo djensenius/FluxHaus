@@ -144,7 +144,13 @@ struct SceneControlConfig: ControlConfigurationIntent {
 struct SceneControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         AppIntentControlConfiguration(kind: FluxControlKind.scene, intent: SceneControlConfig.self) { config in
-            ControlWidgetButton(action: RunSceneWidgetIntent(sceneId: config.scene?.id ?? "")) {
+            // Controls aren't tied to a session; the intent checks the scene (ID and name)
+            // exists for the signed-in account before running it.
+            ControlWidgetButton(action: RunSceneWidgetIntent(
+                sceneId: config.scene?.id ?? "",
+                sceneName: config.scene?.name ?? "",
+                originSession: nil
+            )) {
                 Label(
                     config.scene?.name ?? "Choose Scene",
                     systemImage: sceneSymbol(for: config.scene?.name ?? "")

@@ -528,6 +528,10 @@ private actor RefreshCoordinator {
 
     func refreshTokenIfNeeded() async -> Bool {
         let generation = sessionGenerationSnapshot()
+        // The keychain is shared with app extensions, which keep their own in-memory
+        // generation. Also capture the shared session so a refresh that started before
+        // another process signed out / switched accounts can't write back or sign out.
+        let sharedSession = widgetSessionID()
 
         // If another refresh is in-flight, wait for its result (actor-serialized)
         if let coalescedResult = await refreshCoordinator.acquireOrWait(for: generation) {
@@ -552,7 +556,7 @@ private actor RefreshCoordinator {
         case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(for: generation, success: false)
-            await signOutIfSessionGenerationMatches(generation)
+            await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
             return false
         }
 
@@ -560,7 +564,7 @@ private actor RefreshCoordinator {
 
         do {
             let tokens = try await refreshAccessToken(refreshToken)
-            guard storeRefreshedTokens(tokens, for: generation),
+            guard storeRefreshedTokens(tokens, for: generation, sharedSession: sharedSession),
                   await markRefreshedOIDCSessionValid(for: generation) else {
                 logger.info("Discarding token refresh because the authentication session changed")
                 await refreshCoordinator.complete(for: generation, success: false)
@@ -572,7 +576,7 @@ private actor RefreshCoordinator {
         } catch AuthError.refreshTokenInvalid(let reason) {
             logger.error("Refresh token rejected by server — signing out: \(reason)")
             await refreshCoordinator.complete(for: generation, success: false)
-            await signOutIfSessionGenerationMatches(generation)
+            await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
             return false
         } catch {
             logger.warning("refreshTokenIfNeeded: transient failure, keeping session — \(error.localizedDescription)")
@@ -608,10 +612,10 @@ private actor RefreshCoordinator {
         return .available(refreshToken)
     }
 
-    private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
+    private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64, sharedSession: String?) -> Bool {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }
-        guard sessionGeneration == generation else {
+        guard sessionGeneration == generation, Self.readWidgetSession() == sharedSession else {
             return false
         }
         storeTokens(tokens)
@@ -653,8 +657,8 @@ private actor RefreshCoordinator {
         clearOIDCTokens()
     }
 
-    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64) {
-        guard isSessionGenerationCurrent(generation) else {
+    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64, sharedSession: String?) {
+        guard isSessionGenerationCurrent(generation), Self.readWidgetSession() == sharedSession else {
             return
         }
         signOut()

@@ -61,16 +61,34 @@ struct RunSceneWidgetIntent: AppIntent {
     @Parameter(title: "Scene ID")
     var sceneId: String
 
+    @Parameter(title: "Scene Name")
+    var sceneName: String
+
+    /// Session whose data rendered the button; empty for controls (validated by name).
+    @Parameter(title: "Session")
+    var originSession: String
+
     init() {}
 
-    init(sceneId: String) {
+    init(sceneId: String, sceneName: String, originSession: String?) {
         self.sceneId = sceneId
+        self.sceneName = sceneName
+        self.originSession = originSession ?? ""
     }
 
     func perform() async throws -> some IntentResult {
-        let sceneId = sceneId
+        let sceneId = sceneId, sceneName = sceneName, originSession = originSession
         let session = try await WidgetCache.runCommand {
             try await requireIntentAuthentication()
+            // Never run a scene shown for another account: the tapped widget must belong to
+            // the current session, and the scene must exist (same ID and name) for it.
+            if !originSession.isEmpty, !WidgetCache.isCurrent(originSession) {
+                throw SceneServiceError.unauthorized
+            }
+            let scenes = try await fetchScenes()
+            guard scenes.contains(where: { $0.entityId == sceneId && $0.name == sceneName }) else {
+                throw SceneServiceError.serverError("That scene isn't available for this account.")
+            }
             try await activateScene(entityId: sceneId)
         }
         SceneStore.markActivated(sceneId, session: session)
@@ -147,6 +165,8 @@ func sceneSymbol(for name: String) -> String {
 struct SceneItem: Hashable {
     let id: String
     let name: String
+    /// Auth session the scene list was fetched for.
+    var session: String?
     var isActive: Bool
     /// Highlighted only because it was just tapped (cleared after a couple of minutes).
     var justTapped = false
@@ -197,7 +217,11 @@ struct ScenesProvider: AppIntentTimelineProvider {
     }
 
     private func entry(for configuration: ScenesConfigIntent, family: WidgetFamily) async -> ScenesEntry {
+        let session = await WidgetCache.currentSession()
         let all = await SceneStore.load()
+        guard let session, WidgetCache.isCurrent(session) else {
+            return ScenesEntry(date: Date(), scenes: [], signedIn: false)
+        }
         let limit = family == .systemSmall ? 2 : family == .systemMedium ? 4 : 8
         let chosen: [HomeScene]
         if let selected = configuration.scenes, !selected.isEmpty {
@@ -212,11 +236,12 @@ struct ScenesProvider: AppIntentTimelineProvider {
             return SceneItem(
                 id: scene.entityId,
                 name: scene.name,
+                session: session,
                 isActive: serverActive || justTapped,
                 justTapped: justTapped
             )
         }
-        return ScenesEntry(date: Date(), scenes: Array(items), signedIn: AuthManager.shared.widgetSessionID() != nil)
+        return ScenesEntry(date: Date(), scenes: Array(items), signedIn: true)
     }
 }
 
@@ -230,7 +255,11 @@ struct SceneButton: View {
 
     var body: some View {
         PaletteReader { palette in
-            Button(intent: RunSceneWidgetIntent(sceneId: scene.id)) {
+            Button(intent: RunSceneWidgetIntent(
+                sceneId: scene.id,
+                sceneName: scene.name,
+                originSession: scene.session
+            )) {
                 HStack(spacing: 8) {
                     Image(systemName: sceneSymbol(for: scene.name))
                         .font(.system(size: 15, weight: .semibold))

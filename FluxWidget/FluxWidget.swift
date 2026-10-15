@@ -511,7 +511,8 @@ struct GridGauge: View {
 
     var body: some View {
         PaletteReader { palette in
-            Gauge(value: widgetProgress(for: item, at: date)) {
+            // Robots are labelled with battery, so the ring shows battery too.
+            Gauge(value: isRobot(item.name) ? widgetProgress(for: item) : widgetProgress(for: item, at: date)) {
                 Image(systemName: item.icon)
             } currentValueLabel: {
                 Text(shortLabel)
