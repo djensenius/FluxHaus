@@ -85,6 +85,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) {
         appLogger.info("Received background remote notification")
 
+        // Appliance started/finished. Have widgets re-fetch on their own; SwiftUI
+        // view handlers may not be attached when the push launches us in the background.
+        WidgetCenter.shared.reloadAllTimelines()
+
         // When woken by a silent push, refresh data and update Live Activities
         guard AuthManager.shared.isSignedIn else {
             completionHandler(.noData)
