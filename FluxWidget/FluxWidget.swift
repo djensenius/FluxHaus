@@ -359,23 +359,15 @@ struct ApplianceCircularView: View {
         ZStack {
             AccessoryWidgetBackground()
             if let device = entry.featured ?? entry.car {
-                if device.name != "Car", let interval = device.timerInterval(now: entry.date) {
-                    ProgressView(timerInterval: interval, countsDown: true) {
-                        Image(systemName: device.icon)
-                    } currentValueLabel: {
-                        Image(systemName: device.icon)
-                    }
-                    .progressViewStyle(.circular)
-                    .widgetAccentable()
-                } else {
-                    Gauge(value: widgetProgress(for: device)) {
-                        Image(systemName: device.icon)
-                    } currentValueLabel: {
-                        Image(systemName: device.icon)
-                    }
-                    .gaugeStyle(.accessoryCircularCapacity)
-                    .widgetAccentable()
+                // Date-relative ProgressView doesn't support the circular style, so use a
+                // capacity gauge at the entry's progress (entries advance it every 5 min).
+                Gauge(value: widgetProgress(for: device, at: entry.date)) {
+                    Image(systemName: device.icon)
+                } currentValueLabel: {
+                    Image(systemName: device.icon)
                 }
+                .gaugeStyle(.accessoryCircularCapacity)
+                .widgetAccentable()
             } else {
                 Image(systemName: "checkmark")
                     .font(.title2.weight(.semibold))

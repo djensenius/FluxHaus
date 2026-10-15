@@ -174,11 +174,20 @@ enum FluxWidgetNetwork {
         return next
     }
 
-    /// Moments the rendering changes without new data: when a cycle reaches its expected end.
+    /// Moments the rendering changes without new data: when a cycle reaches its expected
+    /// end, plus every 5 minutes while timed cycles run so gauges that can't animate on
+    /// their own (circular complications) keep advancing.
     static func transitionDates(for devices: [WidgetDevice], from date: Date, until end: Date) -> [Date] {
-        devices.filter(\.running).compactMap(\.endDate)
-            .filter { $0 > date && $0 < end }
-            .sorted()
+        let timed = devices.filter { $0.running && $0.endDate != nil }
+        var dates = Set(timed.compactMap(\.endDate))
+        if !timed.isEmpty {
+            var next = date.addingTimeInterval(300)
+            while next < end {
+                dates.insert(next)
+                next = next.addingTimeInterval(300)
+            }
+        }
+        return dates.filter { $0 > date && $0 < end }.sorted()
     }
 }
 

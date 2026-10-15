@@ -146,7 +146,7 @@ struct LiveActivitySubtitle: View {
                     Text("Done \(Text(end, style: .time))")
                 }
             } else {
-                Text(trailingSubtitle(for: device))
+                Text(widgetSubtitle(for: device))
             }
         }
         .font(.caption)
@@ -252,24 +252,14 @@ struct IslandMinimal: View {
 
     var body: some View {
         if let device = primaryLiveActivityDevice(from: devices) {
-            Group {
-                if let interval = device.timerInterval(), device.startDate != nil {
-                    ProgressView(timerInterval: interval, countsDown: false) {
-                        EmptyView()
-                    } currentValueLabel: {
-                        Image(systemName: device.icon).font(.caption2)
-                    }
-                    .progressViewStyle(.circular)
-                } else {
-                    // No timing (older payloads): a determinate ring, not a spinner.
-                    Gauge(value: liveActivityProgressValue(for: device)) {
-                        EmptyView()
-                    } currentValueLabel: {
-                        Image(systemName: device.icon).font(.caption2)
-                    }
-                    .gaugeStyle(.accessoryCircularCapacity)
-                }
+            // Date-relative ProgressView doesn't support the circular style; a capacity
+            // gauge gives a determinate ring (advanced by each Live Activity update).
+            Gauge(value: widgetProgress(for: device, at: .now)) {
+                EmptyView()
+            } currentValueLabel: {
+                Image(systemName: device.icon).font(.caption2)
             }
+            .gaugeStyle(.accessoryCircularCapacity)
             .tint(liveActivityProgressColor(for: device))
         }
     }

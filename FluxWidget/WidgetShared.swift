@@ -94,8 +94,21 @@ func widgetSubtitle(for device: WidgetDevice) -> String {
     if isRobot(device.name) {
         return device.trailingText.isEmpty ? "Cleaning" : device.trailingText
     }
+    // Untimed but "running" usually means paused, needs action, or an error; the status
+    // is carried in trailingText ("Paused ⋅ Cotton ⋅ 25m"), so keep it visible.
+    if device.endsAt == nil, !device.trailingText.isEmpty { return device.trailingText }
     if let program = device.programName, !program.isEmpty { return program }
     return "Running"
+}
+
+/// Progress at `date`, advancing with the clock when timing is known (for gauges that
+/// can't animate on their own).
+func widgetProgress(for device: WidgetDevice, at date: Date) -> Double {
+    guard device.name != "Car", device.running, let end = device.endDate else {
+        return widgetProgress(for: device)
+    }
+    guard let start = device.startDate, end > start else { return widgetProgress(for: device) }
+    return min(max(date.timeIntervalSince(start) / end.timeIntervalSince(start), 0), 1)
 }
 
 // MARK: - Live timing
@@ -223,9 +236,9 @@ enum WidgetCache {
 
     /// The current session, refreshing an expiring OIDC token first. Nil when signed out.
     static func currentSession() async -> String? {
-        if AuthManager.shared.getAccessToken() != nil {
-            _ = await AuthManager.shared.ensureValidToken()
-        }
+        // Also restores in-memory auth state (incl. demo sign-in after the extension
+        // launched signed out), which App Intents rely on.
+        _ = await AuthManager.shared.ensureValidToken()
         return AuthManager.shared.widgetSessionID()
     }
 
