@@ -18,7 +18,21 @@ struct HomeSnapshot: Codable {
     var aqhi: Double?
     var pm25Indoor: Double?
     var pm25Outdoor: Double?
+    /// Total of all monitored devices' latest power readings.
     var powerWatts: Double?
+
+    init(
+        indoorTemp: Double? = nil, outdoorTemp: Double? = nil, outdoorTrend: [Double],
+        aqhi: Double? = nil, pm25Indoor: Double? = nil, pm25Outdoor: Double? = nil, powerWatts: Double? = nil
+    ) {
+        self.indoorTemp = indoorTemp
+        self.outdoorTemp = outdoorTemp
+        self.outdoorTrend = outdoorTrend
+        self.aqhi = aqhi
+        self.pm25Indoor = pm25Indoor
+        self.pm25Outdoor = pm25Outdoor
+        self.powerWatts = powerWatts
+    }
 
     static let preview = HomeSnapshot(
         indoorTemp: 21.4, outdoorTemp: 7.8,
@@ -39,29 +53,32 @@ enum HomeStore {
         }
         let fetched = await fetchSeries()
         guard WidgetCache.isCurrent(session) else { return nil }
-        let temp = fetched.temperature, air = fetched.airQuality
-        let aqhiSeries = fetched.aqhi, powerSeries = fetched.power
+        let cached = WidgetCache.load(HomeSnapshot.self, key: cacheKey, session: session)
+        guard fetched.anySucceeded else { return cached }
 
-        guard temp != nil || air != nil || aqhiSeries != nil || powerSeries != nil else {
-            return WidgetCache.load(HomeSnapshot.self, key: cacheKey, session: session)
+        // Update only the fields whose request succeeded; keep cached values for the rest.
+        var snapshot = cached ?? HomeSnapshot(outdoorTrend: [])
+        if let temp = fetched.temperature {
+            let outdoor = temp.series.first { $0.name.lowercased() == "outside" }
+            let indoor = temp.series.first { $0.name.lowercased().contains("home") }
+                ?? temp.series.first { $0.name.lowercased() != "outside" }
+            snapshot.indoorTemp = indoor?.points.last?.value
+            snapshot.outdoorTemp = outdoor?.points.last?.value
+            snapshot.outdoorTrend = (outdoor?.points.map(\.value) ?? []).downsampled(to: 24)
         }
-
-        let outdoor = temp?.series.first { $0.name.lowercased() == "outside" }
-        let indoor = temp?.series.first { $0.name.lowercased().contains("home") }
-            ?? temp?.series.first { $0.name.lowercased() != "outside" }
-        let trend = (outdoor?.points.map(\.value) ?? []).downsampled(to: 24)
-        let aqhiValue = (aqhiSeries?.series.first { $0.name.lowercased().contains("canada") }
-            ?? aqhiSeries?.series.first)?.points.last?.value
-
-        let snapshot = HomeSnapshot(
-            indoorTemp: indoor?.points.last?.value,
-            outdoorTemp: outdoor?.points.last?.value,
-            outdoorTrend: trend,
-            aqhi: aqhiValue,
-            pm25Indoor: air?.series.first { $0.name.lowercased() == "indoor" }?.points.last?.value,
-            pm25Outdoor: air?.series.first { $0.name.lowercased() == "outdoor" }?.points.last?.value,
-            powerWatts: powerSeries?.series.first?.points.last?.value
-        )
+        if let air = fetched.airQuality {
+            snapshot.pm25Indoor = air.series.first { $0.name.lowercased() == "indoor" }?.points.last?.value
+            snapshot.pm25Outdoor = air.series.first { $0.name.lowercased() == "outdoor" }?.points.last?.value
+        }
+        if let aqhi = fetched.aqhi {
+            snapshot.aqhi = (aqhi.series.first { $0.name.lowercased().contains("canada") }
+                ?? aqhi.series.first)?.points.last?.value
+        }
+        if let power = fetched.power {
+            // power_draw has one series per monitored device; report the total.
+            let readings = power.series.compactMap { $0.points.last?.value }
+            snapshot.powerWatts = readings.isEmpty ? nil : readings.reduce(0, +)
+        }
         WidgetCache.save(snapshot, key: cacheKey, session: session)
         return snapshot
     }
@@ -73,6 +90,10 @@ extension HomeStore {
         var airQuality: MetricSeriesResponse?
         var aqhi: MetricSeriesResponse?
         var power: MetricSeriesResponse?
+
+        var anySucceeded: Bool {
+            temperature != nil || airQuality != nil || aqhi != nil || power != nil
+        }
     }
 
     @MainActor

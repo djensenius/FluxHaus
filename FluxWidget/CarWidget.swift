@@ -117,14 +117,23 @@ struct CarProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<CarEntry>) -> Void) {
         Task {
-            let entry = await Self.entry()
-            let minutes = entry.car?.climateOn == true || CarOverride.current() != nil ? 5 : 30
-            var next = entry.date.addingTimeInterval(TimeInterval(minutes * 60))
-            if let expires = CarOverride.current()?.expires {
-                // Re-check the real car state as soon as the optimistic override lapses.
-                next = min(next, expires.addingTimeInterval(1))
+            let now = Date()
+            let snapshot = await FluxWidgetNetwork.fetchSnapshot()
+            let reported = snapshot?.car
+            let override = CarOverride.current(now: now)
+            var entries = [CarEntry(
+                date: now,
+                car: reported.map { override?.apply(to: $0) ?? $0 },
+                signedIn: snapshot != nil
+            )]
+            if let override {
+                // When the optimistic state lapses, fall back to the reported state even if
+                // WidgetKit delays the next reload.
+                entries.append(CarEntry(date: override.expires, car: reported, signedIn: snapshot != nil))
             }
-            completion(Timeline(entries: [entry], policy: .after(next)))
+            let minutes = reported?.climateOn == true || override != nil ? 5 : 30
+            let next = now.addingTimeInterval(TimeInterval(minutes * 60))
+            completion(Timeline(entries: entries, policy: .after(next)))
         }
     }
 

@@ -115,6 +115,6 @@ public struct WhereWeAre {
         if status != noErr && status != errSecItemNotFound {
             logger.error("Keychain delete FAILED for demo password: OSStatus \(status)")
         }
-        AuthManager.shared.rotateWidgetSession()
+        AuthManager.rotateWidgetSession()
     }
 }

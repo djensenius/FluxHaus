@@ -386,23 +386,53 @@ private actor RefreshCoordinator {
 
     // MARK: - Widget Session
 
+    private static let widgetSessionService = "io.fluxhaus.oidc"
     private static let widgetSessionAccount = "widget_session_id"
 
     /// Identifies the current signed-in session for caches kept outside the app process
     /// (widgets, controls). It is deleted synchronously whenever credentials are cleared
     /// (sign-out, account switch), so data cached under a previous session is never shown.
-    /// Returns nil when signed out.
+    /// Returns nil when signed out. Concurrent callers always agree on the same ID.
     func widgetSessionID() -> String? {
         guard authorizationHeader() != nil else { return nil }
-        if let id = getKeychainItem(account: Self.widgetSessionAccount) { return id }
-        let id = UUID().uuidString
-        setKeychainItem(account: Self.widgetSessionAccount, value: id)
-        return id
+        if let id = Self.readWidgetSession() { return id }
+        let candidate = UUID().uuidString
+        let attributes: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: Self.widgetSessionService,
+            kSecAttrAccount as String: Self.widgetSessionAccount,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecValueData as String: Data(candidate.utf8)
+        ]
+        // Add without replacing: if another process/thread created one first, use theirs.
+        let status = SecItemAdd(attributes as CFDictionary, nil)
+        if status == errSecSuccess { return candidate }
+        return Self.readWidgetSession()
     }
 
-    /// Invalidates widget caches tied to the current session.
-    func rotateWidgetSession() {
-        deleteKeychainItem(account: Self.widgetSessionAccount)
+    /// Invalidates widget caches tied to the current session. Static and singleton-free so
+    /// it is safe to call while `AuthManager.shared` is still initializing.
+    static func rotateWidgetSession() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: widgetSessionService,
+            kSecAttrAccount as String: widgetSessionAccount
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    private static func readWidgetSession() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: widgetSessionService,
+            kSecAttrAccount as String: widgetSessionAccount,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
     }
 
     // MARK: - Token Management
@@ -737,7 +767,7 @@ private actor RefreshCoordinator {
 
     private func clearOIDCTokens() {
         // Rotate the widget session so caches written under the old session are discarded.
-        rotateWidgetSession()
+        Self.rotateWidgetSession()
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
         deleteKeychainItem(account: "oidc_token_expiry")
