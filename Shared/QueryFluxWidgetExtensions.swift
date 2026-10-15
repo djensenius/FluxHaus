@@ -63,7 +63,8 @@ func cycleTiming(
 ) -> (startedAt: Double?, endsAt: Double?) {
     let nowSeconds = now.timeIntervalSince1970
     let endsAt = remainingSeconds.flatMap { $0 > 0 ? (nowSeconds + $0).rounded() : nil }
-    let startedAt = elapsedSeconds.flatMap { $0 > 0 ? (nowSeconds - $0).rounded() : nil }
+    // Zero elapsed is a valid start (just started); only negative values are rejected.
+    let startedAt = elapsedSeconds.flatMap { $0 >= 0 ? (nowSeconds - $0).rounded() : nil }
     return (startedAt, endsAt)
 }
 
