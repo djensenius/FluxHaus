@@ -556,7 +556,7 @@ private actor RefreshCoordinator {
         case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(for: generation, success: false)
-            if WhereWeAre.getPassword() != nil {
+            if getAccessToken() == nil, WhereWeAre.getPassword() != nil {
                 // Another process (the app) switched to demo sign-in and cleared the OIDC
                 // tokens. Follow it rather than signing out, which would delete that password.
                 await reconcileWithStoredCredentials()

@@ -82,14 +82,16 @@ struct RunSceneWidgetIntent: AppIntent {
             try await requireIntentAuthentication()
             // Never run a scene shown for another account: the tapped widget must belong to
             // the current session, and the scene must exist (same ID and name) for it.
-            if !originSession.isEmpty, !WidgetCache.isCurrent(originSession) {
+            guard let expected = originSession.isEmpty ? AuthManager.shared.widgetSessionID() : originSession,
+                  WidgetCache.isCurrent(expected) else {
                 throw SceneServiceError.unauthorized
             }
             let scenes = try await fetchScenes()
-            guard scenes.contains(where: { $0.entityId == sceneId && $0.name == sceneName }) else {
+            guard WidgetCache.isCurrent(expected),
+                  scenes.contains(where: { $0.entityId == sceneId && $0.name == sceneName }) else {
                 throw SceneServiceError.serverError("That scene isn't available for this account.")
             }
-            try await activateScene(entityId: sceneId)
+            try await activateScene(entityId: sceneId) { WidgetCache.isCurrent(expected) }
         }
         SceneStore.markActivated(sceneId, session: session)
         return .result()

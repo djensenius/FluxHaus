@@ -51,13 +51,36 @@ struct CarOverride: Codable {
 
 // MARK: - Intents
 
+/// Throws unless `origin` (the session whose car a widget button was rendered for) is still
+/// the signed-in session. An empty origin means "current account" (Control Center).
+func requireCurrentSession(_ origin: String) throws {
+    guard origin.isEmpty || WidgetCache.isCurrent(origin) else {
+        throw IntentError.notSignedIn
+    }
+}
+
 struct CarWidgetLockIntent: AppIntent {
     static let title: LocalizedStringResource = "Lock Car"
     static let description = IntentDescription("Lock the FluxHaus car.")
     static let isDiscoverable = false
 
+    @Parameter(title: "Session")
+    var originSession: String
+
+    init() {
+        originSession = ""
+    }
+
+    init(originSession: String?) {
+        self.originSession = originSession ?? ""
+    }
+
     func perform() async throws -> some IntentResult {
-        let session = try await WidgetCache.runCommand { try await FluxIntentActions.lockCar() }
+        let origin = originSession
+        let session = try await WidgetCache.runCommand {
+            try requireCurrentSession(origin)
+            try await FluxIntentActions.lockCar()
+        }
         CarOverride.set(locked: true, session: session)
         return .result()
     }
@@ -71,15 +94,20 @@ struct CarWidgetClimateIntent: AppIntent {
     @Parameter(title: "On")
     var turnOn: Bool
 
+    @Parameter(title: "Session")
+    var originSession: String
+
     init() {}
 
-    init(turnOn: Bool) {
+    init(turnOn: Bool, originSession: String?) {
         self.turnOn = turnOn
+        self.originSession = originSession ?? ""
     }
 
     func perform() async throws -> some IntentResult {
-        let turnOn = turnOn
+        let turnOn = turnOn, origin = originSession
         let session = try await WidgetCache.runCommand {
+            try requireCurrentSession(origin)
             if turnOn {
                 try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
             } else {
@@ -128,8 +156,11 @@ struct CarProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<CarEntry>) -> Void) {
         Task {
             let now = Date()
-            let snapshot = await FluxWidgetNetwork.fetchSnapshot()
-            let reported = snapshot?.car
+            let session = await WidgetCache.currentSession()
+            var snapshot = await FluxWidgetNetwork.fetchSnapshot()
+            if let session, !WidgetCache.isCurrent(session) { snapshot = nil }
+            var reported = snapshot?.car
+            reported?.session = session
             let override = CarOverride.current(now: now)
             var entries = [CarEntry(
                 date: now,
@@ -148,8 +179,10 @@ struct CarProvider: TimelineProvider {
     }
 
     private static func entry() async -> CarEntry {
+        let session = await WidgetCache.currentSession()
         let snapshot = await FluxWidgetNetwork.fetchSnapshot()
-        let car = snapshot?.car.map { CarOverride.current()?.apply(to: $0) ?? $0 }
+        var car = snapshot?.car.map { CarOverride.current()?.apply(to: $0) ?? $0 }
+        car?.session = session
         return CarEntry(date: Date(), car: car, signedIn: snapshot != nil)
     }
 }
@@ -202,13 +235,13 @@ struct CarActionButton: View {
                 if car.locked {
                     label(icon: "lock.fill", text: "Locked", active: true, palette: palette)
                 } else {
-                    Button(intent: CarWidgetLockIntent()) {
+                    Button(intent: CarWidgetLockIntent(originSession: car.session)) {
                         label(icon: "lock.open.fill", text: "Lock", active: false, palette: palette)
                     }
                     .buttonStyle(.plain)
                 }
             case .climate:
-                Button(intent: CarWidgetClimateIntent(turnOn: !car.climateOn)) {
+                Button(intent: CarWidgetClimateIntent(turnOn: !car.climateOn, originSession: car.session)) {
                     label(
                         icon: car.climateOn ? "fan.fill" : "fan",
                         text: car.climateOn ? "Stop" : "Climate",

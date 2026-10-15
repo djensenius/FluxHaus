@@ -19,6 +19,9 @@ struct CarSnapshot: Codable, Equatable {
     var pluggedIn: Bool
     var charging: Bool
     var openings: [String]
+    /// Auth session this state was fetched for; set when building a timeline entry so
+    /// widget buttons can refuse to act on another account's car.
+    var session: String?
 
     init(details: CarDetails) {
         battery = details.batteryLevel
