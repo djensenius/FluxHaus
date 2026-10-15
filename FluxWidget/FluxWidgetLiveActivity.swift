@@ -33,260 +33,31 @@ struct FluxWidgetMultiAttributes: ActivityAttributes {
 struct FluxWidgetMultiLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FluxWidgetMultiAttributes.self) { context in
-            // Lock screen/banner UI — adapts to device count and platform
-            FluxWidgetMultiContent(devices: context.state.devices)
+            // Lock Screen, StandBy, Watch Smart Stack and CarPlay
+            FluxWidgetMultiContent(devices: context.state.devices, isStale: context.isStale)
+                .widgetURL(URL(string: "fluxhaus://appliances"))
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    expandedLeading(devices: context.state.devices)
+                    IslandExpandedLeading(devices: context.state.devices)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    expandedTrailing(devices: context.state.devices)
+                    IslandExpandedTrailing(devices: context.state.devices)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    expandedBottom(devices: context.state.devices)
+                    IslandExpandedBottom(devices: context.state.devices)
                 }
             } compactLeading: {
-                compactLeadingView(devices: context.state.devices)
+                IslandCompactLeading(devices: context.state.devices)
             } compactTrailing: {
-                compactTrailingView(devices: context.state.devices)
+                IslandCompactTrailing(devices: context.state.devices)
             } minimal: {
-                minimalView(devices: context.state.devices)
+                IslandMinimal(devices: context.state.devices)
             }
             .widgetURL(URL(string: "fluxhaus://appliances"))
+            .keylineTint(context.state.devices.first.map { tintColor(for: $0.name) })
         }
         .supplementalActivityFamilies([.small, .medium])
-    }
-
-    // MARK: - Lock Screen Views
-
-    // Phone lock screen views are in FluxWidgetWatchViews.swift
-    // (PhoneSingleDeviceView, PhoneMultiDeviceView, phoneDeviceProgressBar)
-
-    private var allDoneView: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title)
-                .foregroundStyle(.green)
-            Text("All Done")
-                .font(.title3)
-                .fontWeight(.medium)
-            Spacer()
-        }
-        .padding(16)
-        .activityBackgroundTint(Color(.systemBackground).opacity(0.8))
-    }
-
-    private func singleDeviceLockScreen(device: WidgetDevice) -> some View {
-        VStack(spacing: 10) {
-            HStack(spacing: 10) {
-                Image(systemName: device.icon)
-                    .font(.title2)
-                    .foregroundStyle(tintColor(for: device.name))
-                Text(device.name)
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                if let program = device.programName {
-                    Text(program)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                if isRobot(device.name) {
-                    Text("Cleaning")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else if !device.shortText.isEmpty {
-                    Text(device.shortText)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(tintColor(for: device.name))
-                }
-            }
-            deviceProgressBar(device: device)
-        }
-    }
-
-    private func multiDeviceLockScreen(devices: [WidgetDevice]) -> some View {
-        VStack(spacing: 12) {
-            ForEach(Array(devices.prefix(5).enumerated()), id: \.element.name) { _, device in
-                HStack(spacing: 10) {
-                    Image(systemName: device.icon)
-                        .font(.body)
-                        .foregroundStyle(tintColor(for: device.name))
-                        .frame(width: 24)
-                    Text(device.name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                    if isRobot(device.name) {
-                        if let battery = device.battery {
-                            Spacer()
-                            ProgressView(value: Double(battery) / 100.0)
-                                .progressViewStyle(.linear)
-                                .tint(batteryColor(level: battery))
-                                .frame(maxWidth: 100)
-                            Text("\(battery)%")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    } else {
-                        Spacer()
-                        ProgressView(value: Double(device.progress) / 100.0)
-                            .progressViewStyle(.linear)
-                            .tint(tintColor(for: device.name))
-                            .frame(maxWidth: 100)
-                        Text(device.shortText)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 48, alignment: .trailing)
-                    }
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func deviceProgressBar(device: WidgetDevice) -> some View {
-        if isRobot(device.name) {
-            if let battery = device.battery {
-                HStack(spacing: 8) {
-                    Image(systemName: batteryIcon(level: battery))
-                        .font(.subheadline)
-                    ProgressView(value: Double(battery) / 100.0)
-                        .progressViewStyle(.linear)
-                        .tint(batteryColor(level: battery))
-                    Text("\(battery)%")
-                        .font(.subheadline)
-                }
-                .foregroundStyle(.secondary)
-            }
-        } else if device.running {
-            HStack(spacing: 8) {
-                ProgressView(value: Double(device.progress) / 100.0)
-                    .progressViewStyle(.linear)
-                    .tint(tintColor(for: device.name))
-                Text("\(device.progress)%")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 36, alignment: .trailing)
-            }
-        }
-    }
-
-    // MARK: - Dynamic Island
-
-    private func expandedLeading(devices: [WidgetDevice]) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            if devices.count == 1, let device = devices.first {
-                LiveActivityIconBubble(device: device, size: 34, iconSize: .headline)
-                Text(device.name)
-                    .font(Theme.Fonts.caption)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
-                    .foregroundStyle(.secondary)
-            } else {
-                HStack(spacing: -4) {
-                    ForEach(Array(devices.prefix(3).enumerated()), id: \.element.name) { _, device in
-                        LiveActivityIconBubble(device: device, size: 26, iconSize: .caption)
-                    }
-                }
-                Text("\(devices.count) running")
-                    .font(Theme.Fonts.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.top, 4)
-    }
-
-    private func expandedTrailing(devices: [WidgetDevice]) -> some View {
-        VStack(alignment: .trailing, spacing: 4) {
-            if let device = primaryLiveActivityDevice(from: devices) {
-                Text(deviceMetricText(device))
-                    .font(Theme.Fonts.headerLarge())
-                    .lineLimit(1)
-                    .foregroundStyle(liveActivityProgressColor(for: device))
-                Text(devices.count == 1 ? trailingSubtitle(for: device) : "Next: \(device.name)")
-                    .font(Theme.Fonts.caption)
-                    .lineLimit(1)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.top, 4)
-    }
-
-    private func expandedBottom(devices: [WidgetDevice]) -> some View {
-        VStack(spacing: 8) {
-            ForEach(Array(devices.prefix(4).enumerated()), id: \.element.name) { _, device in
-                HStack(spacing: 8) {
-                    Image(systemName: device.icon)
-                        .font(.caption)
-                        .foregroundStyle(tintColor(for: device.name))
-                        .frame(width: 18)
-                    Text(device.name)
-                        .font(Theme.Fonts.caption)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                        .frame(width: 70, alignment: .leading)
-                    Gauge(value: liveActivityProgressValue(for: device)) {
-                        EmptyView()
-                    }
-                    .gaugeStyle(.accessoryLinearCapacity)
-                    .tint(liveActivityProgressColor(for: device))
-                    Text(deviceMetricText(device))
-                        .font(Theme.Fonts.caption)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 46, alignment: .trailing)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func compactLeadingView(devices: [WidgetDevice]) -> some View {
-        if devices.count == 1, let device = devices.first {
-            Image(systemName: device.icon)
-                .font(.body)
-                .foregroundStyle(tintColor(for: device.name))
-        } else {
-            HStack(spacing: 2) {
-                ForEach(Array(devices.prefix(2).enumerated()), id: \.element.name) { _, device in
-                    Image(systemName: device.icon)
-                        .font(.caption)
-                        .foregroundStyle(tintColor(for: device.name))
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func compactTrailingView(devices: [WidgetDevice]) -> some View {
-        if let device = primaryLiveActivityDevice(from: devices) {
-            Text(devices.count == 1 ? deviceMetricText(device) : "\(devices.count)")
-                .font(Theme.Fonts.bodyMedium)
-                .fontWeight(.semibold)
-                .lineLimit(1)
-                .foregroundStyle(liveActivityProgressColor(for: device))
-        } else {
-            Text("")
-        }
-    }
-
-    @ViewBuilder
-    private func minimalView(devices: [WidgetDevice]) -> some View {
-        if devices.count == 1, let device = devices.first {
-            Image(systemName: device.icon)
-                .font(.body)
-                .foregroundStyle(tintColor(for: device.name))
-        } else {
-            Text("\(min(devices.count, 9))")
-                .font(Theme.Fonts.caption)
-                .fontWeight(.bold)
-                .foregroundStyle(Color.accentColor)
-        }
     }
 }
 #endif
@@ -377,9 +148,13 @@ func trailingSubtitle(for device: WidgetDevice) -> String {
     return "In progress"
 }
 
+/// The device finishing soonest (by end time when known, else most progressed).
 func primaryLiveActivityDevice(from devices: [WidgetDevice]) -> WidgetDevice? {
-    devices.filter { !isRobot($0.name) && !$0.shortText.isEmpty }
-        .max(by: { $0.progress < $1.progress }) ?? devices.first
+    let timed = devices.filter { !isRobot($0.name) && !$0.shortText.isEmpty }
+    if let soonest = timed.filter({ $0.endsAt != nil }).min(by: { ($0.endsAt ?? 0) < ($1.endsAt ?? 0) }) {
+        return soonest
+    }
+    return timed.max(by: { $0.progress < $1.progress }) ?? devices.first
 }
 
 // MARK: - Preview Data
@@ -397,7 +172,8 @@ extension FluxWidgetMultiAttributes.ContentState {
             WidgetDevice(
                 name: "Dishwasher", progress: 50, icon: "dishwasher",
                 trailingText: "Eco50 ⋅ 59m", shortText: "59m",
-                running: true, programName: "Eco50"
+                running: true, programName: "Eco50",
+                startedAt: Date().timeIntervalSince1970 - 59 * 60, endsAt: Date().timeIntervalSince1970 + 59 * 60
             )
         ])
     }

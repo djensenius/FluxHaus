@@ -405,7 +405,7 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
             timestamp: fluxCar.timestamp,
             evStatusTimestamp: evStatus.timestamp,
             batteryLevel: evStatus.batteryStatus,
-            distance: evStatus.drvDistance[0].rangeByFuel.evModeRange.value,
+            distance: evStatus.drvDistance.first?.rangeByFuel.evModeRange.value ?? 0,
             hvac: fluxCar.airCtrlOn,
             pluggedIn: evStatus.batteryPlugin == 0 ? false : true,
             batteryCharge: evStatus.batteryCharge,

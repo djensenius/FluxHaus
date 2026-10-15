@@ -1,0 +1,137 @@
+//
+//  FluxControls.swift
+//  FluxWidget
+//
+//  Control Center / Lock Screen / Action button controls.
+//
+
+#if os(iOS) && !targetEnvironment(macCatalyst)
+import AppIntents
+import SwiftUI
+import WidgetKit
+
+// MARK: - Cleanbot
+
+struct CleanbotRunIntent: SetValueIntent {
+    static let title: LocalizedStringResource = "Run Cleanbot"
+    static let isDiscoverable = false
+
+    @Parameter(title: "Running")
+    var value: Bool
+
+    func perform() async throws -> some IntentResult {
+        if value {
+            try await FluxIntentActions.startRobot(.cleanBot)
+        } else {
+            try await FluxIntentActions.stopRobot(.cleanBot)
+        }
+        return .result()
+    }
+}
+
+struct CleanbotValueProvider: ControlValueProvider {
+    var previewValue: Bool { false }
+
+    func currentValue() async throws -> Bool {
+        await FluxWidgetNetwork.fetchSnapshot()?.devices.first { $0.name == "Cleanbot" }?.running ?? false
+    }
+}
+
+struct CleanbotControl: ControlWidget {
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(kind: "io.fluxhaus.control.cleanbot", provider: CleanbotValueProvider()) { running in
+            ControlWidgetToggle("Cleanbot", isOn: running, action: CleanbotRunIntent()) { isOn in
+                Label(isOn ? "Cleaning" : "Docked", systemImage: "robotic.vacuum.fill")
+            }
+            .tint(.green)
+        }
+        .displayName("Cleanbot")
+        .description("Start or stop the Cleanbot.")
+    }
+}
+
+// MARK: - Car
+
+struct CarClimateToggleIntent: SetValueIntent {
+    static let title: LocalizedStringResource = "Car Climate"
+    static let isDiscoverable = false
+
+    @Parameter(title: "On")
+    var value: Bool
+
+    func perform() async throws -> some IntentResult {
+        if value {
+            try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
+        } else {
+            try await FluxIntentActions.stopCarClimate()
+        }
+        CarOverride.set(climateOn: value)
+        return .result()
+    }
+}
+
+struct CarClimateValueProvider: ControlValueProvider {
+    var previewValue: Bool { false }
+
+    func currentValue() async throws -> Bool {
+        if let pending = CarOverride.current()?.climateOn { return pending }
+        return await FluxWidgetNetwork.fetchSnapshot()?.car?.climateOn ?? false
+    }
+}
+
+struct CarClimateControl: ControlWidget {
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(
+            kind: "io.fluxhaus.control.carClimate",
+            provider: CarClimateValueProvider()
+        ) { isOn in
+            ControlWidgetToggle("Car Climate", isOn: isOn, action: CarClimateToggleIntent()) { isOn in
+                Label(isOn ? "On" : "Off", systemImage: isOn ? "fan.fill" : "fan")
+            }
+            .tint(.blue)
+        }
+        .displayName("Car Climate")
+        .description("Start or stop the car's climate control.")
+    }
+}
+
+struct CarLockControl: ControlWidget {
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(kind: "io.fluxhaus.control.carLock") {
+            ControlWidgetButton(action: CarWidgetLockIntent()) {
+                Label("Lock Car", systemImage: "lock.fill")
+            }
+        }
+        .displayName("Lock Car")
+        .description("Lock the car.")
+    }
+}
+
+// MARK: - Scene
+
+struct SceneControlConfig: ControlConfigurationIntent {
+    static let title: LocalizedStringResource = "Scene"
+    static let isDiscoverable = false
+
+    @Parameter(title: "Scene")
+    var scene: WidgetSceneEntity?
+
+    init() {}
+}
+
+struct SceneControl: ControlWidget {
+    var body: some ControlWidgetConfiguration {
+        AppIntentControlConfiguration(kind: "io.fluxhaus.control.scene", intent: SceneControlConfig.self) { config in
+            ControlWidgetButton(action: RunSceneWidgetIntent(sceneId: config.scene?.id ?? "")) {
+                Label(
+                    config.scene?.name ?? "Choose Scene",
+                    systemImage: sceneSymbol(for: config.scene?.name ?? "")
+                )
+            }
+        }
+        .displayName("Scene")
+        .description("Run a HomeKit scene.")
+        .promptsForUserConfiguration()
+    }
+}
+#endif

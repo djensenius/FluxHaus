@@ -3,161 +3,40 @@
 //  FluxWidget.swift
 //  FluxWidget
 //
+//  Appliances widget: "when is it done?" Features the appliance that finishes next,
+//  with self-updating countdowns, and a calm idle state when nothing is running.
+//
 //  Created by David Jensenius on 2024-08-01.
 //
 
 import WidgetKit
 import SwiftUI
-import os
-
-private let widgetLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Widget")
-
-// MARK: - Data
-
-enum FluxWidgetNetwork {
-    private static let cacheKey = "FluxWidget.cachedDevices"
-
-    /// Fetches the latest device list. Never crashes: on any auth/network/decoding
-    /// failure it falls back to the last successful result, if one exists.
-    static func fetchStatus() async -> [WidgetDevice]? {
-        let password = WhereWeAre.getPassword() ?? ""
-        guard AuthManager.shared.authorizationHeader() != nil || !password.isEmpty else {
-            // Signed out: never show the previous session's data.
-            widgetLogger.warning("Widget: no credentials available")
-            UserDefaults.standard.removeObject(forKey: cacheKey)
-            return nil
-        }
-        do {
-            guard let loginData = try await getFlux(password: password) else {
-                return cachedDevices()
-            }
-            let converted = convertLoginResponseToAppData(response: loginData)
-            let devices = classifyWidgetData(devices: convertDataToWidgetDevices(fluxData: converted))
-            cache(devices)
-            return devices
-        } catch {
-            widgetLogger.error("Widget: fetch failed: \(error.localizedDescription)")
-            return cachedDevices()
-        }
-    }
-
-    static func cachedDevices() -> [WidgetDevice]? {
-        guard let data = UserDefaults.standard.data(forKey: cacheKey) else { return nil }
-        return try? JSONDecoder().decode([WidgetDevice].self, from: data)
-    }
-
-    private static func cache(_ devices: [WidgetDevice]) {
-        guard let data = try? JSONEncoder().encode(devices) else { return }
-        UserDefaults.standard.set(data, forKey: cacheKey)
-    }
-
-    static func classifyWidgetData(devices: [WidgetDevice]) -> [WidgetDevice] {
-        var constantDevices: [WidgetDevice] = []
-        var timedRunningDevices: [WidgetDevice] = []
-        var runningDevices: [WidgetDevice] = []
-        var offDevices: [WidgetDevice] = []
-
-        devices.forEach { device in
-            switch device.name {
-            case "Car", "Battery":
-                constantDevices.append(device)
-            case "Cleanbot":
-                if device.running {
-                    runningDevices.append(device)
-                } else {
-                    offDevices.append(device)
-                }
-            default:
-                if device.running {
-                    timedRunningDevices.append(device)
-                } else {
-                    offDevices.append(device)
-                }
-            }
-        }
-        timedRunningDevices = sortTimedDevices(devices: timedRunningDevices)
-        var sortedDevices: [WidgetDevice] = timedRunningDevices
-        sortedDevices += runningDevices
-        sortedDevices += constantDevices
-        sortedDevices += offDevices
-        return sortedDevices
-    }
-
-    /// Most-progressed (soonest to finish) first.
-    static func sortTimedDevices(devices: [WidgetDevice]) -> [WidgetDevice] {
-        devices.sorted { $0.progress > $1.progress }
-    }
-
-    /// Refresh more often while an appliance is running so countdowns stay fresh,
-    /// and back off when the house is idle to preserve the WidgetKit budget.
-    static func nextRefresh(for devices: [WidgetDevice], from date: Date) -> Date {
-        let minutes = devices.contains(where: isActive) ? 10 : 30
-        return date.addingTimeInterval(TimeInterval(minutes * 60))
-    }
-}
-
-private func minutesRemaining(_ device: WidgetDevice) -> Int? {
-    guard device.running, !isRobot(device.name), device.shortText.hasSuffix("m"),
-          let value = Int(device.shortText.dropLast()) else { return nil }
-    return value
-}
-
-func hasMinuteCountdown(_ device: WidgetDevice) -> Bool {
-    minutesRemaining(device) != nil
-}
-
-/// Returns `device` with a "Nm" short countdown reduced by `elapsedMinutes` (floored at 1m).
-func projectCountdown(_ device: WidgetDevice, elapsedMinutes: Int) -> WidgetDevice {
-    guard elapsedMinutes > 0, let remaining = minutesRemaining(device) else { return device }
-    var projected = device
-    let original = device.shortText
-    let updated = "\(max(remaining - elapsedMinutes, 1))m"
-    projected.shortText = updated
-    projected.trailingText = device.trailingText.replacingOccurrences(of: original, with: updated)
-    return projected
-}
-
-/// A device that is doing something right now (excludes always-on constants like Car).
-func isActive(_ device: WidgetDevice) -> Bool {
-    device.running && device.name != "Car" && device.name != "Battery"
-}
 
 // MARK: - Timeline
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), widgetDevices: staticList)
+        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent(), snapshot: .preview)
     }
 
     func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
         if context.isPreview {
-            return SimpleEntry(date: Date(), configuration: configuration, widgetDevices: staticList)
+            return SimpleEntry(date: Date(), configuration: configuration, snapshot: .preview)
         }
-        let devices = await FluxWidgetNetwork.fetchStatus() ?? staticList
-        return SimpleEntry(date: Date(), configuration: configuration, widgetDevices: devices)
+        let snapshot = await FluxWidgetNetwork.fetchSnapshot() ?? .preview
+        return SimpleEntry(date: Date(), configuration: configuration, snapshot: snapshot)
     }
 
     func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
         let now = Date()
-        guard let devices = await FluxWidgetNetwork.fetchStatus() else {
-            // Nothing fetched and nothing cached (signed out / offline first run): retry soon.
-            let entry = SimpleEntry(date: now, configuration: configuration, widgetDevices: [])
-            return Timeline(entries: [entry], policy: .after(now.addingTimeInterval(15 * 60)))
+        guard let snapshot = await FluxWidgetNetwork.fetchSnapshot() else {
+            // Signed out or nothing cached yet: show the sign-in state and retry later.
+            let entry = SimpleEntry(date: now, configuration: configuration, snapshot: nil)
+            return Timeline(entries: [entry], policy: .after(now.addingTimeInterval(30 * 60)))
         }
-        let refresh = FluxWidgetNetwork.nextRefresh(for: devices, from: now)
-        // Project minute countdowns ("25m" -> "24m" ...) between network refreshes.
-        // Extra entries are free; only reloads count against the WidgetKit budget.
-        var entries: [SimpleEntry] = []
-        var minute = 0
-        while let date = Calendar.current.date(byAdding: .minute, value: minute, to: now), date < refresh {
-            entries.append(SimpleEntry(
-                date: date,
-                configuration: configuration,
-                widgetDevices: devices.map { projectCountdown($0, elapsedMinutes: minute) }
-            ))
-            if !devices.contains(where: hasMinuteCountdown) { break }
-            minute += 1
-        }
+        let refresh = FluxWidgetNetwork.nextRefresh(for: snapshot.devices, from: now)
+        let dates = [now] + FluxWidgetNetwork.transitionDates(for: snapshot.devices, from: now, until: refresh)
+        let entries = dates.map { SimpleEntry(date: $0, configuration: configuration, snapshot: snapshot) }
         return Timeline(entries: entries, policy: .after(refresh))
     }
 }
@@ -165,113 +44,178 @@ struct Provider: AppIntentTimelineProvider {
 struct SimpleEntry: TimelineEntry {
     let date: Date
     let configuration: ConfigurationAppIntent
-    let widgetDevices: [WidgetDevice]
+    let snapshot: FluxSnapshot?
 
+    var widgetDevices: [WidgetDevice] { snapshot?.devices ?? [] }
     var activeDevices: [WidgetDevice] { widgetDevices.filter(isActive) }
-    /// Device to feature: the soonest-finishing active appliance, else the car, else anything.
+    var car: WidgetDevice? { widgetDevices.first { $0.name == "Car" } }
+
+    /// The device to feature. Automatic: the soonest-finishing active appliance, or nil
+    /// when the house is idle. A configured device is always featured.
     var featured: WidgetDevice? {
-        activeDevices.first ?? widgetDevices.first { $0.name == "Car" } ?? widgetDevices.first
+        if let name = configuration.device.deviceName {
+            return widgetDevices.first { $0.name == name }
+        }
+        return activeDevices.first
+    }
+
+    var others: [WidgetDevice] {
+        widgetDevices.filter { $0.name != featured?.name }
+    }
+
+    /// Most recent appliance finish, for the idle state.
+    var lastFinished: (name: String, date: Date)? {
+        guard let latest = snapshot?.finishedAt.max(by: { $0.value < $1.value }) else { return nil }
+        guard date.timeIntervalSince(latest.value) < 12 * 3600 else { return nil }
+        return (latest.key, latest.value)
+    }
+
+    /// Smart Stack / StandBy rotation: surface when something is about to finish.
+    var relevance: TimelineEntryRelevance? {
+        let soonest = activeDevices.compactMap(\.endDate).filter { $0 > date }.min()
+        if let soonest, soonest.timeIntervalSince(date) <= 15 * 60 {
+            return TimelineEntryRelevance(score: 100, duration: soonest.timeIntervalSince(date) + 300)
+        }
+        if lastFinished.map({ date.timeIntervalSince($0.date) < 30 * 60 }) == true {
+            return TimelineEntryRelevance(score: 60, duration: 30 * 60)
+        }
+        if !activeDevices.isEmpty { return TimelineEntryRelevance(score: 40) }
+        return TimelineEntryRelevance(score: 1)
+    }
+
+    var backgroundTint: Color? {
+        featured.map { $0.name == "Car" ? batteryColor(level: $0.progress) : tintColor(for: $0.name) }
     }
 }
 
-// MARK: - Styling helpers
+// MARK: - Hero (featured device)
 
-/// Resolves colors for the current rendering context. In accented (tinted Home Screen)
-/// and vibrant (Lock Screen / StandBy night) modes the system recolors content, so we
-/// use semantic styles there and let `.widgetAccentable()` mark highlight content.
-struct WidgetPalette {
-    let renderingMode: WidgetRenderingMode
-    let showsBackground: Bool
-
-    private var isFullColor: Bool { renderingMode == .fullColor }
-
-    var primary: Color { isFullColor && showsBackground ? Theme.Colors.textPrimary : .primary }
-    var secondary: Color { isFullColor && showsBackground ? Theme.Colors.textSecondary : .secondary }
-
-    func tint(for device: WidgetDevice) -> Color {
-        guard isFullColor else { return .primary }
-        if device.name == "Car" { return batteryColor(level: device.progress) }
-        return liveActivityProgressColor(for: device)
-    }
-
-    func bubbleFill(for device: WidgetDevice, reducedLuminance: Bool) -> Color {
-        guard isFullColor, !reducedLuminance else { return .primary.opacity(0.12) }
-        return tint(for: device).opacity(0.18)
-    }
-}
-
-private struct PaletteReader<Content: View>: View {
-    @Environment(\.widgetRenderingMode) private var renderingMode
-    @Environment(\.showsWidgetContainerBackground) private var showsBackground
-    @ViewBuilder var content: (WidgetPalette) -> Content
-
-    var body: some View {
-        content(WidgetPalette(renderingMode: renderingMode, showsBackground: showsBackground))
-    }
-}
-
-func widgetProgress(for device: WidgetDevice) -> Double {
-    if device.name == "Car" {
-        return min(max(Double(device.progress) / 100, 0), 1)
-    }
-    return liveActivityProgressValue(for: device)
-}
-
-func widgetMetric(for device: WidgetDevice) -> String {
-    if device.name == "Car" { return "\(device.progress)%" }
-    if !device.running { return "Off" }
-    return deviceMetricText(device)
-}
-
-func widgetSubtitle(for device: WidgetDevice) -> String {
-    if device.name == "Car" { return device.shortText }
-    if !device.running { return "Off" }
-    if isRobot(device.name) {
-        return device.trailingText.isEmpty ? "Cleaning" : device.trailingText
-    }
-    if let program = device.programName, !program.isEmpty { return program }
-    return "Running"
-}
-
-// MARK: - Building blocks
-
-struct DeviceIcon: View {
+/// Big, glanceable featured device: icon + name, large countdown, program, progress.
+struct HeroView: View {
     let device: WidgetDevice
-    var size: CGFloat = 28
-    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
+    let date: Date
+    var extraCount = 0
+    var metricSize: CGFloat = 34
 
     var body: some View {
         PaletteReader { palette in
-            Image(systemName: device.icon)
-                .font(.system(size: size * 0.5, weight: .semibold))
-                .foregroundStyle(device.running || device.name == "Car" ? palette.tint(for: device) : palette.secondary)
-                .widgetAccentable()
-                .frame(width: size, height: size)
-                .background(Circle().fill(palette.bubbleFill(for: device, reducedLuminance: isLuminanceReduced)))
-                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    DeviceIcon(device: device, size: 28)
+                    Text(device.name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(palette.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 0)
+                    if extraCount > 0 {
+                        Text("+\(extraCount)")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(palette.secondary)
+                    }
+                }
+                Spacer(minLength: 0)
+                DeviceMetricText(device: device, date: date)
+                    .font(.system(size: metricSize, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .contentTransition(.numericText())
+                heroSubtitle
+                    .font(.caption)
+                    .foregroundStyle(palette.secondary)
+                    .lineLimit(1)
+                if isLive(device) {
+                    DeviceProgressBar(device: device, date: date)
+                }
+            }
+        }
+    }
+
+    /// "Cotton · done 4:12 PM" when the finish time is known.
+    private var heroSubtitle: Text {
+        guard device.running, !isRobot(device.name), let end = device.endDate, end > date else {
+            return Text(widgetSubtitle(for: device))
+        }
+        if let program = device.programName, !program.isEmpty {
+            return Text("\(program) · done \(Text(end, style: .time))")
+        }
+        return Text("Done \(Text(end, style: .time))")
+    }
+}
+
+// MARK: - Idle state
+
+struct IdleView: View {
+    let entry: SimpleEntry
+    var showsCar = true
+
+    var body: some View {
+        PaletteReader { palette in
+            VStack(alignment: .leading, spacing: 4) {
+                SymbolBubble(systemName: "checkmark", color: Theme.Colors.success, size: 28)
+                Spacer(minLength: 0)
+                Text("All quiet")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(palette.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                if let finished = entry.lastFinished {
+                    Text("\(finished.name) finished \(finished.date, format: .relative(presentation: .named))")
+                        .font(.caption)
+                        .foregroundStyle(palette.secondary)
+                        .lineLimit(2)
+                } else {
+                    Text("Nothing running")
+                        .font(.caption)
+                        .foregroundStyle(palette.secondary)
+                }
+                if showsCar, let car = entry.car {
+                    HStack(spacing: 4) {
+                        Image(systemName: "car.fill")
+                            .widgetAccentable()
+                        Text("\(car.progress)% · \(car.shortText)")
+                            .monospacedDigit()
+                    }
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(palette.secondary)
+                    .lineLimit(1)
+                }
+            }
         }
     }
 }
 
-struct DeviceProgressBar: View {
+// MARK: - Rows
+
+/// Compact one-line row used beside the hero: icon, name, live metric.
+struct CompactRow: View {
     let device: WidgetDevice
+    let date: Date
 
     var body: some View {
         PaletteReader { palette in
-            Gauge(value: widgetProgress(for: device)) { EmptyView() }
-                .gaugeStyle(.accessoryLinearCapacity)
-                .tint(palette.tint(for: device))
-                .widgetAccentable()
+            HStack(spacing: 6) {
+                DeviceIcon(device: device, size: 22)
+                Text(device.name)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(isLive(device) ? palette.primary : palette.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                DeviceMetricText(device: device, date: date)
+                    .font(.caption.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(isLive(device) ? palette.primary : palette.secondary)
+                    .lineLimit(1)
+            }
         }
     }
 }
 
-/// One row: icon, name/subtitle, metric, and an optional progress bar.
+/// Full row with progress bar, used in the large layouts.
 struct DeviceRow: View {
     let device: WidgetDevice
-    var showsProgress = true
-
-    private var isLive: Bool { device.running || device.name == "Car" }
+    let date: Date
 
     var body: some View {
         PaletteReader { palette in
@@ -281,8 +225,8 @@ struct DeviceRow: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(device.name)
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(isLive ? palette.primary : palette.secondary)
-                        if isLive {
+                            .foregroundStyle(isLive(device) ? palette.primary : palette.secondary)
+                        if isLive(device) {
                             Text(widgetSubtitle(for: device))
                                 .font(.caption2)
                                 .foregroundStyle(palette.secondary)
@@ -290,197 +234,90 @@ struct DeviceRow: View {
                     }
                     .lineLimit(1)
                     Spacer(minLength: 4)
-                    Text(widgetMetric(for: device))
+                    DeviceMetricText(device: device, date: date)
                         .font(.subheadline.weight(.semibold))
                         .monospacedDigit()
-                        .foregroundStyle(isLive ? palette.primary : palette.secondary)
+                        .foregroundStyle(isLive(device) ? palette.primary : palette.secondary)
                         .lineLimit(1)
                 }
-                if showsProgress && isLive {
-                    DeviceProgressBar(device: device)
+                if isLive(device) {
+                    DeviceProgressBar(device: device, date: date)
                 }
             }
         }
     }
 }
 
-/// Narrow cell for two-column medium widgets: icon + metric, name, progress.
-struct CompactDeviceCell: View {
-    let device: WidgetDevice
+// MARK: - Families
 
-    private var isLive: Bool { device.running || device.name == "Car" }
-
-    var body: some View {
-        PaletteReader { palette in
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    DeviceIcon(device: device, size: 22)
-                    Spacer(minLength: 2)
-                    Text(widgetMetric(for: device))
-                        .font(.subheadline.weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(isLive ? palette.primary : palette.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-                Text(device.name)
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(palette.secondary)
-                    .lineLimit(1)
-                if isLive {
-                    DeviceProgressBar(device: device)
-                } else {
-                    Capsule().fill(palette.secondary.opacity(0.2)).frame(height: 4)
-                }
-            }
-        }
-    }
-}
-
-struct EmptyStateView: View {
-    var body: some View {
-        VStack(spacing: 6) {
-            Image(systemName: "house.fill")
-                .font(.title2)
-                .widgetAccentable()
-            Text("Open FluxHaus to sign in")
-                .font(.caption)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-// MARK: - System families
-
-/// systemSmall: one featured device, big and glanceable (great in StandBy).
-struct SmallFeaturedView: View {
+struct ApplianceSmallView: View {
     let entry: SimpleEntry
 
     var body: some View {
         if let device = entry.featured {
-            PaletteReader { palette in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        DeviceIcon(device: device, size: 28)
-                        Text(device.name)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(palette.secondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                        Spacer(minLength: 0)
-                        let others = entry.activeDevices.filter { $0.name != device.name }.count
-                        if others > 0 {
-                            Text("+\(others)")
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(palette.secondary)
-                        }
-                    }
-                    Spacer(minLength: 0)
-                    Text(widgetMetric(for: device))
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(palette.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                        .contentTransition(.numericText())
-                    Text(widgetSubtitle(for: device))
-                        .font(.caption)
-                        .foregroundStyle(palette.secondary)
-                        .lineLimit(1)
-                    DeviceProgressBar(device: device)
-                }
-            }
+            HeroView(
+                device: device,
+                date: entry.date,
+                extraCount: entry.activeDevices.filter { $0.name != device.name }.count
+            )
         } else {
-            EmptyStateView()
+            IdleView(entry: entry)
         }
     }
 }
 
-/// systemSmall (grid variant): up to four circular gauges.
-struct SmallDeviceGridView: View {
-    let items: [WidgetDevice]
-
-    private let columns = [GridItem(.flexible()), GridItem(.flexible())]
-
-    var body: some View {
-        if items.isEmpty {
-            EmptyStateView()
-        } else {
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(items.prefix(4), id: \.name) { item in
-                    SingleView(item: item, multipleLines: false)
-                }
-            }
-            .frame(maxHeight: .infinity)
-        }
-    }
-}
-
-/// systemLarge: header plus a list of rows.
-struct DeviceListView: View {
+struct ApplianceMediumView: View {
     let entry: SimpleEntry
-    let limit: Int
-    var showsHeader = false
 
     var body: some View {
-        if entry.widgetDevices.isEmpty {
-            EmptyStateView()
-        } else {
-            PaletteReader { palette in
-                VStack(alignment: .leading, spacing: 8) {
-                    if showsHeader {
-                        HStack {
-                            Text("FluxHaus")
-                                .font(.headline)
-                                .foregroundStyle(palette.primary)
-                            Spacer()
-                            Text(headerSummary)
-                                .font(.caption)
-                                .foregroundStyle(palette.secondary)
-                        }
-                    }
-                    ForEach(entry.widgetDevices.prefix(limit), id: \.name) { device in
-                        DeviceRow(device: device)
-                    }
-                    Spacer(minLength: 0)
+        HStack(spacing: 16) {
+            Group {
+                if let device = entry.featured {
+                    HeroView(device: device, date: entry.date)
+                } else {
+                    IdleView(entry: entry, showsCar: false)
                 }
             }
-        }
-    }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-    private var headerSummary: String {
-        let count = entry.activeDevices.count
-        return count == 0 ? "All quiet" : "\(count) running"
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(entry.others.prefix(4), id: \.name) { device in
+                    CompactRow(device: device, date: entry.date)
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity)
+        }
     }
 }
 
-/// systemMedium (2x2) and systemExtraLarge (iPad): two columns of rows.
-struct DeviceColumnsView: View {
+struct ApplianceLargeView: View {
     let entry: SimpleEntry
-    var limit = Int.max
-    var showsHeader = true
-    var compact = false
-
-    private let columns = [GridItem(.flexible(), spacing: 20), GridItem(.flexible(), spacing: 20)]
 
     var body: some View {
-        if entry.widgetDevices.isEmpty {
-            EmptyStateView()
-        } else {
+        PaletteReader { palette in
             VStack(alignment: .leading, spacing: 12) {
-                if showsHeader {
+                HStack {
                     Text("FluxHaus")
-                        .font(.title3.weight(.semibold))
+                        .font(.headline)
+                        .foregroundStyle(palette.primary)
+                    Spacer()
+                    Text(entry.activeDevices.isEmpty ? "All quiet" : "\(entry.activeDevices.count) running")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(palette.secondary)
                 }
-                LazyVGrid(columns: columns, alignment: .leading, spacing: compact ? 10 : 16) {
-                    ForEach(entry.widgetDevices.prefix(limit), id: \.name) { device in
-                        if compact {
-                            CompactDeviceCell(device: device)
-                        } else {
-                            DeviceRow(device: device)
-                        }
+                Group {
+                    if let device = entry.featured {
+                        HeroView(device: device, date: entry.date, metricSize: 44)
+                    } else {
+                        IdleView(entry: entry, showsCar: false)
+                    }
+                }
+                .frame(height: 110)
+                Divider()
+                VStack(spacing: 8) {
+                    ForEach(entry.others.prefix(4), id: \.name) { device in
+                        DeviceRow(device: device, date: entry.date)
                     }
                 }
                 Spacer(minLength: 0)
@@ -489,108 +326,124 @@ struct DeviceColumnsView: View {
     }
 }
 
+struct ApplianceExtraLargeView: View {
+    let entry: SimpleEntry
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 24) {
+            Group {
+                if let device = entry.featured {
+                    HeroView(device: device, date: entry.date, metricSize: 56)
+                } else {
+                    IdleView(entry: entry)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(spacing: 14) {
+                ForEach(entry.others, id: \.name) { device in
+                    DeviceRow(device: device, date: entry.date)
+                }
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
 // MARK: - Accessory families
 
-struct InlineView: View {
+struct ApplianceCircularView: View {
     let entry: SimpleEntry
 
     var body: some View {
-        if let item = entry.featured {
-            Label(
-                "\(item.name) \(widgetMetric(for: item))",
-                systemImage: item.icon
-            )
-        } else {
-            Label("FluxHaus", systemImage: "house")
-        }
-    }
-}
-
-struct SingleView: View {
-    var item: WidgetDevice
-    var multipleLines = true
-
-    var body: some View {
-        PaletteReader { palette in
-            VStack(spacing: 2) {
-                Gauge(value: widgetProgress(for: item)) {
-                    Image(systemName: item.icon)
-                } currentValueLabel: {
-                    Text(multipleLines ? "\(Int(widgetProgress(for: item) * 100))%" : shortLabel)
-                        .minimumScaleFactor(0.5)
+        ZStack {
+            AccessoryWidgetBackground()
+            if let device = entry.featured ?? entry.car {
+                if device.name != "Car", let interval = device.timerInterval(now: entry.date) {
+                    ProgressView(timerInterval: interval, countsDown: true) {
+                        Image(systemName: device.icon)
+                    } currentValueLabel: {
+                        Image(systemName: device.icon)
+                    }
+                    .progressViewStyle(.circular)
+                    .widgetAccentable()
+                } else {
+                    Gauge(value: widgetProgress(for: device)) {
+                        Image(systemName: device.icon)
+                    } currentValueLabel: {
+                        Image(systemName: device.icon)
+                    }
+                    .gaugeStyle(.accessoryCircularCapacity)
+                    .widgetAccentable()
                 }
-                .gaugeStyle(.accessoryCircular)
-                .tint(palette.tint(for: item))
-                .widgetAccentable()
-                if multipleLines {
-                    Text(shortLabel)
-                        .font(.caption)
-                        .foregroundStyle(palette.secondary)
-                        .lineLimit(1)
-                }
+            } else {
+                Image(systemName: "checkmark")
+                    .font(.title2.weight(.semibold))
+                    .widgetAccentable()
             }
         }
     }
-
-    private var shortLabel: String {
-        if item.name == "Car" { return "\(item.progress)%" }
-        if !item.running { return "Off" }
-        if isRobot(item.name) { return item.battery.map { "\($0)%" } ?? "On" }
-        return item.shortText.isEmpty ? "\(item.progress)%" : item.shortText
-    }
 }
 
-struct AccessoryCircularView: View {
+struct ApplianceRectangularView: View {
     let entry: SimpleEntry
 
     var body: some View {
-        if let item = entry.featured {
-            ZStack {
-                AccessoryWidgetBackground()
-                SingleView(item: item, multipleLines: false)
+        if let device = entry.featured {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Image(systemName: device.icon)
+                        .widgetAccentable()
+                    Text(device.name)
+                    let extra = entry.activeDevices.filter { $0.name != device.name }.count
+                    if extra > 0 {
+                        Spacer(minLength: 0)
+                        Text("+\(extra)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .font(.caption.weight(.semibold))
+                DeviceMetricText(device: device, date: entry.date)
+                    .font(.title3.weight(.bold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                DeviceProgressBar(device: device, date: entry.date)
             }
-        } else {
-            ZStack {
-                AccessoryWidgetBackground()
-                Image(systemName: "house.fill")
-            }
-        }
-    }
-}
-
-struct AccessoryRectangularView: View {
-    var items: [WidgetDevice]
-
-    var body: some View {
-        if items.isEmpty {
+        } else if entry.snapshot == nil {
             Label("Open FluxHaus", systemImage: "house")
                 .font(.caption)
         } else {
-            VStack(alignment: .leading, spacing: 3) {
-                ForEach(items.prefix(3), id: \.name) { item in
-                    HStack(spacing: 6) {
-                        Image(systemName: item.icon)
-                            .font(.caption)
-                            .frame(width: 16)
-                            .widgetAccentable()
-                        if item.running || item.name == "Car" {
-                            Gauge(value: widgetProgress(for: item)) { EmptyView() }
-                                .gaugeStyle(.accessoryLinearCapacity)
-                            Text(widgetMetric(for: item))
-                                .font(.caption)
-                                .monospacedDigit()
-                                .lineLimit(1)
-                                .fixedSize()
-                        } else {
-                            Text("\(item.name) off")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                            Spacer(minLength: 0)
-                        }
-                    }
+            VStack(alignment: .leading, spacing: 2) {
+                Label("All quiet", systemImage: "checkmark.circle")
+                    .font(.headline)
+                    .widgetAccentable()
+                if let finished = entry.lastFinished {
+                    Text("\(finished.name) finished \(finished.date, format: .relative(presentation: .named))")
+                        .font(.caption)
+                        .lineLimit(2)
+                } else if let car = entry.car {
+                    Text("Car \(car.progress)% · \(car.shortText)")
+                        .font(.caption)
                 }
             }
+        }
+    }
+}
+
+struct ApplianceInlineView: View {
+    let entry: SimpleEntry
+
+    var body: some View {
+        if let device = entry.featured, device.running, let end = device.endDate, end > entry.date {
+            Label {
+                Text("\(device.name) done \(Text(end, style: .time))")
+            } icon: {
+                Image(systemName: device.icon)
+            }
+        } else if let device = entry.featured {
+            Label("\(device.name) \(widgetMetric(for: device))", systemImage: device.icon)
+        } else {
+            Label("All quiet", systemImage: "checkmark.circle")
         }
     }
 }
@@ -599,7 +452,6 @@ struct AccessoryRectangularView: View {
 
 struct FluxWidgetEntryView: View {
     var entry: Provider.Entry
-    var grid = false
     @Environment(\.widgetFamily) var family
 
     var body: some View {
@@ -609,27 +461,28 @@ struct FluxWidgetEntryView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch family {
-        case .systemSmall:
-            if grid {
-                SmallDeviceGridView(items: entry.widgetDevices)
-            } else {
-                SmallFeaturedView(entry: entry)
+        if entry.snapshot == nil, family.isSystem {
+            EmptyStateView()
+        } else {
+            switch family {
+            case .systemSmall: ApplianceSmallView(entry: entry)
+            case .systemMedium: ApplianceMediumView(entry: entry)
+            case .systemLarge: ApplianceLargeView(entry: entry)
+            case .systemExtraLarge: ApplianceExtraLargeView(entry: entry)
+            case .accessoryCircular: ApplianceCircularView(entry: entry)
+            case .accessoryRectangular: ApplianceRectangularView(entry: entry)
+            case .accessoryInline: ApplianceInlineView(entry: entry)
+            default: EmptyView()
             }
-        case .systemMedium:
-            DeviceColumnsView(entry: entry, limit: 4, showsHeader: false, compact: true)
-        case .systemLarge:
-            DeviceListView(entry: entry, limit: 6, showsHeader: true)
-        case .systemExtraLarge:
-            DeviceColumnsView(entry: entry)
-        case .accessoryCircular:
-            AccessoryCircularView(entry: entry)
-        case .accessoryRectangular:
-            AccessoryRectangularView(items: entry.widgetDevices)
-        case .accessoryInline:
-            InlineView(entry: entry)
-        default:
-            EmptyView()
+        }
+    }
+}
+
+extension WidgetFamily {
+    var isSystem: Bool {
+        switch self {
+        case .systemSmall, .systemMedium, .systemLarge, .systemExtraLarge: return true
+        default: return false
         }
     }
 }
@@ -640,10 +493,12 @@ struct FluxWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             FluxWidgetEntryView(entry: entry)
-                .containerBackground(Theme.Colors.background, for: .widget)
+                .containerBackground(for: .widget) {
+                    WidgetBackground(tint: entry.backgroundTint)
+                }
         }
-        .configurationDisplayName("FluxHaus")
-        .description("Appliance progress, Cleanbot, and car battery at a glance.")
+        .configurationDisplayName("Appliances")
+        .description("What finishes next, with a live countdown.")
         .supportedFamilies([
             .systemSmall,
             .systemMedium,
@@ -656,118 +511,159 @@ struct FluxWidget: Widget {
     }
 }
 
+// MARK: - Grid widget
+
+struct GridGauge: View {
+    let item: WidgetDevice
+
+    var body: some View {
+        PaletteReader { palette in
+            Gauge(value: widgetProgress(for: item)) {
+                Image(systemName: item.icon)
+            } currentValueLabel: {
+                Text(shortLabel)
+                    .minimumScaleFactor(0.5)
+            }
+            .gaugeStyle(.accessoryCircular)
+            .tint(palette.tint(for: item))
+            .widgetAccentable()
+            .opacity(isLive(item) ? 1 : 0.55)
+        }
+    }
+
+    private var shortLabel: String {
+        if item.name == "Car" { return "\(item.progress)%" }
+        if !item.running { return "Off" }
+        if isRobot(item.name) { return item.battery.map { "\($0)%" } ?? "On" }
+        if let end = item.endDate, end > .now {
+            let minutes = Int(end.timeIntervalSinceNow / 60)
+            return minutes < 60 ? "\(minutes)m" : "\(minutes / 60)h\(String(format: "%02d", minutes % 60))"
+        }
+        return item.shortText.isEmpty ? "\(item.progress)%" : item.shortText
+    }
+}
+
+struct GridEntryView: View {
+    var entry: Provider.Entry
+
+    private let columns = [GridItem(.flexible()), GridItem(.flexible())]
+
+    var body: some View {
+        Group {
+            if entry.widgetDevices.isEmpty {
+                EmptyStateView()
+            } else {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(entry.widgetDevices.prefix(4), id: \.name) { item in
+                        GridGauge(item: item)
+                    }
+                }
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .widgetURL(URL(string: "fluxhaus://appliances"))
+    }
+}
+
 struct FluxWidgetOtherSmall: Widget {
     let kind: String = "FluxWidgetSmall"
 
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
-            FluxWidgetEntryView(entry: entry, grid: true)
-                .containerBackground(Theme.Colors.background, for: .widget)
+            GridEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    WidgetBackground()
+                }
         }
-        .configurationDisplayName("FluxHaus Grid")
+        .configurationDisplayName("Device Grid")
         .description("Up to four devices as compact gauges.")
-        .supportedFamilies([
-            .systemSmall
-        ])
+        .supportedFamilies([.systemSmall])
     }
 }
 
 // MARK: - Preview data
 
-let staticList = [
-    WidgetDevice(
-        name: "Dryer",
-        progress: 75,
-        icon: "dryer",
-        trailingText: "Cotton ⋅ 25m",
-        shortText: "25m",
-        running: true,
-        programName: "Cotton"
-    ),
-    WidgetDevice(
-        name: "Washer",
-        progress: 45,
-        icon: "washer",
-        trailingText: "Cottons ⋅ 4:12 PM",
-        shortText: "4:12 PM",
-        running: true,
-        programName: "Cottons"
-    ),
-    WidgetDevice(
-        name: "Cleanbot",
-        progress: 60,
-        icon: "robotic.vacuum.fill",
-        trailingText: "~12 min ⋅ Kitchen",
-        shortText: "60%",
-        running: true,
-        battery: 85
-    ),
-    WidgetDevice(
-        name: "Car",
-        progress: 45,
-        icon: "car",
-        trailingText: "Range 200 km ⋅ 45%",
-        shortText: "200 km",
-        running: false
-    ),
-    WidgetDevice(
-        name: "Dishwasher",
-        progress: 0,
-        icon: "dishwasher",
-        trailingText: "",
-        shortText: "",
-        running: false
-    )
-]
+extension FluxSnapshot {
+    static var preview: FluxSnapshot {
+        let now = Date().timeIntervalSince1970
+        return FluxSnapshot(
+            fetchedAt: Date(),
+            devices: [
+                WidgetDevice(
+                    name: "Dryer", progress: 75, icon: "dryer",
+                    trailingText: "Cotton ⋅ 25m", shortText: "25m", running: true,
+                    programName: "Cotton", startedAt: now - 75 * 60, endsAt: now + 25 * 60
+                ),
+                WidgetDevice(
+                    name: "Washer", progress: 45, icon: "washer",
+                    trailingText: "Cottons ⋅ 4:12 PM", shortText: "4:12 PM", running: true,
+                    programName: "Cottons", startedAt: now - 60 * 60, endsAt: now + 80 * 60
+                ),
+                WidgetDevice(
+                    name: "Cleanbot", progress: 60, icon: "robotic.vacuum.fill",
+                    trailingText: "~12 min ⋅ Kitchen", shortText: "60%", running: true, battery: 85
+                ),
+                WidgetDevice(
+                    name: "Car", progress: 72, icon: "car",
+                    trailingText: "Range 310 km ⋅ 72%", shortText: "310 km", running: false
+                ),
+                WidgetDevice(
+                    name: "Dishwasher", progress: 0, icon: "dishwasher",
+                    trailingText: "", shortText: "", running: false
+                )
+            ],
+            car: CarSnapshot(battery: 72, range: 310, locked: true, climateOn: false, pluggedIn: true, charging: true),
+            finishedAt: ["Dishwasher": Date().addingTimeInterval(-2 * 3600)]
+        )
+    }
 
-private let previewEntry = SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), widgetDevices: staticList)
-private let emptyEntry = SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), widgetDevices: [])
+    static var idlePreview: FluxSnapshot {
+        var snapshot = preview
+        snapshot.devices = snapshot.devices.map {
+            var device = $0
+            if device.name != "Car" { device.running = false }
+            return device
+        }
+        return snapshot
+    }
+}
 
 #Preview(as: .systemSmall) {
     FluxWidget()
 } timeline: {
-    previewEntry
-    emptyEntry
-}
-
-#Preview(as: .systemSmall) {
-    FluxWidgetOtherSmall()
-} timeline: {
-    previewEntry
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .idlePreview)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: nil)
 }
 
 #Preview(as: .systemMedium) {
     FluxWidget()
 } timeline: {
-    previewEntry
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .idlePreview)
 }
 
 #Preview(as: .systemLarge) {
     FluxWidget()
 } timeline: {
-    previewEntry
-}
-
-#Preview(as: .systemExtraLarge) {
-    FluxWidget()
-} timeline: {
-    previewEntry
-}
-
-#Preview(as: .accessoryCircular) {
-    FluxWidget()
-} timeline: {
-    previewEntry
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
 }
 
 #Preview(as: .accessoryRectangular) {
     FluxWidget()
 } timeline: {
-    previewEntry
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .idlePreview)
 }
 
-#Preview(as: .accessoryInline) {
+#Preview(as: .accessoryCircular) {
     FluxWidget()
 } timeline: {
-    previewEntry
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
+}
+
+#Preview(as: .systemSmall) {
+    FluxWidgetOtherSmall()
+} timeline: {
+    SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
 }

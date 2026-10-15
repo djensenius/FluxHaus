@@ -18,6 +18,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var refreshTimer: Timer?
     private var assistantTemplate: CPListTemplate?
     private var assistantItem: CPListItem?
+    private var scenesTemplate: CPListTemplate?
+    private var scenes: [HomeScene] = []
 
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -45,6 +47,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         Task {
             await loadInitialData()
             await MainActor.run { buildUI() }
+            await loadScenes()
         }
 
         startRefreshTimer()
@@ -108,8 +111,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         let assistantTab = buildAssistantTab()
         let statusTab = buildStatusTab()
+        let scenesTab = buildScenesTab()
 
-        let tabBar = CPTabBarTemplate(templates: [assistantTab, statusTab])
+        let tabBar = CPTabBarTemplate(templates: [assistantTab, statusTab, scenesTab])
         interfaceController.setRootTemplate(tabBar, animated: true, completion: nil)
     }
 
@@ -119,7 +123,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         let assistantTab = assistantTemplate ?? buildAssistantTab()
         let statusTab = buildStatusTab()
-        tabBar.updateTemplates([assistantTab, statusTab])
+        let scenesTab = scenesTemplate ?? buildScenesTab()
+        tabBar.updateTemplates([assistantTab, statusTab, scenesTab])
     }
 
     // MARK: - Assistant tab
@@ -202,6 +207,52 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                 CPListSection(items: [assistantItem].compactMap { $0 })
             ])
         }
+    }
+
+    // MARK: - Scenes tab
+
+    private func loadScenes() async {
+        do {
+            let fetched = try await fetchScenes()
+            scenes = fetched
+            scenesTemplate?.updateSections(sceneSections())
+        } catch {
+            logger.error("CarPlay: failed to load scenes: \(error.localizedDescription)")
+        }
+    }
+
+    private func buildScenesTab() -> CPListTemplate {
+        let template = CPListTemplate(title: "Scenes", sections: sceneSections())
+        template.tabImage = UIImage(systemName: "lightbulb.fill")
+        scenesTemplate = template
+        return template
+    }
+
+    private func sceneSections() -> [CPListSection] {
+        guard !scenes.isEmpty else {
+            return [CPListSection(items: [CPListItem(text: "No scenes", detailText: "Loading scenes…")])]
+        }
+        let items = scenes.map { scene in
+            let item = CPListItem(
+                text: scene.name,
+                detailText: scene.isActive == true ? "Active" : nil,
+                image: UIImage(systemName: "lightbulb.fill")
+            )
+            item.handler = { [weak item] _, completion in
+                Task { @MainActor in
+                    item?.setDetailText("Activating…")
+                    do {
+                        try await activateScene(entityId: scene.entityId)
+                        item?.setDetailText("Activated")
+                    } catch {
+                        item?.setDetailText("Couldn't activate")
+                    }
+                    completion()
+                }
+            }
+            return item
+        }
+        return [CPListSection(items: items)]
     }
 
     // MARK: - Status tab
