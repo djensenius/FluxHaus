@@ -150,10 +150,13 @@ func trailingSubtitle(for device: WidgetDevice) -> String {
 
 /// The device finishing soonest (by end time when known, else most progressed).
 func primaryLiveActivityDevice(from devices: [WidgetDevice]) -> WidgetDevice? {
-    let timed = devices.filter { !isRobot($0.name) && !$0.shortText.isEmpty }
-    if let soonest = timed.filter({ $0.endsAt != nil }).min(by: { ($0.endsAt ?? 0) < ($1.endsAt ?? 0) }) {
+    // Earliest known end across every running device (including Cleanbot)...
+    if let soonest = devices.filter({ $0.running && $0.endsAt != nil })
+        .min(by: { ($0.endsAt ?? 0) < ($1.endsAt ?? 0) }) {
         return soonest
     }
+    // ...otherwise the most progressed timed appliance.
+    let timed = devices.filter { !isRobot($0.name) && !$0.shortText.isEmpty }
     return timed.max(by: { $0.progress < $1.progress }) ?? devices.first
 }
 

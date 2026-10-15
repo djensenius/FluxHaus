@@ -236,6 +236,7 @@ enum WidgetCache {
 
     /// The current session, refreshing an expiring OIDC token first. Nil when signed out.
     static func currentSession() async -> String? {
+        await AuthManager.shared.reconcileWithStoredCredentials()
         // Also restores in-memory auth state (incl. demo sign-in after the extension
         // launched signed out), which App Intents rely on.
         _ = await AuthManager.shared.ensureValidToken()
@@ -271,6 +272,16 @@ enum WidgetCache {
         save(value, key: key, session: session)
     }
 
+    /// Runs a command for the current session. The session is captured before the command
+    /// is sent so optimistic state is only recorded if that same account is still signed in
+    /// when it completes. Returns that session (nil if it changed meanwhile).
+    static func runCommand(_ command: () async throws -> Void) async throws -> String? {
+        let session = await currentSession()
+        try await command()
+        guard let session, isCurrent(session) else { return nil }
+        return session
+    }
+
     static func clear(key: String) {
         UserDefaults.standard.removeObject(forKey: key)
     }
@@ -289,7 +300,8 @@ struct PendingValue<Value: Codable>: Codable {
         return pending.value
     }
 
-    static func set(_ value: Value, key: String, for duration: TimeInterval = 180) {
-        WidgetCache.saveCurrent(PendingValue(value: value, expires: Date().addingTimeInterval(duration)), key: key)
+    static func set(_ value: Value, key: String, session: String, for duration: TimeInterval = 180) {
+        let pending = PendingValue(value: value, expires: Date().addingTimeInterval(duration))
+        WidgetCache.save(pending, key: key, session: session)
     }
 }

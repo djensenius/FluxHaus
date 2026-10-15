@@ -27,12 +27,17 @@ struct CleanbotRunIntent: SetValueIntent {
     var value: Bool
 
     func perform() async throws -> some IntentResult {
-        if value {
-            try await FluxIntentActions.startRobot(.cleanBot)
-        } else {
-            try await FluxIntentActions.stopRobot(.cleanBot)
+        let value = value
+        let session = try await WidgetCache.runCommand {
+            if value {
+                try await FluxIntentActions.startRobot(.cleanBot)
+            } else {
+                try await FluxIntentActions.stopRobot(.cleanBot)
+            }
         }
-        PendingValue.set(value, key: CleanbotValueProvider.pendingKey)
+        if let session {
+            PendingValue.set(value, key: CleanbotValueProvider.pendingKey, session: session)
+        }
         WidgetCenter.shared.reloadTimelines(ofKind: "FluxWidget")
         WidgetCenter.shared.reloadTimelines(ofKind: "FluxWidgetSmall")
         return .result()
@@ -74,12 +79,15 @@ struct CarClimateToggleIntent: SetValueIntent {
     var value: Bool
 
     func perform() async throws -> some IntentResult {
-        if value {
-            try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
-        } else {
-            try await FluxIntentActions.stopCarClimate()
+        let value = value
+        let session = try await WidgetCache.runCommand {
+            if value {
+                try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
+            } else {
+                try await FluxIntentActions.stopCarClimate()
+            }
         }
-        CarOverride.set(climateOn: value)
+        CarOverride.set(climateOn: value, session: session)
         return .result()
     }
 }

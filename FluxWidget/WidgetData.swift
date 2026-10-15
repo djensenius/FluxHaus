@@ -141,7 +141,10 @@ enum FluxWidgetNetwork {
             case "Car", "Battery":
                 constantDevices.append(device)
             case "Cleanbot":
-                if device.running {
+                if device.running, device.endsAt != nil {
+                    // A cleaning run with an estimated end competes with the appliances.
+                    timedRunningDevices.append(device)
+                } else if device.running {
                     runningDevices.append(device)
                 } else {
                     offDevices.append(device)

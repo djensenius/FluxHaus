@@ -68,9 +68,12 @@ struct RunSceneWidgetIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        try await requireIntentAuthentication()
-        try await activateScene(entityId: sceneId)
-        SceneStore.markActivated(sceneId)
+        let sceneId = sceneId
+        let session = try await WidgetCache.runCommand {
+            try await requireIntentAuthentication()
+            try await activateScene(entityId: sceneId)
+        }
+        SceneStore.markActivated(sceneId, session: session)
         return .result()
     }
 }
@@ -101,8 +104,10 @@ enum SceneStore {
         }
     }
 
-    static func markActivated(_ id: String) {
-        WidgetCache.saveCurrent(Activation(id: id, date: Date()), key: activatedKey)
+    static func markActivated(_ id: String, session: String?) {
+        if let session {
+            WidgetCache.save(Activation(id: id, date: Date()), key: activatedKey, session: session)
+        }
         // The Scene control doesn't refresh the Scenes widget on its own.
         WidgetCenter.shared.reloadTimelines(ofKind: FluxScenesWidget.kindID)
     }

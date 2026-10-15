@@ -26,12 +26,14 @@ struct CarOverride: Codable {
         return value
     }
 
-    static func set(locked: Bool? = nil, climateOn: Bool? = nil) {
-        var value = current() ?? CarOverride(expires: Date())
+    static func set(locked: Bool? = nil, climateOn: Bool? = nil, session: String?) {
+        guard let session else { return }
+        var value = WidgetCache.load(CarOverride.self, key: key, session: session)
+            .flatMap { $0.expires > Date() ? $0 : nil } ?? CarOverride(expires: Date())
         if let locked { value.locked = locked }
         if let climateOn { value.climateOn = climateOn }
         value.expires = Date().addingTimeInterval(3 * 60)
-        WidgetCache.saveCurrent(value, key: key)
+        WidgetCache.save(value, key: key, session: session)
         // Commands can come from Control Center or the widget; refresh both surfaces.
         WidgetCenter.shared.reloadTimelines(ofKind: FluxCarWidget.kindID)
         #if os(iOS) && !targetEnvironment(macCatalyst)
@@ -55,8 +57,8 @@ struct CarWidgetLockIntent: AppIntent {
     static let isDiscoverable = false
 
     func perform() async throws -> some IntentResult {
-        try await FluxIntentActions.lockCar()
-        CarOverride.set(locked: true)
+        let session = try await WidgetCache.runCommand { try await FluxIntentActions.lockCar() }
+        CarOverride.set(locked: true, session: session)
         return .result()
     }
 }
@@ -76,12 +78,15 @@ struct CarWidgetClimateIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        if turnOn {
-            try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
-        } else {
-            try await FluxIntentActions.stopCarClimate()
+        let turnOn = turnOn
+        let session = try await WidgetCache.runCommand {
+            if turnOn {
+                try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
+            } else {
+                try await FluxIntentActions.stopCarClimate()
+            }
         }
-        CarOverride.set(climateOn: turnOn)
+        CarOverride.set(climateOn: turnOn, session: session)
         return .result()
     }
 }

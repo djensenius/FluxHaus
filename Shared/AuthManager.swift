@@ -496,6 +496,26 @@ private actor RefreshCoordinator {
         return true
     }
 
+    /// For app extensions (widgets, controls): align the in-memory auth state with the
+    /// credentials in the shared keychain, which the app may have changed since the
+    /// extension launched (sign-in, sign-out, or switching between OIDC and demo).
+    @MainActor func reconcileWithStoredCredentials() {
+        let hasOIDC = getAccessToken() != nil || getKeychainItem(account: "oidc_refresh_token") != nil
+        if hasOIDC {
+            switch authState {
+            case .signedIn(method: .oidc), .unknown:
+                break
+            default:
+                authState = .signedIn(method: .oidc)
+            }
+        } else if WhereWeAre.getPassword() != nil {
+            if case .signedIn(method: .demo) = authState { return }
+            authState = .signedIn(method: .demo)
+        } else if !isSignedOut {
+            authState = .signedOut
+        }
+    }
+
     /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
     @MainActor func restoreStateIfNeeded() {
         guard case .signedOut = authState else { return }

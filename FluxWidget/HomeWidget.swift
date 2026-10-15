@@ -120,7 +120,7 @@ func aqhiColor(_ value: Double) -> Color {
     switch value {
     case ..<4: return .green
     case ..<7: return .yellow
-    case ..<10: return .orange
+    case ...10: return .orange
     default: return .red
     }
 }
@@ -129,7 +129,7 @@ func aqhiLabel(_ value: Double) -> String {
     switch value {
     case ..<4: return "Low risk"
     case ..<7: return "Moderate"
-    case ..<10: return "High risk"
+    case ...10: return "High risk"
     default: return "Very high"
     }
 }
