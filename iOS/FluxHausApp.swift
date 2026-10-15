@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import UserNotifications
+import WidgetKit
 import os
 
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
@@ -366,6 +367,9 @@ struct FluxHausApp: App {
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
         Task { await LiveActivityManager.shared.reconcile(devices: devices) }
         #endif
+        WidgetReloader.reloadIfChanged(devices: convertDataToWidgetDevices(
+            fluxData: convertLoginResponseToAppData(response: response)
+        ))
     }
 
     private func postNavigation(_ section: String) {
@@ -384,5 +388,18 @@ struct FluxHausApp: App {
             }
             try? await Task.sleep(for: .seconds(5))
         }
+    }
+}
+
+/// Pushes fresh data to Home Screen / StandBy / CarPlay widgets whenever the app sees
+/// a meaningful change, so widgets don't have to wait for their own refresh budget.
+@MainActor
+enum WidgetReloader {
+    private static var lastDevices: [WidgetDevice]?
+
+    static func reloadIfChanged(devices: [WidgetDevice]) {
+        guard devices != lastDevices else { return }
+        lastDevices = devices
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
