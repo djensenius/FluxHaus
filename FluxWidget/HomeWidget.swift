@@ -71,8 +71,10 @@ enum HomeStore {
             snapshot.pm25Outdoor = air.series.first { $0.name.lowercased() == "outdoor" }?.points.last?.value
         }
         if let aqhi = fetched.aqhi {
+            // AQHI is reported as a whole number; round once so the number, risk label,
+            // color and relevance all agree.
             snapshot.aqhi = (aqhi.series.first { $0.name.lowercased().contains("canada") }
-                ?? aqhi.series.first)?.points.last?.value
+                ?? aqhi.series.first)?.points.last?.value.rounded()
         }
         if let power = fetched.power {
             // power_draw has one series per monitored device; report the total.

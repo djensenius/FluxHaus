@@ -556,7 +556,13 @@ private actor RefreshCoordinator {
         case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(for: generation, success: false)
-            await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
+            if WhereWeAre.getPassword() != nil {
+                // Another process (the app) switched to demo sign-in and cleared the OIDC
+                // tokens. Follow it rather than signing out, which would delete that password.
+                await reconcileWithStoredCredentials()
+            } else {
+                await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
+            }
             return false
         }
 
@@ -612,6 +618,11 @@ private actor RefreshCoordinator {
         return .available(refreshToken)
     }
 
+    /// Stores tokens from a refresh only if neither this process (generation) nor another
+    /// process sharing the keychain (shared session, rotated whenever credentials are
+    /// cleared) has changed the session since the refresh started. The keychain has no
+    /// cross-process transaction, so a change landing between this check and the write is
+    /// still possible but limited to that instant rather than the whole network round trip.
     private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64, sharedSession: String?) -> Bool {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }

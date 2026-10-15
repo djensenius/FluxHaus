@@ -541,6 +541,14 @@ struct GridGauge: View {
 struct GridEntryView: View {
     var entry: Provider.Entry
 
+    /// Up to four devices, with a configured featured device always included first.
+    private var gridDevices: [WidgetDevice] {
+        guard entry.configuration.device != .automatic, let featured = entry.featured else {
+            return Array(entry.widgetDevices.prefix(4))
+        }
+        return Array(([featured] + entry.widgetDevices.filter { $0.name != featured.name }).prefix(4))
+    }
+
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
     var body: some View {
@@ -549,7 +557,7 @@ struct GridEntryView: View {
                 EmptyStateView()
             } else {
                 LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(entry.widgetDevices.prefix(4), id: \.name) { item in
+                    ForEach(gridDevices, id: \.name) { item in
                         GridGauge(item: item, date: entry.date)
                     }
                 }
