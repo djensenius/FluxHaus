@@ -57,17 +57,19 @@ struct FluxSnapshot: Codable {
     var finishedAt: [String: Date]
 }
 
-/// Coalesces concurrent fetches (several widgets and controls often refresh together)
-/// without suppressing later, separately requested refreshes.
+/// Coalesces concurrent fetches for the same auth session (several widgets and controls
+/// often refresh together) without suppressing later, separately requested refreshes.
 private actor SnapshotFetcher {
-    private var inFlight: Task<FluxSnapshot?, Never>?
+    private var inFlight: [String: (id: UUID, task: Task<FluxSnapshot?, Never>)] = [:]
 
-    func fetch() async -> FluxSnapshot? {
-        if let inFlight { return await inFlight.value }
-        let task = Task { await FluxWidgetNetwork.performFetch() }
-        inFlight = task
+    func fetch(session: String) async -> FluxSnapshot? {
+        if let existing = inFlight[session] { return await existing.task.value }
+        let id = UUID()
+        let task = Task { await FluxWidgetNetwork.performFetch(session: session) }
+        inFlight[session] = (id, task)
         let result = await task.value
-        inFlight = nil
+        // Only clear our own record, never a newer request's.
+        if inFlight[session]?.id == id { inFlight[session] = nil }
         return result
     }
 }
@@ -79,16 +81,16 @@ enum FluxWidgetNetwork {
     /// Fetches the latest snapshot. Never crashes: on any auth/network/decoding failure
     /// it falls back to the last good snapshot for the same session. Nil when signed out.
     static func fetchSnapshot() async -> FluxSnapshot? {
-        await fetcher.fetch()
-    }
-
-    fileprivate static func performFetch() async -> FluxSnapshot? {
         guard let session = await WidgetCache.currentSession() else {
             // Signed out: never show the previous session's data.
             widgetLogger.warning("Widget: no credentials available")
             WidgetCache.clear(key: cacheKey)
             return nil
         }
+        return await fetcher.fetch(session: session)
+    }
+
+    fileprivate static func performFetch(session: String) async -> FluxSnapshot? {
         let cached = WidgetCache.load(FluxSnapshot.self, key: cacheKey, session: session)
         do {
             guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),

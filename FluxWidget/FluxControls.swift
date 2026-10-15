@@ -10,6 +10,13 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
+enum FluxControlKind {
+    static let cleanbot = "io.fluxhaus.control.cleanbot"
+    static let carClimate = "io.fluxhaus.control.carClimate"
+    static let carLock = "io.fluxhaus.control.carLock"
+    static let scene = "io.fluxhaus.control.scene"
+}
+
 // MARK: - Cleanbot
 
 struct CleanbotRunIntent: SetValueIntent {
@@ -46,7 +53,7 @@ struct CleanbotValueProvider: ControlValueProvider {
 
 struct CleanbotControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
-        StaticControlConfiguration(kind: "io.fluxhaus.control.cleanbot", provider: CleanbotValueProvider()) { running in
+        StaticControlConfiguration(kind: FluxControlKind.cleanbot, provider: CleanbotValueProvider()) { running in
             ControlWidgetToggle("Cleanbot", isOn: running, action: CleanbotRunIntent()) { isOn in
                 Label(isOn ? "Cleaning" : "Docked", systemImage: "robotic.vacuum.fill")
             }
@@ -89,7 +96,7 @@ struct CarClimateValueProvider: ControlValueProvider {
 struct CarClimateControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
-            kind: "io.fluxhaus.control.carClimate",
+            kind: FluxControlKind.carClimate,
             provider: CarClimateValueProvider()
         ) { isOn in
             ControlWidgetToggle("Car Climate", isOn: isOn, action: CarClimateToggleIntent()) { isOn in
@@ -104,7 +111,7 @@ struct CarClimateControl: ControlWidget {
 
 struct CarLockControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
-        StaticControlConfiguration(kind: "io.fluxhaus.control.carLock") {
+        StaticControlConfiguration(kind: FluxControlKind.carLock) {
             ControlWidgetButton(action: CarWidgetLockIntent()) {
                 Label("Lock Car", systemImage: "lock.fill")
             }
@@ -128,7 +135,7 @@ struct SceneControlConfig: ControlConfigurationIntent {
 
 struct SceneControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
-        AppIntentControlConfiguration(kind: "io.fluxhaus.control.scene", intent: SceneControlConfig.self) { config in
+        AppIntentControlConfiguration(kind: FluxControlKind.scene, intent: SceneControlConfig.self) { config in
             ControlWidgetButton(action: RunSceneWidgetIntent(sceneId: config.scene?.id ?? "")) {
                 Label(
                     config.scene?.name ?? "Choose Scene",

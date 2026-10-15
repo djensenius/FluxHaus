@@ -32,8 +32,11 @@ struct CarOverride: Codable {
         if let climateOn { value.climateOn = climateOn }
         value.expires = Date().addingTimeInterval(3 * 60)
         WidgetCache.saveCurrent(value, key: key)
-        // Commands can come from Control Center, which only refreshes the control itself.
+        // Commands can come from Control Center or the widget; refresh both surfaces.
         WidgetCenter.shared.reloadTimelines(ofKind: FluxCarWidget.kindID)
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        ControlCenter.shared.reloadControls(ofKind: FluxControlKind.carClimate)
+        #endif
     }
 
     func apply(to car: CarSnapshot) -> CarSnapshot {

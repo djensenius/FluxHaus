@@ -87,7 +87,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         // Appliance started/finished. Have widgets re-fetch on their own; SwiftUI
         // view handlers may not be attached when the push launches us in the background.
-        WidgetCenter.shared.reloadAllTimelines()
+        WidgetReloader.reloadAll()
 
         // When woken by a silent push, refresh data and update Live Activities
         guard AuthManager.shared.isSignedIn else {
@@ -408,7 +408,15 @@ enum WidgetReloader {
         let key = changeKey(devices: devices, car: car)
         guard key != lastKey else { return }
         lastKey = key
+        reloadAll()
+    }
+
+    /// Widget timelines and Control Center controls refresh independently.
+    static func reloadAll() {
         WidgetCenter.shared.reloadAllTimelines()
+        #if !targetEnvironment(macCatalyst)
+        ControlCenter.shared.reloadAllControls()
+        #endif
     }
 
     /// Everything the widgets display. Timing is reduced to whether it's known (exact
@@ -436,6 +444,6 @@ enum WidgetReloader {
     /// Signed out: forget what we showed so widgets re-fetch (and blank) immediately.
     static func reset() {
         lastKey = nil
-        WidgetCenter.shared.reloadAllTimelines()
+        reloadAll()
     }
 }

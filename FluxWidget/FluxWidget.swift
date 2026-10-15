@@ -507,10 +507,11 @@ struct FluxWidget: Widget {
 
 struct GridGauge: View {
     let item: WidgetDevice
+    let date: Date
 
     var body: some View {
         PaletteReader { palette in
-            Gauge(value: widgetProgress(for: item)) {
+            Gauge(value: widgetProgress(for: item, at: date)) {
                 Image(systemName: item.icon)
             } currentValueLabel: {
                 Text(shortLabel)
@@ -527,8 +528,9 @@ struct GridGauge: View {
         if item.name == "Car" { return "\(item.progress)%" }
         if !item.running { return "Off" }
         if isRobot(item.name) { return item.battery.map { "\($0)%" } ?? "On" }
-        if let end = item.endDate, end > .now {
-            let minutes = Int(end.timeIntervalSinceNow / 60)
+        if let end = item.endDate {
+            guard end > date else { return "Done" }
+            let minutes = Int(end.timeIntervalSince(date) / 60)
             return minutes < 60 ? "\(minutes)m" : "\(minutes / 60)h\(String(format: "%02d", minutes % 60))"
         }
         return item.shortText.isEmpty ? "\(item.progress)%" : item.shortText
@@ -547,7 +549,7 @@ struct GridEntryView: View {
             } else {
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(entry.widgetDevices.prefix(4), id: \.name) { item in
-                        GridGauge(item: item)
+                        GridGauge(item: item, date: entry.date)
                     }
                 }
                 .frame(maxHeight: .infinity)
