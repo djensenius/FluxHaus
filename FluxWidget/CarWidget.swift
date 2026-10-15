@@ -119,7 +119,11 @@ struct CarProvider: TimelineProvider {
         Task {
             let entry = await Self.entry()
             let minutes = entry.car?.climateOn == true || CarOverride.current() != nil ? 5 : 30
-            let next = entry.date.addingTimeInterval(TimeInterval(minutes * 60))
+            var next = entry.date.addingTimeInterval(TimeInterval(minutes * 60))
+            if let expires = CarOverride.current()?.expires {
+                // Re-check the real car state as soon as the optimistic override lapses.
+                next = min(next, expires.addingTimeInterval(1))
+            }
             completion(Timeline(entries: [entry], policy: .after(next)))
         }
     }

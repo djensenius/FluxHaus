@@ -401,16 +401,22 @@ struct FluxHausApp: App {
 @MainActor
 enum WidgetReloader {
     private static var lastDevices: [WidgetDevice]?
+    private static var lastTimingKnown: [Bool]?
 
     static func reloadIfChanged(devices: [WidgetDevice]) {
-        guard devices != lastDevices else { return }
+        // WidgetDevice equality ignores timing (it drifts with "now"), so also reload when
+        // timing becomes available or goes away, which switches widgets to live timers.
+        let timingKnown = devices.map { $0.endsAt != nil }
+        guard devices != lastDevices || timingKnown != lastTimingKnown else { return }
         lastDevices = devices
+        lastTimingKnown = timingKnown
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     /// Signed out: forget what we showed so widgets re-fetch (and blank) immediately.
     static func reset() {
         lastDevices = nil
+        lastTimingKnown = nil
         WidgetCenter.shared.reloadAllTimelines()
     }
 }

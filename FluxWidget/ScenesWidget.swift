@@ -139,7 +139,9 @@ func sceneSymbol(for name: String) -> String {
 struct SceneItem: Hashable {
     let id: String
     let name: String
-    let isActive: Bool
+    var isActive: Bool
+    /// Highlighted only because it was just tapped (cleared after a couple of minutes).
+    var justTapped = false
 }
 
 struct ScenesEntry: TimelineEntry {
@@ -170,9 +172,16 @@ struct ScenesProvider: AppIntentTimelineProvider {
         var entries = [entry]
         if SceneStore.recentlyActivated() != nil {
             // Drop the tap confirmation after it expires.
+            let cleared = entry.scenes.map { scene -> SceneItem in
+                guard scene.justTapped else { return scene }
+                var scene = scene
+                scene.isActive = false
+                scene.justTapped = false
+                return scene
+            }
             entries.append(ScenesEntry(
                 date: entry.date.addingTimeInterval(120),
-                scenes: entry.scenes,
+                scenes: cleared,
                 signedIn: entry.signedIn
             ))
         }
@@ -189,8 +198,15 @@ struct ScenesProvider: AppIntentTimelineProvider {
             chosen = Array(all.prefix(limit))
         }
         let tapped = SceneStore.recentlyActivated()
-        let items = chosen.prefix(limit).map {
-            SceneItem(id: $0.entityId, name: $0.name, isActive: $0.isActive == true || $0.entityId == tapped)
+        let items = chosen.prefix(limit).map { scene in
+            let serverActive = scene.isActive == true
+            let justTapped = !serverActive && scene.entityId == tapped
+            return SceneItem(
+                id: scene.entityId,
+                name: scene.name,
+                isActive: serverActive || justTapped,
+                justTapped: justTapped
+            )
         }
         return ScenesEntry(date: Date(), scenes: Array(items), signedIn: WidgetCache.hasCredentials)
     }
