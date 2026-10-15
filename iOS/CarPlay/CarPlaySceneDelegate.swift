@@ -306,7 +306,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                     }
                     item?.setDetailText("Activating…")
                     do {
-                        try await activateScene(entityId: scene.entityId)
+                        try await activateScene(entityId: scene.entityId) {
+                            AuthManager.shared.widgetSessionID() == session
+                        }
                         item?.setDetailText("Activated")
                     } catch {
                         item?.setDetailText("Couldn't activate")

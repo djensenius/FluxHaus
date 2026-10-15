@@ -275,11 +275,20 @@ enum WidgetCache {
     /// Runs a command for the current session. The session is captured before the command
     /// is sent so optimistic state is only recorded if that same account is still signed in
     /// when it completes. Returns that session (nil if it changed meanwhile).
-    static func runCommand(_ command: () async throws -> Void) async throws -> String? {
+    /// The command receives a validity check to pass to the request layer, so it can
+    /// refuse to send if the account changes while the request is being prepared.
+    static func runCommand(
+        expecting origin: String = "",
+        _ command: (_ isStillValid: @escaping @Sendable () -> Bool) async throws -> Void
+    ) async throws -> String? {
         let session = await currentSession()
-        try await command()
-        guard let session, isCurrent(session) else { return nil }
-        return session
+        // An empty origin means "the current account" (Control Center actions).
+        guard let expected = origin.isEmpty ? session : origin, isCurrent(expected) else {
+            throw IntentError.notSignedIn
+        }
+        try await command { isCurrent(expected) }
+        guard isCurrent(expected) else { return nil }
+        return expected
     }
 
     static func clear(key: String) {

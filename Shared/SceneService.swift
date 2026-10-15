@@ -82,7 +82,7 @@ func fetchScenes() async throws -> [HomeScene] {
 /// - Parameter isStillValid: checked right before each request is sent (after CSRF
 ///   retrieval, and again before a retry); throwing `unauthorized` if it returns false.
 ///   Widgets use this to make sure the account hasn't changed mid-request.
-func activateScene(entityId: String, isStillValid: () -> Bool = { true }) async throws {
+func activateScene(entityId: String, isStillValid: @Sendable () -> Bool = { true }) async throws {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "api.fluxhaus.io"

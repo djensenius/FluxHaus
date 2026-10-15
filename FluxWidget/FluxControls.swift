@@ -28,11 +28,11 @@ struct CleanbotRunIntent: SetValueIntent {
 
     func perform() async throws -> some IntentResult {
         let value = value
-        let session = try await WidgetCache.runCommand {
+        let session = try await WidgetCache.runCommand { isStillValid in
             if value {
-                try await FluxIntentActions.startRobot(.cleanBot)
+                try await FluxIntentActions.startRobot(.cleanBot, isStillValid: isStillValid)
             } else {
-                try await FluxIntentActions.stopRobot(.cleanBot)
+                try await FluxIntentActions.stopRobot(.cleanBot, isStillValid: isStillValid)
             }
         }
         if let session {
@@ -80,11 +80,13 @@ struct CarClimateToggleIntent: SetValueIntent {
 
     func perform() async throws -> some IntentResult {
         let value = value
-        let session = try await WidgetCache.runCommand {
+        let session = try await WidgetCache.runCommand { isStillValid in
             if value {
-                try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
+                try await FluxIntentActions.startCarClimate(
+                    defrost: false, heatedFeatures: false, temperature: nil, isStillValid: isStillValid
+                )
             } else {
-                try await FluxIntentActions.stopCarClimate()
+                try await FluxIntentActions.stopCarClimate(isStillValid: isStillValid)
             }
         }
         CarOverride.set(climateOn: value, session: session)

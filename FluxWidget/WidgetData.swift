@@ -118,9 +118,13 @@ enum FluxWidgetNetwork {
         let devices = classifyWidgetData(devices: convertDataToWidgetDevices(fluxData: fluxData))
         var finishedAt = previous?.finishedAt ?? [:]
         let wasRunning = Set((previous?.devices ?? []).filter(isActive).map(\.name))
+        // A paused Cleanbot isn't running, but hasn't finished either.
+        let robotPaused = fluxData.cleanBot?.paused == true
         for device in devices where device.name != "Car" {
             if device.running {
                 finishedAt[device.name] = nil
+            } else if isRobot(device.name) && robotPaused {
+                continue
             } else if wasRunning.contains(device.name) {
                 finishedAt[device.name] = now
             }

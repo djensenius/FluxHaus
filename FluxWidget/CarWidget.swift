@@ -51,14 +51,6 @@ struct CarOverride: Codable {
 
 // MARK: - Intents
 
-/// Throws unless `origin` (the session whose car a widget button was rendered for) is still
-/// the signed-in session. An empty origin means "current account" (Control Center).
-func requireCurrentSession(_ origin: String) throws {
-    guard origin.isEmpty || WidgetCache.isCurrent(origin) else {
-        throw IntentError.notSignedIn
-    }
-}
-
 struct CarWidgetLockIntent: AppIntent {
     static let title: LocalizedStringResource = "Lock Car"
     static let description = IntentDescription("Lock the FluxHaus car.")
@@ -76,10 +68,8 @@ struct CarWidgetLockIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        let origin = originSession
-        let session = try await WidgetCache.runCommand {
-            try requireCurrentSession(origin)
-            try await FluxIntentActions.lockCar()
+        let session = try await WidgetCache.runCommand(expecting: originSession) { isStillValid in
+            try await FluxIntentActions.lockCar(isStillValid: isStillValid)
         }
         CarOverride.set(locked: true, session: session)
         return .result()
@@ -105,13 +95,14 @@ struct CarWidgetClimateIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult {
-        let turnOn = turnOn, origin = originSession
-        let session = try await WidgetCache.runCommand {
-            try requireCurrentSession(origin)
+        let turnOn = turnOn
+        let session = try await WidgetCache.runCommand(expecting: originSession) { isStillValid in
             if turnOn {
-                try await FluxIntentActions.startCarClimate(defrost: false, heatedFeatures: false, temperature: nil)
+                try await FluxIntentActions.startCarClimate(
+                    defrost: false, heatedFeatures: false, temperature: nil, isStillValid: isStillValid
+                )
             } else {
-                try await FluxIntentActions.stopCarClimate()
+                try await FluxIntentActions.stopCarClimate(isStillValid: isStillValid)
             }
         }
         CarOverride.set(climateOn: turnOn, session: session)
