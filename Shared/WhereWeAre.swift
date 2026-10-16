@@ -41,7 +41,7 @@ public struct WhereWeAre {
             kSecValueData as String: password.data(using: String.Encoding.utf8)!
         ]
         var didSave = false
-        let status = SecItemAdd(Keychain.query(attributes), nil)
+        let status = Keychain.add(attributes)
         if status == errSecDuplicateItem {
             let query: [String: Any] = [
                 kSecClass as String: kSecClassInternetPassword,
@@ -51,7 +51,7 @@ public struct WhereWeAre {
             let update: [String: Any] = [
                 kSecValueData as String: password.data(using: String.Encoding.utf8)!
             ]
-            let updateStatus = SecItemUpdate(Keychain.query(query), update as CFDictionary)
+            let updateStatus = Keychain.update(query, update)
             if updateStatus != noErr {
                 logger.error("Keychain update FAILED for demo password: OSStatus \(updateStatus)")
             }
@@ -75,7 +75,7 @@ public struct WhereWeAre {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        let status = SecItemCopyMatching(Keychain.query(query), &item)
+        let status = Keychain.copyMatching(query, &item)
         if status == noErr,
            let existingItem = item as? [String: Any],
            let passwordData = existingItem[kSecValueData as String] as? Data,
