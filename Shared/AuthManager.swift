@@ -256,6 +256,22 @@ enum Keychain {
             logger.error("Keychain migration deferred: couldn't clear the publication marker")
             return false
         }
+        guard let copied = copyLegacyItems() else { return false }
+        for identity in copied {
+            SecItemDelete(identity as CFDictionary)
+        }
+        // The legacy originals are gone, so this process must use the shared store now;
+        // if publishing the marker fails, keep retrying it on later accesses.
+        markerPending = !setMigrationComplete(true)
+        if !copied.isEmpty {
+            logger.info("Migrated \(copied.count) keychain item(s) to the data protection keychain")
+        }
+        return true
+    }
+
+    /// Copies each legacy item into the shared store (legacy values win). Returns the
+    /// copied identities, or nil after rolling back on any read/write error.
+    private static func copyLegacyItems() -> [[String: Any]]? {
         var copied: [[String: Any]] = []
         func rollBack() {
             for identity in copied {
@@ -274,9 +290,8 @@ enum Keychain {
             guard readStatus == errSecSuccess, let data = item as? Data else {
                 logger.error("Keychain migration read failed: OSStatus \(readStatus)")
                 rollBack()
-                return false
+                return nil
             }
-
             var target = identity
             target[kSecUseDataProtectionKeychain as String] = true
             var attributes = target
@@ -290,20 +305,11 @@ enum Keychain {
             guard writeStatus == errSecSuccess else {
                 logger.error("Keychain migration write failed: OSStatus \(writeStatus)")
                 rollBack()
-                return false
+                return nil
             }
             copied.append(identity)
         }
-        for identity in copied {
-            SecItemDelete(identity as CFDictionary)
-        }
-        // The legacy originals are gone, so this process must use the shared store now;
-        // if publishing the marker fails, keep retrying it on later accesses.
-        markerPending = !setMigrationComplete(true)
-        if !copied.isEmpty {
-            logger.info("Migrated \(copied.count) keychain item(s) to the data protection keychain")
-        }
-        return true
+        return copied
     }
     #endif
 }
