@@ -111,7 +111,7 @@ public struct WhereWeAre {
             kSecAttrServer as String: "api.fluxhaus.io",
             kSecAttrAccount as String: "demo"
         ]
-        let status = SecItemDelete(Keychain.query(query))
+        let status = Keychain.delete(query)
         if status != noErr && status != errSecItemNotFound {
             logger.error("Keychain delete FAILED for demo password: OSStatus \(status)")
         }

@@ -39,7 +39,29 @@ enum Keychain {
         #endif
     }
 
+    /// Deletes an item. On macOS it is removed from both the legacy and the data protection
+    /// keychain, so a sign-out (or session rotation) always invalidates credentials for the
+    /// app and the widget, whichever keychain each is currently using.
+    @discardableResult
+    static func delete(_ base: [String: Any]) -> OSStatus {
+        #if os(macOS)
+        // Only the app touches the legacy keychain (it owns those items; the sandboxed
+        // widget extension can't access them).
+        let legacyStatus = isApp ? SecItemDelete(base as CFDictionary) : errSecItemNotFound
+        var protected = base
+        protected[kSecUseDataProtectionKeychain as String] = true
+        let protectedStatus = SecItemDelete(protected as CFDictionary)
+        // Report success if either store held the item.
+        if legacyStatus == errSecSuccess || protectedStatus == errSecSuccess { return errSecSuccess }
+        return protectedStatus == errSecItemNotFound ? legacyStatus : protectedStatus
+        #else
+        return SecItemDelete(base as CFDictionary)
+        #endif
+    }
+
     #if os(macOS)
+    private static var isApp: Bool { Bundle.main.bundleURL.pathExtension == "app" }
+
     /// Items the app keeps in the keychain (legacy identity, without the data protection flag).
     private static var knownItems: [[String: Any]] {
         let oidcAccounts = ["oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "widget_session_id"]
@@ -85,7 +107,7 @@ enum Keychain {
         }
         // Only the app migrates; the sandboxed widget extension can't read the app's
         // legacy items and always uses the data protection keychain.
-        guard Bundle.main.bundleURL.pathExtension == "app" else {
+        guard isApp else {
             route = .dataProtection
             return true
         }
@@ -115,10 +137,18 @@ enum Keychain {
 
     /// Copies every legacy item into the data protection keychain, and only once all of
     /// them are copied deletes the legacy ones. Legacy values win over existing copies
-    /// (they are what this process has been using). Returns false on any read/write error,
-    /// leaving the legacy session intact.
+    /// (they are what this process has been using). On any read/write error it rolls back
+    /// the copies made so far (so the widget never sees a partial session) and returns
+    /// false, leaving the legacy session intact.
     private static func migrateLegacyItems() -> Bool {
         var copied: [[String: Any]] = []
+        func rollBack() {
+            for identity in copied {
+                var target = identity
+                target[kSecUseDataProtectionKeychain as String] = true
+                SecItemDelete(target as CFDictionary)
+            }
+        }
         for identity in knownItems {
             var lookup = identity
             lookup[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -128,6 +158,7 @@ enum Keychain {
             if readStatus == errSecItemNotFound { continue }
             guard readStatus == errSecSuccess, let data = item as? Data else {
                 logger.error("Keychain migration read failed: OSStatus \(readStatus)")
+                rollBack()
                 return false
             }
 
@@ -143,6 +174,7 @@ enum Keychain {
             }
             guard writeStatus == errSecSuccess else {
                 logger.error("Keychain migration write failed: OSStatus \(writeStatus)")
+                rollBack()
                 return false
             }
             copied.append(identity)
@@ -556,7 +588,7 @@ private actor RefreshCoordinator {
             kSecAttrService as String: widgetSessionService,
             kSecAttrAccount as String: widgetSessionAccount
         ]
-        SecItemDelete(Keychain.query(query))
+        Keychain.delete(query)
     }
 
     private static func readWidgetSession() -> String? {
@@ -935,7 +967,7 @@ private actor RefreshCoordinator {
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: account
         ]
-        SecItemDelete(Keychain.query(query))
+        Keychain.delete(query)
     }
 
     private func clearOIDCTokens() {
