@@ -103,7 +103,13 @@ enum FluxIntentActions {
     static let host = "api.fluxhaus.io"
 
     /// Performs an authenticated POST to the given API path and throws on a non-2xx response.
-    static func post(path: String, body: [String: Any]? = nil) async throws {
+    /// `isStillValid` runs after request preparation (auth, CSRF) right before credentials
+    /// are attached; widgets use it to refuse acting if the account changed meanwhile.
+    static func post(
+        path: String,
+        body: [String: Any]? = nil,
+        isStillValid: @Sendable () -> Bool = { true }
+    ) async throws {
         try await requireIntentAuthentication()
 
         var components = URLComponents()
@@ -120,6 +126,7 @@ enum FluxIntentActions {
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
+        guard isStillValid() else { throw IntentError.notSignedIn }
         if let authHeader = AuthManager.shared.authorizationHeader() {
             request.setValue(authHeader, forHTTPHeaderField: "Authorization")
         } else {
@@ -144,12 +151,12 @@ enum FluxIntentActions {
 
     // MARK: - Robots
 
-    static func startRobot(_ robot: RobotKind) async throws {
-        try await post(path: "/turnOnCleanbot")
+    static func startRobot(_ robot: RobotKind, isStillValid: @Sendable () -> Bool = { true }) async throws {
+        try await post(path: "/turnOnCleanbot", isStillValid: isStillValid)
     }
 
-    static func stopRobot(_ robot: RobotKind) async throws {
-        try await post(path: "/turnOffCleanbot")
+    static func stopRobot(_ robot: RobotKind, isStillValid: @Sendable () -> Bool = { true }) async throws {
+        try await post(path: "/turnOffCleanbot", isStillValid: isStillValid)
     }
 
     static func deepClean() async throws {
@@ -166,15 +173,20 @@ enum FluxIntentActions {
 
     // MARK: - Car
 
-    static func lockCar() async throws { try await post(path: "/lockCar") }
+    static func lockCar(isStillValid: @Sendable () -> Bool = { true }) async throws {
+        try await post(path: "/lockCar", isStillValid: isStillValid)
+    }
     static func unlockCar() async throws { try await post(path: "/unlockCar") }
     static func resyncCar() async throws { try await post(path: "/resyncCar") }
-    static func stopCarClimate() async throws { try await post(path: "/stopCar") }
+    static func stopCarClimate(isStillValid: @Sendable () -> Bool = { true }) async throws {
+        try await post(path: "/stopCar", isStillValid: isStillValid)
+    }
 
     static func startCarClimate(
         defrost: Bool,
         heatedFeatures: Bool,
-        temperature: Int?
+        temperature: Int?,
+        isStillValid: @Sendable () -> Bool = { true }
     ) async throws {
         var body: [String: Any] = [
             "heatedFeatures": heatedFeatures,
@@ -187,7 +199,7 @@ enum FluxIntentActions {
         if let temperature = temperature {
             body["temp"] = temperature
         }
-        try await post(path: "/startCar", body: body)
+        try await post(path: "/startCar", body: body, isStillValid: isStillValid)
     }
 }
 

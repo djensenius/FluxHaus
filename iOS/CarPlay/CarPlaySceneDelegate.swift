@@ -18,6 +18,17 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
     private var refreshTimer: Timer?
     private var assistantTemplate: CPListTemplate?
     private var assistantItem: CPListItem?
+    private var scenesTemplate: CPListTemplate?
+    private var scenes: [HomeScene] = []
+    private var scenesState: ScenesState = .loading
+    /// Auth session the displayed scenes (and their handlers) belong to.
+    private var scenesSession: String?
+
+    private enum ScenesState {
+        case loading
+        case loaded
+        case failed
+    }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -36,6 +47,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             self, selector: #selector(dataDidUpdate(_:)),
             name: .dataUpdated, object: nil
         )
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(authDidSignOut(_:)),
+            name: .authDidSignOut, object: nil
+        )
 
         voiceManager = CarPlayVoiceManager()
         voiceManager?.onStateChange = { [weak self] state in
@@ -45,6 +60,7 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         Task {
             await loadInitialData()
             await MainActor.run { buildUI() }
+            await loadScenes()
         }
 
         startRefreshTimer()
@@ -70,8 +86,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
             return
         }
         let password = WhereWeAre.getPassword() ?? ""
+        let session = AuthManager.shared.widgetSessionID()
         do {
-            if let response = try await getFlux(password: password) {
+            if let response = try await getFlux(password: password),
+               session != nil, AuthManager.shared.widgetSessionID() == session {
                 await MainActor.run {
                     self.latestResponse = response
                     self.refreshTemplates()
@@ -82,6 +100,16 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
         }
     }
 
+    @objc private func authDidSignOut(_ notification: Notification) {
+        // Never keep showing (or acting on) the previous account's data.
+        latestResponse = nil
+        scenes = []
+        scenesSession = nil
+        scenesState = .loading
+        scenesTemplate?.updateSections(sceneSections())
+        refreshTemplates()
+    }
+
     @objc private func dataDidUpdate(_ notification: Notification) {
         guard let response = notification.userInfo?["data"] as? LoginResponse else { return }
         latestResponse = response
@@ -90,8 +118,10 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
     private func startRefreshTimer() {
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { [weak self] in
+            Task { @MainActor [weak self] in
                 await self?.loadInitialData()
+                // Keep scenes current (active state, additions, account changes, retries).
+                await self?.loadScenes()
             }
         }
     }
@@ -108,8 +138,9 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         let assistantTab = buildAssistantTab()
         let statusTab = buildStatusTab()
+        let scenesTab = buildScenesTab()
 
-        let tabBar = CPTabBarTemplate(templates: [assistantTab, statusTab])
+        let tabBar = CPTabBarTemplate(templates: [assistantTab, statusTab, scenesTab])
         interfaceController.setRootTemplate(tabBar, animated: true, completion: nil)
     }
 
@@ -119,7 +150,8 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
 
         let assistantTab = assistantTemplate ?? buildAssistantTab()
         let statusTab = buildStatusTab()
-        tabBar.updateTemplates([assistantTab, statusTab])
+        let scenesTab = scenesTemplate ?? buildScenesTab()
+        tabBar.updateTemplates([assistantTab, statusTab, scenesTab])
     }
 
     // MARK: - Assistant tab
@@ -202,6 +234,91 @@ class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
                 CPListSection(items: [assistantItem].compactMap { $0 })
             ])
         }
+    }
+
+    // MARK: - Scenes tab
+
+    private func loadScenes() async {
+        guard let session = AuthManager.shared.widgetSessionID() else {
+            scenes = []
+            scenesSession = nil
+            scenesState = .loading
+            scenesTemplate?.updateSections(sceneSections())
+            return
+        }
+        do {
+            let fetched = try await fetchScenes()
+            // Discard results from a request that started under a different account.
+            guard AuthManager.shared.widgetSessionID() == session else { return }
+            scenes = fetched
+            scenesSession = session
+            scenesState = .loaded
+        } catch {
+            logger.error("CarPlay: failed to load scenes: \(error.localizedDescription)")
+            guard AuthManager.shared.widgetSessionID() == session else { return }
+            if scenesSession != session { scenes = [] }
+            scenesState = scenes.isEmpty ? .failed : .loaded
+        }
+        scenesTemplate?.updateSections(sceneSections())
+    }
+
+    private func buildScenesTab() -> CPListTemplate {
+        let template = CPListTemplate(title: "Scenes", sections: sceneSections())
+        template.tabImage = UIImage(systemName: "lightbulb.fill")
+        scenesTemplate = template
+        return template
+    }
+
+    private func sceneSections() -> [CPListSection] {
+        guard !scenes.isEmpty else {
+            let item: CPListItem
+            switch scenesState {
+            case .loading:
+                item = CPListItem(text: "Loading scenes…", detailText: nil)
+            case .failed:
+                item = CPListItem(text: "Couldn't load scenes", detailText: "Tap to retry")
+                item.handler = { [weak self] _, completion in
+                    Task { @MainActor in
+                        self?.scenesState = .loading
+                        self?.scenesTemplate?.updateSections(self?.sceneSections() ?? [])
+                        await self?.loadScenes()
+                        completion()
+                    }
+                }
+            case .loaded:
+                item = CPListItem(text: "No scenes", detailText: "Add scenes in Home Assistant")
+            }
+            return [CPListSection(items: [item])]
+        }
+        let items = scenes.map { scene in
+            let item = CPListItem(
+                text: scene.name,
+                detailText: scene.isActive == true ? "Active" : nil,
+                image: UIImage(systemName: "lightbulb.fill")
+            )
+            let session = scenesSession
+            item.handler = { [weak item] _, completion in
+                Task { @MainActor in
+                    guard session != nil, AuthManager.shared.widgetSessionID() == session else {
+                        item?.setDetailText("Signed out")
+                        completion()
+                        return
+                    }
+                    item?.setDetailText("Activating…")
+                    do {
+                        try await activateScene(entityId: scene.entityId) {
+                            AuthManager.shared.widgetSessionID() == session
+                        }
+                        item?.setDetailText("Activated")
+                    } catch {
+                        item?.setDetailText("Couldn't activate")
+                    }
+                    completion()
+                }
+            }
+            return item
+        }
+        return [CPListSection(items: items)]
     }
 
     // MARK: - Status tab

@@ -79,7 +79,10 @@ func fetchScenes() async throws -> [HomeScene] {
     return try JSONDecoder().decode([HomeScene].self, from: data)
 }
 
-func activateScene(entityId: String) async throws {
+/// - Parameter isStillValid: checked right before each request is sent (after CSRF
+///   retrieval, and again before a retry); throwing `unauthorized` if it returns false.
+///   Widgets use this to make sure the account hasn't changed mid-request.
+func activateScene(entityId: String, isStillValid: @Sendable () -> Bool = { true }) async throws {
     var components = URLComponents()
     components.scheme = "https"
     components.host = "api.fluxhaus.io"
@@ -96,6 +99,7 @@ func activateScene(entityId: String) async throws {
     if let csrfToken = csrfToken {
         request.setValue(csrfToken, forHTTPHeaderField: "X-CSRF-Token")
     }
+    guard isStillValid() else { throw SceneServiceError.unauthorized }
     if let authHeader = AuthManager.shared.authorizationHeader() {
         request.setValue(authHeader, forHTTPHeaderField: "Authorization")
     } else {
@@ -123,6 +127,7 @@ func activateScene(entityId: String) async throws {
         if let retryCsrf = retryCsrf {
             retry.setValue(retryCsrf, forHTTPHeaderField: "X-CSRF-Token")
         }
+        guard isStillValid() else { throw SceneServiceError.unauthorized }
         if let header = AuthManager.shared.authorizationHeader() {
             retry.setValue(header, forHTTPHeaderField: "Authorization")
         }

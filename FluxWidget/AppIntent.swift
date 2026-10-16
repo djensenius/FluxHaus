@@ -8,9 +8,48 @@
 import WidgetKit
 import AppIntents
 
-struct ConfigurationAppIntent: WidgetConfigurationIntent {
-    static let title: LocalizedStringResource = "Configuration"
-    static let description = IntentDescription("This is an example widget.")
+enum WidgetDeviceChoice: String, AppEnum {
+    case automatic
+    case dishwasher
+    case washer
+    case dryer
+    case cleanbot
+    case car
 
-    // An example configurable parameter.
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Device"
+
+    static let caseDisplayRepresentations: [WidgetDeviceChoice: DisplayRepresentation] = [
+        .automatic: DisplayRepresentation(title: "Automatic", subtitle: "Whatever finishes next"),
+        .dishwasher: "Dishwasher",
+        .washer: "Washer",
+        .dryer: "Dryer",
+        .cleanbot: "Cleanbot",
+        .car: "Car"
+    ]
+
+    /// Matches `WidgetDevice.name`.
+    var deviceName: String? {
+        switch self {
+        case .automatic: return nil
+        case .dishwasher: return "Dishwasher"
+        case .washer: return "Washer"
+        case .dryer: return "Dryer"
+        case .cleanbot: return "Cleanbot"
+        case .car: return "Car"
+        }
+    }
+}
+
+struct ConfigurationAppIntent: WidgetConfigurationIntent {
+    static let title: LocalizedStringResource = "Appliances"
+    static let description = IntentDescription("Choose which device the widget features.")
+
+    @Parameter(title: "Featured Device", default: .automatic)
+    var device: WidgetDeviceChoice
+
+    init() {}
+
+    init(device: WidgetDeviceChoice) {
+        self.device = device
+    }
 }

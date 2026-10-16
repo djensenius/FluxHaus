@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E334AE72C1FD9E6065B3498F /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
+		D8E8FFE5BC615BBF32804716 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
+		7D330080A6D72D7785E72E0D /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
+		5526CAEFACAF5AA2EE1DCA81 /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
+		A16EE217528DF27CDECE0A4C /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
+		3DD63F2F1EBE5D895AD2B074 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
+		4E956A57FCE5E04D87B04CFE /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		CA2700010000000000000001 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
 		CA2700010000000000000002 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
 		CA2700010000000000000003 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
@@ -433,6 +440,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		832A3B3F4623AF774B7DE138 /* WidgetShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetShared.swift; sourceTree = "<group>"; };
+		EC8514600B773CD2F27ADEB9 /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
+		8629F6E5E7AB9598EE49405D /* CarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarWidget.swift; sourceTree = "<group>"; };
+		D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenesWidget.swift; sourceTree = "<group>"; };
+		887EDFD564604E6BC10D952F /* HomeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeWidget.swift; sourceTree = "<group>"; };
+		BF58FA952582A0C6E843C0D4 /* FluxControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxControls.swift; sourceTree = "<group>"; };
 		CA2700000000000000000001 /* CarAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalytics.swift; sourceTree = "<group>"; };
 		CA2700100000000000000001 /* CarAnalyticsLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsLink.swift; sourceTree = "<group>"; };
 		CA2700200000000000000001 /* CarAnalyticsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsView.swift; sourceTree = "<group>"; };
@@ -865,6 +878,12 @@
 				0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */,
 				41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */,
 				637BC6312C5BDA8000E7884E /* FluxWidget.swift */,
+				832A3B3F4623AF774B7DE138 /* WidgetShared.swift */,
+				EC8514600B773CD2F27ADEB9 /* WidgetData.swift */,
+				8629F6E5E7AB9598EE49405D /* CarWidget.swift */,
+				D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */,
+				887EDFD564604E6BC10D952F /* HomeWidget.swift */,
+				BF58FA952582A0C6E843C0D4 /* FluxControls.swift */,
 				637BC6332C5BDA8000E7884E /* AppIntent.swift */,
 				637BC6352C5BDA8000E7884E /* Assets.xcassets */,
 				637BC6372C5BDA8000E7884E /* Info.plist */,
@@ -1434,6 +1453,13 @@
 				636BF1E72C5D8B8400C1244C /* WhereWeAre.swift in Sources */,
 				77CDDA9FA1A142A79B3AEB86 /* AuthManager.swift in Sources */,
 				637BC6322C5BDA8000E7884E /* FluxWidget.swift in Sources */,
+				E334AE72C1FD9E6065B3498F /* WidgetShared.swift in Sources */,
+				D8E8FFE5BC615BBF32804716 /* WidgetData.swift in Sources */,
+				7D330080A6D72D7785E72E0D /* CarWidget.swift in Sources */,
+				5526CAEFACAF5AA2EE1DCA81 /* ScenesWidget.swift in Sources */,
+				A16EE217528DF27CDECE0A4C /* HomeWidget.swift in Sources */,
+				3DD63F2F1EBE5D895AD2B074 /* FluxControls.swift in Sources */,
+				4E956A57FCE5E04D87B04CFE /* SceneService.swift in Sources */,
 				637BC6342C5BDA8000E7884E /* AppIntent.swift in Sources */,
 				637BC62E2C5BDA8000E7884E /* FluxWidgetBundle.swift in Sources */,
 				637BC6302C5BDA8000E7884E /* FluxWidgetLiveActivity.swift in Sources */,
@@ -1665,7 +1691,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -1731,7 +1757,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1792,7 +1818,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1820,7 +1846,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1853,7 +1879,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -1882,7 +1908,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1909,7 +1935,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1948,7 +1974,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1987,7 +2013,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2024,7 +2050,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2062,7 +2088,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2088,7 +2114,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2114,7 +2140,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2161,7 +2187,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2201,7 +2227,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2217,7 +2243,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.0;
+				MARKETING_VERSION = 1.11.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

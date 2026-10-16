@@ -14,43 +14,27 @@ import SwiftUI
 struct FluxWidgetLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: FluxWidgetAttributes.self) { context in
-            PhoneSingleDeviceView(device: context.state.device)
-                .padding(16)
-                .activityBackgroundTint(liveActivityBackgroundTint(for: [context.state.device]))
-                .activitySystemActionForegroundColor(.primary)
+            FluxWidgetMultiContent(devices: [context.state.device], isStale: context.isStale)
         } dynamicIsland: { context in
-            DynamicIsland {
+            let devices = [context.state.device]
+            return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    LiveActivityIconBubble(device: context.state.device, size: 34, iconSize: .headline)
+                    IslandExpandedLeading(devices: devices)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 3) {
-                        Text(deviceMetricText(context.state.device))
-                            .font(Theme.Fonts.headerLarge())
-                            .lineLimit(1)
-                            .foregroundStyle(liveActivityProgressColor(for: context.state.device))
-                        Text(trailingSubtitle(for: context.state.device))
-                            .font(Theme.Fonts.caption)
-                            .lineLimit(1)
-                            .foregroundStyle(.secondary)
-                    }
+                    IslandExpandedTrailing(devices: devices)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    LiveActivityProgressLine(device: context.state.device)
+                    IslandExpandedBottom(devices: devices)
                 }
             } compactLeading: {
-                Image(systemName: context.state.device.icon)
-                    .foregroundStyle(tintColor(for: context.state.device.name))
+                IslandCompactLeading(devices: devices)
             } compactTrailing: {
-                Text(deviceMetricText(context.state.device))
-                    .font(Theme.Fonts.bodyMedium)
-                    .fontWeight(.semibold)
-                    .lineLimit(1)
-                    .foregroundStyle(liveActivityProgressColor(for: context.state.device))
+                IslandCompactTrailing(devices: devices)
             } minimal: {
-                Image(systemName: context.state.device.icon)
-                    .foregroundStyle(tintColor(for: context.state.device.name))
+                IslandMinimal(devices: devices)
             }
+            .widgetURL(URL(string: "fluxhaus://appliances"))
         }
     }
 }

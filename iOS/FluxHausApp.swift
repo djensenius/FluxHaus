@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import UserNotifications
+import WidgetKit
 import os
 
 private let appLogger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "FluxHausApp")
@@ -83,6 +84,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
     ) {
         appLogger.info("Received background remote notification")
+
+        // Appliance started/finished. Have widgets re-fetch on their own; SwiftUI
+        // view handlers may not be attached when the push launches us in the background.
+        WidgetReloader.reloadAll()
 
         // When woken by a silent push, refresh data and update Live Activities
         guard AuthManager.shared.isSignedIn else {
@@ -274,6 +279,7 @@ struct FluxHausApp: App {
                 car = nil
                 scooter = nil
                 airPurifier = nil
+                WidgetReloader.reset()
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
@@ -366,6 +372,11 @@ struct FluxHausApp: App {
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
         Task { await LiveActivityManager.shared.reconcile(devices: devices) }
         #endif
+        let widgetData = convertLoginResponseToAppData(response: response)
+        WidgetReloader.reloadIfChanged(
+            devices: convertDataToWidgetDevices(fluxData: widgetData),
+            car: widgetData.car
+        )
     }
 
     private func postNavigation(_ section: String) {
@@ -384,5 +395,55 @@ struct FluxHausApp: App {
             }
             try? await Task.sleep(for: .seconds(5))
         }
+    }
+}
+
+/// Pushes fresh data to Home Screen / StandBy / CarPlay widgets whenever the app sees
+/// a meaningful change, so widgets don't have to wait for their own refresh budget.
+@MainActor
+enum WidgetReloader {
+    private static var lastKey: String?
+
+    static func reloadIfChanged(devices: [WidgetDevice], car: CarDetails?) {
+        let key = changeKey(devices: devices, car: car)
+        guard key != lastKey else { return }
+        lastKey = key
+        reloadAll()
+    }
+
+    /// Widget timelines and Control Center controls refresh independently.
+    static func reloadAll() {
+        WidgetCenter.shared.reloadAllTimelines()
+        #if !targetEnvironment(macCatalyst)
+        ControlCenter.shared.reloadAllControls()
+        #endif
+    }
+
+    /// Everything the widgets display. Timing is reduced to whether it's known (exact
+    /// values drift with "now"), and the car's lock/climate/charging/openings are
+    /// included because the car's WidgetDevice only carries battery and range.
+    private static func changeKey(devices: [WidgetDevice], car: CarDetails?) -> String {
+        let deviceKey = devices.map { device in
+            [
+                device.name, String(device.progress), device.shortText, device.trailingText,
+                String(device.running), device.battery.map(String.init) ?? "-",
+                device.programName ?? "-", device.endsAt == nil ? "untimed" : "timed"
+            ].joined(separator: "|")
+        }
+        let carKey = car.map { car in
+            let doors = car.doorsOpen
+            return [
+                car.batteryLevel, car.distance, car.locked ? 1 : 0, car.hvac ? 1 : 0,
+                car.pluggedIn ? 1 : 0, car.batteryCharge ? 1 : 0, car.trunkOpen ? 1 : 0,
+                car.hoodOpen ? 1 : 0, doors.frontLeft, doors.frontRight, doors.backLeft, doors.backRight
+            ].map(String.init).joined(separator: "|")
+        } ?? "no-car"
+        return (deviceKey + [carKey]).joined(separator: "\n")
+    }
+
+    /// Signed out: forget what we showed so widgets re-fetch (and blank) immediately.
+    static func reset() {
+        lastKey = nil
+        reloadAll()
     }
 }

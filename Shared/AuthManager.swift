@@ -384,6 +384,57 @@ private actor RefreshCoordinator {
         NotificationCenter.default.post(name: .authDidSignOut, object: nil)
     }
 
+    // MARK: - Widget Session
+
+    private static let widgetSessionService = "io.fluxhaus.oidc"
+    private static let widgetSessionAccount = "widget_session_id"
+
+    /// Identifies the current signed-in session for caches kept outside the app process
+    /// (widgets, controls). It is deleted synchronously whenever credentials are cleared
+    /// (sign-out, account switch), so data cached under a previous session is never shown.
+    /// Returns nil when signed out. Concurrent callers always agree on the same ID.
+    func widgetSessionID() -> String? {
+        guard authorizationHeader() != nil else { return nil }
+        if let id = Self.readWidgetSession() { return id }
+        let candidate = UUID().uuidString
+        let attributes: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: Self.widgetSessionService,
+            kSecAttrAccount as String: Self.widgetSessionAccount,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecValueData as String: Data(candidate.utf8)
+        ]
+        // Add without replacing: if another process/thread created one first, use theirs.
+        let status = SecItemAdd(attributes as CFDictionary, nil)
+        if status == errSecSuccess { return candidate }
+        return Self.readWidgetSession()
+    }
+
+    /// Invalidates widget caches tied to the current session. Static and singleton-free so
+    /// it is safe to call while `AuthManager.shared` is still initializing.
+    static func rotateWidgetSession() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: widgetSessionService,
+            kSecAttrAccount as String: widgetSessionAccount
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    private static func readWidgetSession() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: widgetSessionService,
+            kSecAttrAccount as String: widgetSessionAccount,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: true
+        ]
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
     // MARK: - Token Management
     func getAccessToken() -> String? {
         return getKeychainItem(account: "oidc_access_token")
@@ -445,6 +496,26 @@ private actor RefreshCoordinator {
         return true
     }
 
+    /// For app extensions (widgets, controls): align the in-memory auth state with the
+    /// credentials in the shared keychain, which the app may have changed since the
+    /// extension launched (sign-in, sign-out, or switching between OIDC and demo).
+    @MainActor func reconcileWithStoredCredentials() {
+        let hasOIDC = getAccessToken() != nil || getKeychainItem(account: "oidc_refresh_token") != nil
+        if hasOIDC {
+            switch authState {
+            case .signedIn(method: .oidc), .unknown:
+                break
+            default:
+                authState = .signedIn(method: .oidc)
+            }
+        } else if WhereWeAre.getPassword() != nil {
+            if case .signedIn(method: .demo) = authState { return }
+            authState = .signedIn(method: .demo)
+        } else if !isSignedOut {
+            authState = .signedOut
+        }
+    }
+
     /// Re-checks keychain and restores authState if it was lost (e.g. after process termination).
     @MainActor func restoreStateIfNeeded() {
         guard case .signedOut = authState else { return }
@@ -457,6 +528,10 @@ private actor RefreshCoordinator {
 
     func refreshTokenIfNeeded() async -> Bool {
         let generation = sessionGenerationSnapshot()
+        // The keychain is shared with app extensions, which keep their own in-memory
+        // generation. Also capture the shared session so a refresh that started before
+        // another process signed out / switched accounts can't write back or sign out.
+        let sharedSession = widgetSessionID()
 
         // If another refresh is in-flight, wait for its result (actor-serialized)
         if let coalescedResult = await refreshCoordinator.acquireOrWait(for: generation) {
@@ -481,7 +556,13 @@ private actor RefreshCoordinator {
         case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(for: generation, success: false)
-            await signOutIfSessionGenerationMatches(generation)
+            if getAccessToken() == nil, WhereWeAre.getPassword() != nil {
+                // Another process (the app) switched to demo sign-in and cleared the OIDC
+                // tokens. Follow it rather than signing out, which would delete that password.
+                await reconcileWithStoredCredentials()
+            } else {
+                await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
+            }
             return false
         }
 
@@ -489,7 +570,7 @@ private actor RefreshCoordinator {
 
         do {
             let tokens = try await refreshAccessToken(refreshToken)
-            guard storeRefreshedTokens(tokens, for: generation),
+            guard storeRefreshedTokens(tokens, for: generation, sharedSession: sharedSession),
                   await markRefreshedOIDCSessionValid(for: generation) else {
                 logger.info("Discarding token refresh because the authentication session changed")
                 await refreshCoordinator.complete(for: generation, success: false)
@@ -501,7 +582,7 @@ private actor RefreshCoordinator {
         } catch AuthError.refreshTokenInvalid(let reason) {
             logger.error("Refresh token rejected by server — signing out: \(reason)")
             await refreshCoordinator.complete(for: generation, success: false)
-            await signOutIfSessionGenerationMatches(generation)
+            await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
             return false
         } catch {
             logger.warning("refreshTokenIfNeeded: transient failure, keeping session — \(error.localizedDescription)")
@@ -537,10 +618,15 @@ private actor RefreshCoordinator {
         return .available(refreshToken)
     }
 
-    private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64) -> Bool {
+    /// Stores tokens from a refresh only if neither this process (generation) nor another
+    /// process sharing the keychain (shared session, rotated whenever credentials are
+    /// cleared) has changed the session since the refresh started. The keychain has no
+    /// cross-process transaction, so a change landing between this check and the write is
+    /// still possible but limited to that instant rather than the whole network round trip.
+    private func storeRefreshedTokens(_ tokens: OIDCTokens, for generation: UInt64, sharedSession: String?) -> Bool {
         sessionGenerationLock.lock()
         defer { sessionGenerationLock.unlock() }
-        guard sessionGeneration == generation else {
+        guard sessionGeneration == generation, Self.readWidgetSession() == sharedSession else {
             return false
         }
         storeTokens(tokens)
@@ -582,8 +668,8 @@ private actor RefreshCoordinator {
         clearOIDCTokens()
     }
 
-    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64) {
-        guard isSessionGenerationCurrent(generation) else {
+    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64, sharedSession: String?) {
+        guard isSessionGenerationCurrent(generation), Self.readWidgetSession() == sharedSession else {
             return
         }
         signOut()
@@ -715,6 +801,8 @@ private actor RefreshCoordinator {
     }
 
     private func clearOIDCTokens() {
+        // Rotate the widget session so caches written under the old session are discarded.
+        Self.rotateWidgetSession()
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
         deleteKeychainItem(account: "oidc_token_expiry")

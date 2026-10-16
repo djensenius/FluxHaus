@@ -16,6 +16,56 @@ struct WidgetDevice: Codable, Equatable, Hashable {
     var running: Bool
     var battery: Int?
     var programName: String?
+    /// UNIX epoch seconds when the current cycle started (optional, sent by newer servers).
+    var startedAt: Double?
+    /// UNIX epoch seconds when the current cycle is expected to finish.
+    var endsAt: Double?
+
+    var startDate: Date? { startedAt.map { Date(timeIntervalSince1970: $0) } }
+    var endDate: Date? { endsAt.map { Date(timeIntervalSince1970: $0) } }
+
+    /// A live interval for `Text(timerInterval:)` / `ProgressView(timerInterval:)`, if the
+    /// cycle is running and its end is still in the future.
+    func timerInterval(now: Date = Date()) -> ClosedRange<Date>? {
+        guard running, let end = endDate, end > now else { return nil }
+        let start = min(startDate ?? now, now)
+        return start...end
+    }
+
+    // Timing fields are derived from "now" on every fetch; exclude them from equality so
+    // change detection (widget reloads, Live Activity updates) only reacts to real changes.
+    static func == (lhs: WidgetDevice, rhs: WidgetDevice) -> Bool {
+        lhs.name == rhs.name && lhs.progress == rhs.progress && lhs.icon == rhs.icon
+            && lhs.trailingText == rhs.trailingText && lhs.shortText == rhs.shortText
+            && lhs.running == rhs.running && lhs.battery == rhs.battery
+            && lhs.programName == rhs.programName
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+        hasher.combine(progress)
+        hasher.combine(shortText)
+        hasher.combine(running)
+    }
+}
+
+/// Miele statuses during which the remaining time actually ticks down.
+func isCountingStatus(_ status: String?) -> Bool {
+    guard let status = status?.lowercased(), !status.isEmpty else { return true }
+    return status == "in use" || status == "running" || status == "in_use"
+}
+
+/// Start/end epoch seconds for a running cycle from elapsed/remaining seconds.
+func cycleTiming(
+    elapsedSeconds: Double?,
+    remainingSeconds: Double?,
+    now: Date = Date()
+) -> (startedAt: Double?, endsAt: Double?) {
+    let nowSeconds = now.timeIntervalSince1970
+    let endsAt = remainingSeconds.flatMap { $0 > 0 ? (nowSeconds + $0).rounded() : nil }
+    // Zero elapsed is a valid start (just started); only negative values are rejected.
+    let startedAt = elapsedSeconds.flatMap { $0 >= 0 ? (nowSeconds - $0).rounded() : nil }
+    return (startedAt, endsAt)
 }
 
 /// Format a time remaining value (in minutes) as a human-readable finish time.
@@ -61,6 +111,18 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             + " ⋅ \(dishwasherTrailingText)"
     }
 
+    let dishwasherProgress = fluxData.dishwasher?.programProgress ?? 0
+    let dishwasherRunning = dishwasherProgress > 0
+    // Only count down while actually running (not paused / delayed).
+    let dishwasherCounting = dishwasherRunning && fluxData.dishwasher?.operationState.rawValue == "Run"
+    let dishwasherRemainingSeconds = Double(fluxData.dishwasher?.remainingTime ?? 0)
+    let dishwasherTiming = cycleTiming(
+        elapsedSeconds: dishwasherProgress > 0 && dishwasherProgress < 100
+            ? dishwasherRemainingSeconds * dishwasherProgress / (100 - dishwasherProgress)
+            : nil,
+        remainingSeconds: dishwasherRemainingSeconds
+    )
+
     if fluxData.dishwasher?.operationState.rawValue == "Finished" {
         returnValue.append(
             WidgetDevice(
@@ -81,8 +143,10 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 icon: "dishwasher",
                 trailingText: dishwasherTrailingText,
                 shortText: dishwasherRemainingTime,
-                running: fluxData.dishwasher?.programProgress ?? 0 > 0,
-                programName: dishwasherDisplayName
+                running: dishwasherRunning,
+                programName: dishwasherDisplayName,
+                startedAt: dishwasherCounting ? dishwasherTiming.startedAt : nil,
+                endsAt: dishwasherCounting ? dishwasherTiming.endsAt : nil
             )
         )
     }
@@ -105,6 +169,12 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         washerTrailingText = "\(formatApplianceDisplayText(status)) ⋅ \(washerTrailingText)"
     }
 
+    let washerRunning = fluxData.washer?.timeRemaining ?? 0 > 0
+    let washerCounting = washerRunning && isCountingStatus(fluxData.washer?.status)
+    let washerTiming = cycleTiming(
+        elapsedSeconds: fluxData.washer?.timeRunning.map { Double($0) * 60 },
+        remainingSeconds: fluxData.washer?.timeRemaining.map { Double($0) * 60 }
+    )
     returnValue.append(
         WidgetDevice(
             name: "Washer",
@@ -112,8 +182,10 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             icon: "washer",
             trailingText: washerTrailingText,
             shortText: washerRemainingTime,
-            running: fluxData.washer?.timeRemaining ?? 0 > 0,
-            programName: fluxData.washer?.programName.map { formatApplianceDisplayText($0) }
+            running: washerRunning,
+            programName: fluxData.washer?.programName.map { formatApplianceDisplayText($0) },
+            startedAt: washerCounting ? washerTiming.startedAt : nil,
+            endsAt: washerCounting ? washerTiming.endsAt : nil
         )
     )
 
@@ -134,6 +206,12 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         dryerTrailingText = "\(formatApplianceDisplayText(status)) ⋅ \(dryerTrailingText)"
     }
 
+    let dryerRunning = fluxData.dryer?.timeRemaining ?? 0 > 0
+    let dryerCounting = dryerRunning && isCountingStatus(fluxData.dryer?.status)
+    let dryerTiming = cycleTiming(
+        elapsedSeconds: fluxData.dryer?.timeRunning.map { Double($0) * 60 },
+        remainingSeconds: fluxData.dryer?.timeRemaining.map { Double($0) * 60 }
+    )
     returnValue.append(
         WidgetDevice(
             name: "Dryer",
@@ -141,8 +219,10 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             icon: "dryer",
             trailingText: dryerTrailingText,
             shortText: dryerRemainingTime,
-            running: fluxData.dryer?.timeRemaining ?? 0 > 0,
-            programName: fluxData.dryer?.programName.map { formatApplianceDisplayText($0) }
+            running: dryerRunning,
+            programName: fluxData.dryer?.programName.map { formatApplianceDisplayText($0) },
+            startedAt: dryerCounting ? dryerTiming.startedAt : nil,
+            endsAt: dryerCounting ? dryerTiming.endsAt : nil
         )
     )
 
@@ -150,6 +230,10 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     let cleanbotProgress = fluxData.cleanBot?.progressPercent.map { Int($0.rounded()) }
     let cleanbotTime = fluxData.cleanBot?.estimatedRemainingMinutes.map { "~\(Int($0.rounded())) min" }
     let cleanbotRoom = fluxData.cleanBot?.currentRoom
+    let cleanbotTiming = cycleTiming(
+        elapsedSeconds: fluxData.cleanBot?.elapsedMinutes.map { $0 * 60 },
+        remainingSeconds: fluxData.cleanBot?.estimatedRemainingMinutes.map { $0 * 60 }
+    )
     let cleanbotDetail = [cleanbotTime, cleanbotRoom].compactMap { $0 }.joined(separator: " ⋅ ")
     returnValue.append(
         WidgetDevice(
@@ -161,7 +245,9 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 : "Off",
             shortText: cleanbotRunning ? cleanbotProgress.map { "\($0)%" } ?? "On" : "Off",
             running: cleanbotRunning,
-            battery: fluxData.cleanBot?.batteryLevel
+            battery: fluxData.cleanBot?.batteryLevel,
+            startedAt: cleanbotRunning ? cleanbotTiming.startedAt : nil,
+            endsAt: cleanbotRunning ? cleanbotTiming.endsAt : nil
         )
     )
 
