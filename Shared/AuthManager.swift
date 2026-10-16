@@ -230,6 +230,14 @@ enum Keychain {
     /// the copies made so far (so the widget never sees a partial session) and returns
     /// false, leaving the legacy session intact.
     private static func migrateLegacyItems() -> Bool {
+        if migrationComplete() {
+            // Already migrated: the shared store is authoritative (widgets may have rotated
+            // tokens there). Never re-import leftovers; just retry cleaning them up.
+            for identity in knownItems {
+                SecItemDelete(identity as CFDictionary)
+            }
+            return true
+        }
         let legacyExists = knownItems.contains { identity in
             var lookup = identity
             lookup[kSecMatchLimit as String] = kSecMatchLimitOne
@@ -242,8 +250,12 @@ enum Keychain {
             markerPending = !setMigrationComplete(true)
             return true
         }
-        // Hide the shared store from widgets until every item has been copied.
-        setMigrationComplete(false)
+        // Hide the shared store from widgets until every item has been copied. If that
+        // can't be guaranteed, don't touch the shared store at all; retry later.
+        guard setMigrationComplete(false) else {
+            logger.error("Keychain migration deferred: couldn't clear the publication marker")
+            return false
+        }
         var copied: [[String: Any]] = []
         func rollBack() {
             for identity in copied {
