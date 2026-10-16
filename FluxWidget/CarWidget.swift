@@ -36,7 +36,7 @@ struct CarOverride: Codable {
         WidgetCache.save(value, key: key, session: session)
         // Commands can come from Control Center or the widget; refresh both surfaces.
         WidgetCenter.shared.reloadTimelines(ofKind: FluxCarWidget.kindID)
-        #if os(iOS) && !targetEnvironment(macCatalyst)
+        #if (os(iOS) && !targetEnvironment(macCatalyst)) || os(macOS)
         ControlCenter.shared.reloadControls(ofKind: FluxControlKind.carClimate)
         #endif
     }
@@ -344,7 +344,19 @@ struct CarWidgetEntryView: View {
 
     var body: some View {
         Group {
-            if let car = entry.car {
+            if let car = entry.car, family.isSystem {
+                LevelOfDetailSwitch {
+                    if family == .systemMedium {
+                        CarMediumView(car: car)
+                    } else {
+                        CarSmallView(car: car)
+                    }
+                } glance: {
+                    GlanceView(systemName: "car.fill", color: carTint, label: "\(car.range) km") {
+                        Text("\(car.battery)%")
+                    }
+                }
+            } else if let car = entry.car {
                 switch family {
                 case .systemMedium:
                     CarMediumView(car: car)
@@ -370,8 +382,10 @@ struct CarWidgetEntryView: View {
                         ProgressView(value: Double(car.battery) / 100)
                             .widgetAccentable()
                     }
+                #if !os(visionOS)
                 case .accessoryInline:
                     Label("\(car.battery)% · \(car.range) km", systemImage: car.locked ? "car.fill" : "lock.open")
+                #endif
                 default:
                     CarSmallView(car: car)
                 }
@@ -398,13 +412,16 @@ struct FluxCarWidget: Widget {
         }
         .configurationDisplayName("Car")
         .description("Battery, range, and lock status, with quick Lock and Climate buttons.")
-        .supportedFamilies([
-            .systemSmall,
-            .systemMedium,
-            .accessoryCircular,
-            .accessoryRectangular,
-            .accessoryInline
-        ])
+        .supportedFamilies(Self.families)
+        .fluxPlatformStyle()
+    }
+
+    private static var families: [WidgetFamily] {
+        #if os(iOS)
+        [.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline]
+        #else
+        [.systemSmall, .systemMedium]
+        #endif
     }
 }
 

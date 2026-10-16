@@ -455,6 +455,12 @@ struct FluxWidgetEntryView: View {
     private var content: some View {
         if entry.snapshot == nil, family.isSystem {
             EmptyStateView()
+        } else if family.isSystem {
+            LevelOfDetailSwitch {
+                systemContent
+            } glance: {
+                ApplianceGlanceView(entry: entry)
+            }
         } else {
             switch family {
             case .systemSmall: ApplianceSmallView(entry: entry)
@@ -463,8 +469,39 @@ struct FluxWidgetEntryView: View {
             case .systemExtraLarge: ApplianceExtraLargeView(entry: entry)
             case .accessoryCircular: ApplianceCircularView(entry: entry)
             case .accessoryRectangular: ApplianceRectangularView(entry: entry)
+            #if !os(visionOS)
             case .accessoryInline: ApplianceInlineView(entry: entry)
+            #endif
             default: EmptyView()
+            }
+        }
+    }
+}
+
+extension FluxWidgetEntryView {
+    @ViewBuilder
+    fileprivate var systemContent: some View {
+        switch family {
+        case .systemSmall: ApplianceSmallView(entry: entry)
+        case .systemMedium: ApplianceMediumView(entry: entry)
+        case .systemLarge: ApplianceLargeView(entry: entry)
+        default: ApplianceExtraLargeView(entry: entry)
+        }
+    }
+}
+
+/// Simplified (distance) view for visionOS.
+struct ApplianceGlanceView: View {
+    let entry: SimpleEntry
+
+    var body: some View {
+        if let device = entry.featured {
+            GlanceView(systemName: device.icon, color: tintColor(for: device.name), label: device.name) {
+                DeviceMetricText(device: device, date: entry.date)
+            }
+        } else {
+            GlanceView(systemName: "checkmark.circle.fill", color: .green, label: "Nothing running") {
+                Text("All quiet")
             }
         }
     }
@@ -474,6 +511,9 @@ extension WidgetFamily {
     var isSystem: Bool {
         switch self {
         case .systemSmall, .systemMedium, .systemLarge, .systemExtraLarge: return true
+        #if os(visionOS)
+        case .systemExtraLargePortrait: return true
+        #endif
         default: return false
         }
     }
@@ -491,15 +531,19 @@ struct FluxWidget: Widget {
         }
         .configurationDisplayName("Appliances")
         .description("What finishes next, with a live countdown.")
-        .supportedFamilies([
-            .systemSmall,
-            .systemMedium,
-            .systemLarge,
-            .systemExtraLarge,
-            .accessoryInline,
-            .accessoryCircular,
-            .accessoryRectangular
-        ])
+        .supportedFamilies(Self.families)
+        .fluxPlatformStyle()
+    }
+
+    private static var families: [WidgetFamily] {
+        #if os(iOS)
+        [.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge,
+         .accessoryInline, .accessoryCircular, .accessoryRectangular]
+        #elseif os(visionOS)
+        [.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge, .systemExtraLargePortrait]
+        #else
+        [.systemSmall, .systemMedium, .systemLarge, .systemExtraLarge]
+        #endif
     }
 }
 
@@ -581,6 +625,7 @@ struct FluxWidgetOtherSmall: Widget {
         .configurationDisplayName("Device Grid")
         .description("Up to four devices as compact gauges.")
         .supportedFamilies([.systemSmall])
+        .fluxPlatformStyle()
     }
 }
 
@@ -652,6 +697,7 @@ extension FluxSnapshot {
     SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
 }
 
+#if os(iOS)
 #Preview(as: .accessoryRectangular) {
     FluxWidget()
 } timeline: {
@@ -664,6 +710,7 @@ extension FluxSnapshot {
 } timeline: {
     SimpleEntry(date: .now, configuration: ConfigurationAppIntent(), snapshot: .preview)
 }
+#endif
 
 #Preview(as: .systemSmall) {
     FluxWidgetOtherSmall()

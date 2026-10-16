@@ -97,7 +97,7 @@ func batteryIcon(level: Int) -> String {
 }
 
 func liveActivityBackgroundTint(for devices: [WidgetDevice]) -> Color {
-    guard let device = devices.first else { return Color(.systemBackground) }
+    guard let device = devices.first else { return Theme.Colors.background }
     return tintColor(for: device.name).opacity(0.12)
 }
 

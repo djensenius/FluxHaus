@@ -20,6 +20,300 @@ extension Notification.Name {
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
+/// Keychain query helper shared by AuthManager and WhereWeAre.
+///
+/// On macOS, items go in the data protection keychain (like iOS/visionOS) so the sandboxed
+/// widget extension can read them through the shared access group. Earlier macOS builds
+/// stored them in the legacy file-based keychain, so the app migrates them. Every keychain
+/// operation in a process is routed to the same keychain: the legacy one until a migration
+/// has fully succeeded, then the data protection one.
+enum Keychain {
+    // MARK: Operations
+    // Each holds the routing lock across route selection *and* the SecItem call, so a
+    // migration can't switch keychains between building a query and using it.
+
+    static func copyMatching(_ base: [String: Any], _ result: UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus {
+        withRouteLock { SecItemCopyMatching(query(base), result) }
+    }
+
+    static func add(_ attributes: [String: Any]) -> OSStatus {
+        withRouteLock { SecItemAdd(query(attributes), nil) }
+    }
+
+    static func update(_ base: [String: Any], _ attributes: [String: Any]) -> OSStatus {
+        withRouteLock { SecItemUpdate(query(base), attributes as CFDictionary) }
+    }
+
+    private static func withRouteLock<T>(_ body: () -> T) -> T {
+        #if os(macOS)
+        routeLock.lock()
+        defer { routeLock.unlock() }
+        #endif
+        return body()
+    }
+
+    static func query(_ base: [String: Any]) -> CFDictionary {
+        #if os(macOS)
+        guard useDataProtection() else { return base as CFDictionary }
+        var query = base
+        query[kSecUseDataProtectionKeychain as String] = true
+        if !isApp && !migrationComplete() {
+            // The app hasn't finished publishing credentials to the shared keychain (a
+            // migration may be in progress in the app process). Behave as signed out:
+            // never read or mutate a partially copied session.
+            neutralize(&query)
+        }
+        return query as CFDictionary
+        #else
+        return base as CFDictionary
+        #endif
+    }
+
+    /// Deletes an item. On macOS it is removed from both the legacy and the data protection
+    /// keychain, so a sign-out (or session rotation) always invalidates credentials for the
+    /// app and the widget, whichever keychain each is currently using.
+    @discardableResult
+    static func delete(_ base: [String: Any]) -> OSStatus {
+        #if os(macOS)
+        var protected = base
+        protected[kSecUseDataProtectionKeychain as String] = true
+        guard isApp else {
+            // The widget only ever touches the shared store, and only once it's published.
+            guard migrationComplete() else { return errSecItemNotFound }
+            return SecItemDelete(protected as CFDictionary)
+        }
+        // In the app, serialize with migration so a sign-out can't race a copy.
+        routeLock.lock()
+        defer { routeLock.unlock() }
+        let legacyStatus = SecItemDelete(base as CFDictionary)
+        let protectedStatus = SecItemDelete(protected as CFDictionary)
+        // Report success if either store held the item.
+        if legacyStatus == errSecSuccess || protectedStatus == errSecSuccess { return errSecSuccess }
+        return protectedStatus == errSecItemNotFound ? legacyStatus : protectedStatus
+        #else
+        return SecItemDelete(base as CFDictionary)
+        #endif
+    }
+
+    #if os(macOS)
+    private static var isApp: Bool { Bundle.main.bundleURL.pathExtension == "app" }
+
+    /// Items the app keeps in the keychain (legacy identity, without the data protection flag).
+    private static var knownItems: [[String: Any]] {
+        let oidcAccounts = ["oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "widget_session_id"]
+        return oidcAccounts.map {
+            [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: "io.fluxhaus.oidc",
+                kSecAttrAccount as String: $0
+            ]
+        } + [[
+            kSecClass as String: kSecClassInternetPassword,
+            kSecAttrServer as String: "api.fluxhaus.io",
+            kSecAttrAccount as String: "demo"
+        ]]
+    }
+
+    /// Marker in the shared (data protection) keychain saying the app has finished
+    /// publishing its credentials there. Widgets ignore the shared store without it.
+    private static var migrationMarker: [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "io.fluxhaus.oidc",
+            kSecAttrAccount as String: "dp_migration_complete",
+            kSecUseDataProtectionKeychain as String: true
+        ]
+    }
+
+    private static func migrationComplete() -> Bool {
+        var query = migrationMarker
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
+    }
+
+    @discardableResult
+    private static func setMigrationComplete(_ complete: Bool) -> Bool {
+        if complete {
+            var attributes = migrationMarker
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            attributes[kSecValueData as String] = Data("1".utf8)
+            let status = SecItemAdd(attributes as CFDictionary, nil)
+            guard status == errSecSuccess || status == errSecDuplicateItem else {
+                logger.error("Keychain marker write failed: OSStatus \(status)")
+                return false
+            }
+            return true
+        } else {
+            let status = SecItemDelete(migrationMarker as CFDictionary)
+            return status == errSecSuccess || status == errSecItemNotFound
+        }
+    }
+
+    /// Credentials are in the shared store but publishing the marker failed; retried on
+    /// later keychain accesses until it succeeds.
+    nonisolated(unsafe) private static var markerPending = false
+
+    /// Points a query at an item that never exists.
+    private static func neutralize(_ query: inout [String: Any]) {
+        if query[kSecAttrService as String] != nil {
+            query[kSecAttrService as String] = "io.fluxhaus.unpublished"
+        }
+        if query[kSecAttrServer as String] != nil {
+            query[kSecAttrServer as String] = "unpublished.invalid"
+        }
+    }
+
+    private enum Route {
+        case undecided
+        case dataProtection
+        case legacy(lastAttempt: Date)
+    }
+
+    /// Recursive: operations hold it while `query` → `useDataProtection` takes it again.
+    private static let routeLock = NSRecursiveLock()
+    nonisolated(unsafe) private static var route: Route = .undecided
+
+    /// Decides (and if needed migrates) which keychain this process uses. A failed
+    /// migration keeps using the legacy keychain and is retried at most once a minute.
+    private static func useDataProtection() -> Bool {
+        routeLock.lock()
+        defer { routeLock.unlock() }
+        switch route {
+        case .dataProtection:
+            if markerPending, isApp, setMigrationComplete(true) {
+                markerPending = false
+            }
+            return true
+        case .legacy(let lastAttempt) where Date().timeIntervalSince(lastAttempt) < 60:
+            return false
+        default:
+            break
+        }
+        guard dataProtectionAvailable() else {
+            // No provisioned keychain-access-groups entitlement (e.g. unsigned local build).
+            route = .legacy(lastAttempt: .distantFuture)
+            return false
+        }
+        // Only the app migrates; the sandboxed widget extension can't read the app's
+        // legacy items and always uses the data protection keychain.
+        guard isApp else {
+            route = .dataProtection
+            return true
+        }
+        if migrateLegacyItems() {
+            route = .dataProtection
+            return true
+        }
+        route = .legacy(lastAttempt: Date())
+        return false
+    }
+
+    private static func dataProtectionAvailable() -> Bool {
+        let probe: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "io.fluxhaus.oidc",
+            kSecAttrAccount as String: "keychain_probe",
+            kSecUseDataProtectionKeychain as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        let status = SecItemCopyMatching(probe as CFDictionary, nil)
+        if status == errSecMissingEntitlement {
+            logger.warning("Data protection keychain unavailable; using legacy keychain")
+            return false
+        }
+        return true
+    }
+
+    /// Copies every legacy item into the data protection keychain, and only once all of
+    /// them are copied deletes the legacy ones. Legacy values win over existing copies
+    /// (they are what this process has been using). On any read/write error it rolls back
+    /// the copies made so far (so the widget never sees a partial session) and returns
+    /// false, leaving the legacy session intact.
+    private static func migrateLegacyItems() -> Bool {
+        if migrationComplete() {
+            // Already migrated: the shared store is authoritative (widgets may have rotated
+            // tokens there). Never re-import leftovers; just retry cleaning them up.
+            for identity in knownItems {
+                SecItemDelete(identity as CFDictionary)
+            }
+            return true
+        }
+        let legacyExists = knownItems.contains { identity in
+            var lookup = identity
+            lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+            return SecItemCopyMatching(lookup as CFDictionary, nil) != errSecItemNotFound
+        }
+        guard legacyExists else {
+            // Nothing to migrate (fresh install or already migrated): publish the store.
+            // Credentials (if any) already live there, so use it even if publishing fails;
+            // publishing is retried on later accesses.
+            markerPending = !setMigrationComplete(true)
+            return true
+        }
+        // Hide the shared store from widgets until every item has been copied. If that
+        // can't be guaranteed, don't touch the shared store at all; retry later.
+        guard setMigrationComplete(false) else {
+            logger.error("Keychain migration deferred: couldn't clear the publication marker")
+            return false
+        }
+        guard let copied = copyLegacyItems() else { return false }
+        for identity in copied {
+            SecItemDelete(identity as CFDictionary)
+        }
+        // The legacy originals are gone, so this process must use the shared store now;
+        // if publishing the marker fails, keep retrying it on later accesses.
+        markerPending = !setMigrationComplete(true)
+        if !copied.isEmpty {
+            logger.info("Migrated \(copied.count) keychain item(s) to the data protection keychain")
+        }
+        return true
+    }
+
+    /// Copies each legacy item into the shared store (legacy values win). Returns the
+    /// copied identities, or nil after rolling back on any read/write error.
+    private static func copyLegacyItems() -> [[String: Any]]? {
+        var copied: [[String: Any]] = []
+        func rollBack() {
+            for identity in copied {
+                var target = identity
+                target[kSecUseDataProtectionKeychain as String] = true
+                SecItemDelete(target as CFDictionary)
+            }
+        }
+        for identity in knownItems {
+            var lookup = identity
+            lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+            lookup[kSecReturnData as String] = true
+            var item: CFTypeRef?
+            let readStatus = SecItemCopyMatching(lookup as CFDictionary, &item)
+            if readStatus == errSecItemNotFound { continue }
+            guard readStatus == errSecSuccess, let data = item as? Data else {
+                logger.error("Keychain migration read failed: OSStatus \(readStatus)")
+                rollBack()
+                return nil
+            }
+            var target = identity
+            target[kSecUseDataProtectionKeychain as String] = true
+            var attributes = target
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            attributes[kSecValueData as String] = data
+            var writeStatus = SecItemAdd(attributes as CFDictionary, nil)
+            if writeStatus == errSecDuplicateItem {
+                let update = [kSecValueData as String: data]
+                writeStatus = SecItemUpdate(target as CFDictionary, update as CFDictionary)
+            }
+            guard writeStatus == errSecSuccess else {
+                logger.error("Keychain migration write failed: OSStatus \(writeStatus)")
+                rollBack()
+                return nil
+            }
+            copied.append(identity)
+        }
+        return copied
+    }
+    #endif
+}
+
 // Provides a presentation anchor for ASWebAuthenticationSession.
 // Uses KVC to access UIApplication.shared, avoiding the compile-time
 // "unavailable in app extensions" error (the widget never calls this).
@@ -234,7 +528,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == noErr,
+        guard Keychain.copyMatching(query, &item) == noErr,
               let data = item as? Data,
               !data.isEmpty else {
             return false
@@ -247,7 +541,7 @@ private actor RefreshCoordinator {
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: false
         ]
-        let hasRefreshToken = SecItemCopyMatching(refreshQuery as CFDictionary, nil) == noErr
+        let hasRefreshToken = Keychain.copyMatching(refreshQuery, nil) == noErr
 
         let expiryQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -257,7 +551,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var expiryItem: CFTypeRef?
-        guard SecItemCopyMatching(expiryQuery as CFDictionary, &expiryItem) == noErr,
+        guard Keychain.copyMatching(expiryQuery, &expiryItem) == noErr,
               let expiryData = expiryItem as? Data,
               let expiryString = String(data: expiryData, encoding: .utf8),
               let expiryInterval = TimeInterval(expiryString) else {
@@ -405,7 +699,7 @@ private actor RefreshCoordinator {
             kSecValueData as String: Data(candidate.utf8)
         ]
         // Add without replacing: if another process/thread created one first, use theirs.
-        let status = SecItemAdd(attributes as CFDictionary, nil)
+        let status = Keychain.add(attributes)
         if status == errSecSuccess { return candidate }
         return Self.readWidgetSession()
     }
@@ -418,7 +712,7 @@ private actor RefreshCoordinator {
             kSecAttrService as String: widgetSessionService,
             kSecAttrAccount as String: widgetSessionAccount
         ]
-        SecItemDelete(query as CFDictionary)
+        Keychain.delete(query)
     }
 
     private static func readWidgetSession() -> String? {
@@ -430,7 +724,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+        guard Keychain.copyMatching(query, &item) == errSecSuccess,
               let data = item as? Data else { return nil }
         return String(data: data, encoding: .utf8)
     }
@@ -764,7 +1058,7 @@ private actor RefreshCoordinator {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecValueData as String: value.data(using: .utf8)!
         ]
-        let status = SecItemAdd(attributes as CFDictionary, nil)
+        let status = Keychain.add(attributes)
         if status != noErr {
             logger.error("Keychain write FAILED for \(account): OSStatus \(status)")
         }
@@ -780,7 +1074,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        let status = Keychain.copyMatching(query, &item)
         if status == noErr, let data = item as? Data,
            let value = String(data: data, encoding: .utf8) {
             return value
@@ -797,7 +1091,7 @@ private actor RefreshCoordinator {
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: account
         ]
-        SecItemDelete(query as CFDictionary)
+        Keychain.delete(query)
     }
 
     private func clearOIDCTokens() {

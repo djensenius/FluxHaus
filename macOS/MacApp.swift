@@ -418,6 +418,7 @@ struct MacApp: App {
                     self.car = nil
                     self.scooter = nil
                     self.airPurifier = nil
+                    WidgetReloader.reset()
                 }
                 .onOpenURL { url in
                     handleDeepLink(url)
@@ -545,6 +546,7 @@ struct MacApp: App {
                     car.setApiResponse(apiResponse: self.apiResponse)
                     scooter.setApiResponse(apiResponse: self.apiResponse)
                     airPurifier.setApiResponse(apiResponse: self.apiResponse)
+                    WidgetReloader.reloadIfChanged(response: response)
                 }
             }
             .task {

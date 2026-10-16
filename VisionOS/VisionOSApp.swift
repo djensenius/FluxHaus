@@ -118,6 +118,7 @@ struct VisionOSApp: App {
                                 car.setApiResponse(apiResponse: self.apiResponse)
                                 scooter.setApiResponse(apiResponse: self.apiResponse)
                                 airPurifier.setApiResponse(apiResponse: self.apiResponse)
+                                WidgetReloader.reloadIfChanged(response: response)
                             }
                         }
                         .task {
@@ -144,6 +145,7 @@ struct VisionOSApp: App {
                 car = nil
                 scooter = nil
                 airPurifier = nil
+                WidgetReloader.reset()
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active && AuthManager.shared.isSignedIn {

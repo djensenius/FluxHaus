@@ -19,6 +19,8 @@ struct FluxWidgetBundle: WidgetBundle {
         #if os(iOS) && !targetEnvironment(macCatalyst)
         FluxWidgetMultiLiveActivity()
         FluxWidgetLiveActivity()
+        #endif
+        #if (os(iOS) && !targetEnvironment(macCatalyst)) || os(macOS)
         CleanbotControl()
         CarClimateControl()
         CarLockControl()
