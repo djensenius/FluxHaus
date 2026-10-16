@@ -33,6 +33,12 @@ enum Keychain {
         guard useDataProtection() else { return base as CFDictionary }
         var query = base
         query[kSecUseDataProtectionKeychain as String] = true
+        if !isApp && !migrationComplete() {
+            // The app hasn't finished publishing credentials to the shared keychain (a
+            // migration may be in progress in the app process). Behave as signed out:
+            // never read or mutate a partially copied session.
+            neutralize(&query)
+        }
         return query as CFDictionary
         #else
         return base as CFDictionary
@@ -45,11 +51,17 @@ enum Keychain {
     @discardableResult
     static func delete(_ base: [String: Any]) -> OSStatus {
         #if os(macOS)
-        // Only the app touches the legacy keychain (it owns those items; the sandboxed
-        // widget extension can't access them).
-        let legacyStatus = isApp ? SecItemDelete(base as CFDictionary) : errSecItemNotFound
         var protected = base
         protected[kSecUseDataProtectionKeychain as String] = true
+        guard isApp else {
+            // The widget only ever touches the shared store, and only once it's published.
+            guard migrationComplete() else { return errSecItemNotFound }
+            return SecItemDelete(protected as CFDictionary)
+        }
+        // In the app, serialize with migration so a sign-out can't race a copy.
+        routeLock.lock()
+        defer { routeLock.unlock() }
+        let legacyStatus = SecItemDelete(base as CFDictionary)
         let protectedStatus = SecItemDelete(protected as CFDictionary)
         // Report success if either store held the item.
         if legacyStatus == errSecSuccess || protectedStatus == errSecSuccess { return errSecSuccess }
@@ -76,6 +88,47 @@ enum Keychain {
             kSecAttrServer as String: "api.fluxhaus.io",
             kSecAttrAccount as String: "demo"
         ]]
+    }
+
+    /// Marker in the shared (data protection) keychain saying the app has finished
+    /// publishing its credentials there. Widgets ignore the shared store without it.
+    private static var migrationMarker: [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "io.fluxhaus.oidc",
+            kSecAttrAccount as String: "dp_migration_complete",
+            kSecUseDataProtectionKeychain as String: true
+        ]
+    }
+
+    private static func migrationComplete() -> Bool {
+        var query = migrationMarker
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        return SecItemCopyMatching(query as CFDictionary, nil) == errSecSuccess
+    }
+
+    private static func setMigrationComplete(_ complete: Bool) {
+        if complete {
+            var attributes = migrationMarker
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            attributes[kSecValueData as String] = Data("1".utf8)
+            let status = SecItemAdd(attributes as CFDictionary, nil)
+            if status != errSecSuccess && status != errSecDuplicateItem {
+                logger.error("Keychain marker write failed: OSStatus \(status)")
+            }
+        } else {
+            SecItemDelete(migrationMarker as CFDictionary)
+        }
+    }
+
+    /// Points a query at an item that never exists.
+    private static func neutralize(_ query: inout [String: Any]) {
+        if query[kSecAttrService as String] != nil {
+            query[kSecAttrService as String] = "io.fluxhaus.unpublished"
+        }
+        if query[kSecAttrServer as String] != nil {
+            query[kSecAttrServer as String] = "unpublished.invalid"
+        }
     }
 
     private enum Route {
@@ -141,6 +194,18 @@ enum Keychain {
     /// the copies made so far (so the widget never sees a partial session) and returns
     /// false, leaving the legacy session intact.
     private static func migrateLegacyItems() -> Bool {
+        let legacyExists = knownItems.contains { identity in
+            var lookup = identity
+            lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+            return SecItemCopyMatching(lookup as CFDictionary, nil) != errSecItemNotFound
+        }
+        guard legacyExists else {
+            // Nothing to migrate (fresh install or already migrated): publish the store.
+            setMigrationComplete(true)
+            return true
+        }
+        // Hide the shared store from widgets until every item has been copied.
+        setMigrationComplete(false)
         var copied: [[String: Any]] = []
         func rollBack() {
             for identity in copied {
@@ -182,6 +247,7 @@ enum Keychain {
         for identity in copied {
             SecItemDelete(identity as CFDictionary)
         }
+        setMigrationComplete(true)
         if !copied.isEmpty {
             logger.info("Migrated \(copied.count) keychain item(s) to the data protection keychain")
         }
