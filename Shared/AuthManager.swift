@@ -24,12 +24,13 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthMa
 ///
 /// On macOS, items go in the data protection keychain (like iOS/visionOS) so the sandboxed
 /// widget extension can read them through the shared access group. Earlier macOS builds
-/// stored them in the legacy file-based keychain, so the app migrates them once.
+/// stored them in the legacy file-based keychain, so the app migrates them. Every keychain
+/// operation in a process is routed to the same keychain: the legacy one until a migration
+/// has fully succeeded, then the data protection one.
 enum Keychain {
     static func query(_ base: [String: Any]) -> CFDictionary {
         #if os(macOS)
-        guard dataProtectionAvailable else { return base as CFDictionary }
-        _ = legacyMigration
+        guard useDataProtection() else { return base as CFDictionary }
         var query = base
         query[kSecUseDataProtectionKeychain as String] = true
         return query as CFDictionary
@@ -39,10 +40,64 @@ enum Keychain {
     }
 
     #if os(macOS)
-    /// The data protection keychain needs a provisioned keychain-access-groups entitlement.
-    /// If this build doesn't have one (e.g. an unsigned local build), keep using the legacy
-    /// keychain rather than losing access to stored credentials.
-    private static let dataProtectionAvailable: Bool = {
+    /// Items the app keeps in the keychain (legacy identity, without the data protection flag).
+    private static var knownItems: [[String: Any]] {
+        let oidcAccounts = ["oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "widget_session_id"]
+        return oidcAccounts.map {
+            [
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: "io.fluxhaus.oidc",
+                kSecAttrAccount as String: $0
+            ]
+        } + [[
+            kSecClass as String: kSecClassInternetPassword,
+            kSecAttrServer as String: "api.fluxhaus.io",
+            kSecAttrAccount as String: "demo"
+        ]]
+    }
+
+    private enum Route {
+        case undecided
+        case dataProtection
+        case legacy(lastAttempt: Date)
+    }
+
+    private static let routeLock = NSLock()
+    nonisolated(unsafe) private static var route: Route = .undecided
+
+    /// Decides (and if needed migrates) which keychain this process uses. A failed
+    /// migration keeps using the legacy keychain and is retried at most once a minute.
+    private static func useDataProtection() -> Bool {
+        routeLock.lock()
+        defer { routeLock.unlock() }
+        switch route {
+        case .dataProtection:
+            return true
+        case .legacy(let lastAttempt) where Date().timeIntervalSince(lastAttempt) < 60:
+            return false
+        default:
+            break
+        }
+        guard dataProtectionAvailable() else {
+            // No provisioned keychain-access-groups entitlement (e.g. unsigned local build).
+            route = .legacy(lastAttempt: .distantFuture)
+            return false
+        }
+        // Only the app migrates; the sandboxed widget extension can't read the app's
+        // legacy items and always uses the data protection keychain.
+        guard Bundle.main.bundleURL.pathExtension == "app" else {
+            route = .dataProtection
+            return true
+        }
+        if migrateLegacyItems() {
+            route = .dataProtection
+            return true
+        }
+        route = .legacy(lastAttempt: Date())
+        return false
+    }
+
+    private static func dataProtectionAvailable() -> Bool {
         let probe: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "io.fluxhaus.oidc",
@@ -56,46 +111,49 @@ enum Keychain {
             return false
         }
         return true
-    }()
+    }
 
-    /// Runs once per process, on first keychain access. Only the app migrates: the widget
-    /// extension is sandboxed and can't (and shouldn't try to) read the app's legacy items.
-    private static let legacyMigration: Void = {
-        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
-        let oidcAccounts = ["oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "widget_session_id"]
-        for account in oidcAccounts {
-            migrateLegacyItem([
-                kSecClass as String: kSecClassGenericPassword,
-                kSecAttrService as String: "io.fluxhaus.oidc",
-                kSecAttrAccount as String: account
-            ])
+    /// Copies every legacy item into the data protection keychain, and only once all of
+    /// them are copied deletes the legacy ones. Legacy values win over existing copies
+    /// (they are what this process has been using). Returns false on any read/write error,
+    /// leaving the legacy session intact.
+    private static func migrateLegacyItems() -> Bool {
+        var copied: [[String: Any]] = []
+        for identity in knownItems {
+            var lookup = identity
+            lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+            lookup[kSecReturnData as String] = true
+            var item: CFTypeRef?
+            let readStatus = SecItemCopyMatching(lookup as CFDictionary, &item)
+            if readStatus == errSecItemNotFound { continue }
+            guard readStatus == errSecSuccess, let data = item as? Data else {
+                logger.error("Keychain migration read failed: OSStatus \(readStatus)")
+                return false
+            }
+
+            var target = identity
+            target[kSecUseDataProtectionKeychain as String] = true
+            var attributes = target
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            attributes[kSecValueData as String] = data
+            var writeStatus = SecItemAdd(attributes as CFDictionary, nil)
+            if writeStatus == errSecDuplicateItem {
+                let update = [kSecValueData as String: data]
+                writeStatus = SecItemUpdate(target as CFDictionary, update as CFDictionary)
+            }
+            guard writeStatus == errSecSuccess else {
+                logger.error("Keychain migration write failed: OSStatus \(writeStatus)")
+                return false
+            }
+            copied.append(identity)
         }
-        migrateLegacyItem([
-            kSecClass as String: kSecClassInternetPassword,
-            kSecAttrServer as String: "api.fluxhaus.io",
-            kSecAttrAccount as String: "demo"
-        ])
-    }()
-
-    private static func migrateLegacyItem(_ identity: [String: Any]) {
-        var lookup = identity
-        lookup[kSecMatchLimit as String] = kSecMatchLimitOne
-        lookup[kSecReturnData as String] = true
-        var item: CFTypeRef?
-        guard SecItemCopyMatching(lookup as CFDictionary, &item) == errSecSuccess,
-              let data = item as? Data else { return }
-
-        var attributes = identity
-        attributes[kSecUseDataProtectionKeychain as String] = true
-        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-        attributes[kSecValueData as String] = data
-        let status = SecItemAdd(attributes as CFDictionary, nil)
-        if status == errSecSuccess || status == errSecDuplicateItem {
-            // Keep a single copy so the app and widget always agree.
+        for identity in copied {
             SecItemDelete(identity as CFDictionary)
-        } else {
-            logger.error("Keychain migration failed: OSStatus \(status)")
         }
+        if !copied.isEmpty {
+            logger.info("Migrated \(copied.count) keychain item(s) to the data protection keychain")
+        }
+        return true
     }
     #endif
 }

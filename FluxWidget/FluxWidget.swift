@@ -511,6 +511,9 @@ extension WidgetFamily {
     var isSystem: Bool {
         switch self {
         case .systemSmall, .systemMedium, .systemLarge, .systemExtraLarge: return true
+        #if os(visionOS)
+        case .systemExtraLargePortrait: return true
+        #endif
         default: return false
         }
     }
