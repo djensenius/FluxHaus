@@ -20,6 +20,86 @@ extension Notification.Name {
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "AuthManager")
 
+/// Keychain query helper shared by AuthManager and WhereWeAre.
+///
+/// On macOS, items go in the data protection keychain (like iOS/visionOS) so the sandboxed
+/// widget extension can read them through the shared access group. Earlier macOS builds
+/// stored them in the legacy file-based keychain, so the app migrates them once.
+enum Keychain {
+    static func query(_ base: [String: Any]) -> CFDictionary {
+        #if os(macOS)
+        guard dataProtectionAvailable else { return base as CFDictionary }
+        _ = legacyMigration
+        var query = base
+        query[kSecUseDataProtectionKeychain as String] = true
+        return query as CFDictionary
+        #else
+        return base as CFDictionary
+        #endif
+    }
+
+    #if os(macOS)
+    /// The data protection keychain needs a provisioned keychain-access-groups entitlement.
+    /// If this build doesn't have one (e.g. an unsigned local build), keep using the legacy
+    /// keychain rather than losing access to stored credentials.
+    private static let dataProtectionAvailable: Bool = {
+        let probe: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "io.fluxhaus.oidc",
+            kSecAttrAccount as String: "keychain_probe",
+            kSecUseDataProtectionKeychain as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        let status = SecItemCopyMatching(probe as CFDictionary, nil)
+        if status == errSecMissingEntitlement {
+            logger.warning("Data protection keychain unavailable; using legacy keychain")
+            return false
+        }
+        return true
+    }()
+
+    /// Runs once per process, on first keychain access. Only the app migrates: the widget
+    /// extension is sandboxed and can't (and shouldn't try to) read the app's legacy items.
+    private static let legacyMigration: Void = {
+        guard Bundle.main.bundleURL.pathExtension == "app" else { return }
+        let oidcAccounts = ["oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "widget_session_id"]
+        for account in oidcAccounts {
+            migrateLegacyItem([
+                kSecClass as String: kSecClassGenericPassword,
+                kSecAttrService as String: "io.fluxhaus.oidc",
+                kSecAttrAccount as String: account
+            ])
+        }
+        migrateLegacyItem([
+            kSecClass as String: kSecClassInternetPassword,
+            kSecAttrServer as String: "api.fluxhaus.io",
+            kSecAttrAccount as String: "demo"
+        ])
+    }()
+
+    private static func migrateLegacyItem(_ identity: [String: Any]) {
+        var lookup = identity
+        lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+        lookup[kSecReturnData as String] = true
+        var item: CFTypeRef?
+        guard SecItemCopyMatching(lookup as CFDictionary, &item) == errSecSuccess,
+              let data = item as? Data else { return }
+
+        var attributes = identity
+        attributes[kSecUseDataProtectionKeychain as String] = true
+        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        attributes[kSecValueData as String] = data
+        let status = SecItemAdd(attributes as CFDictionary, nil)
+        if status == errSecSuccess || status == errSecDuplicateItem {
+            // Keep a single copy so the app and widget always agree.
+            SecItemDelete(identity as CFDictionary)
+        } else {
+            logger.error("Keychain migration failed: OSStatus \(status)")
+        }
+    }
+    #endif
+}
+
 // Provides a presentation anchor for ASWebAuthenticationSession.
 // Uses KVC to access UIApplication.shared, avoiding the compile-time
 // "unavailable in app extensions" error (the widget never calls this).
@@ -234,7 +314,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == noErr,
+        guard SecItemCopyMatching(Keychain.query(query), &item) == noErr,
               let data = item as? Data,
               !data.isEmpty else {
             return false
@@ -247,7 +327,7 @@ private actor RefreshCoordinator {
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: false
         ]
-        let hasRefreshToken = SecItemCopyMatching(refreshQuery as CFDictionary, nil) == noErr
+        let hasRefreshToken = SecItemCopyMatching(Keychain.query(refreshQuery), nil) == noErr
 
         let expiryQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -257,7 +337,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var expiryItem: CFTypeRef?
-        guard SecItemCopyMatching(expiryQuery as CFDictionary, &expiryItem) == noErr,
+        guard SecItemCopyMatching(Keychain.query(expiryQuery), &expiryItem) == noErr,
               let expiryData = expiryItem as? Data,
               let expiryString = String(data: expiryData, encoding: .utf8),
               let expiryInterval = TimeInterval(expiryString) else {
@@ -405,7 +485,7 @@ private actor RefreshCoordinator {
             kSecValueData as String: Data(candidate.utf8)
         ]
         // Add without replacing: if another process/thread created one first, use theirs.
-        let status = SecItemAdd(attributes as CFDictionary, nil)
+        let status = SecItemAdd(Keychain.query(attributes), nil)
         if status == errSecSuccess { return candidate }
         return Self.readWidgetSession()
     }
@@ -418,7 +498,7 @@ private actor RefreshCoordinator {
             kSecAttrService as String: widgetSessionService,
             kSecAttrAccount as String: widgetSessionAccount
         ]
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(Keychain.query(query))
     }
 
     private static func readWidgetSession() -> String? {
@@ -430,7 +510,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
+        guard SecItemCopyMatching(Keychain.query(query), &item) == errSecSuccess,
               let data = item as? Data else { return nil }
         return String(data: data, encoding: .utf8)
     }
@@ -764,7 +844,7 @@ private actor RefreshCoordinator {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
             kSecValueData as String: value.data(using: .utf8)!
         ]
-        let status = SecItemAdd(attributes as CFDictionary, nil)
+        let status = SecItemAdd(Keychain.query(attributes), nil)
         if status != noErr {
             logger.error("Keychain write FAILED for \(account): OSStatus \(status)")
         }
@@ -780,7 +860,7 @@ private actor RefreshCoordinator {
             kSecReturnData as String: true
         ]
         var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        let status = SecItemCopyMatching(Keychain.query(query), &item)
         if status == noErr, let data = item as? Data,
            let value = String(data: data, encoding: .utf8) {
             return value
@@ -797,7 +877,7 @@ private actor RefreshCoordinator {
             kSecAttrService as String: "io.fluxhaus.oidc",
             kSecAttrAccount as String: account
         ]
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(Keychain.query(query))
     }
 
     private func clearOIDCTokens() {

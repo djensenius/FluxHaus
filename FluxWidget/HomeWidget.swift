@@ -308,7 +308,23 @@ struct HomeWidgetEntryView: View {
 
     var body: some View {
         Group {
-            if let home = entry.home {
+            if let home = entry.home, family.isSystem {
+                LevelOfDetailSwitch {
+                    if family == .systemMedium {
+                        HomeMediumView(home: home)
+                    } else {
+                        HomeSmallView(home: home)
+                    }
+                } glance: {
+                    GlanceView(
+                        systemName: "house.fill",
+                        color: homeTint,
+                        label: "\(formatTemp(home.outdoorTemp)) out"
+                    ) {
+                        Text(formatTemp(home.indoorTemp))
+                    }
+                }
+            } else if let home = entry.home {
                 switch family {
                 case .systemMedium:
                     HomeMediumView(home: home)
@@ -326,8 +342,10 @@ struct HomeWidgetEntryView: View {
                                 .font(.caption)
                         }
                     }
+                #if !os(visionOS)
                 case .accessoryInline:
                     Label(home.temperatureSummary, systemImage: "house")
+                #endif
                 default:
                     HomeSmallView(home: home)
                 }
@@ -353,7 +371,16 @@ struct FluxHomeWidget: Widget {
         }
         .configurationDisplayName("Home")
         .description("Temperature, air quality, and power at a glance.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline])
+        .supportedFamilies(Self.families)
+        .fluxPlatformStyle()
+    }
+
+    private static var families: [WidgetFamily] {
+        #if os(iOS)
+        [.systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline]
+        #else
+        [.systemSmall, .systemMedium]
+        #endif
     }
 }
 

@@ -5,7 +5,7 @@
 //  Control Center / Lock Screen / Action button controls.
 //
 
-#if os(iOS) && !targetEnvironment(macCatalyst)
+#if (os(iOS) && !targetEnvironment(macCatalyst)) || os(macOS)
 import AppIntents
 import SwiftUI
 import WidgetKit

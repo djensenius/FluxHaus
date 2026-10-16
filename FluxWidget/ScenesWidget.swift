@@ -338,6 +338,7 @@ struct FluxScenesWidget: Widget {
         .configurationDisplayName("Scenes")
         .description("Run your favourite HomeKit scenes with one tap.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .fluxPlatformStyle()
     }
 }
 

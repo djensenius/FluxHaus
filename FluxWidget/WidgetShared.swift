@@ -57,7 +57,10 @@ struct WidgetBackground: View {
 
     var body: some View {
         ZStack {
+            #if !os(visionOS)
+            // On visionOS the system glass texture is the background; only add the tint.
             Theme.Colors.background
+            #endif
             if let tint {
                 LinearGradient(
                     colors: [tint.opacity(0.22), tint.opacity(0.0)],
@@ -66,6 +69,77 @@ struct WidgetBackground: View {
                 )
             }
         }
+    }
+}
+
+// MARK: - Level of detail (visionOS)
+
+/// On visionOS, widgets seen from across the room switch to a simplified level of detail.
+/// Shows `glance` then; everywhere else (and up close) shows `full`.
+struct LevelOfDetailSwitch<Full: View, Glance: View>: View {
+    @ViewBuilder var full: () -> Full
+    @ViewBuilder var glance: () -> Glance
+    #if os(visionOS)
+    @Environment(\.levelOfDetail) private var levelOfDetail
+    #endif
+
+    var body: some View {
+        #if os(visionOS)
+        if levelOfDetail == .simplified {
+            glance()
+        } else {
+            full()
+        }
+        #else
+        full()
+        #endif
+    }
+}
+
+/// Distance-readable layout: one icon, one big value, one short label.
+struct GlanceView<Value: View>: View {
+    let systemName: String
+    let color: Color
+    let label: String
+    @ViewBuilder var value: () -> Value
+
+    var body: some View {
+        PaletteReader { palette in
+            VStack(spacing: 6) {
+                Image(systemName: systemName)
+                    .font(.system(size: 30, weight: .semibold))
+                    .foregroundStyle(palette.tint(color))
+                    .widgetAccentable()
+                value()
+                    .font(.system(size: 44, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .foregroundStyle(palette.primary)
+                Text(label)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(palette.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+// MARK: - Platform presentation
+
+extension WidgetConfiguration {
+    /// Per-platform presentation. On visionOS widgets live on walls and surfaces: allow
+    /// both elevated (on a surface) and recessed (set into a wall) mounting, with a glass
+    /// texture that picks up the room.
+    func fluxPlatformStyle() -> some WidgetConfiguration {
+        #if os(visionOS)
+        self
+            .supportedMountingStyles([.elevated, .recessed])
+            .widgetTexture(.glass)
+        #else
+        self
+        #endif
     }
 }
 
