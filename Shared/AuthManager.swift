@@ -850,9 +850,9 @@ private actor RefreshCoordinator {
         case .missing:
             logger.warning("refreshTokenIfNeeded: no refresh token in keychain — cannot refresh")
             await refreshCoordinator.complete(for: generation, success: false)
-            if getAccessToken() == nil, WhereWeAre.getPassword() != nil {
-                // Another process (the app) switched to demo sign-in and cleared the OIDC
-                // tokens. Follow it rather than signing out, which would delete that password.
+            if Self.isAppExtension || (getAccessToken() == nil && WhereWeAre.getPassword() != nil) {
+                // Extensions never sign out (the app owns the session); and if another
+                // process switched to demo sign-in, follow it rather than deleting that password.
                 await reconcileWithStoredCredentials()
             } else {
                 await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
@@ -874,15 +874,61 @@ private actor RefreshCoordinator {
             await refreshCoordinator.complete(for: generation, success: true)
             return true
         } catch AuthError.refreshTokenInvalid(let reason) {
-            logger.error("Refresh token rejected by server — signing out: \(reason)")
-            await refreshCoordinator.complete(for: generation, success: false)
-            await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
-            return false
+            return await handleRejectedRefresh(
+                usedToken: refreshToken,
+                reason: reason,
+                generation: generation,
+                sharedSession: sharedSession
+            )
         } catch {
             logger.warning("refreshTokenIfNeeded: transient failure, keeping session — \(error.localizedDescription)")
             await refreshCoordinator.complete(for: generation, success: false)
             return false
         }
+    }
+
+    /// The identity provider rotates refresh tokens, and the app and its widgets share one
+    /// keychain. A rejection usually means another process refreshed first and our copy is
+    /// stale, not that the session is gone. Only the app (never an extension) signs out.
+    private func handleRejectedRefresh(
+        usedToken: String,
+        reason: String,
+        generation: UInt64,
+        sharedSession: String?
+    ) async -> Bool {
+        if await refreshTokenWasRotated(from: usedToken) {
+            let valid = !isTokenExpiringSoon(margin: 0)
+            logger.info("Refresh token was rotated by another process; using its tokens (valid=\(valid))")
+            await refreshCoordinator.complete(for: generation, success: valid)
+            return valid
+        }
+        await refreshCoordinator.complete(for: generation, success: false)
+        if Self.isAppExtension {
+            logger.error("Refresh token rejected in extension — leaving session to the app: \(reason)")
+            return false
+        }
+        logger.error("Refresh token rejected by server — signing out: \(reason)")
+        await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
+        return false
+    }
+
+    /// True for app extensions (widgets, controls), which share the app's keychain.
+    static var isAppExtension: Bool {
+        Bundle.main.bundleURL.pathExtension == "appex"
+    }
+
+    /// Whether another process replaced the refresh token we just used. Checks again after
+    /// a short pause, since the other process may still be storing its response.
+    private func refreshTokenWasRotated(from used: String) async -> Bool {
+        for attempt in 0..<2 {
+            if let current = getKeychainItem(account: "oidc_refresh_token"), current != used {
+                return true
+            }
+            if attempt == 0 {
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
+        return false
     }
 
     private func sessionGenerationSnapshot() -> UInt64 {
