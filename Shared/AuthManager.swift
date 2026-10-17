@@ -925,7 +925,11 @@ private actor RefreshCoordinator {
             return false
         }
         logger.error("Refresh token rejected again by server — signing out: \(reason)")
-        await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
+        await signOutIfSessionGenerationMatches(
+            generation,
+            sharedSession: sharedSession,
+            rejectedRefreshToken: usedToken
+        )
         return false
     }
 
@@ -1025,8 +1029,19 @@ private actor RefreshCoordinator {
         clearOIDCTokens()
     }
 
-    @MainActor private func signOutIfSessionGenerationMatches(_ generation: UInt64, sharedSession: String?) {
+    @MainActor private func signOutIfSessionGenerationMatches(
+        _ generation: UInt64,
+        sharedSession: String?,
+        rejectedRefreshToken: String? = nil
+    ) {
         guard isSessionGenerationCurrent(generation), Self.readWidgetSession() == sharedSession else {
+            return
+        }
+        // Last check, on the main actor right before clearing: if another process has
+        // published a new refresh token since the rejection, the session is alive.
+        if let rejectedRefreshToken,
+           getKeychainItem(account: "oidc_refresh_token") != rejectedRefreshToken {
+            logger.info("Skipping sign-out: refresh token was rotated after the rejection")
             return
         }
         signOut()
