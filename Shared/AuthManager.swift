@@ -467,6 +467,11 @@ private actor RefreshCoordinator {
     private let sessionGenerationLock = NSLock()
     private var sessionGeneration: UInt64 = 0
     private var oidcSignInGeneration: UInt64?
+    private struct RejectedRefresh {
+        let token: String
+        let date: Date
+    }
+    @ObservationIgnored private var lastRejectedRefresh: RejectedRefresh?
 
     var isSignedIn: Bool {
         if case .signedIn = authState { return true }
@@ -888,47 +893,59 @@ private actor RefreshCoordinator {
     }
 
     /// The identity provider rotates refresh tokens, and the app and its widgets share one
-    /// keychain. A rejection usually means another process refreshed first and our copy is
-    /// stale, not that the session is gone. Only the app (never an extension) signs out.
+    /// keychain, so a rejection is often just a race with another process's refresh rather
+    /// than a dead session:
+    /// - If the stored refresh token changed, another process refreshed first: use its
+    ///   tokens (only if the session is still the same one and the access token is usable).
+    /// - Extensions never sign out; the app owns that decision.
+    /// - The app only signs out when the *same* refresh token is rejected again at least
+    ///   30 seconds later, which leaves time for a slower winning refresh to land.
     private func handleRejectedRefresh(
         usedToken: String,
         reason: String,
         generation: UInt64,
         sharedSession: String?
     ) async -> Bool {
-        if await refreshTokenWasRotated(from: usedToken) {
-            let valid = !isTokenExpiringSoon(margin: 0)
-            logger.info("Refresh token was rotated by another process; using its tokens (valid=\(valid))")
-            await refreshCoordinator.complete(for: generation, success: valid)
-            return valid
+        if let current = getKeychainItem(account: "oidc_refresh_token"), current != usedToken {
+            let usable = isSessionGenerationCurrent(generation)
+                && Self.readWidgetSession() == sharedSession
+                && getAccessToken() != nil
+                && !isTokenExpiringSoon(margin: 0)
+            logger.info("Refresh token was rotated by another process (usable=\(usable))")
+            await refreshCoordinator.complete(for: generation, success: usable)
+            return usable
         }
         await refreshCoordinator.complete(for: generation, success: false)
         if Self.isAppExtension {
             logger.error("Refresh token rejected in extension — leaving session to the app: \(reason)")
             return false
         }
-        logger.error("Refresh token rejected by server — signing out: \(reason)")
+        guard confirmRejection(of: usedToken) else {
+            logger.warning("Refresh token rejected once; keeping session until confirmed: \(reason)")
+            return false
+        }
+        logger.error("Refresh token rejected again by server — signing out: \(reason)")
         await signOutIfSessionGenerationMatches(generation, sharedSession: sharedSession)
+        return false
+    }
+
+    /// Records a rejection of `token` and returns true only if the same token was already
+    /// rejected at least 30 seconds ago.
+    private func confirmRejection(of token: String) -> Bool {
+        sessionGenerationLock.lock()
+        defer { sessionGenerationLock.unlock() }
+        if let last = lastRejectedRefresh, last.token == token {
+            guard Date().timeIntervalSince(last.date) >= 30 else { return false }
+            lastRejectedRefresh = nil
+            return true
+        }
+        lastRejectedRefresh = RejectedRefresh(token: token, date: Date())
         return false
     }
 
     /// True for app extensions (widgets, controls), which share the app's keychain.
     static var isAppExtension: Bool {
         Bundle.main.bundleURL.pathExtension == "appex"
-    }
-
-    /// Whether another process replaced the refresh token we just used. Checks again after
-    /// a short pause, since the other process may still be storing its response.
-    private func refreshTokenWasRotated(from used: String) async -> Bool {
-        for attempt in 0..<2 {
-            if let current = getKeychainItem(account: "oidc_refresh_token"), current != used {
-                return true
-            }
-            if attempt == 0 {
-                try? await Task.sleep(for: .seconds(2))
-            }
-        }
-        return false
     }
 
     private func sessionGenerationSnapshot() -> UInt64 {
@@ -1077,11 +1094,11 @@ private actor RefreshCoordinator {
         throw AuthError.transientRefreshFailure(URLError(.badServerResponse))
     }
 
+    /// Writes the access token and expiry before the refresh token: other processes treat a
+    /// changed refresh token as "someone else refreshed", so it's published last, once the
+    /// matching access token and expiry are already readable.
     private func storeTokens(_ tokens: OIDCTokens) {
         setKeychainItem(account: "oidc_access_token", value: tokens.accessToken)
-        if let refreshToken = tokens.refreshToken {
-            setKeychainItem(account: "oidc_refresh_token", value: refreshToken)
-        }
         if let expiresIn = tokens.expiresIn {
             let expiryDate = Date().addingTimeInterval(TimeInterval(expiresIn))
             setKeychainItem(
@@ -1092,19 +1109,28 @@ private actor RefreshCoordinator {
             deleteKeychainItem(account: "oidc_token_expiry")
             logger.warning("storeTokens: no expiresIn — cannot track expiry")
         }
+        if let refreshToken = tokens.refreshToken {
+            setKeychainItem(account: "oidc_refresh_token", value: refreshToken)
+        }
     }
 
     // MARK: - Keychain Helpers
+    /// Updates in place (adding only if missing), so other processes never see the item
+    /// briefly absent, which would look like a signed-out session.
     private func setKeychainItem(account: String, value: String) {
-        deleteKeychainItem(account: account)
-        let attributes: [String: Any] = [
+        let identity: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: "io.fluxhaus.oidc",
-            kSecAttrAccount as String: account,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
-            kSecValueData as String: value.data(using: .utf8)!
+            kSecAttrAccount as String: account
         ]
-        let status = Keychain.add(attributes)
+        let data = Data(value.utf8)
+        var status = Keychain.update(identity, [kSecValueData as String: data])
+        if status == errSecItemNotFound {
+            var attributes = identity
+            attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+            attributes[kSecValueData as String] = data
+            status = Keychain.add(attributes)
+        }
         if status != noErr {
             logger.error("Keychain write FAILED for \(account): OSStatus \(status)")
         }
