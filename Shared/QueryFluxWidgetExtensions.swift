@@ -20,6 +20,10 @@ struct WidgetDevice: Codable, Equatable, Hashable {
     var startedAt: Double?
     /// UNIX epoch seconds when the current cycle is expected to finish.
     var endsAt: Double?
+    /// Actual cleaning state, separate from an active (paused/returning) job.
+    var cleaning: Bool?
+    /// False when the latest appliance reading is unavailable, not completed.
+    var stateKnown: Bool?
 
     var startDate: Date? { startedAt.map { Date(timeIntervalSince1970: $0) } }
     var endDate: Date? { endsAt.map { Date(timeIntervalSince1970: $0) } }
@@ -38,7 +42,8 @@ struct WidgetDevice: Codable, Equatable, Hashable {
         lhs.name == rhs.name && lhs.progress == rhs.progress && lhs.icon == rhs.icon
             && lhs.trailingText == rhs.trailingText && lhs.shortText == rhs.shortText
             && lhs.running == rhs.running && lhs.battery == rhs.battery
-            && lhs.programName == rhs.programName
+            && lhs.programName == rhs.programName && lhs.cleaning == rhs.cleaning
+            && lhs.stateKnown == rhs.stateKnown
     }
 
     func hash(into hasher: inout Hasher) {
@@ -55,13 +60,34 @@ func isCountingStatus(_ status: String?) -> Bool {
     return status == "in use" || status == "running" || status == "in_use"
 }
 
+/// Unknown connectivity is not evidence that a cycle has finished.
+func isMieleStateKnown(_ status: String?) -> Bool {
+    let normalized = status?.lowercased().replacingOccurrences(of: "_", with: " ")
+        .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return !["not connected", "unavailable", "unknown"].contains(normalized)
+}
+
+/// Preserve an existing activity's job during a sensor outage, without allowing
+/// an unavailable initial reading to start a new activity.
+func resolvedLiveActivityDevices(_ devices: [WidgetDevice], previous: [WidgetDevice]) -> [WidgetDevice] {
+    devices.compactMap { device in
+        guard device.stateKnown == false else { return device }
+        guard var prior = previous.first(where: { $0.name == device.name }) else { return nil }
+        prior.startedAt = nil
+        prior.endsAt = nil
+        prior.shortText = "Offline"
+        prior.trailingText = "Not Connected"
+        return prior
+    }
+}
+
 /// Remaining-time sensors can retain their last value after a cycle ends.
 /// Match the server's inactive statuses so foreground refreshes cannot resurrect it.
 func isMieleCycleActive(status: String?, remainingMinutes: Int) -> Bool {
     let normalized = status?.trimmingCharacters(in: .whitespacesAndNewlines)
         .lowercased().replacingOccurrences(of: "_", with: " ") ?? ""
     let inactive = [
-        "off", "not connected", "on", "idle", "end programmed", "program ended",
+        "off", "on", "idle", "end programmed", "program ended",
         "finished", "programmed", "waiting to start", "delayed start"
     ]
     return remainingMinutes > 0 && !inactive.contains(normalized)
@@ -200,7 +226,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             running: washerRunning,
             programName: fluxData.washer?.programName.map { formatApplianceDisplayText($0) },
             startedAt: washerCounting ? washerTiming.startedAt : nil,
-            endsAt: washerCounting ? washerTiming.endsAt : nil
+            endsAt: washerCounting ? washerTiming.endsAt : nil,
+            stateKnown: isMieleStateKnown(fluxData.washer?.status)
         )
     )
 
@@ -239,7 +266,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             running: dryerRunning,
             programName: fluxData.dryer?.programName.map { formatApplianceDisplayText($0) },
             startedAt: dryerCounting ? dryerTiming.startedAt : nil,
-            endsAt: dryerCounting ? dryerTiming.endsAt : nil
+            endsAt: dryerCounting ? dryerTiming.endsAt : nil,
+            stateKnown: isMieleStateKnown(fluxData.dryer?.status)
         )
     )
 
@@ -268,7 +296,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             running: cleanbotRunning,
             battery: fluxData.cleanBot?.batteryLevel,
             startedAt: cleanbotCleaning ? cleanbotTiming.startedAt : nil,
-            endsAt: cleanbotCleaning ? cleanbotTiming.endsAt : nil
+            endsAt: cleanbotCleaning ? cleanbotTiming.endsAt : nil,
+            cleaning: cleanbotCleaning
         )
     )
 

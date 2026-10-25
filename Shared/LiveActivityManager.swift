@@ -41,10 +41,9 @@ class LiveActivityManager {
     private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
     private var activityUpdatesTask: Task<Void, Never>?
-    /// Reentrancy guard for reconcile — prevents concurrent calls from both creating activities
     private var isReconciling = false
-    /// Pending devices for coalesced reconcile — if a reconcile is skipped, re-run with latest data
     private var pendingReconcileDevices: [WidgetDevice]?
+    private var reconcileWaiters: [CheckedContinuation<Void, Never>] = []
 
     /// Last registered push-to-start token — skip duplicates like GT3.
     private var lastRegisteredPushToStartToken: String?
@@ -90,7 +89,6 @@ class LiveActivityManager {
 
     /// Re-adopt activities that iOS kept alive while the app was killed.
     private func restoreExistingActivities() async {
-        // Restore consolidated activities
         for activity in Activity<FluxWidgetMultiAttributes>.activities {
             if activity.activityState == .active || activity.activityState == .stale {
                 consolidatedActivity = activity
@@ -186,14 +184,11 @@ class LiveActivityManager {
         }
     }
 
-    /// Fetch broadcast channel IDs from the server for all device types.
+    /// Fetch the consolidated broadcast channel used by this client.
     private func fetchChannelIds() async {
-        let types = ["dishwasher", "washer", "dryer", "cleanbot", "consolidated"]
-        for type in types {
-            if let channelId = await fetchChannelId(for: type) {
-                channelIds[type] = channelId
-                logger.info("Channel for \(type): \(channelId.prefix(16))...")
-            }
+        if let channelId = await fetchChannelId(for: "consolidated") {
+            channelIds["consolidated"] = channelId
+            logger.info("Consolidated channel: \(channelId.prefix(16))...")
         }
     }
 
@@ -282,27 +277,33 @@ class LiveActivityManager {
         // Coalesce: if a reconcile is in progress, store the latest devices and re-run after
         guard !isReconciling else {
             logger.debug("reconcile: already in progress — coalescing")
-            pendingReconcileDevices = devices
+            await withCheckedContinuation { continuation in
+                pendingReconcileDevices = devices
+                reconcileWaiters.append(continuation)
+            }
             return
         }
         isReconciling = true
 
         await performReconcile(devices: devices)
 
-        // If another reconcile was requested during ours, run it with the latest data
         while let pending = pendingReconcileDevices {
             pendingReconcileDevices = nil
             await performReconcile(devices: pending)
         }
 
         isReconciling = false
+        let waiters = reconcileWaiters
+        reconcileWaiters.removeAll()
+        for waiter in waiters { waiter.resume() }
     }
 
     private func performReconcile(devices: [WidgetDevice]) async {
         await cleanupAndAdoptActivities()
 
         // Filter by subscription preferences
-        let runningDevices = devices.filter { $0.running && subscribedDeviceTypes.contains($0.name) }
+        let resolved = resolvedLiveActivityDevices(devices, previous: consolidatedActivity?.content.state.devices ?? [])
+        let runningDevices = resolved.filter { $0.running && subscribedDeviceTypes.contains($0.name) }
 
         if runningDevices.isEmpty {
             // End the consolidated activity — immediate dismiss, no lingering

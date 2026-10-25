@@ -41,6 +41,23 @@ class VisionOSTests: XCTestCase {
         }
     }
 
+    func testDisconnectedAppliancePreservesPriorCycleWithoutStartingNewOnes() throws {
+        let running = WasherDryer(name: "Washer", timeRemaining: 20, status: "Running", inUse: true)
+        let priorData = FluxData(cleanBot: nil, car: nil, dishwasher: nil, dryer: nil, washer: running)
+        let prior = convertDataToWidgetDevices(fluxData: priorData)
+        for status in ["Not Connected", "unavailable", "unknown"] {
+            let offline = WasherDryer(name: "Washer", status: status)
+            let data = FluxData(cleanBot: nil, car: nil, dishwasher: nil, dryer: nil, washer: offline)
+            let devices = convertDataToWidgetDevices(fluxData: data)
+            let resolved = resolvedLiveActivityDevices(devices, previous: prior)
+            let washer = try XCTUnwrap(resolved.first { $0.name == "Washer" })
+            XCTAssertTrue(washer.running, status)
+            XCTAssertEqual(washer.shortText, "Offline")
+            XCTAssertNil(washer.endsAt)
+            XCTAssertFalse(resolvedLiveActivityDevices(devices, previous: []).contains { $0.name == "Washer" })
+        }
+    }
+
     func testPausedMieleRemainsVisibleWithoutCountingDown() throws {
         let appliance = WasherDryer(name: "Washer", timeRunning: 10, timeRemaining: 20, status: "Pause", inUse: true)
         let data = FluxData(cleanBot: nil, car: nil, dishwasher: nil, dryer: nil, washer: appliance)
@@ -71,6 +88,7 @@ class VisionOSTests: XCTestCase {
             XCTAssertEqual(device.shortText, docking ? "Returning to dock" : "Paused")
             XCTAssertEqual(device.progress, 32)
             XCTAssertEqual(device.battery, 81)
+            XCTAssertEqual(device.cleaning, false)
             XCTAssertNil(device.endsAt)
         }
     }

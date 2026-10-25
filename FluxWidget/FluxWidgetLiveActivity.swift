@@ -140,7 +140,7 @@ func deviceMetricText(_ device: WidgetDevice) -> String {
 
 func trailingSubtitle(for device: WidgetDevice) -> String {
     if isRobot(device.name) {
-        return "Cleaning now"
+        return widgetSubtitle(for: device)
     }
     if let program = device.programName, !program.isEmpty {
         return program

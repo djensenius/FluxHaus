@@ -30,6 +30,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             object: nil
         )
 
+        #if !targetEnvironment(macCatalyst)
+        // Push-to-start may cold-launch us without constructing a SwiftUI scene.
+        _ = LiveActivityManager.shared
+        #endif
+
         // Request notification permission — required for push notifications and live activities
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
