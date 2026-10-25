@@ -124,7 +124,7 @@ class LiveActivityManager {
             logger.debug("Activity push token unchanged — skipping registration")
             return
         }
-
+        _ = await AuthManager.shared.ensureValidToken()
         let success = await postToServer(
             path: "/push-tokens/activity",
             body: [

@@ -100,8 +100,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
 
-        Task {
-            completionHandler(await AppDelegate.refreshAfterNotification())
+        let completion = BackgroundFetchCompletion(completionHandler)
+        let refresh = Task {
+            completion.finish(await AppDelegate.refreshAfterNotification())
+        }
+        completion.deadlineTask = Task {
+            do { try await Task.sleep(for: .seconds(25)) } catch { return }
+            refresh.cancel()
+            completion.finish(.failed)
         }
     }
 
@@ -110,9 +116,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     @MainActor
     static func refreshAfterNotification() async -> UIBackgroundFetchResult {
         _ = await AuthManager.shared.ensureValidToken()
+        guard !Task.isCancelled else { return .failed }
         do {
             guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),
-                  AuthManager.shared.isSignedIn else { return .noData }
+                  !Task.isCancelled, AuthManager.shared.isSignedIn else { return .noData }
             let data = convertLoginResponseToAppData(response: response)
             let devices = convertDataToWidgetDevices(fluxData: data)
             #if !targetEnvironment(macCatalyst)
@@ -168,6 +175,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         } catch {
             appLogger.error("Failed to register APNs token: \(error)")
         }
+    }
+}
+
+/// An unstructured deadline can finish even if a shared auth refresh or an
+/// ActivityKit continuation does not cooperate with cancellation immediately.
+@MainActor
+private final class BackgroundFetchCompletion {
+    private var handler: ((UIBackgroundFetchResult) -> Void)?
+    var deadlineTask: Task<Void, Never>?
+
+    init(_ handler: @escaping (UIBackgroundFetchResult) -> Void) { self.handler = handler }
+
+    func finish(_ result: UIBackgroundFetchResult) {
+        guard let handler else { return }
+        self.handler = nil
+        deadlineTask?.cancel()
+        deadlineTask = nil
+        handler(result)
     }
 }
 

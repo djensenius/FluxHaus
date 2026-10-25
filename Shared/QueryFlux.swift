@@ -397,7 +397,8 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         drainageStatus: response.cleanbot.drainageStatus,
         selfWashBaseStatus: response.cleanbot.selfWashBaseStatus,
         maintenance: response.cleanbot.maintenance,
-        rooms: response.cleanbot.rooms
+        rooms: response.cleanbot.rooms,
+        stateKnown: response.cleanbot.stateKnown
     )
     var car: CarDetails?
     if let fluxCar = response.car, let evStatus = response.carEvStatus {

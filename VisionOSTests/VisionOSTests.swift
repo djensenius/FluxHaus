@@ -58,6 +58,27 @@ class VisionOSTests: XCTestCase {
         }
     }
 
+    func testUnavailableRobotAndDishwasherPreserveKnownJobs() throws {
+        let previousData = FluxData(
+            cleanBot: Robot(running: true, stateKnown: true), car: nil,
+            dishwasher: DishWasher(operationState: .run, stateKnown: true), dryer: nil, washer: nil
+        )
+        let unavailableData = FluxData(
+            cleanBot: Robot(running: false, stateKnown: false), car: nil,
+            dishwasher: DishWasher(operationState: .inactive, stateKnown: false), dryer: nil, washer: nil
+        )
+        let resolved = resolvedLiveActivityDevices(
+            convertDataToWidgetDevices(fluxData: unavailableData),
+            previous: convertDataToWidgetDevices(fluxData: previousData)
+        )
+        for name in ["Cleanbot", "Dishwasher"] {
+            let device = try XCTUnwrap(resolved.first { $0.name == name })
+            XCTAssertTrue(device.running)
+            XCTAssertEqual(device.shortText, "Offline")
+            XCTAssertNil(device.endsAt)
+        }
+    }
+
     func testPausedMieleRemainsVisibleWithoutCountingDown() throws {
         let appliance = WasherDryer(name: "Washer", timeRunning: 10, timeRemaining: 20, status: "Pause", inUse: true)
         let data = FluxData(cleanBot: nil, car: nil, dishwasher: nil, dryer: nil, washer: appliance)

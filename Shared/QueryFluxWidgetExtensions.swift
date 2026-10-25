@@ -171,7 +171,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 trailingText: "",
                 shortText: "",
                 running: false,
-                programName: dishwasherDisplayName
+                programName: dishwasherDisplayName,
+                stateKnown: fluxData.dishwasher?.stateKnown
             )
         )
     } else {
@@ -185,7 +186,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 running: dishwasherRunning,
                 programName: dishwasherDisplayName,
                 startedAt: dishwasherCounting ? dishwasherTiming.startedAt : nil,
-                endsAt: dishwasherCounting ? dishwasherTiming.endsAt : nil
+                endsAt: dishwasherCounting ? dishwasherTiming.endsAt : nil,
+                stateKnown: fluxData.dishwasher?.stateKnown
             )
         )
     }
@@ -297,7 +299,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             battery: fluxData.cleanBot?.batteryLevel,
             startedAt: cleanbotCleaning ? cleanbotTiming.startedAt : nil,
             endsAt: cleanbotCleaning ? cleanbotTiming.endsAt : nil,
-            cleaning: cleanbotCleaning
+            cleaning: cleanbotCleaning,
+            stateKnown: fluxData.cleanBot?.stateKnown
         )
     )
 
