@@ -40,7 +40,7 @@ class LiveActivityManager {
     /// Cached channel IDs fetched from the server.
     private var channelIds: [String: String] = [:]
     private var pushToStartTask: Task<Void, Never>?
-
+    private var activityUpdatesTask: Task<Void, Never>?
     /// Reentrancy guard for reconcile — prevents concurrent calls from both creating activities
     private var isReconciling = false
     /// Pending devices for coalesced reconcile — if a reconcile is skipped, re-run with latest data
@@ -50,7 +50,6 @@ class LiveActivityManager {
     private var lastRegisteredPushToStartToken: String?
     /// Last registered per-activity update token — ActivityKit may emit it again when restored.
     private var lastRegisteredActivityToken: String?
-
     /// Reset dedup state when auth changes (e.g. sign-out/sign-in)
     func resetTokenRegistrationState() {
         lastRegisteredPushToStartToken = nil
@@ -75,6 +74,13 @@ class LiveActivityManager {
         Task {
             await restoreExistingActivities()
             await fetchChannelIds()
+        }
+        // A remote start can arrive after initialization while no view is active.
+        // Adopt it immediately so its direct-update token reaches the server.
+        activityUpdatesTask = Task {
+            for await _ in Activity<FluxWidgetMultiAttributes>.activityUpdates {
+                await cleanupAndAdoptActivities()
+            }
         }
     }
 
@@ -171,7 +177,13 @@ class LiveActivityManager {
 
     /// Called when auth becomes available to retry any pending registration.
     func retryPendingTokenRegistration() {
-        Task { await registerPushToStartTokenWhenReady() }
+        Task {
+            await registerPushToStartTokenWhenReady()
+            if let tokenData = consolidatedActivity?.pushToken {
+                let token = tokenData.map { String(format: "%02x", $0) }.joined()
+                await registerActivityToken(token: token)
+            }
+        }
     }
 
     /// Fetch broadcast channel IDs from the server for all device types.

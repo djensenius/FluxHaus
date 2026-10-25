@@ -96,9 +96,28 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
 
         Task {
-            _ = await AuthManager.shared.ensureValidToken()
-            queryFlux(password: WhereWeAre.getPassword() ?? "")
-            completionHandler(.newData)
+            completionHandler(await AppDelegate.refreshAfterNotification())
+        }
+    }
+
+    /// Background launches may have no SwiftUI subscribers. Fetch and reconcile
+    /// directly, and keep the push's execution window until ActivityKit finishes.
+    @MainActor
+    static func refreshAfterNotification() async -> UIBackgroundFetchResult {
+        _ = await AuthManager.shared.ensureValidToken()
+        do {
+            guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),
+                  AuthManager.shared.isSignedIn else { return .noData }
+            let data = convertLoginResponseToAppData(response: response)
+            let devices = convertDataToWidgetDevices(fluxData: data)
+            #if !targetEnvironment(macCatalyst)
+            await LiveActivityManager.shared.reconcile(devices: devices)
+            #endif
+            WidgetReloader.reloadIfChanged(devices: devices, car: data.car)
+            return .newData
+        } catch {
+            appLogger.error("Background notification refresh failed: \(error)")
+            return .failed
         }
     }
 
@@ -253,7 +272,6 @@ struct FluxHausApp: App {
                             car.setApiResponse(apiResponse: self.apiResponse)
                             scooter.setApiResponse(apiResponse: self.apiResponse)
                             airPurifier.setApiResponse(apiResponse: self.apiResponse)
-                            updateLiveActivities(response: response)
                         }
                     }
                     .task {
@@ -268,6 +286,12 @@ struct FluxHausApp: App {
                     _ = await AuthManager.shared.ensureValidToken()
                     queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
+                guard AuthManager.shared.isSignedIn,
+                      let response = object.userInfo?["data"] as? LoginResponse else { return }
+                // Reconcile on the first response too, not only after ContentView exists.
+                updateLiveActivities(response: response)
             }
             .onReceive(
                 NotificationCenter.default.publisher(for: .authDidSignOut)
