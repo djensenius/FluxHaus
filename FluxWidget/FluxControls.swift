@@ -52,7 +52,8 @@ struct CleanbotValueProvider: ControlValueProvider {
     func currentValue() async throws -> Bool {
         // The robot's reported state lags the command; show the requested state briefly.
         if let pending = PendingValue<Bool>.current(key: Self.pendingKey) { return pending }
-        return await FluxWidgetNetwork.fetchSnapshot()?.devices.first { $0.name == "Cleanbot" }?.running ?? false
+        let robot = await FluxWidgetNetwork.fetchSnapshot()?.devices.first { $0.name == "Cleanbot" }
+        return robot?.cleaning ?? robot?.running ?? false
     }
 }
 

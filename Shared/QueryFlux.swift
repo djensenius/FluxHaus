@@ -12,6 +12,22 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryF
 
 @MainActor private var activeQueryFluxTask: Task<Void, Never>?
 
+/// Foreground and notification refreshes share ordering. Task-local IDs survive
+/// retries, so a delayed older response cannot publish or recreate an activity.
+@MainActor
+enum FluxRefreshOrdering {
+    private static var latest = UUID()
+    @TaskLocal static var requestID: UUID?
+
+    static func begin() -> UUID {
+        activeQueryFluxTask?.cancel()
+        latest = UUID()
+        return latest
+    }
+
+    static func isCurrent(_ id: UUID) -> Bool { id == latest }
+}
+
 // MARK: - Helper Functions
 
 /// Check if a login error message indicates an authentication failure (vs transient/server issue)
@@ -120,9 +136,11 @@ private func buildFluxAPIRequest(password: String) -> URLRequest? {
 
 func queryFlux(password: String) {
     Task { @MainActor in
-        activeQueryFluxTask?.cancel()
+        let requestID = FluxRefreshOrdering.begin()
         activeQueryFluxTask = Task {
-            await queryFluxWithRetry(password: password, attempt: 0)
+            await FluxRefreshOrdering.$requestID.withValue(requestID) {
+                await queryFluxWithRetry(password: password, attempt: 0)
+            }
         }
     }
 }
@@ -225,36 +243,40 @@ private func retryQueryFlux(password: String) async {
     }
 }
 
+/// Both refresh paths must publish accepted data so cancelling a foreground
+/// launch fetch never strands the loading view without its replacement response.
+@MainActor
+@discardableResult
+func publishFluxResponse(
+    response: LoginResponse, requestID: UUID, password: String, notifications: NotificationCenter = .default
+) -> Bool {
+    guard !Task.isCancelled, FluxRefreshOrdering.isCurrent(requestID) else { return false }
+    AuthManager.shared.isCompletingOIDCLogin = false
+    if AuthManager.shared.getAccessToken() != nil {
+        AuthManager.shared.markOIDCSessionValid()
+    }
+    guard AuthManager.shared.isSignedIn else { return false }
+    notifications.post(
+        name: Notification.Name.loginsUpdated, object: response, userInfo: ["keysComplete": true]
+    )
+    if !password.isEmpty {
+        notifications.post(
+            name: Notification.Name.loginsUpdated, object: nil, userInfo: ["updateKeychain": password]
+        )
+    }
+    notifications.post(
+        name: Notification.Name.dataUpdated, object: nil, userInfo: ["data": response, "refreshID": requestID]
+    )
+    return true
+}
+
 private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) async {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             await MainActor.run {
-                AuthManager.shared.isCompletingOIDCLogin = false
-                if AuthManager.shared.getAccessToken() != nil {
-                    AuthManager.shared.markOIDCSessionValid()
-                }
-                guard AuthManager.shared.isSignedIn else {
-                    logger.debug("Ignoring late queryFlux success after sign-out")
-                    return
-                }
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: response,
-                    userInfo: ["keysComplete": true]
-                )
-                if !password.isEmpty {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: nil,
-                        userInfo: ["updateKeychain": password]
-                    )
-                }
-                NotificationCenter.default.post(
-                    name: Notification.Name.dataUpdated,
-                    object: nil,
-                    userInfo: ["data": response]
-                )
+                guard let requestID = FluxRefreshOrdering.requestID else { return }
+                publishFluxResponse(response: response, requestID: requestID, password: password)
             }
         } catch {
             logger.error("JSON decode failed: \(error)")
@@ -397,7 +419,8 @@ func convertLoginResponseToAppData(response: LoginResponse) -> FluxData {
         drainageStatus: response.cleanbot.drainageStatus,
         selfWashBaseStatus: response.cleanbot.selfWashBaseStatus,
         maintenance: response.cleanbot.maintenance,
-        rooms: response.cleanbot.rooms
+        rooms: response.cleanbot.rooms,
+        stateKnown: response.cleanbot.stateKnown
     )
     var car: CarDetails?
     if let fluxCar = response.car, let evStatus = response.carEvStatus {

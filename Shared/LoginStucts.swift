@@ -169,6 +169,7 @@ public struct RobotMaintenance: Codable {
 }
 
 public struct Robot: Codable {
+    public let stateKnown: Bool?
     public let name: String?
     public let timestamp: String
     public let batteryLevel: Int?
@@ -224,8 +225,10 @@ public struct Robot: Codable {
         drainageStatus: String? = nil,
         selfWashBaseStatus: String? = nil,
         maintenance: RobotMaintenance? = nil,
-        rooms: [RobotRoom]? = nil
+        rooms: [RobotRoom]? = nil,
+        stateKnown: Bool? = nil
     ) {
+        self.stateKnown = stateKnown
         self.name = name
         self.timestamp = timestamp
         self.batteryLevel = batteryLevel
@@ -325,6 +328,7 @@ public enum OperationState: String, Codable {
 }
 
 public struct DishWasher: Codable {
+    public var stateKnown: Bool?
     public var status: String?
     public var program: String?
     public var remainingTime: Int?
@@ -350,8 +354,10 @@ public struct DishWasher: Codable {
         selectedProgram: String? = nil,
         activeProgram: DishWasherProgram? = nil,
         startInRelative: Int? = nil,
-        startInRelativeUnit: String? = nil
+        startInRelativeUnit: String? = nil,
+        stateKnown: Bool? = nil
     ) {
+        self.stateKnown = stateKnown
         self.status = status
         self.program = program
         self.remainingTime = remainingTime

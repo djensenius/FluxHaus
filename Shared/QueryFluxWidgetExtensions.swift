@@ -20,6 +20,10 @@ struct WidgetDevice: Codable, Equatable, Hashable {
     var startedAt: Double?
     /// UNIX epoch seconds when the current cycle is expected to finish.
     var endsAt: Double?
+    /// Actual cleaning state, separate from an active (paused/returning) job.
+    var cleaning: Bool?
+    /// False when the latest appliance reading is unavailable, not completed.
+    var stateKnown: Bool?
 
     var startDate: Date? { startedAt.map { Date(timeIntervalSince1970: $0) } }
     var endDate: Date? { endsAt.map { Date(timeIntervalSince1970: $0) } }
@@ -38,7 +42,8 @@ struct WidgetDevice: Codable, Equatable, Hashable {
         lhs.name == rhs.name && lhs.progress == rhs.progress && lhs.icon == rhs.icon
             && lhs.trailingText == rhs.trailingText && lhs.shortText == rhs.shortText
             && lhs.running == rhs.running && lhs.battery == rhs.battery
-            && lhs.programName == rhs.programName
+            && lhs.programName == rhs.programName && lhs.cleaning == rhs.cleaning
+            && lhs.stateKnown == rhs.stateKnown
     }
 
     func hash(into hasher: inout Hasher) {
@@ -53,6 +58,39 @@ struct WidgetDevice: Codable, Equatable, Hashable {
 func isCountingStatus(_ status: String?) -> Bool {
     guard let status = status?.lowercased(), !status.isEmpty else { return true }
     return status == "in use" || status == "running" || status == "in_use"
+}
+
+/// Unknown connectivity is not evidence that a cycle has finished.
+func isMieleStateKnown(_ status: String?) -> Bool {
+    let normalized = status?.lowercased().replacingOccurrences(of: "_", with: " ")
+        .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    return !["not connected", "unavailable", "unknown"].contains(normalized)
+}
+
+/// Preserve an existing activity's job during a sensor outage, without allowing
+/// an unavailable initial reading to start a new activity.
+func resolvedLiveActivityDevices(_ devices: [WidgetDevice], previous: [WidgetDevice]) -> [WidgetDevice] {
+    devices.compactMap { device in
+        guard device.stateKnown == false else { return device }
+        guard var prior = previous.first(where: { $0.name == device.name }) else { return nil }
+        prior.startedAt = nil
+        prior.endsAt = nil
+        prior.shortText = "Offline"
+        prior.trailingText = "Not Connected"
+        return prior
+    }
+}
+
+/// Remaining-time sensors can retain their last value after a cycle ends.
+/// Match the server's inactive statuses so foreground refreshes cannot resurrect it.
+func isMieleCycleActive(status: String?, remainingMinutes: Int) -> Bool {
+    let normalized = status?.trimmingCharacters(in: .whitespacesAndNewlines)
+        .lowercased().replacingOccurrences(of: "_", with: " ") ?? ""
+    let inactive = [
+        "off", "on", "idle", "end programmed", "program ended",
+        "finished", "programmed", "waiting to start", "delayed start"
+    ]
+    return remainingMinutes > 0 && !inactive.contains(normalized)
 }
 
 /// Start/end epoch seconds for a running cycle from elapsed/remaining seconds.
@@ -112,7 +150,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
     }
 
     let dishwasherProgress = fluxData.dishwasher?.programProgress ?? 0
-    let dishwasherRunning = dishwasherProgress > 0
+    let dishwasherRunning = ["Run", "Pause", "ActionRequired", "Error", "Aborting"]
+        .contains(fluxData.dishwasher?.operationState.rawValue ?? "")
     // Only count down while actually running (not paused / delayed).
     let dishwasherCounting = dishwasherRunning && fluxData.dishwasher?.operationState.rawValue == "Run"
     let dishwasherRemainingSeconds = Double(fluxData.dishwasher?.remainingTime ?? 0)
@@ -132,7 +171,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 trailingText: "",
                 shortText: "",
                 running: false,
-                programName: dishwasherDisplayName
+                programName: dishwasherDisplayName,
+                stateKnown: fluxData.dishwasher?.stateKnown
             )
         )
     } else {
@@ -146,7 +186,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
                 running: dishwasherRunning,
                 programName: dishwasherDisplayName,
                 startedAt: dishwasherCounting ? dishwasherTiming.startedAt : nil,
-                endsAt: dishwasherCounting ? dishwasherTiming.endsAt : nil
+                endsAt: dishwasherCounting ? dishwasherTiming.endsAt : nil,
+                stateKnown: fluxData.dishwasher?.stateKnown
             )
         )
     }
@@ -169,7 +210,9 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         washerTrailingText = "\(formatApplianceDisplayText(status)) ⋅ \(washerTrailingText)"
     }
 
-    let washerRunning = fluxData.washer?.timeRemaining ?? 0 > 0
+    let washerRunning = isMieleCycleActive(
+        status: fluxData.washer?.status, remainingMinutes: washerTimeRemaining
+    )
     let washerCounting = washerRunning && isCountingStatus(fluxData.washer?.status)
     let washerTiming = cycleTiming(
         elapsedSeconds: fluxData.washer?.timeRunning.map { Double($0) * 60 },
@@ -185,7 +228,8 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             running: washerRunning,
             programName: fluxData.washer?.programName.map { formatApplianceDisplayText($0) },
             startedAt: washerCounting ? washerTiming.startedAt : nil,
-            endsAt: washerCounting ? washerTiming.endsAt : nil
+            endsAt: washerCounting ? washerTiming.endsAt : nil,
+            stateKnown: isMieleStateKnown(fluxData.washer?.status)
         )
     )
 
@@ -206,7 +250,9 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
         dryerTrailingText = "\(formatApplianceDisplayText(status)) ⋅ \(dryerTrailingText)"
     }
 
-    let dryerRunning = fluxData.dryer?.timeRemaining ?? 0 > 0
+    let dryerRunning = isMieleCycleActive(
+        status: fluxData.dryer?.status, remainingMinutes: fluxData.dryer?.timeRemaining ?? 0
+    )
     let dryerCounting = dryerRunning && isCountingStatus(fluxData.dryer?.status)
     let dryerTiming = cycleTiming(
         elapsedSeconds: fluxData.dryer?.timeRunning.map { Double($0) * 60 },
@@ -222,11 +268,16 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             running: dryerRunning,
             programName: fluxData.dryer?.programName.map { formatApplianceDisplayText($0) },
             startedAt: dryerCounting ? dryerTiming.startedAt : nil,
-            endsAt: dryerCounting ? dryerTiming.endsAt : nil
+            endsAt: dryerCounting ? dryerTiming.endsAt : nil,
+            stateKnown: isMieleStateKnown(fluxData.dryer?.status)
         )
     )
 
-    let cleanbotRunning = fluxData.cleanBot?.running ?? false
+    let cleanbotCleaning = fluxData.cleanBot?.running ?? false
+    let cleanbotPaused = fluxData.cleanBot?.paused ?? false
+    let cleanbotDocking = fluxData.cleanBot?.docking ?? false
+    let cleanbotRunning = cleanbotCleaning || cleanbotPaused || cleanbotDocking
+    let cleanbotStatus = cleanbotDocking ? "Returning to dock" : (cleanbotPaused ? "Paused" : "Off")
     let cleanbotProgress = fluxData.cleanBot?.progressPercent.map { Int($0.rounded()) }
     let cleanbotTime = fluxData.cleanBot?.estimatedRemainingMinutes.map { "~\(Int($0.rounded())) min" }
     let cleanbotRoom = fluxData.cleanBot?.currentRoom
@@ -240,14 +291,16 @@ func convertDataToWidgetDevices(fluxData: FluxData) -> [WidgetDevice] {
             name: "Cleanbot",
             progress: cleanbotProgress ?? 0,
             icon: "robotic.vacuum.fill",
-            trailingText: cleanbotRunning
-                ? (cleanbotDetail.isEmpty ? "On" : cleanbotDetail)
-                : "Off",
-            shortText: cleanbotRunning ? cleanbotProgress.map { "\($0)%" } ?? "On" : "Off",
+            trailingText: cleanbotCleaning
+                ? (cleanbotDetail.isEmpty ? "Cleaning" : cleanbotDetail)
+                : cleanbotStatus,
+            shortText: cleanbotCleaning ? cleanbotProgress.map { "\($0)%" } ?? "Cleaning" : cleanbotStatus,
             running: cleanbotRunning,
             battery: fluxData.cleanBot?.batteryLevel,
-            startedAt: cleanbotRunning ? cleanbotTiming.startedAt : nil,
-            endsAt: cleanbotRunning ? cleanbotTiming.endsAt : nil
+            startedAt: cleanbotCleaning ? cleanbotTiming.startedAt : nil,
+            endsAt: cleanbotCleaning ? cleanbotTiming.endsAt : nil,
+            cleaning: cleanbotCleaning,
+            stateKnown: fluxData.cleanBot?.stateKnown
         )
     )
 

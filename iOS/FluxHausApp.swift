@@ -30,6 +30,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             object: nil
         )
 
+        #if !targetEnvironment(macCatalyst)
+        // Push-to-start may cold-launch us without constructing a SwiftUI scene.
+        _ = LiveActivityManager.shared
+        #endif
+
         // Request notification permission — required for push notifications and live activities
         UNUserNotificationCenter.current().requestAuthorization(
             options: [.alert, .sound, .badge]
@@ -95,10 +100,49 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
 
-        Task {
-            _ = await AuthManager.shared.ensureValidToken()
-            queryFlux(password: WhereWeAre.getPassword() ?? "")
-            completionHandler(.newData)
+        let requestID = FluxRefreshOrdering.begin()
+        let completion = BackgroundFetchCompletion { result in
+            // A failed replacement must not strand a visible loading screen after
+            // cancelling its launch fetch. Background-only launches need no UI retry.
+            if result == .failed, application.applicationState == .active,
+               AuthManager.shared.isSignedIn, FluxRefreshOrdering.isCurrent(requestID) {
+                queryFlux(password: WhereWeAre.getPassword() ?? "")
+            }
+            completionHandler(result)
+        }
+        let refresh = Task {
+            completion.finish(await AppDelegate.refreshAfterNotification(requestID: requestID))
+        }
+        completion.deadlineTask = Task {
+            do { try await Task.sleep(for: .seconds(25)) } catch { return }
+            refresh.cancel()
+            completion.finish(.failed)
+        }
+    }
+
+    /// Background launches may have no SwiftUI subscribers. Fetch and reconcile
+    /// directly, and keep the push's execution window until ActivityKit finishes.
+    @MainActor
+    static func refreshAfterNotification(requestID: UUID) async -> UIBackgroundFetchResult {
+        _ = await AuthManager.shared.ensureValidToken()
+        guard !Task.isCancelled else { return .failed }
+        do {
+            guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),
+                  !Task.isCancelled, AuthManager.shared.isSignedIn,
+                  FluxRefreshOrdering.isCurrent(requestID) else { return .noData }
+            guard publishFluxResponse(
+                response: response, requestID: requestID, password: WhereWeAre.getPassword() ?? ""
+            ) else { return .noData }
+            let data = convertLoginResponseToAppData(response: response)
+            let devices = convertDataToWidgetDevices(fluxData: data)
+            #if !targetEnvironment(macCatalyst)
+            await LiveActivityManager.shared.reconcile(devices: devices)
+            #endif
+            WidgetReloader.reloadIfChanged(devices: devices, car: data.car)
+            return .newData
+        } catch {
+            appLogger.error("Background notification refresh failed: \(error)")
+            return .failed
         }
     }
 
@@ -144,6 +188,24 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         } catch {
             appLogger.error("Failed to register APNs token: \(error)")
         }
+    }
+}
+
+/// An unstructured deadline can finish even if a shared auth refresh or an
+/// ActivityKit continuation does not cooperate with cancellation immediately.
+@MainActor
+private final class BackgroundFetchCompletion {
+    private var handler: ((UIBackgroundFetchResult) -> Void)?
+    var deadlineTask: Task<Void, Never>?
+
+    init(_ handler: @escaping (UIBackgroundFetchResult) -> Void) { self.handler = handler }
+
+    func finish(_ result: UIBackgroundFetchResult) {
+        guard let handler else { return }
+        self.handler = nil
+        deadlineTask?.cancel()
+        deadlineTask = nil
+        handler(result)
     }
 }
 
@@ -253,7 +315,6 @@ struct FluxHausApp: App {
                             car.setApiResponse(apiResponse: self.apiResponse)
                             scooter.setApiResponse(apiResponse: self.apiResponse)
                             airPurifier.setApiResponse(apiResponse: self.apiResponse)
-                            updateLiveActivities(response: response)
                         }
                     }
                     .task {
@@ -268,6 +329,13 @@ struct FluxHausApp: App {
                     _ = await AuthManager.shared.ensureValidToken()
                     queryFlux(password: WhereWeAre.getPassword() ?? "")
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
+                guard AuthManager.shared.isSignedIn,
+                      let response = object.userInfo?["data"] as? LoginResponse,
+                      let requestID = object.userInfo?["refreshID"] as? UUID else { return }
+                // Reconcile on the first response too, not only after ContentView exists.
+                updateLiveActivities(response: response, requestID: requestID)
             }
             .onReceive(
                 NotificationCenter.default.publisher(for: .authDidSignOut)
@@ -366,11 +434,14 @@ struct FluxHausApp: App {
         airPurifier?.setApiResponse(apiResponse: self.apiResponse)
     }
 
-    func updateLiveActivities(response: LoginResponse) {
+    func updateLiveActivities(response: LoginResponse, requestID: UUID) {
         #if !targetEnvironment(macCatalyst)
         let fluxData = convertLoginResponseToAppData(response: response)
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
-        Task { await LiveActivityManager.shared.reconcile(devices: devices) }
+        Task {
+            guard FluxRefreshOrdering.isCurrent(requestID) else { return }
+            await LiveActivityManager.shared.reconcile(devices: devices)
+        }
         #endif
         let widgetData = convertLoginResponseToAppData(response: response)
         WidgetReloader.reloadIfChanged(

@@ -69,7 +69,8 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Robots
             drainageStatus: robot.drainageStatus,
             selfWashBaseStatus: robot.selfWashBaseStatus,
             maintenance: robot.maintenance,
-            rooms: robot.rooms
+            rooms: robot.rooms,
+            stateKnown: robot.stateKnown
         )
     }
 
