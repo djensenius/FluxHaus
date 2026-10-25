@@ -100,9 +100,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
 
-        let completion = BackgroundFetchCompletion(completionHandler)
+        let requestID = FluxRefreshOrdering.begin()
+        let completion = BackgroundFetchCompletion { result in
+            // A failed replacement must not strand a visible loading screen after
+            // cancelling its launch fetch. Background-only launches need no UI retry.
+            if result == .failed, application.applicationState == .active,
+               AuthManager.shared.isSignedIn, FluxRefreshOrdering.isCurrent(requestID) {
+                queryFlux(password: WhereWeAre.getPassword() ?? "")
+            }
+            completionHandler(result)
+        }
         let refresh = Task {
-            completion.finish(await AppDelegate.refreshAfterNotification())
+            completion.finish(await AppDelegate.refreshAfterNotification(requestID: requestID))
         }
         completion.deadlineTask = Task {
             do { try await Task.sleep(for: .seconds(25)) } catch { return }
@@ -114,8 +123,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     /// Background launches may have no SwiftUI subscribers. Fetch and reconcile
     /// directly, and keep the push's execution window until ActivityKit finishes.
     @MainActor
-    static func refreshAfterNotification() async -> UIBackgroundFetchResult {
-        let requestID = FluxRefreshOrdering.begin()
+    static func refreshAfterNotification(requestID: UUID) async -> UIBackgroundFetchResult {
         _ = await AuthManager.shared.ensureValidToken()
         guard !Task.isCancelled else { return .failed }
         do {
