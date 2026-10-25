@@ -12,6 +12,22 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "QueryF
 
 @MainActor private var activeQueryFluxTask: Task<Void, Never>?
 
+/// Foreground and notification refreshes share ordering. Task-local IDs survive
+/// retries, so a delayed older response cannot publish or recreate an activity.
+@MainActor
+enum FluxRefreshOrdering {
+    private static var latest = UUID()
+    @TaskLocal static var requestID: UUID?
+
+    static func begin() -> UUID {
+        activeQueryFluxTask?.cancel()
+        latest = UUID()
+        return latest
+    }
+
+    static func isCurrent(_ id: UUID) -> Bool { id == latest }
+}
+
 // MARK: - Helper Functions
 
 /// Check if a login error message indicates an authentication failure (vs transient/server issue)
@@ -120,9 +136,11 @@ private func buildFluxAPIRequest(password: String) -> URLRequest? {
 
 func queryFlux(password: String) {
     Task { @MainActor in
-        activeQueryFluxTask?.cancel()
+        let requestID = FluxRefreshOrdering.begin()
         activeQueryFluxTask = Task {
-            await queryFluxWithRetry(password: password, attempt: 0)
+            await FluxRefreshOrdering.$requestID.withValue(requestID) {
+                await queryFluxWithRetry(password: password, attempt: 0)
+            }
         }
     }
 }
@@ -230,6 +248,8 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             await MainActor.run {
+                guard !Task.isCancelled, let requestID = FluxRefreshOrdering.requestID,
+                      FluxRefreshOrdering.isCurrent(requestID) else { return }
                 AuthManager.shared.isCompletingOIDCLogin = false
                 if AuthManager.shared.getAccessToken() != nil {
                     AuthManager.shared.markOIDCSessionValid()
@@ -253,7 +273,7 @@ private func handleQueryFluxResponse(data: Data?, error: Error?, password: Strin
                 NotificationCenter.default.post(
                     name: Notification.Name.dataUpdated,
                     object: nil,
-                    userInfo: ["data": response]
+                    userInfo: ["data": response, "refreshID": requestID]
                 )
             }
         } catch {

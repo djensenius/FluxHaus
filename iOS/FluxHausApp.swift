@@ -115,11 +115,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     /// directly, and keep the push's execution window until ActivityKit finishes.
     @MainActor
     static func refreshAfterNotification() async -> UIBackgroundFetchResult {
+        let requestID = FluxRefreshOrdering.begin()
         _ = await AuthManager.shared.ensureValidToken()
         guard !Task.isCancelled else { return .failed }
         do {
             guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),
-                  !Task.isCancelled, AuthManager.shared.isSignedIn else { return .noData }
+                  !Task.isCancelled, AuthManager.shared.isSignedIn,
+                  FluxRefreshOrdering.isCurrent(requestID) else { return .noData }
             let data = convertLoginResponseToAppData(response: response)
             let devices = convertDataToWidgetDevices(fluxData: data)
             #if !targetEnvironment(macCatalyst)
@@ -319,9 +321,10 @@ struct FluxHausApp: App {
             }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name.dataUpdated)) { object in
                 guard AuthManager.shared.isSignedIn,
-                      let response = object.userInfo?["data"] as? LoginResponse else { return }
+                      let response = object.userInfo?["data"] as? LoginResponse,
+                      let requestID = object.userInfo?["refreshID"] as? UUID else { return }
                 // Reconcile on the first response too, not only after ContentView exists.
-                updateLiveActivities(response: response)
+                updateLiveActivities(response: response, requestID: requestID)
             }
             .onReceive(
                 NotificationCenter.default.publisher(for: .authDidSignOut)
@@ -420,11 +423,14 @@ struct FluxHausApp: App {
         airPurifier?.setApiResponse(apiResponse: self.apiResponse)
     }
 
-    func updateLiveActivities(response: LoginResponse) {
+    func updateLiveActivities(response: LoginResponse, requestID: UUID) {
         #if !targetEnvironment(macCatalyst)
         let fluxData = convertLoginResponseToAppData(response: response)
         let devices = convertDataToWidgetDevices(fluxData: fluxData)
-        Task { await LiveActivityManager.shared.reconcile(devices: devices) }
+        Task {
+            guard FluxRefreshOrdering.isCurrent(requestID) else { return }
+            await LiveActivityManager.shared.reconcile(devices: devices)
+        }
         #endif
         let widgetData = convertLoginResponseToAppData(response: response)
         WidgetReloader.reloadIfChanged(

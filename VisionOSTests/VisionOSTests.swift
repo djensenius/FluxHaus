@@ -27,6 +27,22 @@ class VisionOSTests: XCTestCase {
         // Check the results with assertions afterwards.
     }
 
+    @MainActor
+    func testNewRefreshInvalidatesOlderForegroundAndBackgroundSnapshots() async throws {
+        let foreground = FluxRefreshOrdering.begin()
+        let notification = FluxRefreshOrdering.begin()
+        XCTAssertFalse(FluxRefreshOrdering.isCurrent(foreground))
+        XCTAssertTrue(FluxRefreshOrdering.isCurrent(notification))
+        try await FluxRefreshOrdering.$requestID.withValue(foreground) {
+            let old = try XCTUnwrap(FluxRefreshOrdering.requestID)
+            XCTAssertFalse(FluxRefreshOrdering.isCurrent(old))
+        }
+        XCTAssertNil(FluxRefreshOrdering.requestID)
+        let nextPoll = FluxRefreshOrdering.begin()
+        XCTAssertFalse(FluxRefreshOrdering.isCurrent(notification))
+        XCTAssertTrue(FluxRefreshOrdering.isCurrent(nextPoll))
+    }
+
     func testCompletedMieleDoesNotRemainActiveWithRetainedTime() throws {
         for status in ["End programmed", "program_ended", "Off", "Idle", "Programmed", "waiting_to_start"] {
             let appliance = WasherDryer(name: "Washer", timeRunning: 59, timeRemaining: 1, status: status, inUse: true)
