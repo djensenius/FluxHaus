@@ -122,6 +122,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             guard let response = try await getFlux(password: WhereWeAre.getPassword() ?? ""),
                   !Task.isCancelled, AuthManager.shared.isSignedIn,
                   FluxRefreshOrdering.isCurrent(requestID) else { return .noData }
+            guard publishFluxResponse(
+                response: response, requestID: requestID, password: WhereWeAre.getPassword() ?? ""
+            ) else { return .noData }
             let data = convertLoginResponseToAppData(response: response)
             let devices = convertDataToWidgetDevices(fluxData: data)
             #if !targetEnvironment(macCatalyst)

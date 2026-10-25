@@ -243,38 +243,40 @@ private func retryQueryFlux(password: String) async {
     }
 }
 
+/// Both refresh paths must publish accepted data so cancelling a foreground
+/// launch fetch never strands the loading view without its replacement response.
+@MainActor
+@discardableResult
+func publishFluxResponse(
+    response: LoginResponse, requestID: UUID, password: String, notifications: NotificationCenter = .default
+) -> Bool {
+    guard !Task.isCancelled, FluxRefreshOrdering.isCurrent(requestID) else { return false }
+    AuthManager.shared.isCompletingOIDCLogin = false
+    if AuthManager.shared.getAccessToken() != nil {
+        AuthManager.shared.markOIDCSessionValid()
+    }
+    guard AuthManager.shared.isSignedIn else { return false }
+    notifications.post(
+        name: Notification.Name.loginsUpdated, object: response, userInfo: ["keysComplete": true]
+    )
+    if !password.isEmpty {
+        notifications.post(
+            name: Notification.Name.loginsUpdated, object: nil, userInfo: ["updateKeychain": password]
+        )
+    }
+    notifications.post(
+        name: Notification.Name.dataUpdated, object: nil, userInfo: ["data": response, "refreshID": requestID]
+    )
+    return true
+}
+
 private func handleQueryFluxResponse(data: Data?, error: Error?, password: String) async {
     if let data = data {
         do {
             let response = try JSONDecoder().decode(LoginResponse.self, from: data)
             await MainActor.run {
-                guard !Task.isCancelled, let requestID = FluxRefreshOrdering.requestID,
-                      FluxRefreshOrdering.isCurrent(requestID) else { return }
-                AuthManager.shared.isCompletingOIDCLogin = false
-                if AuthManager.shared.getAccessToken() != nil {
-                    AuthManager.shared.markOIDCSessionValid()
-                }
-                guard AuthManager.shared.isSignedIn else {
-                    logger.debug("Ignoring late queryFlux success after sign-out")
-                    return
-                }
-                NotificationCenter.default.post(
-                    name: Notification.Name.loginsUpdated,
-                    object: response,
-                    userInfo: ["keysComplete": true]
-                )
-                if !password.isEmpty {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.loginsUpdated,
-                        object: nil,
-                        userInfo: ["updateKeychain": password]
-                    )
-                }
-                NotificationCenter.default.post(
-                    name: Notification.Name.dataUpdated,
-                    object: nil,
-                    userInfo: ["data": response, "refreshID": requestID]
-                )
+                guard let requestID = FluxRefreshOrdering.requestID else { return }
+                publishFluxResponse(response: response, requestID: requestID, password: password)
             }
         } catch {
             logger.error("JSON decode failed: \(error)")

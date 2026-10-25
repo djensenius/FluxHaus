@@ -43,6 +43,28 @@ class VisionOSTests: XCTestCase {
         XCTAssertTrue(FluxRefreshOrdering.isCurrent(nextPoll))
     }
 
+    @MainActor
+    func testReplacementRefreshPublishesLoadingAndDataNotifications() throws {
+        let auth = AuthManager.shared
+        let previousAuthState = auth.authState
+        auth.authState = .signedIn(method: .demo)
+        defer { auth.authState = previousAuthState }
+        let requestID = FluxRefreshOrdering.begin()
+        let notifications = NotificationCenter()
+        let keys = XCTNSNotificationExpectation(name: .loginsUpdated, object: nil, notificationCenter: notifications)
+        keys.handler = { $0.userInfo?["keysComplete"] as? Bool == true }
+        let data = XCTNSNotificationExpectation(name: .dataUpdated, object: nil, notificationCenter: notifications)
+        data.handler = { $0.userInfo?["refreshID"] as? UUID == requestID }
+        XCTAssertTrue(publishFluxResponse(
+            response: MockData.loginResponse, requestID: requestID, password: "", notifications: notifications
+        ))
+        wait(for: [keys, data], timeout: 1)
+        _ = FluxRefreshOrdering.begin()
+        XCTAssertFalse(publishFluxResponse(
+            response: MockData.loginResponse, requestID: requestID, password: "", notifications: notifications
+        ))
+    }
+
     func testCompletedMieleDoesNotRemainActiveWithRetainedTime() throws {
         for status in ["End programmed", "program_ended", "Off", "Idle", "Programmed", "waiting_to_start"] {
             let appliance = WasherDryer(name: "Washer", timeRunning: 59, timeRemaining: 1, status: status, inUse: true)
