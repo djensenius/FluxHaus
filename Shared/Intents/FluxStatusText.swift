@@ -28,6 +28,9 @@ enum FluxStatusText {
 
     static func robot(_ robot: Robot) -> String {
         let name = robot.name ?? "Robot"
+        guard robot.stateKnown != false else {
+            return "\(name) status isn't available right now."
+        }
         let state: String
         if robot.running == true {
             state = "running"

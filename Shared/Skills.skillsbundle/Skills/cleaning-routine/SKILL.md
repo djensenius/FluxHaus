@@ -8,7 +8,7 @@ description: Use when the person wants the FluxHaus Cleanbot robot vacuum to cle
 1. Check Cleanbot with the device status tool first.
 2. If the person only asked how the cleaning is going, reply with that status and stop. Don't start, stop, or restart anything.
 3. If the person asked to stop cleaning, use the stop robot tool, confirm it, and stop.
-4. If Cleanbot is already cleaning, tell the person what it's doing and ask before restarting it.
+4. If Cleanbot is already cleaning, tell the person what it's doing and ask before restarting it. If its status isn't available, say so and ask before starting.
 5. Otherwise choose one action:
    - Specific rooms: call the clean rooms tool once with every room the person mentioned. The supported rooms are Hallway, Kitchen, Bathroom, Living Room, Master Bedroom, and Office. Treat "bedroom" or "main bedroom" as Master Bedroom and "lounge" or "family room" as Living Room. If a room isn't supported, say so and clean the rest.
    - The whole home: use the start robot tool.

@@ -272,6 +272,15 @@ struct IOSAppIntentsTests {
         #expect(updated.transferText == "Dishwasher: Done in 20 minutes")
     }
 
+    @Test("Robot status says when Cleanbot's state is unknown instead of calling it idle")
+    func robotStatusReportsUnknownState() {
+        let offline = Robot(name: "Cleanbot", batteryLevel: 80, stateKnown: false)
+        #expect(FluxStatusText.robot(offline) == "Cleanbot status isn't available right now.")
+
+        let idle = Robot(name: "Cleanbot", batteryLevel: 80, stateKnown: true)
+        #expect(FluxStatusText.robot(idle) == "Cleanbot is idle at 80%.")
+    }
+
     @Test("Status text for Siri is one bounded line")
     func siriStatusIsOneBoundedLine() {
         #expect(DeviceAppEntity.siriStatus("  Locked.\n\tRange\u{0}  300 km \n") == "Locked. Range 300 km")
