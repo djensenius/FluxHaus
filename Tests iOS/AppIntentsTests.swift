@@ -263,13 +263,26 @@ struct IOSAppIntentsTests {
     @Test("Device status results carry the status without changing the original entity")
     func deviceStatusEntityCarriesStatus() {
         let device = DeviceAppEntity(kind: .dishwasher)
-        let updated = device.withStatus("Done in 20 minutes")
+        let updated = device.withStatus("Done in 20 minutes", session: "session-a")
 
         #expect(device.status == nil)
+        #expect(device.originSession == nil)
         #expect(device.transferText == "Dishwasher")
         #expect(updated.id == device.id)
         #expect(updated.status == "Done in 20 minutes")
+        #expect(updated.originSession == "session-a")
         #expect(updated.transferText == "Dishwasher: Done in 20 minutes")
+    }
+
+    @Test("Device card buttons refuse to act without the card's signed-in session")
+    func deviceCardActionsRequireOriginSession() async {
+        setSignedOut()
+        for action in [DeviceSnippetAction.lockCar, .startCarClimate, .startCleanbot, .stopCleanbot] {
+            let stale = DeviceSnippetActionIntent(action: action, originSession: "session-a")
+            await #expect(throws: IntentError.self) { _ = try await stale.perform() }
+            let unbound = DeviceSnippetActionIntent(action: action, originSession: "")
+            await #expect(throws: IntentError.self) { _ = try await unbound.perform() }
+        }
     }
 
     @Test("Robot status says when Cleanbot's state is unknown instead of calling it idle")
@@ -305,7 +318,7 @@ struct IOSAppIntentsTests {
         let long = DeviceAppEntity.siriStatus(String(repeating: "a", count: 500))
         #expect(long.count == DeviceAppEntity.maxStatusLength)
         #expect(long.hasSuffix("…"))
-        #expect(DeviceAppEntity(kind: .car).withStatus("Locked\nnow").status == "Locked now")
+        #expect(DeviceAppEntity(kind: .car).withStatus("Locked\nnow", session: nil).status == "Locked now")
     }
 
     @Test("Legacy robot device identifiers still resolve and keep their id with a status")
@@ -313,7 +326,7 @@ struct IOSAppIntentsTests {
         let results = try await DeviceEntityQuery().entities(for: ["broomBot", "mopBot"])
         #expect(results.map(\.id) == ["broomBot", "mopBot"])
         #expect(results.allSatisfy { $0.kind == .cleanBot })
-        #expect(results.first?.withStatus("Charging").id == "broomBot")
+        #expect(results.first?.withStatus("Charging", session: nil).id == "broomBot")
     }
 
     // MARK: - View annotations (Phase 3)

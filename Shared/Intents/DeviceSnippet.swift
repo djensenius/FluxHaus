@@ -5,6 +5,7 @@
 //  The card Siri shows for a FluxHaus device (iOS/visionOS 27.3 Siri AI). The system
 //  pre-renders snippets into a static archive, so the card reads only data that's
 //  already on the entity. Buttons run App Intents, after which Siri re-renders it.
+//  Buttons only appear on cards from Device Status and act for that card's account.
 //
 
 import AppIntents
@@ -40,30 +41,92 @@ struct DeviceSnippetCard: View {
 
     @ViewBuilder
     private var actions: some View {
-        switch device.kind {
-        case .car:
-            HStack {
-                Button(intent: LockCarIntent()) {
-                    Label("Lock", systemImage: "lock.fill")
+        if let session = device.originSession {
+            switch device.kind {
+            case .car:
+                HStack {
+                    button("Lock", systemImage: "lock.fill", action: .lockCar, session: session)
+                    button("Climate", systemImage: "fan.fill", action: .startCarClimate, session: session)
                 }
-                Button(intent: StartCarClimateIntent()) {
-                    Label("Climate", systemImage: "fan.fill")
+                .buttonStyle(.bordered)
+            case .cleanBot:
+                HStack {
+                    button("Start", systemImage: "play.fill", action: .startCleanbot, session: session)
+                    button("Stop", systemImage: "stop.fill", action: .stopCleanbot, session: session)
                 }
+                .buttonStyle(.bordered)
+            case .dishwasher, .washer, .dryer, .scooter, .airPurifier:
+                EmptyView()
             }
-            .buttonStyle(.bordered)
-        case .cleanBot:
-            HStack {
-                Button(intent: StartRobotIntent(robot: .cleanBot)) {
-                    Label("Start", systemImage: "play.fill")
-                }
-                Button(intent: StopRobotIntent(robot: .cleanBot)) {
-                    Label("Stop", systemImage: "stop.fill")
-                }
-            }
-            .buttonStyle(.bordered)
-        case .dishwasher, .washer, .dryer, .scooter, .airPurifier:
-            EmptyView()
         }
+    }
+
+    private func button(
+        _ title: LocalizedStringKey,
+        systemImage: String,
+        action: DeviceSnippetAction,
+        session: String
+    ) -> some View {
+        Button(intent: DeviceSnippetActionIntent(action: action, originSession: session)) {
+            Label(title, systemImage: systemImage)
+        }
+    }
+}
+
+enum DeviceSnippetAction: String, AppEnum {
+    case lockCar
+    case startCarClimate
+    case startCleanbot
+    case stopCleanbot
+
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Card Action"
+    static let caseDisplayRepresentations: [DeviceSnippetAction: DisplayRepresentation] = [
+        .lockCar: "Lock Car",
+        .startCarClimate: "Start Car Climate",
+        .startCleanbot: "Start Cleanbot",
+        .stopCleanbot: "Stop Cleanbot"
+    ]
+}
+
+/// Runs a device card button for the account the card was created under. Like the
+/// widgets' `WidgetCache.runCommand(expecting:)`, it refuses to send if another account
+/// is signed in, so a stale card can't control a different account's devices.
+struct DeviceSnippetActionIntent: AppIntent {
+    static let title: LocalizedStringResource = "Device Card Action"
+    static let description = IntentDescription("Runs a button on a FluxHaus device card.")
+    static let isDiscoverable = false
+
+    @Parameter(title: "Action")
+    var action: DeviceSnippetAction
+
+    @Parameter(title: "Session")
+    var originSession: String
+
+    init() {}
+
+    init(action: DeviceSnippetAction, originSession: String) {
+        self.action = action
+        self.originSession = originSession
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        let origin = originSession
+        guard !origin.isEmpty else { throw IntentError.notSignedIn }
+        let isStillValid: @Sendable () -> Bool = { AuthManager.shared.widgetSessionID() == origin }
+        switch action {
+        case .lockCar:
+            try await FluxIntentActions.lockCar(isStillValid: isStillValid)
+        case .startCarClimate:
+            try await FluxIntentActions.startCarClimate(
+                defrost: false, heatedFeatures: false, temperature: nil, isStillValid: isStillValid
+            )
+        case .startCleanbot:
+            try await FluxIntentActions.startRobot(.cleanBot, isStillValid: isStillValid)
+        case .stopCleanbot:
+            try await FluxIntentActions.stopRobot(.cleanBot, isStillValid: isStillValid)
+        }
+        return .result()
     }
 }
 

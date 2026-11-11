@@ -107,6 +107,10 @@ struct DeviceAppEntity: IndexedEntity {
     @Property(title: "Status")
     var status: String?
 
+    /// The account session the status was fetched under, so the card's buttons can't act
+    /// for a different account (see `DeviceSnippetActionIntent`). Not exposed to Siri.
+    let originSession: String?
+
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Device"
 
     var displayRepresentation: DisplayRepresentation {
@@ -119,12 +123,13 @@ struct DeviceAppEntity: IndexedEntity {
     static let defaultQuery = DeviceEntityQuery()
 
     init(kind: DeviceKind) {
-        self.init(id: kind.rawValue, kind: kind, status: nil)
+        self.init(id: kind.rawValue, kind: kind, status: nil, originSession: nil)
     }
 
-    private init(id: String, kind: DeviceKind, status: String?) {
+    private init(id: String, kind: DeviceKind, status: String?, originSession: String?) {
         self.id = id
         self.kind = kind
+        self.originSession = originSession
         self.name = kind.displayName
         self.searchableAliases = kind.searchTerms.joined(separator: "\n")
         self.status = status
@@ -142,12 +147,12 @@ struct DeviceAppEntity: IndexedEntity {
             outputId = id
         }
         guard let kind = DeviceKind(rawValue: normalizedId) else { return nil }
-        self.init(id: outputId, kind: kind, status: nil)
+        self.init(id: outputId, kind: kind, status: nil, originSession: nil)
     }
 
     /// Returns a new entity because `@Property` storage is shared between copies.
-    func withStatus(_ status: String) -> DeviceAppEntity {
-        DeviceAppEntity(id: id, kind: kind, status: Self.siriStatus(status))
+    func withStatus(_ status: String, session: String?) -> DeviceAppEntity {
+        DeviceAppEntity(id: id, kind: kind, status: Self.siriStatus(status), originSession: session)
     }
 
     static let maxStatusLength = 300
@@ -275,8 +280,12 @@ struct DeviceStatusIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ReturnsValue<DeviceAppEntity> & ProvidesDialog {
+        try await requireIntentAuthentication()
+        let session = AuthManager.shared.widgetSessionID()
         let response = try await fetchStatus()
         let status = DeviceAppEntity.siriStatus(device.kind.status(from: response))
-        return .result(value: device.withStatus(status), dialog: "\(status)")
+        // Only bind the card to the session if the account didn't change during the fetch.
+        let origin = AuthManager.shared.widgetSessionID() == session ? session : nil
+        return .result(value: device.withStatus(status, session: origin), dialog: "\(status)")
     }
 }
