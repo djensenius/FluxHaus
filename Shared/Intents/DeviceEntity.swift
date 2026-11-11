@@ -15,6 +15,7 @@
 
 import AppIntents
 import CoreSpotlight
+import CoreTransferable
 import os
 
 /// The fixed set of FluxHaus devices that can be queried by name.
@@ -101,6 +102,11 @@ struct DeviceAppEntity: IndexedEntity {
     @Property(title: "Search Aliases", indexingKey: \.textContent)
     var searchableAliases: String
 
+    /// Live status text. Only set on entities returned by Device Status; it isn't
+    /// indexed because it goes stale.
+    @Property(title: "Status")
+    var status: String?
+
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Device"
 
     var displayRepresentation: DisplayRepresentation {
@@ -113,10 +119,15 @@ struct DeviceAppEntity: IndexedEntity {
     static let defaultQuery = DeviceEntityQuery()
 
     init(kind: DeviceKind) {
-        self.id = kind.rawValue
+        self.init(id: kind.rawValue, kind: kind, status: nil)
+    }
+
+    private init(id: String, kind: DeviceKind, status: String?) {
+        self.id = id
         self.kind = kind
         self.name = kind.displayName
         self.searchableAliases = kind.searchTerms.joined(separator: "\n")
+        self.status = status
     }
 
     init?(id: String) {
@@ -131,10 +142,24 @@ struct DeviceAppEntity: IndexedEntity {
             outputId = id
         }
         guard let kind = DeviceKind(rawValue: normalizedId) else { return nil }
-        self.id = outputId
-        self.kind = kind
-        self.name = kind.displayName
-        self.searchableAliases = kind.searchTerms.joined(separator: "\n")
+        self.init(id: outputId, kind: kind, status: nil)
+    }
+
+    /// Returns a new entity because `@Property` storage is shared between copies.
+    func withStatus(_ status: String) -> DeviceAppEntity {
+        DeviceAppEntity(id: id, kind: kind, status: status)
+    }
+
+    /// Plain-text summary used when Siri shares or passes the device to another app.
+    var transferText: String {
+        guard let status else { return name }
+        return "\(name): \(status)"
+    }
+}
+
+extension DeviceAppEntity: Transferable {
+    static var transferRepresentation: some TransferRepresentation {
+        ProxyRepresentation { (device: DeviceAppEntity) in device.transferText }
     }
 }
 
@@ -221,17 +246,24 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
 
 struct DeviceStatusIntent: AppIntent {
     static let title: LocalizedStringResource = "Device Status"
-    static let description = IntentDescription("Get the status of a FluxHaus device.")
+    static let description = IntentDescription(
+        "Get a FluxHaus device's live status, like car charge and locks, Cleanbot progress, or appliance time left."
+    )
 
-    @Parameter(title: "Device", requestValueDialog: "Which FluxHaus device?")
+    @Parameter(
+        title: "Device",
+        description: "The device to check: car, Cleanbot, dishwasher, washer, dryer, scooter, or air purifier.",
+        requestValueDialog: "Which FluxHaus device?"
+    )
     var device: DeviceAppEntity
 
     static var parameterSummary: some ParameterSummary {
         Summary("Get the status of \(\.$device)")
     }
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<DeviceAppEntity> & ProvidesDialog {
         let response = try await fetchStatus()
-        return .result(dialog: "\(device.kind.status(from: response))")
+        let status = device.kind.status(from: response)
+        return .result(value: device.withStatus(status), dialog: "\(status)")
     }
 }

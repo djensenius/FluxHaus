@@ -60,6 +60,10 @@ struct IOSAppIntentsTests {
         let cleanRoom = CleanRoomIntent()
         cleanRoom.room = .kitchen
         await #expect(throws: IntentError.self) { _ = try await cleanRoom.perform() }
+
+        let cleanRooms = CleanRoomsIntent()
+        cleanRooms.rooms = [.kitchen, .hallway]
+        await #expect(throws: IntentError.self) { _ = try await cleanRooms.perform() }
     }
 
     @MainActor
@@ -72,6 +76,29 @@ struct IOSAppIntentsTests {
         let robots = Robots()
         let uiBody = robots.cleanRoomBody(room)
         #expect((uiBody["segments"] as? [Int]) == [9])
+    }
+
+    @Test("Multi-room payload drops repeats and keeps the requested order")
+    func cleanRoomsPayloadDedupes() {
+        let body = FluxIntentActions.cleanRoomsBody([.hallway, .kitchen, .hallway])
+        #expect((body["rooms"] as? [String]) == ["Hallway", "Kitchen"])
+    }
+
+    @MainActor
+    @Test("Clean Rooms asks which rooms instead of starting with an empty list")
+    func cleanRoomsRequiresRooms() async {
+        let intent = CleanRoomsIntent()
+        intent.rooms = []
+        let error = await #expect(throws: (any Error).self) { _ = try await intent.perform() }
+        #expect(!(error is IntentError))
+    }
+
+    @Test("Device authentication covers Unlock Car and every Set Car Lock run, not Lock Car")
+    func carLockIntentsAuthenticationPolicy() {
+        #expect(UnlockCarIntent.authenticationPolicy == .requiresLocalDeviceAuthentication)
+        #expect(SetCarLockIntent.authenticationPolicy == .requiresLocalDeviceAuthentication)
+        #expect(LockCarIntent.authenticationPolicy != .requiresLocalDeviceAuthentication)
+        #expect(StartCarClimateIntent.authenticationPolicy != .requiresLocalDeviceAuthentication)
     }
 
     @MainActor
@@ -226,6 +253,26 @@ struct IOSAppIntentsTests {
         let intent = DeviceStatusIntent()
         intent.device = DeviceAppEntity(kind: .car)
         await #expect(throws: IntentError.self) { _ = try await intent.perform() }
+    }
+
+    @Test("Device status results carry the status without changing the original entity")
+    func deviceStatusEntityCarriesStatus() {
+        let device = DeviceAppEntity(kind: .dishwasher)
+        let updated = device.withStatus("Done in 20 minutes")
+
+        #expect(device.status == nil)
+        #expect(device.transferText == "Dishwasher")
+        #expect(updated.id == device.id)
+        #expect(updated.status == "Done in 20 minutes")
+        #expect(updated.transferText == "Dishwasher: Done in 20 minutes")
+    }
+
+    @Test("Legacy robot device identifiers still resolve and keep their id with a status")
+    func legacyRobotDeviceIdentifiersResolve() async throws {
+        let results = try await DeviceEntityQuery().entities(for: ["broomBot", "mopBot"])
+        #expect(results.map(\.id) == ["broomBot", "mopBot"])
+        #expect(results.allSatisfy { $0.kind == .cleanBot })
+        #expect(results.first?.withStatus("Charging").id == "broomBot")
     }
 
     // MARK: - View annotations (Phase 3)

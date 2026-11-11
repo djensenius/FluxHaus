@@ -164,11 +164,25 @@ enum FluxIntentActions {
     }
 
     static func cleanRoomBody(_ room: CleanbotRoom) -> [String: Any] {
-        ["rooms": [room.displayName]]
+        cleanRoomsBody([room])
+    }
+
+    static func cleanRoomsBody(_ rooms: [CleanbotRoom]) -> [String: Any] {
+        ["rooms": uniqueRooms(rooms).map(\.displayName)]
+    }
+
+    /// Removes repeated rooms while keeping the order the person asked for them in.
+    static func uniqueRooms(_ rooms: [CleanbotRoom]) -> [CleanbotRoom] {
+        var seen = Set<CleanbotRoom>()
+        return rooms.filter { seen.insert($0).inserted }
     }
 
     static func cleanRoom(_ room: CleanbotRoom) async throws {
-        try await post(path: "/cleanbot/rooms", body: cleanRoomBody(room))
+        try await cleanRooms([room])
+    }
+
+    static func cleanRooms(_ rooms: [CleanbotRoom]) async throws {
+        try await post(path: "/cleanbot/rooms", body: cleanRoomsBody(rooms))
     }
 
     // MARK: - Car
