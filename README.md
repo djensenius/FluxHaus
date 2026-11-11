@@ -55,6 +55,9 @@ FluxHaus opts into the 27.3 Siri AI developer preview:
   Clean Room action stay App Shortcuts only, so Siri doesn't see duplicate tools.
 - **Device results** — Device Status returns the `DeviceAppEntity` with a `status`
   property, which Siri can show as a card (`DeviceSnippet.swift`) or share as text.
+  Status text is a single line of up to 300 characters. Names that come from the server
+  (robot, room, program, step, mode) are limited to letters, numbers, and a few
+  symbols, with a maximum of 40 characters.
 - **App skills** — `Shared/Skills.skillsbundle` contains instructions for leaving home,
   preparing the car, cleaning, and laundry/dishes.
 
