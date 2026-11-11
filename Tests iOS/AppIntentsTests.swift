@@ -12,8 +12,13 @@
 
 import Testing
 import AppIntents
+import Foundation
 @testable import FluxHaus
 
+@Suite(.disabled(
+    if: ProcessInfo.processInfo.environment["FLUXHAUS_SIRI_EVALUATIONS"] == "1",
+    "Signs the app out, which breaks live Siri evaluations"
+))
 struct IOSAppIntentsTests {
     private func setSignedOut() {
         AuthManager.shared.authState = .signedOut
@@ -265,6 +270,16 @@ struct IOSAppIntentsTests {
         #expect(updated.id == device.id)
         #expect(updated.status == "Done in 20 minutes")
         #expect(updated.transferText == "Dishwasher: Done in 20 minutes")
+    }
+
+    @Test("Status text for Siri is one bounded line")
+    func siriStatusIsOneBoundedLine() {
+        #expect(DeviceAppEntity.siriStatus("  Locked.\n\tRange\u{0}  300 km \n") == "Locked. Range 300 km")
+
+        let long = DeviceAppEntity.siriStatus(String(repeating: "a", count: 500))
+        #expect(long.count == DeviceAppEntity.maxStatusLength)
+        #expect(long.hasSuffix("…"))
+        #expect(DeviceAppEntity(kind: .car).withStatus("Locked\nnow").status == "Locked now")
     }
 
     @Test("Legacy robot device identifiers still resolve and keep their id with a status")

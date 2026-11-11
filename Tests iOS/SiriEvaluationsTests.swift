@@ -116,6 +116,7 @@ struct FluxHausSiriEvaluationTests {
     func siriLoadsFluxHausSkills() {
         let result = EvaluationContext.current.result
         #expect(result.aggregateValue(.mean(of: .skillsLoadedPass)) == 1)
+        #expect(result.aggregateValue(.mean(of: .intentsAllPass)) == 1)
     }
 }
 #endif

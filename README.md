@@ -68,7 +68,8 @@ internal TestFlight builds.
 `Tests iOS/SiriEvaluationsTests.swift` (compiled only when the SiriEvaluations
 framework is available) checks that Siri picks the right tools and skills. It needs a
 27.3 device with Apple Intelligence, a signed-in FluxHaus, and
-`FLUXHAUS_SIRI_EVALUATIONS=1` in the test scheme's environment.
+`FLUXHAUS_SIRI_EVALUATIONS=1` in the test scheme's environment. With that variable set,
+`IOSAppIntentsTests` is skipped because it signs the app out.
 
 ### Adding a new intent
 

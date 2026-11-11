@@ -147,7 +147,20 @@ struct DeviceAppEntity: IndexedEntity {
 
     /// Returns a new entity because `@Property` storage is shared between copies.
     func withStatus(_ status: String) -> DeviceAppEntity {
-        DeviceAppEntity(id: id, kind: kind, status: status)
+        DeviceAppEntity(id: id, kind: kind, status: Self.siriStatus(status))
+    }
+
+    static let maxStatusLength = 300
+
+    /// Status text comes from the server and goes into Siri's context, so keep it to
+    /// one line of bounded length.
+    static func siriStatus(_ text: String) -> String {
+        let line = text
+            .components(separatedBy: CharacterSet.whitespacesAndNewlines.union(.controlCharacters))
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        guard line.count > maxStatusLength else { return line }
+        return String(line.prefix(maxStatusLength - 1)) + "…"
     }
 
     /// Plain-text summary used when Siri shares or passes the device to another app.
@@ -263,7 +276,7 @@ struct DeviceStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<DeviceAppEntity> & ProvidesDialog {
         let response = try await fetchStatus()
-        let status = device.kind.status(from: response)
+        let status = DeviceAppEntity.siriStatus(device.kind.status(from: response))
         return .result(value: device.withStatus(status), dialog: "\(status)")
     }
 }
