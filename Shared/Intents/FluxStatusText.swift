@@ -19,10 +19,15 @@ enum FluxStatusText {
     /// one to a short phrase without sentence punctuation that could carry a separate instruction.
     static func label(_ raw: String?) -> String? {
         guard let raw else { return nil }
-        let characters = raw.unicodeScalars.map { labelCharacters.contains($0) ? Character($0) : " " }
-        let text = String(characters).split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        let text = filtered(raw, allowing: labelCharacters)
         guard !text.isEmpty else { return nil }
         return String(text.prefix(maxLabelLength)).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Replaces characters outside `allowed` with spaces and collapses the result to one line.
+    static func filtered(_ text: String, allowing allowed: CharacterSet) -> String {
+        let characters = text.unicodeScalars.map { allowed.contains($0) ? Character($0) : " " }
+        return String(characters).split(whereSeparator: \.isWhitespace).joined(separator: " ")
     }
 
     static func car(_ response: LoginResponse) -> String {
@@ -49,10 +54,12 @@ enum FluxStatusText {
         let state: String
         if robot.running == true {
             state = "running"
-        } else if robot.docking == true || robot.charging == true {
-            state = "charging at the dock"
         } else if robot.paused == true {
             state = "paused"
+        } else if robot.docking == true {
+            state = "returning to the dock"
+        } else if robot.charging == true {
+            state = "charging at the dock"
         } else {
             state = "idle"
         }

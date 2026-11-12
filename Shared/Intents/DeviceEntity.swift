@@ -156,14 +156,14 @@ struct DeviceAppEntity: IndexedEntity {
     }
 
     static let maxStatusLength = 300
+    private static let statusCharacters = CharacterSet.alphanumerics
+        .union(.whitespaces)
+        .union(CharacterSet(charactersIn: ".,:;'’%°()/-+&…"))
 
-    /// Status text comes from the server and goes into Siri's context, so keep it to
-    /// one line of bounded length.
+    /// Status text includes server data and goes into Siri's context, so keep it to one
+    /// bounded line of letters, numbers, and plain sentence punctuation.
     static func siriStatus(_ text: String) -> String {
-        let line = text
-            .components(separatedBy: CharacterSet.whitespacesAndNewlines.union(.controlCharacters))
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
+        let line = FluxStatusText.filtered(text, allowing: statusCharacters)
         guard line.count > maxStatusLength else { return line }
         return String(line.prefix(maxStatusLength - 1)) + "…"
     }

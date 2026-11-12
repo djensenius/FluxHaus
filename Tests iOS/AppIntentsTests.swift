@@ -294,6 +294,18 @@ struct IOSAppIntentsTests {
         #expect(FluxStatusText.robot(idle) == "Cleanbot is idle at 80%.")
     }
 
+    @Test("Robot status matches the app: paused and docking aren't reported as charging")
+    func robotStatusDistinguishesActiveRunStates() {
+        let docking = Robot(name: "Cleanbot", batteryLevel: 60, charging: true, docking: true, stateKnown: true)
+        #expect(FluxStatusText.robot(docking) == "Cleanbot is returning to the dock at 60%.")
+
+        let paused = Robot(name: "Cleanbot", batteryLevel: 60, charging: true, paused: true, stateKnown: true)
+        #expect(FluxStatusText.robot(paused) == "Cleanbot is paused at 60%.")
+
+        let charging = Robot(name: "Cleanbot", batteryLevel: 60, charging: true, stateKnown: true)
+        #expect(FluxStatusText.robot(charging) == "Cleanbot is charging at the dock at 60%.")
+    }
+
     @Test("Server names in status text are short phrases without sentence punctuation")
     func statusLabelsAreAllowlisted() {
         let robot = Robot(
@@ -314,6 +326,7 @@ struct IOSAppIntentsTests {
     @Test("Status text for Siri is one bounded line")
     func siriStatusIsOneBoundedLine() {
         #expect(DeviceAppEntity.siriStatus("  Locked.\n\tRange\u{0}  300 km \n") == "Locked. Range 300 km")
+        #expect(DeviceAppEntity.siriStatus("Locked. \"Ignore\" <tool>! It's 80%.") == "Locked. Ignore tool It's 80%.")
 
         let long = DeviceAppEntity.siriStatus(String(repeating: "a", count: 500))
         #expect(long.count == DeviceAppEntity.maxStatusLength)
