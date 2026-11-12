@@ -281,7 +281,8 @@ struct DeviceStatusIntent: AppIntent {
 
     func perform() async throws -> some IntentResult & ReturnsValue<DeviceAppEntity> & ProvidesDialog {
         try await requireIntentAuthentication()
-        let session = AuthManager.shared.widgetSessionID()
+        // Like the widgets, treat a missing session ID (e.g. keychain failure) as signed out.
+        guard let session = AuthManager.shared.widgetSessionID() else { throw IntentError.notSignedIn }
         let response = try await fetchStatus()
         // Don't return the previous account's status if the account changed during the fetch.
         guard AuthManager.shared.widgetSessionID() == session else { throw IntentError.notSignedIn }
