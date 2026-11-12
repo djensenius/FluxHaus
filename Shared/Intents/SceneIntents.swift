@@ -89,7 +89,7 @@ struct ActivateSceneIntent: AppIntent {
     static let title: LocalizedStringResource = "Activate Scene"
     static let description = IntentDescription("Activate a FluxHaus HomeKit scene.")
 
-    @Parameter(title: "Scene")
+    @Parameter(title: "Scene", description: "The HomeKit scene to run, such as Good Morning or Leaving Home.")
     var scene: SceneAppEntity
 
     static var parameterSummary: some ParameterSummary {

@@ -2,7 +2,8 @@
 //  CarIntents.swift
 //  FluxHaus
 //
-//  App Intents for controlling the FluxHaus car.
+//  App Intents for controlling the FluxHaus car. Siri AI tool conformances are in
+//  SiriTools.swift.
 //
 
 import AppIntents
@@ -46,8 +47,14 @@ enum CarLockAction: String, AppEnum {
 struct SetCarLockIntent: AppIntent {
     static let title: LocalizedStringResource = "Set Car Lock"
     static let description = IntentDescription("Lock or unlock the FluxHaus car.")
+    // Unlocking is possible here, so require Face ID / passcode on this device.
+    static let authenticationPolicy: IntentAuthenticationPolicy = .requiresLocalDeviceAuthentication
 
-    @Parameter(title: "Action", requestValueDialog: "Do you want to lock or unlock the car?")
+    @Parameter(
+        title: "Action",
+        description: "Whether to lock or unlock the car's doors.",
+        requestValueDialog: "Do you want to lock or unlock the car?"
+    )
     var action: CarLockAction
 
     static var parameterSummary: some ParameterSummary {
@@ -73,10 +80,18 @@ struct AnalyzeCarUsageIntent: AppIntent {
         "Analyze charging, distance, efficiency, and weather impact for the FluxHaus car."
     )
 
-    @Parameter(title: "Period", default: .month)
+    @Parameter(
+        title: "Period",
+        description: "How far back to analyze driving and charging history. Defaults to the last 30 days.",
+        default: .month
+    )
     var range: CarAnalyticsRange
 
-    @Parameter(title: "Insight", default: .overview)
+    @Parameter(
+        title: "Insight",
+        description: "Which insight to report: overview, charging, efficiency, weather impact, or period comparison.",
+        default: .overview
+    )
     var topic: CarAnalyticsTopic
 
     static var parameterSummary: some ParameterSummary {
@@ -94,7 +109,7 @@ struct AnalyzeCarUsageIntent: AppIntent {
 
 struct LockCarIntent: AppIntent {
     static let title: LocalizedStringResource = "Lock Car"
-    static let description = IntentDescription("Lock the FluxHaus car.")
+    static let description = IntentDescription("Lock the FluxHaus car's doors.")
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
@@ -105,7 +120,8 @@ struct LockCarIntent: AppIntent {
 
 struct UnlockCarIntent: AppIntent {
     static let title: LocalizedStringResource = "Unlock Car"
-    static let description = IntentDescription("Unlock the FluxHaus car.")
+    static let description = IntentDescription("Unlock the FluxHaus car's doors.")
+    static let authenticationPolicy: IntentAuthenticationPolicy = .requiresLocalDeviceAuthentication
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
@@ -116,15 +132,28 @@ struct UnlockCarIntent: AppIntent {
 
 struct StartCarClimateIntent: AppIntent {
     static let title: LocalizedStringResource = "Start Car Climate"
-    static let description = IntentDescription("Start climate control in the FluxHaus car.")
+    static let description = IntentDescription(
+        "Start climate control in the FluxHaus car to warm it up or cool it down before driving."
+    )
 
-    @Parameter(title: "Defrost", default: false)
+    @Parameter(
+        title: "Defrost",
+        description: "Turn on the window defroster. Useful when it's near or below freezing.",
+        default: false
+    )
     var defrost: Bool
 
-    @Parameter(title: "Heated Features", default: false)
+    @Parameter(
+        title: "Heated Features",
+        description: "Turn on the heated steering wheel.",
+        default: false
+    )
     var heatedFeatures: Bool
 
-    @Parameter(title: "Temperature")
+    @Parameter(
+        title: "Temperature",
+        description: "Target cabin temperature in whole degrees Celsius (16-28). Omit to keep the car's last setting."
+    )
     var temperature: Int?
 
     static var parameterSummary: some ParameterSummary {
