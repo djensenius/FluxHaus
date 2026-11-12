@@ -283,9 +283,9 @@ struct DeviceStatusIntent: AppIntent {
         try await requireIntentAuthentication()
         let session = AuthManager.shared.widgetSessionID()
         let response = try await fetchStatus()
+        // Don't return the previous account's status if the account changed during the fetch.
+        guard AuthManager.shared.widgetSessionID() == session else { throw IntentError.notSignedIn }
         let status = DeviceAppEntity.siriStatus(device.kind.status(from: response))
-        // Only bind the card to the session if the account didn't change during the fetch.
-        let origin = AuthManager.shared.widgetSessionID() == session ? session : nil
-        return .result(value: device.withStatus(status, session: origin), dialog: "\(status)")
+        return .result(value: device.withStatus(status, session: session), dialog: "\(status)")
     }
 }
