@@ -47,12 +47,16 @@ struct SetThermostatIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
         try Self.validate(mode: mode, temperature: temperature)
+        // Both requests go to the account signed in when this started, or neither is sent.
+        let isStillValid = Thermostat.currentSessionCheck()
         var state: IndoorClimateState?
         if let mode {
-            state = try await FluxIntentActions.controlThermostat(.setMode(mode.rawValue))
+            state = try await FluxIntentActions.controlThermostat(.setMode(mode.rawValue), isStillValid: isStillValid)
         }
         if let temperature, mode != .off {
-            state = try await FluxIntentActions.controlThermostat(.setTemperature(temperature)) ?? state
+            state = try await FluxIntentActions.controlThermostat(
+                .setTemperature(temperature), isStillValid: isStillValid
+            ) ?? state
         }
         await donateIntent(self)
         return .result(dialog: "\(Self.dialog(mode: mode, temperature: temperature, state: state))")

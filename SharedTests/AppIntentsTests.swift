@@ -173,3 +173,28 @@ struct AppIntentsTests {
         #expect(CarAnalyticsRange.all.spokenLabel == "all retained history")
     }
 }
+
+struct ThermostatIntentTests {
+    @Test("Shortcut dialog describes what was changed")
+    func testDialog() {
+        let state = IndoorClimateState(unit: "°C", sensors: [])
+        let target = IndoorClimateFormat.temperature(21, unit: "°C", precise: false)
+        #expect(SetThermostatIntent.dialog(mode: .heat, temperature: 21, state: state)
+            == "Setting the thermostat to Heat at \(target).")
+        #expect(SetThermostatIntent.dialog(mode: nil, temperature: 21, state: state)
+            == "Setting the thermostat to \(target).")
+        #expect(SetThermostatIntent.dialog(mode: .auto, temperature: nil, state: nil)
+            == "Setting the thermostat to Auto.")
+        #expect(SetThermostatIntent.dialog(mode: .off, temperature: 21, state: state)
+            == "Turning the thermostat off.")
+    }
+
+    @Test("Shortcuts reject requests the server would refuse before sending anything")
+    func testValidation() throws {
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: nil, temperature: nil) }
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: .auto, temperature: 21) }
+        try SetThermostatIntent.validate(mode: .auto, temperature: nil)
+        try SetThermostatIntent.validate(mode: .heat, temperature: 21)
+        try SetThermostatIntent.validate(mode: nil, temperature: 21)
+    }
+}

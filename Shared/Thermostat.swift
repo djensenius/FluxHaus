@@ -154,8 +154,9 @@ enum ThermostatSetpoint {
 
     /// Debounce timer for unsent setpoint edits.
     @ObservationIgnored private var commitTask: Task<Void, Never>?
-    /// Whether the pending setpoint has edits that haven't been queued yet.
-    @ObservationIgnored private var hasUnsentSetpoint = false
+    /// The kind of setpoint edited since it was last queued. A range still on its way
+    /// can outlive a switch to a single-setpoint mode, so the edit decides what is sent.
+    @ObservationIgnored private var unsentSetpoint: SetpointKind?
     /// The last queued command. Commands run one at a time in the order the user
     /// made them, so the thermostat ends up in the last state chosen.
     @ObservationIgnored private var queueTail: Task<Void, Never>?
@@ -230,7 +231,7 @@ enum ThermostatSetpoint {
     func nudgeTarget(by steps: Int) {
         guard canControl, let current = target else { return }
         pendingTarget = ThermostatSetpoint.adjust(current, by: steps, step: step, bounds: bounds)
-        scheduleSetpointCommit()
+        scheduleSetpointCommit(.single)
     }
 
     func nudgeLow(by steps: Int) {
@@ -238,7 +239,7 @@ enum ThermostatSetpoint {
         let ceiling = max(bounds.lowerBound, high - step)
         pendingLow = ThermostatSetpoint.adjust(low, by: steps, step: step, bounds: bounds.lowerBound...ceiling)
         pendingHigh = high
-        scheduleSetpointCommit()
+        scheduleSetpointCommit(.range)
     }
 
     func nudgeHigh(by steps: Int) {
@@ -246,11 +247,11 @@ enum ThermostatSetpoint {
         let floor = min(bounds.upperBound, low + step)
         pendingHigh = ThermostatSetpoint.adjust(high, by: steps, step: step, bounds: floor...bounds.upperBound)
         pendingLow = low
-        scheduleSetpointCommit()
+        scheduleSetpointCommit(.range)
     }
 
-    private func scheduleSetpointCommit() {
-        hasUnsentSetpoint = true
+    private func scheduleSetpointCommit(_ kind: SetpointKind) {
+        unsentSetpoint = kind
         commitTask?.cancel()
         let delay = setpointDelay
         commitTask = Task { [weak self] in
@@ -264,12 +265,13 @@ enum ThermostatSetpoint {
     private func queueSetpoint() {
         commitTask?.cancel()
         commitTask = nil
-        guard hasUnsentSetpoint else { return }
-        hasUnsentSetpoint = false
-        if let low = pendingLow, let high = pendingHigh {
-            enqueue(.setRange(low: low, high: high))
-        } else if let target = pendingTarget {
-            enqueue(.setTemperature(target))
+        guard let kind = unsentSetpoint else { return }
+        unsentSetpoint = nil
+        switch kind {
+        case .range:
+            if let low = pendingLow, let high = pendingHigh { enqueue(.setRange(low: low, high: high)) }
+        case .single:
+            if let target = pendingTarget { enqueue(.setTemperature(target)) }
         }
     }
 
@@ -313,7 +315,7 @@ enum ThermostatSetpoint {
         // An unsent setpoint would create a new hold right after resuming.
         commitTask?.cancel()
         commitTask = nil
-        hasUnsentSetpoint = false
+        unsentSetpoint = nil
         pendingTarget = nil
         pendingLow = nil
         pendingHigh = nil
@@ -382,7 +384,7 @@ enum ThermostatSetpoint {
         isInvalidated = true
         commitTask?.cancel()
         commitTask = nil
-        hasUnsentSetpoint = false
+        unsentSetpoint = nil
         pendingTarget = nil
         pendingLow = nil
         pendingHigh = nil
@@ -423,4 +425,6 @@ enum ThermostatSetpoint {
     private static func cleared<Value: Equatable>(_ pending: Value?, sent: Value) -> Value? {
         pending == sent ? nil : pending
     }
+
+    private enum SetpointKind { case single, range }
 }

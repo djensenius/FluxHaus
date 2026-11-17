@@ -49,7 +49,7 @@ Intent definitions live in `Shared/Intents/`:
 - **Robots** — start, stop, and deep clean (Cleanbot)
 - **Car** — lock, unlock, start/stop climate (defrost, heated features, temperature), and resync
 - **Scenes** — activate a HomeKit scene (the scene list is provided dynamically)
-- **Thermostat** — set the temperature and/or mode, and resume the schedule (Shortcuts actions only, no Siri phrase)
+- **Thermostat** — set the temperature and/or mode, and resume the schedule (Shortcuts actions only, no Siri phrase); if the account changes partway, the rest isn't sent
 - **Status** — car, robot, dishwasher, and scooter status queries
 - **Ask FluxHaus** — a free-text question routed to the FluxHaus AI assistant
 

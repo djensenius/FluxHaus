@@ -95,28 +95,6 @@ struct ThermostatSetpointTests {
         #expect(ThermostatLabels.preset("Work From Home") == "Work From Home")
     }
 
-    @Test("Shortcut dialog describes what was changed")
-    func testIntentDialog() {
-        let state = IndoorClimateState(unit: "°C", sensors: [])
-        let target = IndoorClimateFormat.temperature(21, unit: "°C", precise: false)
-        #expect(SetThermostatIntent.dialog(mode: .heat, temperature: 21, state: state)
-            == "Setting the thermostat to Heat at \(target).")
-        #expect(SetThermostatIntent.dialog(mode: nil, temperature: 21, state: state)
-            == "Setting the thermostat to \(target).")
-        #expect(SetThermostatIntent.dialog(mode: .auto, temperature: nil, state: nil)
-            == "Setting the thermostat to Auto.")
-        #expect(SetThermostatIntent.dialog(mode: .off, temperature: 21, state: state)
-            == "Turning the thermostat off.")
-    }
-
-    @Test("Shortcuts reject requests the server would refuse before sending anything")
-    func testIntentValidation() throws {
-        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: nil, temperature: nil) }
-        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: .auto, temperature: 21) }
-        try SetThermostatIntent.validate(mode: .auto, temperature: nil)
-        try SetThermostatIntent.validate(mode: .heat, temperature: 21)
-        try SetThermostatIntent.validate(mode: nil, temperature: 21)
-    }
 }
 
 /// Stands in for the signed-in session; tests flip it to simulate another account signing in.
@@ -188,12 +166,12 @@ private struct SendFailure: LocalizedError {
     var errorDescription: String? { "Thermostat unavailable" }
 }
 
-private func autoState(low: Double, high: Double) -> IndoorClimateState {
+private func autoState(low: Double, high: Double, target: Double? = nil) -> IndoorClimateState {
     IndoorClimateState(
         timestamp: "2099-01-01T00:00:00Z",
         unit: "°C",
         thermostat: ThermostatStatus(
-            entityId: "climate.home", hvacMode: "heat_cool",
+            entityId: "climate.home", hvacMode: "heat_cool", targetTemperature: target,
             targetTemperatureLow: low, targetTemperatureHigh: high, targetTempStep: 0.5
         ),
         sensors: []
@@ -316,6 +294,29 @@ struct ThermostatControllerTests {
         await modeChange.value
         await leaving.value
         #expect(recorder.sent == [.setTemperature(22), .setMode("cool"), .setTemperature(22.5)])
+    }
+
+    @Test("A temperature set while an Auto range is still on its way is sent as a temperature")
+    func testTargetAfterRange() async {
+        let recorder = CommandRecorder()
+        recorder.reply = { $0 == .setMode("heat_cool") ? autoState(low: 20, high: 24, target: 22) : nil }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+        recorder.holdsRequests = true
+        thermostat.nudgeLow(by: -1)
+        let heat = Task { await thermostat.setMode("heat") }
+        await recorder.waitUntilHeld(.setRange(low: 19.5, high: 24))
+
+        thermostat.nudgeTarget(by: 1)
+        let leaving = Task { await thermostat.commitSetpoint() }
+        await recorder.release(.setRange(low: 19.5, high: 24))
+        await recorder.release(.setMode("heat"))
+        await recorder.release(.setTemperature(22.5))
+        await heat.value
+        await leaving.value
+        #expect(recorder.sent == [
+            .setMode("heat_cool"), .setRange(low: 19.5, high: 24), .setMode("heat"), .setTemperature(22.5)
+        ])
     }
 
     @Test("Quick selections are applied one at a time in the order chosen")
