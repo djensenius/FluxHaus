@@ -49,6 +49,11 @@ struct SetThermostatIntent: AppIntent {
         try Self.validate(mode: mode, temperature: temperature)
         // Both requests go to the account signed in when this started, or neither is sent.
         let isStillValid = Thermostat.currentSessionCheck()
+        if let temperature, let mode, mode != .off {
+            // The mode is switched first, so check the temperature fits before switching. If the
+            // thermostat can't be read, the server still checks it (after the mode is set).
+            try Self.validate(temperature, within: (try? await getFlux(password: ""))?.indoorClimate)
+        }
         var state: IndoorClimateState?
         if let mode {
             state = try await FluxIntentActions.controlThermostat(.setMode(mode.rawValue), isStillValid: isStillValid)
@@ -71,6 +76,23 @@ struct SetThermostatIntent: AppIntent {
             throw IntentError.rejected(
                 "Auto uses separate heat and cool temperatures. Set them in FluxHaus, or choose Auto on its own."
             )
+        }
+    }
+
+    /// Rejects a temperature outside the thermostat's limits, as the server would.
+    static func validate(_ temperature: Double, within state: IndoorClimateState?) throws {
+        guard let thermostat = state?.thermostat else { return }
+        let unit = state?.thermostatUnit ?? ""
+        let format = { (value: Double) in "\(value.formatted(.number.precision(.fractionLength(0...1))))\(unit)" }
+        switch (thermostat.minTemp, thermostat.maxTemp) {
+        case let (low?, high?) where temperature < low || temperature > high:
+            throw IntentError.rejected("Temperature must be between \(format(low)) and \(format(high)).")
+        case let (low?, nil) where temperature < low:
+            throw IntentError.rejected("Temperature must be at least \(format(low)).")
+        case let (nil, high?) where temperature > high:
+            throw IntentError.rejected("Temperature must be at most \(format(high)).")
+        default:
+            return
         }
     }
 

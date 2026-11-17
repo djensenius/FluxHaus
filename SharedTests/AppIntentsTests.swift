@@ -200,4 +200,23 @@ struct ThermostatIntentTests {
         try SetThermostatIntent.validate(mode: .heat, temperature: 21)
         try SetThermostatIntent.validate(mode: nil, temperature: 21)
     }
+
+    @Test("A temperature outside the thermostat's limits is refused before the mode is switched")
+    func testRangeValidation() throws {
+        let state = IndoorClimateState(
+            unit: "°C", thermostat: ThermostatStatus(entityId: "climate.home", minTemp: 7, maxTemp: 33.5), sensors: []
+        )
+        let tooWarm = #expect(throws: IntentError.self) { try SetThermostatIntent.validate(40, within: state) }
+        #expect(tooWarm?.errorDescription == "Temperature must be between 7°C and 33.5°C.")
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(5, within: state) }
+        try SetThermostatIntent.validate(21, within: state)
+        // Unknown limits are left to the server.
+        try SetThermostatIntent.validate(80, within: nil)
+        let noMax = IndoorClimateState(
+            unit: "°F", thermostat: ThermostatStatus(entityId: "climate.home", minTemp: 45), sensors: []
+        )
+        let tooCool = #expect(throws: IntentError.self) { try SetThermostatIntent.validate(40, within: noMax) }
+        #expect(tooCool?.errorDescription == "Temperature must be at least 45°F.")
+        try SetThermostatIntent.validate(95, within: noMax)
+    }
 }
