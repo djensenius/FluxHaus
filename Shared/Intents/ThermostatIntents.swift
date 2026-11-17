@@ -100,7 +100,9 @@ struct ResumeThermostatScheduleIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        try await FluxIntentActions.controlThermostat(.resumeSchedule)
+        try await FluxIntentActions.controlThermostat(
+            .resumeSchedule, isStillValid: Thermostat.currentSessionCheck()
+        )
         await donateIntent(self)
         return .result(dialog: "Resuming the thermostat schedule.")
     }
