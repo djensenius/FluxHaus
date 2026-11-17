@@ -2,56 +2,14 @@
 //  Thermostat.swift
 //  FluxHaus
 //
-//  Thermostat control: request building, display labels, and an observable
-//  controller with optimistic updates for the Climate section.
+//  Thermostat control: display labels and an observable controller with
+//  optimistic updates for the Climate section.
 //
 
 import Foundation
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Thermostat")
-
-// MARK: - Commands
-
-/// A control request for the server's `/thermostat/*` routes.
-public enum ThermostatCommand: Equatable, Sendable {
-    case setTemperature(Double)
-    case setRange(low: Double, high: Double)
-    case setMode(String)
-    case setPreset(String)
-    case setFan(String)
-    case resumeSchedule
-
-    var path: String {
-        switch self {
-        case .setTemperature, .setRange: return "/thermostat/temperature"
-        case .setMode: return "/thermostat/mode"
-        case .setPreset: return "/thermostat/preset"
-        case .setFan: return "/thermostat/fan"
-        case .resumeSchedule: return "/thermostat/resume"
-        }
-    }
-
-    var body: [String: Any] {
-        switch self {
-        case .setTemperature(let temperature): return ["temperature": temperature]
-        case let .setRange(low, high): return ["targetTempLow": low, "targetTempHigh": high]
-        case .setMode(let mode): return ["mode": mode]
-        case .setPreset(let preset): return ["preset": preset]
-        case .setFan(let mode): return ["mode": mode]
-        // Clears every hold, not just the latest, so the schedule really resumes.
-        case .resumeSchedule: return ["resumeAll": true]
-        }
-    }
-
-    /// Setpoints are chosen for the mode the thermostat is in.
-    var isSetpoint: Bool {
-        switch self {
-        case .setTemperature, .setRange: return true
-        case .setMode, .setPreset, .setFan, .resumeSchedule: return false
-        }
-    }
-}
 
 // MARK: - Labels
 
@@ -134,6 +92,7 @@ enum ThermostatLabels {
     /// The last command and the status it was sent from, if the thermostat hadn't reported
     /// its change when it was accepted.
     private var unreported: (command: ThermostatCommand, before: ThermostatStatus?)?
+    @ObservationIgnored private var unreportedWatch = 0
     /// Set once the session this controller belongs to has ended.
     private(set) var isInvalidated = false
 
@@ -272,11 +231,27 @@ enum ThermostatLabels {
         commitTask = nil
         guard let kind = unsentSetpoint else { return }
         unsentSetpoint = nil
+        // An edit back to the reported setpoints, with nothing on its way to change them,
+        // would only place a hold.
+        let unchanged = { (value: Double, reported: Double?) in
+            self.inFlight == 0 && reported.map { abs(value - $0) < 0.001 } == true
+        }
         switch kind {
         case .range:
-            if let low = pendingLow, let high = pendingHigh { enqueue(.setRange(low: low, high: high)) }
+            guard let low = pendingLow, let high = pendingHigh else { return }
+            guard unchanged(low, status?.targetTemperatureLow), unchanged(high, status?.targetTemperatureHigh) else {
+                enqueue(.setRange(low: low, high: high))
+                return
+            }
+            pendingLow = nil
+            pendingHigh = nil
         case .single:
-            if let target = pendingTarget { enqueue(.setTemperature(target)) }
+            guard let target = pendingTarget else { return }
+            guard unchanged(target, status?.targetTemperature) else {
+                enqueue(.setTemperature(target))
+                return
+            }
+            pendingTarget = nil
         }
     }
 
@@ -303,9 +278,10 @@ enum ThermostatLabels {
     }
 
     func setPreset(_ preset: String) async {
-        // A setpoint edit creates a hold, so re-selecting the current preset still applies it.
-        guard canControl, preset != self.preset || hasSetpointEdit else { return }
+        guard canControl else { return }
         queueSetpoint()
+        // A setpoint edit creates a hold, so re-selecting the current preset still applies it.
+        guard preset != self.preset || hasSetpointEdit else { return }
         pendingPreset = preset
         edited(.preset)
         await enqueue(.setPreset(preset)).value
@@ -368,7 +344,11 @@ enum ThermostatLabels {
                 latest = updated
             }
             // Resuming a schedule that matches the hold changes nothing the thermostat can report.
-            if updated?.confirmed == false, command != .resumeSchedule { unreported = (command, before) }
+            if updated?.confirmed == false, command != .resumeSchedule {
+                unreported = (command, before)
+                unreportedWatch += 1
+                settleUnreported(unreportedWatch)
+            }
             refresh()
         } catch {
             // A request refused because the account changed isn't the new account's error.
@@ -378,6 +358,19 @@ enum ThermostatLabels {
             logger.error("Thermostat command \(command.path, privacy: .public) failed: \(kind, privacy: .public)")
             failure = error.localizedDescription
             if case .setMode = command { dropSetpoints(chosenFor: generation) }
+        }
+    }
+
+    /// Ends the wait once a status shows the change or moves on, so the old values coming
+    /// back later (when a hold ends, say) don't bring the notice back.
+    private func settleUnreported(_ watch: Int) {
+        guard watch == unreportedWatch, let unreported else { return }
+        guard status?.awaits(unreported.command, from: unreported.before) != false else {
+            self.unreported = nil
+            return
+        }
+        withObservationTracking { _ = self.status } onChange: { [weak self] in
+            Task { @MainActor in self?.settleUnreported(watch) }
         }
     }
 

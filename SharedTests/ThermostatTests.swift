@@ -100,10 +100,18 @@ struct ThermostatControllerTests {
             )
             #expect(thermostat.lastError == notice)
         }
+        // Once the change is reported, the old mode returning doesn't bring the notice back.
+        try? await Task.sleep(for: .milliseconds(30))
+        let reverted = autoState(low: 19, high: 25, mode: "heat", at: "2099-01-02T00:00:01Z")
+        thermostat.apiResponse?.response = LoginResponse(
+            timestamp: "", favouriteHomeKit: [], cleanbot: Robot(), indoorClimate: reverted
+        )
+        #expect(thermostat.lastError == nil)
+
         await thermostat.setMode("cool")
         #expect(thermostat.lastError == Thermostat.unconfirmed)
-        // A schedule moving the thermostat elsewhere ends the wait too.
-        let scheduled = autoState(low: 18, high: 24, mode: "heat", at: "2099-01-03T00:00:00Z")
+        // A change at the thermostat moving it elsewhere ends the wait too.
+        let scheduled = autoState(low: 18, high: 24, mode: "off", at: "2099-01-03T00:00:00Z")
         thermostat.apiResponse?.response = LoginResponse(
             timestamp: "", favouriteHomeKit: [], cleanbot: Robot(), indoorClimate: scheduled
         )
@@ -345,15 +353,20 @@ struct ThermostatControllerTests {
         #expect(thermostat.target == 21)
     }
 
-    @Test("Choosing the current value sends nothing")
+    @Test("Choosing the current value, or editing back to it, sends nothing")
     func testNoOpChanges() async {
         let recorder = CommandRecorder()
         let thermostat = recorder.makeThermostat()
         await thermostat.setMode("heat")
         await thermostat.setPreset("home")
         await thermostat.setFan("auto")
+        // Sending the reported setpoint would only place a hold.
+        thermostat.nudgeTarget(by: 1)
+        thermostat.nudgeTarget(by: -1)
+        await thermostat.setPreset("home")
         await thermostat.commitSetpoint()
         #expect(recorder.sent.isEmpty)
+        #expect(thermostat.target == 21.5)
     }
 
     @Test("Changes queued before another account signs in are discarded, not sent")
