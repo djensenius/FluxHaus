@@ -263,7 +263,7 @@ struct IndoorSummaryView: View {
 
     /// The rooms to show and how many are hidden. When over the limit, one slot
     /// goes to the "more" chip so the grid keeps the same height.
-    static func visibleRooms(
+    nonisolated static func visibleRooms(
         _ rooms: [IndoorTemperatureSensor], limit: Int?
     ) -> (shown: [IndoorTemperatureSensor], hidden: Int) {
         guard let limit, limit > 0, rooms.count > limit else { return (rooms, 0) }
