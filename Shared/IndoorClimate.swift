@@ -420,16 +420,20 @@ enum ThermostatSetpoint {
 
 extension ThermostatStatus {
     /// Whether `command`, sent to the thermostat as it was `before`, is still unreported:
-    /// this status neither shows the change nor has moved on from `before` (to a schedule's
-    /// setpoint, say), either of which ends the wait.
+    /// this status doesn't show the whole change, and each setting still shows its old or
+    /// new value. Moving on to anything else (a schedule's setpoint, say) ends the wait.
     func awaits(_ command: ThermostatCommand, from before: ThermostatStatus?) -> Bool {
         guard !reports(command, from: before) else { return false }
         guard let before else { return true }
+        // Either end of a range may be reported before the other.
+        let pending = { (reported: Double?, value: Double, previous: Double?) in
+            Self.near(reported, value, previous) || Self.near(reported, previous, value)
+        }
         switch command {
-        case .setTemperature(let value): return Self.near(targetTemperature, before.targetTemperature, value)
+        case .setTemperature(let value): return pending(targetTemperature, value, before.targetTemperature)
         case let .setRange(low, high):
-            return Self.near(targetTemperatureLow, before.targetTemperatureLow, low)
-                && Self.near(targetTemperatureHigh, before.targetTemperatureHigh, high)
+            return pending(targetTemperatureLow, low, before.targetTemperatureLow)
+                && pending(targetTemperatureHigh, high, before.targetTemperatureHigh)
         case .setMode: return hvacMode == before.hvacMode
         case .setPreset: return presetMode == before.presetMode
         case .setFan: return fanMode == before.fanMode

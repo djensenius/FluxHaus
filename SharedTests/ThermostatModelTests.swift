@@ -120,6 +120,11 @@ struct ThermostatSetpointTests {
         for command in commands {
             #expect(before.awaits(command, from: before) && !moved.awaits(command, from: before))
         }
+        // One end of a range reported before the other is still waiting; one moved elsewhere isn't.
+        let range = ThermostatCommand.setRange(low: 18, high: 26)
+        let halfway = ThermostatStatus(entityId: "climate.home", targetTemperatureLow: 18, targetTemperatureHigh: 25)
+        let elsewhere = ThermostatStatus(entityId: "climate.home", targetTemperatureLow: 18, targetTemperatureHigh: 24)
+        #expect(halfway.awaits(range, from: before) && !elsewhere.awaits(range, from: before))
         #expect(before.awaits(.setTemperature(22), from: nil) && !before.awaits(.setTemperature(21), from: nil))
         #expect(!before.awaits(.resumeSchedule, from: before))
     }
