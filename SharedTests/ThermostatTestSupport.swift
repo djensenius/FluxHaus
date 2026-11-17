@@ -30,7 +30,18 @@ final class CommandRecorder {
     let session = SessionStub()
     /// The session check handed to the sender with each request.
     private(set) var sessionChecks: [@Sendable () -> Bool] = []
-    private var held: [(command: ThermostatCommand, resume: CheckedContinuation<Void, Never>)] = []
+    private struct Held {
+        let id: Int
+        let command: ThermostatCommand
+        let resume: CheckedContinuation<Void, Never>
+    }
+    private var held: [Held] = []
+    private var timeouts: [Int: Task<Void, Never>] = [:]
+    private var holds = 0
+    /// How long to wait for a request to be sent before recording an issue. Generous, since CI
+    /// machines can be slow; a held request is released after twice this, so a mistake fails
+    /// its test instead of hanging the whole run.
+    static let patience: Duration = .seconds(60)
 
     func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
         let session = self.session
@@ -41,9 +52,7 @@ final class CommandRecorder {
             send: { [unowned self] command, isStillValid in
                 self.sent.append(command)
                 self.sessionChecks.append(isStillValid)
-                if self.holdsRequests {
-                    await withCheckedContinuation { self.held.append((command, $0)) }
-                }
+                if self.holdsRequests { await self.hold(command) }
                 // Like the real sender: checked right before credentials would be attached.
                 guard isStillValid() else { throw IntentError.notSignedIn }
                 return try self.reply(command)
@@ -52,24 +61,58 @@ final class CommandRecorder {
         )
     }
 
+    private func hold(_ command: ThermostatCommand) async {
+        holds += 1
+        let id = holds
+        await withCheckedContinuation { continuation in
+            held.append(Held(id: id, command: command, resume: continuation))
+            timeouts[id] = Task { [weak self] in
+                try? await Task.sleep(for: Self.patience * 2)
+                guard !Task.isCancelled, let self else { return }
+                Issue.record("\(command) was never released")
+                self.resume(id)
+            }
+        }
+    }
+
+    private func resume(_ id: Int) {
+        timeouts.removeValue(forKey: id)?.cancel()
+        guard let index = held.firstIndex(where: { $0.id == id }) else { return }
+        held.remove(at: index).resume.resume()
+    }
+
+    /// Waits for the request to be sent and held; use it before expecting a request was sent.
     func waitUntilHeld(_ command: ThermostatCommand) async {
-        for _ in 0..<200 where !held.contains(where: { $0.command == command }) {
+        let deadline = ContinuousClock.now + Self.patience
+        while !held.contains(where: { $0.command == command }), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(5))
+        }
+    }
+
+    func waitUntilSent() async {
+        let deadline = ContinuousClock.now + Self.patience
+        while sent.isEmpty, ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(10))
         }
     }
 
     func release(_ command: ThermostatCommand) async {
         await waitUntilHeld(command)
-        guard let index = held.firstIndex(where: { $0.command == command }) else {
+        guard let hold = held.first(where: { $0.command == command }) else {
             Issue.record("\(command) was never sent")
             return
         }
-        held.remove(at: index).resume.resume()
+        resume(hold.id)
     }
 
-    /// Gives queued work a chance to run, then reports what has been sent.
+    /// Gives queued work a chance to run until nothing more is sent, then reports what has been sent.
+    /// It can't tell a slow request from none, so wait for an expected request first.
     func settledSends() async -> [ThermostatCommand] {
-        try? await Task.sleep(for: .milliseconds(30))
+        var count: Int
+        repeat {
+            count = sent.count
+            try? await Task.sleep(for: .milliseconds(30))
+        } while sent.count != count
         return sent
     }
 }

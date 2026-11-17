@@ -29,13 +29,11 @@ struct ThermostatControllerTests {
     }
 
     @Test("A pending setpoint is sent automatically after the delay")
-    func testAutoCommit() async throws {
+    func testAutoCommit() async {
         let recorder = CommandRecorder()
         let thermostat = recorder.makeThermostat(delay: .milliseconds(10))
         thermostat.nudgeTarget(by: -1)
-        for _ in 0..<100 where recorder.sent.isEmpty {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        await recorder.waitUntilSent()
         #expect(recorder.sent == [.setTemperature(21)])
     }
 
@@ -268,11 +266,13 @@ struct ThermostatControllerTests {
         let cool = Task { await thermostat.setMode("cool") }
         let off = Task { await thermostat.setMode("off") }
         let fan = Task { await thermostat.setFan("on") }
+        await recorder.waitUntilHeld(.setMode("cool"))
         #expect(await recorder.settledSends() == [.setMode("cool")])
         #expect(thermostat.mode == "off")
         #expect(thermostat.isSending)
 
         await recorder.release(.setMode("cool"))
+        await recorder.waitUntilHeld(.setMode("off"))
         #expect(await recorder.settledSends() == [.setMode("cool"), .setMode("off")])
         #expect(thermostat.mode == "off")
         await recorder.release(.setMode("off"))
@@ -371,7 +371,7 @@ struct ThermostatControllerTests {
         // A fan change on its way can't move the setpoint, so the revert still sends nothing.
         recorder.holdsRequests = true
         let fan = Task { await thermostat.setFan("on") }
-        #expect(await recorder.settledSends() == [.setFan("on")])
+        await recorder.waitUntilHeld(.setFan("on"))
         thermostat.nudgeTarget(by: 1)
         thermostat.nudgeTarget(by: -1)
         let commit = Task { await thermostat.commitSetpoint() }
@@ -390,6 +390,7 @@ struct ThermostatControllerTests {
         let thermostat = recorder.makeThermostat()
         let cool = Task { await thermostat.setMode("cool") }
         let off = Task { await thermostat.setMode("off") }
+        await recorder.waitUntilHeld(.setMode("cool"))
         #expect(await recorder.settledSends() == [.setMode("cool")])
         thermostat.nudgeTarget(by: 1)
         #expect(thermostat.mode == "off")
