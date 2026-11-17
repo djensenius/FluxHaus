@@ -24,6 +24,8 @@ struct VisionOSApp: App {
     @State private var car: Car?
     @State private var scooter: Scooter?
     @State private var airPurifier: AirPurifier?
+    /// One thermostat controller per signed-in session, shared by every Climate screen.
+    @State private var thermostat: Thermostat?
     @State private var metrics = MetricsService()
 
     @Environment(\.scenePhase) private var scenePhase
@@ -86,6 +88,7 @@ struct VisionOSApp: App {
                                 loadScooter()
                                 loadHomeConnect()
                                 loadAirPurifier()
+                                loadThermostat()
                             }
                         }
                 } else {
@@ -95,7 +98,8 @@ struct VisionOSApp: App {
                        let battery = battery,
                        let car = car,
                        let scooter = scooter,
-                       let airPurifier = airPurifier {
+                       let airPurifier = airPurifier,
+                       let thermostat = thermostat {
                         ContentView(
                             fluxHausConsts: fluxHausConsts,
                             hconn: hconn,
@@ -105,6 +109,7 @@ struct VisionOSApp: App {
                             car: car,
                             scooter: scooter,
                             apiResponse: self.apiResponse,
+                            thermostat: thermostat,
                             airPurifier: airPurifier,
                             metrics: metrics
                         )
@@ -145,6 +150,8 @@ struct VisionOSApp: App {
                 car = nil
                 scooter = nil
                 airPurifier = nil
+                thermostat?.invalidate()
+                thermostat = nil
                 WidgetReloader.reset()
             }
             .onChange(of: scenePhase) { _, newPhase in
@@ -202,6 +209,10 @@ struct VisionOSApp: App {
     func loadAirPurifier() {
         airPurifier = AirPurifier()
         airPurifier?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadThermostat() {
+        thermostat = Thermostat.forCurrentSession(reusing: thermostat, apiResponse: self.apiResponse)
     }
 
     private func runPeriodicRefresh() async {

@@ -10,17 +10,12 @@ import SwiftUI
 
 struct ClimateView: View {
     var apiResponse: Api
+    /// Owned above navigation and shared per signed-in session, so reopening Climate
+    /// keeps feeding the same command queue.
+    var thermostat: Thermostat
     var airPurifier: AirPurifier
     var metrics: MetricsService
-    @State private var thermostat: Thermostat
     @State private var showHistory = false
-
-    init(apiResponse: Api, airPurifier: AirPurifier, metrics: MetricsService) {
-        self.apiResponse = apiResponse
-        self.airPurifier = airPurifier
-        self.metrics = metrics
-        _thermostat = State(initialValue: Thermostat(apiResponse: apiResponse))
-    }
 
     var body: some View {
         ScrollView {

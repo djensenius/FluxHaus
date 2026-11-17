@@ -46,6 +46,7 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var thermostat: Thermostat
     var airPurifier: AirPurifier
     var metrics: MetricsService
     var chat: Chat
@@ -147,7 +148,7 @@ struct ContentView: View {
             )
             .navigationTitle("Weather")
         case .climate:
-            ClimateView(apiResponse: apiResponse, airPurifier: airPurifier, metrics: metrics)
+            ClimateView(apiResponse: apiResponse, thermostat: thermostat, airPurifier: airPurifier, metrics: metrics)
         case .scenes:
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .navigationTitle("Scenes")
@@ -450,6 +451,7 @@ struct RobotsMacView: View {
 
 #if DEBUG
 #Preview {
+    let api = MockData.createApi()
     ContentView(
         fluxHausConsts: {
             let config = FluxHausConsts()
@@ -464,7 +466,8 @@ struct RobotsMacView: View {
         battery: MockData.createBattery(),
         car: MockData.createCar(),
         scooter: Scooter(),
-        apiResponse: MockData.createApi(),
+        apiResponse: api,
+        thermostat: Thermostat(apiResponse: api),
         airPurifier: MockData.createAirPurifier(),
         metrics: MetricsService(),
         chat: Chat()

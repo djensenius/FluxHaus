@@ -33,8 +33,10 @@ on Mac; on iPhone it heads the **More** list. Tapping the indoor summary on Home
 
 Setpoint taps are combined and sent after a short pause, and the change shows right away
 while the request is in flight. Changes reach the thermostat one at a time in the order
-they were made, and setpoints use the thermostat's own unit. Controls need FluxHaus Server's `/thermostat/*` routes
-(admin accounts only); with an older server the readings still appear.
+they were made, and setpoints use the thermostat's own unit. Every Climate screen shares one
+queue per signed-in session; if the account changes, changes not yet sent are discarded.
+Controls need FluxHaus Server's `/thermostat/*` routes (admin accounts only); with an older
+server the readings still appear.
 
 ## Siri, Shortcuts & Apple Intelligence
 

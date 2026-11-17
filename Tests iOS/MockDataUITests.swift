@@ -136,6 +136,7 @@ struct ViewSmokeTests {
             car: car,
             scooter: MockData.createScooter(),
             apiResponse: MockData.createApi(),
+            thermostat: Thermostat(),
             airPurifier: MockData.createAirPurifier(),
             metrics: MetricsService()
         )
@@ -424,6 +425,7 @@ struct NilDataResilienceTests {
             hconn: hconn, miele: miele, robots: robots,
             battery: Battery(), car: car,
             scooter: MockData.createScooter(), apiResponse: api,
+            thermostat: Thermostat(apiResponse: api),
             airPurifier: MockData.createAirPurifier(),
             metrics: MetricsService()
         )

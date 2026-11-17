@@ -119,6 +119,17 @@ struct ThermostatSetpointTests {
     }
 }
 
+/// Stands in for the signed-in session; tests flip it to simulate another account signing in.
+private final class SessionStub: @unchecked Sendable {
+    private let lock = NSLock()
+    private var current = true
+
+    var isCurrent: Bool {
+        get { lock.withLock { current } }
+        set { lock.withLock { current = newValue } }
+    }
+}
+
 @MainActor
 private final class CommandRecorder {
     var sent: [ThermostatCommand] = []
@@ -126,17 +137,25 @@ private final class CommandRecorder {
     var reply: (ThermostatCommand) throws -> IndoorClimateState? = { _ in nil }
     /// When set, each request stays in flight until `release(_:)` is called for it.
     var holdsRequests = false
+    let session = SessionStub()
+    /// The session check handed to the sender with each request.
+    private(set) var sessionChecks: [@Sendable () -> Bool] = []
     private var held: [(command: ThermostatCommand, resume: CheckedContinuation<Void, Never>)] = []
 
     func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
-        Thermostat(
+        let session = self.session
+        return Thermostat(
             apiResponse: MockData.createApi(),
             setpointDelay: delay,
-            send: { [unowned self] command in
+            isSessionValid: { session.isCurrent },
+            send: { [unowned self] command, isStillValid in
                 self.sent.append(command)
+                self.sessionChecks.append(isStillValid)
                 if self.holdsRequests {
                     await withCheckedContinuation { self.held.append((command, $0)) }
                 }
+                // Like the real sender: checked right before credentials would be attached.
+                guard isStillValid() else { throw IntentError.notSignedIn }
                 return try self.reply(command)
             },
             refresh: { [unowned self] in self.refreshes += 1 }
@@ -401,5 +420,79 @@ struct ThermostatControllerTests {
         await thermostat.setFan("auto")
         await thermostat.commitSetpoint()
         #expect(recorder.sent.isEmpty)
+    }
+
+    @Test("Changes queued before another account signs in are discarded, not sent")
+    func testSessionChangeDiscardsQueue() async {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        let thermostat = recorder.makeThermostat()
+        let cool = Task { await thermostat.setMode("cool") }
+        let off = Task { await thermostat.setMode("off") }
+        #expect(await recorder.settledSends() == [.setMode("cool")])
+        thermostat.nudgeTarget(by: 1)
+        #expect(thermostat.mode == "off")
+        #expect(thermostat.target == 22)
+
+        recorder.session.isCurrent = false
+        await recorder.release(.setMode("cool"))
+        await cool.value
+        await off.value
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent == [.setMode("cool")])
+        #expect(thermostat.mode == "heat")
+        #expect(thermostat.target == 21.5)
+        #expect(thermostat.lastError == nil)
+        #expect(thermostat.isSending == false)
+        #expect(thermostat.canControl == false)
+        #expect(recorder.refreshes == 0)
+    }
+
+    @Test("The sender's credential check follows the session that queued the request")
+    func testSenderSessionCheck() async throws {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        let thermostat = recorder.makeThermostat()
+        let fan = Task { await thermostat.setFan("on") }
+        await recorder.waitUntilHeld(.setFan("on"))
+        let isStillValid = try #require(recorder.sessionChecks.first)
+        #expect(isStillValid())
+
+        recorder.session.isCurrent = false
+        #expect(isStillValid() == false)
+        await recorder.release(.setFan("on"))
+        await fan.value
+        // Refused for the old account, so the new one sees no error.
+        #expect(thermostat.lastError == nil)
+        #expect(thermostat.fan == "auto")
+    }
+
+    @Test("Data refreshes keep the session's controller, so queued changes survive polls")
+    func testRefreshReusesController() async {
+        let recorder = CommandRecorder()
+        let thermostat = recorder.makeThermostat()
+        thermostat.nudgeTarget(by: 1)
+        let api = MockData.createApi()
+        let reused = Thermostat.forCurrentSession(reusing: thermostat, apiResponse: api)
+        #expect(reused === thermostat && reused.apiResponse === api && reused.target == 22)
+        recorder.session.isCurrent = false
+        #expect(Thermostat.forCurrentSession(reusing: thermostat, apiResponse: api) !== thermostat)
+        #expect(thermostat.canControl == false)
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent.isEmpty)
+    }
+
+    @Test("Signing out cancels an unsent setpoint and disables the controls")
+    func testInvalidateCancelsDebounce() async throws {
+        let recorder = CommandRecorder()
+        let thermostat = recorder.makeThermostat(delay: .milliseconds(10))
+        thermostat.nudgeTarget(by: 1)
+        thermostat.invalidate()
+        try await Task.sleep(for: .milliseconds(50))
+        await thermostat.setMode("cool")
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent.isEmpty)
+        #expect(thermostat.target == 21.5)
+        #expect(thermostat.canControl == false)
     }
 }

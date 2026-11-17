@@ -77,6 +77,7 @@ struct MacOSViewSmokeTests {
             car: car,
             scooter: MockData.createScooter(),
             apiResponse: MockData.createApi(),
+            thermostat: Thermostat(),
             airPurifier: MockData.createAirPurifier(),
             metrics: MetricsService(),
             chat: Chat()
@@ -424,6 +425,7 @@ struct MacOSNilDataResilienceTests {
             battery: Battery(), car: car,
             scooter: MockData.createScooter(),
             apiResponse: api,
+            thermostat: Thermostat(apiResponse: api),
             airPurifier: MockData.createAirPurifier(),
             metrics: MetricsService(),
             chat: Chat()

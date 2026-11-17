@@ -16,6 +16,7 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var thermostat: Thermostat
     var airPurifier: AirPurifier
     var metrics: MetricsService
     @State private var whereWeAre = WhereWeAre()
@@ -238,7 +239,7 @@ struct ContentView: View {
     }
 
     private var climateView: some View {
-        ClimateView(apiResponse: apiResponse, airPurifier: airPurifier, metrics: metrics)
+        ClimateView(apiResponse: apiResponse, thermostat: thermostat, airPurifier: airPurifier, metrics: metrics)
     }
 
     private var appliancesHeader: some View {
@@ -328,6 +329,7 @@ struct ContentView: View {
 
 #if DEBUG
 #Preview {
+    let api = MockData.createApi()
     ContentView(
         fluxHausConsts: {
             let config = FluxHausConsts()
@@ -340,7 +342,8 @@ struct ContentView: View {
         battery: MockData.createBattery(),
         car: MockData.createCar(),
         scooter: Scooter(),
-        apiResponse: MockData.createApi(),
+        apiResponse: api,
+        thermostat: Thermostat(apiResponse: api),
         airPurifier: MockData.createAirPurifier(),
         metrics: MetricsService()
     )

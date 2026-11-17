@@ -121,8 +121,17 @@ enum ThermostatSetpoint {
 
 // MARK: - Controller
 
+/// One controller is shared by every Climate screen of a signed-in session, so all
+/// changes go through the same queue. It is bound to that session: once another
+/// account signs in (or the user signs out), nothing still queued is sent.
 @MainActor
 @Observable final class Thermostat {
+    /// Sends a command. `isStillValid` must be checked right before credentials are
+    /// attached so a request never goes out under a different account.
+    typealias Sender = @MainActor (
+        ThermostatCommand, _ isStillValid: @escaping @Sendable () -> Bool
+    ) async throws -> IndoorClimateState?
+
     var apiResponse: Api?
 
     /// Status returned by the last successful control request; preferred until a
@@ -132,6 +141,8 @@ enum ThermostatSetpoint {
     private var inFlight = 0
     var isSending: Bool { inFlight > 0 }
     var lastError: String?
+    /// Set once the session this controller belongs to has ended.
+    private(set) var isInvalidated = false
 
     // Optimistic values shown while a request is pending.
     private(set) var pendingTarget: Double?
@@ -149,21 +160,29 @@ enum ThermostatSetpoint {
     /// made them, so the thermostat ends up in the last state chosen.
     @ObservationIgnored private var queueTail: Task<Void, Never>?
     private let setpointDelay: Duration
-    private let send: @MainActor (ThermostatCommand) async throws -> IndoorClimateState?
+    private let isSessionValid: @Sendable () -> Bool
+    private let send: Sender
     private let refresh: @MainActor () -> Void
 
+    /// `isSessionValid` defaults to a check bound to the account signed in now.
     init(
         apiResponse: Api? = nil,
         setpointDelay: Duration = .milliseconds(1200),
-        send: @escaping @MainActor (ThermostatCommand) async throws -> IndoorClimateState? = {
-            try await FluxIntentActions.controlThermostat($0)
-        },
+        isSessionValid: @escaping @Sendable () -> Bool = Thermostat.currentSessionCheck(),
+        send: @escaping Sender = { try await FluxIntentActions.controlThermostat($0, isStillValid: $1) },
         refresh: @escaping @MainActor () -> Void = { queryFlux(password: WhereWeAre.getPassword() ?? "") }
     ) {
         self.apiResponse = apiResponse
         self.setpointDelay = setpointDelay
+        self.isSessionValid = isSessionValid
         self.send = send
         self.refresh = refresh
+    }
+
+    /// True only while the session signed in when this is called is still the current one.
+    nonisolated static func currentSessionCheck() -> @Sendable () -> Bool {
+        let origin = AuthManager.shared.widgetSessionID()
+        return { origin != nil && AuthManager.shared.widgetSessionID() == origin }
     }
 
     var state: IndoorClimateState? {
@@ -176,7 +195,7 @@ enum ThermostatSetpoint {
 
     var status: ThermostatStatus? { state?.thermostat }
     var isFahrenheit: Bool { state?.thermostatUnit.uppercased().contains("F") ?? false }
-    var canControl: Bool { status != nil && status?.available != false }
+    var canControl: Bool { !isInvalidated && status != nil && status?.available != false }
 
     var mode: String? { pendingMode ?? status?.hvacMode }
     var preset: String? { pendingPreset ?? status?.presetMode }
@@ -317,18 +336,61 @@ enum ThermostatSetpoint {
     }
 
     private func perform(_ command: ThermostatCommand) async {
+        // Checked before every command, so nothing queued under a previous account is sent.
+        guard isSessionCurrent() else { return }
         lastError = nil
         defer { clearPending(sentBy: command) }
         do {
+            let updated = try await send(command, isSessionValid)
+            guard isSessionCurrent() else { return }
             // A poll can land between commands; keep the newest snapshot.
-            if let updated = try await send(command), Self.isNewer(updated, than: latest) {
+            if let updated, Self.isNewer(updated, than: latest) {
                 latest = updated
             }
             refresh()
         } catch {
+            // A request refused because the account changed isn't the new account's error.
+            guard isSessionCurrent() else { return }
             logger.error("Thermostat command \(command.path) failed: \(error.localizedDescription)")
             lastError = error.localizedDescription
         }
+    }
+
+    /// The controller to use after a data refresh. Polls arrive every few seconds, so the
+    /// existing one is kept while its session is signed in; replacing it would drop queued
+    /// and debounced changes.
+    static func forCurrentSession(reusing existing: Thermostat?, apiResponse: Api) -> Thermostat {
+        if let existing, existing.isSessionCurrent() {
+            existing.apiResponse = apiResponse
+            return existing
+        }
+        return Thermostat(apiResponse: apiResponse)
+    }
+
+    /// Whether commands may still be sent; invalidates the controller once its session has ended.
+    func isSessionCurrent() -> Bool {
+        if !isInvalidated, !isSessionValid() {
+            logger.info("Signed-in session changed; discarding queued thermostat commands")
+            invalidate()
+        }
+        return !isInvalidated
+    }
+
+    /// Ends this controller's session: cancels the debounced setpoint, discards every
+    /// queued command without sending it, and clears what was shown for that account.
+    func invalidate() {
+        isInvalidated = true
+        commitTask?.cancel()
+        commitTask = nil
+        hasUnsentSetpoint = false
+        pendingTarget = nil
+        pendingLow = nil
+        pendingHigh = nil
+        pendingMode = nil
+        pendingPreset = nil
+        pendingFan = nil
+        latest = nil
+        lastError = nil
     }
 
     /// Clears only the optimistic values this command carried, so a newer edit made
