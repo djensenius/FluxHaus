@@ -419,13 +419,20 @@ enum ThermostatSetpoint {
 }
 
 extension ThermostatStatus {
-    /// Whether this status shows the change `command` asks for. Setpoints match within
-    /// 0.25°, the widest tolerance the server confirms changes with.
-    func reports(_ command: ThermostatCommand) -> Bool {
-        let near = { (reported: Double?, value: Double) in reported.map { abs($0 - value) < 0.25 } ?? false }
+    /// Whether this status shows the change `command` asked of the thermostat as it was
+    /// `before`. As on the server, setpoints match within 0.25°, narrowed to half of a
+    /// smaller change so the old value never passes for the new one.
+    func reports(_ command: ThermostatCommand, from before: ThermostatStatus?) -> Bool {
+        let near = { (reported: Double?, value: Double, previous: Double?) -> Bool in
+            guard let reported else { return false }
+            let change = previous.map { abs(value - $0) } ?? 0
+            return abs(reported - value) < (change > 0 ? min(0.25, change / 2) : 0.25)
+        }
         switch command {
-        case .setTemperature(let value): return near(targetTemperature, value)
-        case let .setRange(low, high): return near(targetTemperatureLow, low) && near(targetTemperatureHigh, high)
+        case .setTemperature(let value): return near(targetTemperature, value, before?.targetTemperature)
+        case let .setRange(low, high):
+            return near(targetTemperatureLow, low, before?.targetTemperatureLow)
+                && near(targetTemperatureHigh, high, before?.targetTemperatureHigh)
         case .setMode(let mode): return hvacMode == mode
         case .setPreset(let preset): return presetMode == preset
         case .setFan(let mode): return fanMode == mode

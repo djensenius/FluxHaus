@@ -127,11 +127,12 @@ enum ThermostatLabels {
     /// The last command's error, else a notice until the newest snapshot shows its change.
     var lastError: String? {
         guard failure == nil, let unreported else { return failure }
-        return status?.reports(unreported) == true ? nil : Self.unconfirmed
+        return status?.reports(unreported.command, from: unreported.before) == true ? nil : Self.unconfirmed
     }
     private var failure: String?
-    /// The last command, if the thermostat hadn't reported its change when it was accepted.
-    private var unreported: ThermostatCommand?
+    /// The last command and the status it was sent from, if the thermostat hadn't reported
+    /// its change when it was accepted.
+    private var unreported: (command: ThermostatCommand, before: ThermostatStatus?)?
     /// Set once the session this controller belongs to has ended.
     private(set) var isInvalidated = false
 
@@ -357,6 +358,7 @@ enum ThermostatLabels {
         failure = nil
         unreported = nil
         defer { clearPending(sentBy: command, edit: edit) }
+        let before = status
         do {
             let updated = try await send(command, isSessionValid)
             guard isSessionCurrent() else { return }
@@ -365,7 +367,7 @@ enum ThermostatLabels {
                 latest = updated
             }
             // Resuming a schedule that matches the hold changes nothing the thermostat can report.
-            if updated?.confirmed == false, command != .resumeSchedule { unreported = command }
+            if updated?.confirmed == false, command != .resumeSchedule { unreported = (command, before) }
             refresh()
         } catch {
             // A request refused because the account changed isn't the new account's error.

@@ -84,18 +84,24 @@ struct ThermostatSetpointTests {
         #expect(ThermostatSetpoint.bounds(for: reported, fahrenheit: false) == 10...30)
     }
 
-    @Test("A status reports a change when its setpoints are within 0.25° and its modes match")
+    @Test("A status reports a setpoint within 0.25°, or half a smaller change, and matching modes")
     func testReports() {
-        let status = ThermostatStatus(
-            entityId: "climate.home", hvacMode: "heat_cool", targetTemperature: 21.5,
+        let old = ThermostatStatus(
+            entityId: "climate.home", targetTemperature: 21, targetTemperatureLow: 19, targetTemperatureHigh: 25
+        )
+        let new = ThermostatStatus(
+            entityId: "climate.home", hvacMode: "heat_cool", targetTemperature: 21.1,
             targetTemperatureLow: 19, targetTemperatureHigh: 25.1, presetMode: "home", fanMode: "auto"
         )
-        #expect(status.reports(.setTemperature(21.4)) && !status.reports(.setTemperature(22)))
-        #expect(status.reports(.setRange(low: 19, high: 25)) && !status.reports(.setRange(low: 19, high: 24.5)))
-        #expect(status.reports(.setMode("heat_cool")) && !status.reports(.setMode("cool")))
-        #expect(status.reports(.setPreset("home")) && !status.reports(.setPreset("away")))
-        #expect(status.reports(.setFan("auto")) && !status.reports(.setFan("on")))
-        #expect(!ThermostatStatus(entityId: "climate.home").reports(.setTemperature(21)))
+        // Still showing 21 after asking for 21.1 isn't the change, though it's within 0.25°.
+        #expect(!old.reports(.setTemperature(21.1), from: old) && new.reports(.setTemperature(21.1), from: old))
+        #expect(old.reports(.setTemperature(21.2), from: nil) && !old.reports(.setTemperature(21.5), from: nil))
+        let range = ThermostatCommand.setRange(low: 19, high: 25.1)
+        #expect(new.reports(range, from: old) && !old.reports(range, from: old))
+        #expect(new.reports(.setMode("heat_cool"), from: old) && !new.reports(.setMode("cool"), from: old))
+        #expect(new.reports(.setPreset("home"), from: old) && !new.reports(.setPreset("away"), from: old))
+        #expect(new.reports(.setFan("auto"), from: old) && !new.reports(.setFan("on"), from: old))
+        #expect(!ThermostatStatus(entityId: "climate.home").reports(.setTemperature(21), from: nil))
     }
 
     @Test("Labels read naturally and modes are shown Heat, Cool, Auto, Off")
