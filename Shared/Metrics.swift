@@ -85,6 +85,14 @@ public struct MetricSeriesResponse: Codable, Sendable {
     public let unit: String
     public let range: String
     public let series: [MetricSeries]
+
+    /// A copy without the named series, e.g. the outdoor reading on indoor charts.
+    func excludingSeries(named names: Set<String>) -> MetricSeriesResponse {
+        MetricSeriesResponse(
+            metric: metric, title: title, unit: unit, range: range,
+            series: series.filter { !names.contains($0.name) }
+        )
+    }
 }
 
 @MainActor
@@ -95,6 +103,9 @@ public struct MetricSeriesResponse: Codable, Sendable {
     var isLoading = false
     var isRefreshing = false
     var lastError: String?
+    /// The range each cached series was loaded for, so screens that load only
+    /// some metrics can tell whether the rest still match `selectedRange`.
+    private var seriesRanges: [String: MetricRange] = [:]
 
     /// Groups shown on the main metrics dashboard. "System" is hidden and the
     /// "Outdoor" group is surfaced on its own detail screen (reachable from the
@@ -111,6 +122,12 @@ public struct MetricSeriesResponse: Codable, Sendable {
     /// The detailed outdoor/weather metrics surfaced from the Weather tab.
     var outdoorCatalog: [MetricCatalogItem] {
         catalog.filter { $0.group.lowercased() == "outdoor" }
+    }
+
+    /// Indoor temperature and humidity charts surfaced from the Inside card.
+    var indoorCatalog: [MetricCatalogItem] {
+        let ids = ["temperature", "humidity"]
+        return ids.compactMap { id in catalog.first { $0.id == id } }
     }
 
     /// Preferred group ordering: Environment first, then Car, then Energy, then
@@ -135,6 +152,21 @@ public struct MetricSeriesResponse: Codable, Sendable {
         await loadCatalog()
         await loadAllSeries()
         isLoading = false
+    }
+
+    /// Refreshes the catalog and only the metrics a focused screen shows, so it
+    /// doesn't wait on every other metric.
+    func refresh(scope: KeyPath<MetricsService, [MetricCatalogItem]>) async {
+        isLoading = true
+        lastError = nil
+        await loadCatalog()
+        await loadSeries(self[keyPath: scope])
+        isLoading = false
+    }
+
+    /// Whether every given metric has a series loaded for the selected range.
+    func hasSeries(for items: [MetricCatalogItem]) -> Bool {
+        items.allSatisfy { seriesRanges[$0.id] == selectedRange }
     }
 
     func loadCatalog() async {
@@ -163,6 +195,27 @@ public struct MetricSeriesResponse: Codable, Sendable {
         // shows series for the wrong range.
         guard range == selectedRange else { return }
         series = results
+        seriesRanges = results.mapValues { _ in range }
+    }
+
+    /// Loads only the given metrics for the selected range. Cached series for
+    /// other ranges are dropped so no screen mixes ranges; screens showing them
+    /// reload when `hasSeries(for:)` reports they are missing.
+    func loadSeries(_ items: [MetricCatalogItem]) async {
+        isRefreshing = true
+        defer { isRefreshing = false }
+        let range = selectedRange
+        var results: [String: MetricSeriesResponse] = [:]
+        for metric in items {
+            if let response = await fetchSeries(metricId: metric.id, range: range) {
+                results[metric.id] = response
+            }
+        }
+        guard range == selectedRange else { return }
+        let current = seriesRanges.filter { $0.value == range }.keys
+        series = series.filter { current.contains($0.key) }.merging(results) { $1 }
+        seriesRanges = seriesRanges.filter { $0.value == range }
+            .merging(results.mapValues { _ in range }) { $1 }
     }
 
     func fetchSeries(metricId: String, range: MetricRange) async -> MetricSeriesResponse? {

@@ -173,3 +173,50 @@ struct AppIntentsTests {
         #expect(CarAnalyticsRange.all.spokenLabel == "all retained history")
     }
 }
+
+struct ThermostatIntentTests {
+    @Test("Shortcut dialog describes what was changed")
+    func testDialog() {
+        let state = IndoorClimateState(unit: "°C", sensors: [])
+        let target = IndoorClimateFormat.temperature(21, unit: "°C", precise: false)
+        #expect(SetThermostatIntent.dialog(mode: .heat, temperature: 21, state: state)
+            == "Setting the thermostat to Heat at \(target).")
+        #expect(SetThermostatIntent.dialog(mode: nil, temperature: 21, state: state)
+            == "Setting the thermostat to \(target).")
+        #expect(SetThermostatIntent.dialog(mode: .auto, temperature: nil, state: nil)
+            == "Setting the thermostat to Auto.")
+        #expect(SetThermostatIntent.dialog(mode: .off, temperature: 21, state: state)
+            == "Turning the thermostat off.")
+        let unconfirmed = IndoorClimateState(unit: "°C", sensors: [], confirmed: false)
+        #expect(SetThermostatIntent.dialog(mode: .cool, temperature: nil, state: unconfirmed)
+            == "Setting the thermostat to Cool. It hasn't reported the change yet.")
+    }
+
+    @Test("Shortcuts reject requests the server would refuse before sending anything")
+    func testValidation() throws {
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: nil, temperature: nil) }
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: .auto, temperature: 21) }
+        try SetThermostatIntent.validate(mode: .auto, temperature: nil)
+        try SetThermostatIntent.validate(mode: .heat, temperature: 21)
+        try SetThermostatIntent.validate(mode: nil, temperature: 21)
+    }
+
+    @Test("A temperature outside the thermostat's limits is refused before the mode is switched")
+    func testRangeValidation() throws {
+        let state = IndoorClimateState(
+            unit: "°C", thermostat: ThermostatStatus(entityId: "climate.home", minTemp: 7, maxTemp: 33.5), sensors: []
+        )
+        let tooWarm = #expect(throws: IntentError.self) { try SetThermostatIntent.validate(40, within: state) }
+        #expect(tooWarm?.errorDescription == "Temperature must be between 7°C and 33.5°C.")
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(5, within: state) }
+        try SetThermostatIntent.validate(21, within: state)
+        // Unknown limits are left to the server.
+        try SetThermostatIntent.validate(80, within: nil)
+        let noMax = IndoorClimateState(
+            unit: "°F", thermostat: ThermostatStatus(entityId: "climate.home", minTemp: 45), sensors: []
+        )
+        let tooCool = #expect(throws: IntentError.self) { try SetThermostatIntent.validate(40, within: noMax) }
+        #expect(tooCool?.errorDescription == "Temperature must be at least 45°F.")
+        try SetThermostatIntent.validate(95, within: noMax)
+    }
+}

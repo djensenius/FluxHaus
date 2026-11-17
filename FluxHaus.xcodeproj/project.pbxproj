@@ -44,11 +44,16 @@
 		78879A4A6A2EC90E7F54B6CF /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		91B2B8C4EC266CD1A04C64F1 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
 		E39A28A936680238E494B272 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		D49EEC0C58AE0F6DEACA11C6 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		908FB4330033A7B16C07AD9A /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
 		5B6728109184ABF3992920FE /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		C7E3455A3D22DE3A7F472DC5 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		5A6DE842DFF984BD6EC4B49C /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		07BD092EED13BAEC7ACFFD6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
 		1FDCA5D33F9BDFBB928D962F /* FluxWidgetMacExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -86,11 +91,16 @@
 		251FE64A8426539BFAC36196 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		1A7F68A81D6013F8C5FB5B90 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
 		E7D2B9751FBC299A4D2F7C3B /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		3E026144CEA349DB588E9B08 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		DEA9855F95F9661D5BC412BF /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
 		1B7583CDD5918DD888AB3BD2 /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		DDD6945D597CE5FFDDE31EB6 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		7C772181C42BA2B5378E75B3 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		E1709B31546625C01CB975BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
 		084EF9E1CB9648EF537A22E1 /* FluxWidgetVisionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 93EB9BE4C18BA03F62D15AFA /* FluxWidgetVisionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -137,6 +147,12 @@
 		1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC999E976448F6757BA7155 /* MockDataUITests.swift */; };
 		1D0580D31B64ED384590793B /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
 		1D3DB0F80B73727DC42CA95F /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		B142348909E1A6567C7B7A9E /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		6C77468BB032A021DD4EA705 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		116E8469C4F3A6591F2DAF99 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		69A3D8B9EC1FE8CD005D33B1 /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
+		7597E5056CF6B329955C4AAB /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		1EE958BBEBFBE734319E4BAB /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		20B3C50781AECEC9A50DCD5D /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
@@ -148,12 +164,14 @@
 		256B98E625030109C7B0072B /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
 		25E035A77577F0A7C6C1FAA6 /* WeatherKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */; };
 		260466D11808C378D027C7C8 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		B0BE83B9A3B03AF453E601D6 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		2669250C23932E3E26B5387B /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
 		2A9B4E8BE8B7737DD9667E18 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		2B436CB5F8250F69DF304824 /* StatusIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */; };
 		2C8F07D87EFD2DA8DEFBB58F /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
 		2D20AA22F4ED2E10EAEFC33E /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
 		2E1D40C98BE0FF4DC9908011 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		AE46C3178759C3D83922364F /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		2F0F61B01E0417876339D892 /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
 		31FCD81922AE005906F0AC46 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		322919E39C024D5394F91AAB /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
@@ -172,16 +190,28 @@
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		40B023B629D97801E4222B9B /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		40EEA00C50058903160511F5 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		7F7C8F8E41FFFDE7EAADD186 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		827EDF601D53F29CEBEADFE2 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		D3DF4BE0688C91794DA4AB14 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		240ECB75C9250605EA1D4786 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
 		43D36BFDE9C894B41DC54FFC /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		6719DD35223341CB20EEAD71 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		3A276A5334567470CB925F81 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		0994C3ADF035F10B0D6FB017 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		A0785E84D619F8F27E7FF23A /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
+		DE782E9163066F46A1699923 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		44AB10F051A0C91C563B0EE4 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		47DAD3A56DB24CE1A601DE56 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		49CC496DED762D35041AA043 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		6DF12A1CA39C3E22466A0218 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		4C4BF431831E40DDB81B5B12 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
 		4C7C9D7BE074D65A480045A1 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		4E7F93DA12B2963DD1150BD8 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		4EE7C07CB284872F0B2165AB /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		4FD86E14AA62A32A6FF600A8 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		C32A9BAC50AE55A4B07F26DF /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		55FD5BBD882FC925D75E3214 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		56476772DC1C3CC92BB58030 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		56F7345E58951ECA4EEA6058 /* OfflineAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */; };
@@ -214,6 +244,10 @@
 		634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */; };
 		634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */; };
 		634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D22E47FFC2001F8278 /* SharedTests.swift */; };
+		E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D8936656126C7639887626E /* ThermostatTests.swift */; };
+		758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */; };
+		8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */; };
+		490682650F02EFBDC20C35A6 /* ThermostatTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */; };
 		634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D02E47FFC2001F8278 /* IntegrationTests.swift */; };
 		634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D12E47FFC2001F8278 /* QueryFluxTests.swift */; };
 		634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
@@ -308,9 +342,16 @@
 		6A6F927023CD4F84FD5CC330 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		6C718CFE95C3BC769046E180 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		D81B8FC2A4A0A7187C941D23 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		6FCFCDBD5CD529EC139A4A95 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		717D4AF7931630A9E88AE624 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		EF13D19F153D4A2986EE66E1 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		CF1162B1BFE4F18B173F291C /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		753F6695E6FAE987BC3B0425 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		255B1D6663B4323A39AB3406 /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
+		9BECA43AC1D26A40EE883D39 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		76BEC2C027094075424FAC66 /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
 		76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		773F6A161767F7B9301A70C8 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
@@ -343,6 +384,12 @@
 		A1319CBC6B75067B33D60A3B /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		A152D85348FCC4C08DA290B1 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		B02576EDF5A2AA35F7FC27F2 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		EDE57F6B81F4242F8506EAC3 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		C785FC220B22C4DB5FE0DC6D /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		CE53A75EA7507BFDB7EF8C2D /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
+		31919743EDD6AEB16D89CE37 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
@@ -586,12 +633,19 @@
 		1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FluxStatusText.swift; sourceTree = "<group>"; };
 		222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceEntity.swift; sourceTree = "<group>"; };
 		2888C94C0601F4FE3B8598E0 /* Metrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
+		5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimate.swift; sourceTree = "<group>"; };
+EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Thermostat.swift; sourceTree = "<group>"; };
+9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatCommand.swift; sourceTree = "<group>"; };
+		B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimateView.swift; sourceTree = "<group>"; };
+6833FFF348CC59C34571131C /* ClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClimateView.swift; sourceTree = "<group>"; };
+9957AF184D1207FF021961EA /* ThermostatControlView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatControlView.swift; sourceTree = "<group>"; };
 		292DC949B78661B688E040F2 /* AppIntentsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIntentsTests.swift; sourceTree = "<group>"; };
 		2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusIntents.swift; sourceTree = "<group>"; };
 		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		37D0A0000000000000000001 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivityLegacy.swift; sourceTree = "<group>"; };
 		45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarIntents.swift; sourceTree = "<group>"; };
+4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatIntents.swift; sourceTree = "<group>"; };
 		4BFC7684CFC56D913ACB314A /* AppIntentsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIntentsTests.swift; sourceTree = "<group>"; };
 		54E080FFA20990ACE9D14FB1 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CB3B0423E7608E287483D2 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -622,6 +676,10 @@
 		634056D02E47FFC2001F8278 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 		634056D12E47FFC2001F8278 /* QueryFluxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFluxTests.swift; sourceTree = "<group>"; };
 		634056D22E47FFC2001F8278 /* SharedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTests.swift; sourceTree = "<group>"; };
+4D8936656126C7639887626E /* ThermostatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTests.swift; sourceTree = "<group>"; };
+		E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatUnreportedTests.swift; sourceTree = "<group>"; };
+		E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatModelTests.swift; sourceTree = "<group>"; };
+		6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTestSupport.swift; sourceTree = "<group>"; };
 		634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAreTests.swift; sourceTree = "<group>"; };
 		634056D42E47FFC2001F8278 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
 		635BD66A2B9DF8A6009CEEA9 /* Robots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Robots.swift; sourceTree = "<group>"; };
@@ -807,6 +865,7 @@
 				F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */,
 				E38B4A64D5666D588E647CA0 /* RobotIntents.swift */,
 				45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */,
+				4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */,
 				A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */,
 				2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */,
 				782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */,
@@ -908,6 +967,12 @@
 				A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */,
 				7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */,
 				2888C94C0601F4FE3B8598E0 /* Metrics.swift */,
+				5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */,
+				EEBBB79F8C384285F254E54F /* Thermostat.swift */,
+				9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */,
+				B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */,
+				6833FFF348CC59C34571131C /* ClimateView.swift */,
+				9957AF184D1207FF021961EA /* ThermostatControlView.swift */,
 				EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */,
 			);
 			path = Shared;
@@ -1010,6 +1075,10 @@
 				634056D02E47FFC2001F8278 /* IntegrationTests.swift */,
 				634056D12E47FFC2001F8278 /* QueryFluxTests.swift */,
 				634056D22E47FFC2001F8278 /* SharedTests.swift */,
+				4D8936656126C7639887626E /* ThermostatTests.swift */,
+				E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */,
+				E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */,
+				6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */,
 				634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */,
 				634056D42E47FFC2001F8278 /* WidgetTests.swift */,
 				4BFC7684CFC56D913ACB314A /* AppIntentsTests.swift */,
@@ -1493,11 +1562,16 @@
 				78879A4A6A2EC90E7F54B6CF /* FluxIntentActions.swift in Sources */,
 				91B2B8C4EC266CD1A04C64F1 /* RobotIntents.swift in Sources */,
 				E39A28A936680238E494B272 /* CarIntents.swift in Sources */,
+				D49EEC0C58AE0F6DEACA11C6 /* ThermostatIntents.swift in Sources */,
 				908FB4330033A7B16C07AD9A /* CarAnalytics.swift in Sources */,
 				5B6728109184ABF3992920FE /* AirPurifier.swift in Sources */,
 				FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */,
 				928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */,
 				9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */,
+				AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */,
+				C7E3455A3D22DE3A7F472DC5 /* Thermostat.swift in Sources */,
+				5A6DE842DFF984BD6EC4B49C /* ThermostatCommand.swift in Sources */,
+				9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */,
 				07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1540,11 +1614,16 @@
 				251FE64A8426539BFAC36196 /* FluxIntentActions.swift in Sources */,
 				1A7F68A81D6013F8C5FB5B90 /* RobotIntents.swift in Sources */,
 				E7D2B9751FBC299A4D2F7C3B /* CarIntents.swift in Sources */,
+				3E026144CEA349DB588E9B08 /* ThermostatIntents.swift in Sources */,
 				DEA9855F95F9661D5BC412BF /* CarAnalytics.swift in Sources */,
 				1B7583CDD5918DD888AB3BD2 /* AirPurifier.swift in Sources */,
 				0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */,
 				EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */,
 				D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */,
+				1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */,
+				DDD6945D597CE5FFDDE31EB6 /* Thermostat.swift in Sources */,
+				7C772181C42BA2B5378E75B3 /* ThermostatCommand.swift in Sources */,
+				25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */,
 				AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1620,6 +1699,7 @@
 				44AB10F051A0C91C563B0EE4 /* FluxIntentActions.swift in Sources */,
 				057460FC18168E1CE9B3C520 /* RobotIntents.swift in Sources */,
 				260466D11808C378D027C7C8 /* CarIntents.swift in Sources */,
+				B0BE83B9A3B03AF453E601D6 /* ThermostatIntents.swift in Sources */,
 				2669250C23932E3E26B5387B /* SceneIntents.swift in Sources */,
 				5E7F9732F0E2D22130D6E339 /* StatusIntents.swift in Sources */,
 				A08741F491FBACE4244D359F /* AskFluxHausIntent.swift in Sources */,
@@ -1628,6 +1708,12 @@
 				A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */,
 				5B438D8B41E74BCE6BC2C17F /* AirPurifierView.swift in Sources */,
 				A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */,
+				B02576EDF5A2AA35F7FC27F2 /* IndoorClimate.swift in Sources */,
+				EDE57F6B81F4242F8506EAC3 /* Thermostat.swift in Sources */,
+				C785FC220B22C4DB5FE0DC6D /* ThermostatCommand.swift in Sources */,
+				CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */,
+				CE53A75EA7507BFDB7EF8C2D /* ClimateView.swift in Sources */,
+				31919743EDD6AEB16D89CE37 /* ThermostatControlView.swift in Sources */,
 				21B330CE9408AA1578972F0F /* MetricsView.swift in Sources */,
 				D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */,
 				0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */,
@@ -1707,6 +1793,7 @@
 				EA4EE864901D2B3105A7F885 /* FluxIntentActions.swift in Sources */,
 				6459694F94969E90B6F5CD9F /* RobotIntents.swift in Sources */,
 				6C718CFE95C3BC769046E180 /* CarIntents.swift in Sources */,
+				D81B8FC2A4A0A7187C941D23 /* ThermostatIntents.swift in Sources */,
 				6761CEA937D36001BDB9337C /* SceneIntents.swift in Sources */,
 				863F05984934657C4DFF4C77 /* StatusIntents.swift in Sources */,
 				2F0F61B01E0417876339D892 /* AskFluxHausIntent.swift in Sources */,
@@ -1715,6 +1802,12 @@
 				C326B080083CA782012B624F /* SymbolAnimation.swift in Sources */,
 				322919E39C024D5394F91AAB /* AirPurifierView.swift in Sources */,
 				717D4AF7931630A9E88AE624 /* Metrics.swift in Sources */,
+				EF13D19F153D4A2986EE66E1 /* IndoorClimate.swift in Sources */,
+				CF1162B1BFE4F18B173F291C /* Thermostat.swift in Sources */,
+				753F6695E6FAE987BC3B0425 /* ThermostatCommand.swift in Sources */,
+				FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */,
+				255B1D6663B4323A39AB3406 /* ClimateView.swift in Sources */,
+				9BECA43AC1D26A40EE883D39 /* ThermostatControlView.swift in Sources */,
 				20EC81A3A000AC07341A686F /* MetricsView.swift in Sources */,
 				3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */,
 				C356C9664EADA850E438227C /* FluxStatusText.swift in Sources */,
@@ -1773,11 +1866,16 @@
 				0CC21D2502790A21385B0E63 /* FluxIntentActions.swift in Sources */,
 				F3C3D67FDFFEFDA41639835B /* RobotIntents.swift in Sources */,
 				4FD86E14AA62A32A6FF600A8 /* CarIntents.swift in Sources */,
+				C32A9BAC50AE55A4B07F26DF /* ThermostatIntents.swift in Sources */,
 				CA2700010000000000000003 /* CarAnalytics.swift in Sources */,
 				F595397493CD5FCACB96AE7B /* AirPurifier.swift in Sources */,
 				9B78596D56FBBFD6111E1D9B /* SymbolAnimation.swift in Sources */,
 				78F7ECC733E1ED102D2A6036 /* AirPurifierView.swift in Sources */,
 				40EEA00C50058903160511F5 /* Metrics.swift in Sources */,
+				7F7C8F8E41FFFDE7EAADD186 /* IndoorClimate.swift in Sources */,
+				827EDF601D53F29CEBEADFE2 /* Thermostat.swift in Sources */,
+				D3DF4BE0688C91794DA4AB14 /* ThermostatCommand.swift in Sources */,
+				240ECB75C9250605EA1D4786 /* IndoorClimateView.swift in Sources */,
 				56476772DC1C3CC92BB58030 /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1848,6 +1946,7 @@
 				4E7F93DA12B2963DD1150BD8 /* FluxIntentActions.swift in Sources */,
 				0AC5EE3121562133680D3C3C /* RobotIntents.swift in Sources */,
 				2E1D40C98BE0FF4DC9908011 /* CarIntents.swift in Sources */,
+				AE46C3178759C3D83922364F /* ThermostatIntents.swift in Sources */,
 				2D20AA22F4ED2E10EAEFC33E /* SceneIntents.swift in Sources */,
 				E8F51AC7B9126DD96390720E /* StatusIntents.swift in Sources */,
 				C407064D75A040943618FCF3 /* AskFluxHausIntent.swift in Sources */,
@@ -1856,6 +1955,12 @@
 				C20BCB435D427473214CC26D /* SymbolAnimation.swift in Sources */,
 				D8DFFD9156EFE9C0279611C5 /* AirPurifierView.swift in Sources */,
 				1D3DB0F80B73727DC42CA95F /* Metrics.swift in Sources */,
+				B142348909E1A6567C7B7A9E /* IndoorClimate.swift in Sources */,
+				6C77468BB032A021DD4EA705 /* Thermostat.swift in Sources */,
+				116E8469C4F3A6591F2DAF99 /* ThermostatCommand.swift in Sources */,
+				BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */,
+				69A3D8B9EC1FE8CD005D33B1 /* ClimateView.swift in Sources */,
+				7597E5056CF6B329955C4AAB /* ThermostatControlView.swift in Sources */,
 				8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */,
 				7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */,
 				7FBB022B7D830F6F03DFAA94 /* FluxStatusText.swift in Sources */,
@@ -1873,6 +1978,10 @@
 				634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */,
 				634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */,
 				634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */,
+				E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */,
+				758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */,
+				8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */,
+				490682650F02EFBDC20C35A6 /* ThermostatTestSupport.swift in Sources */,
 				634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */,
 				634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */,
 				634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
@@ -1952,6 +2061,7 @@
 				2A9B4E8BE8B7737DD9667E18 /* FluxIntentActions.swift in Sources */,
 				65AC26A6D238F5635F082B02 /* RobotIntents.swift in Sources */,
 				49CC496DED762D35041AA043 /* CarIntents.swift in Sources */,
+				6DF12A1CA39C3E22466A0218 /* ThermostatIntents.swift in Sources */,
 				76BEC2C027094075424FAC66 /* SceneIntents.swift in Sources */,
 				2B436CB5F8250F69DF304824 /* StatusIntents.swift in Sources */,
 				914CBFB490B76988B7373B05 /* AskFluxHausIntent.swift in Sources */,
@@ -1960,6 +2070,12 @@
 				F5E45585943A8816A131812F /* SymbolAnimation.swift in Sources */,
 				BDD3FF5256362CE98F8141F0 /* AirPurifierView.swift in Sources */,
 				43D36BFDE9C894B41DC54FFC /* Metrics.swift in Sources */,
+				6719DD35223341CB20EEAD71 /* IndoorClimate.swift in Sources */,
+				3A276A5334567470CB925F81 /* Thermostat.swift in Sources */,
+				0994C3ADF035F10B0D6FB017 /* ThermostatCommand.swift in Sources */,
+				B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */,
+				A0785E84D619F8F27E7FF23A /* ClimateView.swift in Sources */,
+				DE782E9163066F46A1699923 /* ThermostatControlView.swift in Sources */,
 				6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */,
 				AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */,
 				A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */,

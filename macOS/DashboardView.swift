@@ -27,6 +27,13 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 weatherCard
+                if let indoor = apiResponse.response?.indoorClimate, indoor.hasData {
+                    IndoorClimateCard(
+                        state: indoor,
+                        actionTitle: "Climate controls",
+                        actionIcon: "thermometer.medium"
+                    ) { onNavigate(.climate) }
+                }
                 scenesCard
                 ForEach(sortedDeviceCards, id: \.id) { card in
                     card.view

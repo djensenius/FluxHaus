@@ -222,6 +222,8 @@ struct FluxHausApp: App {
     @State private var car: Car?
     @State private var scooter: Scooter?
     @State private var airPurifier: AirPurifier?
+    /// One thermostat controller per signed-in session, shared by every Climate screen.
+    @State private var thermostat: Thermostat?
     @State private var metrics = MetricsService()
 
     @Environment(\.scenePhase) private var scenePhase
@@ -290,9 +292,10 @@ struct FluxHausApp: App {
                                 loadScooter()
                                 loadHomeConnect()
                                 loadAirPurifier()
+                                loadThermostat()
                             }
                         }
-                } else if let hconn, let miele, let robots, let car, let scooter, let airPurifier {
+                } else if let hconn, let miele, let robots, let car, let scooter, let airPurifier, let thermostat {
                     ContentView(
                         fluxHausConsts: fluxHausConsts,
                         hconn: hconn,
@@ -302,6 +305,7 @@ struct FluxHausApp: App {
                         car: car,
                         scooter: scooter,
                         apiResponse: self.apiResponse,
+                        thermostat: thermostat,
                         airPurifier: airPurifier,
                         metrics: metrics
                     )
@@ -347,6 +351,8 @@ struct FluxHausApp: App {
                 car = nil
                 scooter = nil
                 airPurifier = nil
+                thermostat?.invalidate()
+                thermostat = nil
                 WidgetReloader.reset()
             }
             .onChange(of: scenePhase) { _, newPhase in
@@ -432,6 +438,10 @@ struct FluxHausApp: App {
     func loadAirPurifier() {
         airPurifier = AirPurifier()
         airPurifier?.setApiResponse(apiResponse: self.apiResponse)
+    }
+
+    func loadThermostat() {
+        thermostat = Thermostat.forCurrentSession(reusing: thermostat, apiResponse: self.apiResponse)
     }
 
     func updateLiveActivities(response: LoginResponse, requestID: UUID) {

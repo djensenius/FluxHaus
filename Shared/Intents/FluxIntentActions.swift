@@ -19,6 +19,7 @@ enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
     case networkUnavailable
     case invalidResponse
     case requestFailed(Int)
+    case rejected(String)
     case invalidURL
 
     var errorDescription: String? {
@@ -33,6 +34,8 @@ enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
             return "FluxHaus returned an invalid response. Please try again."
         case .requestFailed(let code):
             return "The request failed (HTTP \(code))."
+        case .rejected(let message):
+            return message
         case .invalidURL:
             return "Could not build the request."
         }
@@ -62,6 +65,8 @@ enum IntentError: LocalizedError, CustomAppIntentErrorConvertible {
                 predefinedError: .Unrecoverable.networkFailure,
                 description: "The request failed with HTTP status \(code)."
             )
+        case .rejected(let message):
+            return AppIntentError(description: LocalizedStringResource(stringLiteral: message))
         case .invalidURL:
             return AppIntentError(description: "FluxHaus couldn't create the request.")
         }
@@ -102,14 +107,16 @@ enum FluxIntentActions {
     static let scheme = "https"
     static let host = "api.fluxhaus.io"
 
-    /// Performs an authenticated POST to the given API path and throws on a non-2xx response.
+    /// Performs an authenticated POST to the given API path, throws on a non-2xx response,
+    /// and returns the response body.
     /// `isStillValid` runs after request preparation (auth, CSRF) right before credentials
     /// are attached; widgets use it to refuse acting if the account changed meanwhile.
+    @discardableResult
     static func post(
         path: String,
         body: [String: Any]? = nil,
         isStillValid: @Sendable () -> Bool = { true }
-    ) async throws {
+    ) async throws -> Data {
         try await requireIntentAuthentication()
 
         var components = URLComponents()
@@ -140,13 +147,32 @@ enum FluxIntentActions {
         }
 
         let session = URLSession(configuration: .default)
-        let (_, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request)
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
         guard (200...299).contains(statusCode) else {
             logger.error("Intent action \(path) failed with HTTP \(statusCode)")
+            if (400...499).contains(statusCode), statusCode != 401, statusCode != 403,
+               let message = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+               !message.isEmpty, message.count <= 200, !message.hasPrefix("<") {
+                throw IntentError.rejected(message)
+            }
             throw IntentError.requestFailed(statusCode)
         }
         logger.info("Intent action \(path) completed with HTTP \(statusCode)")
+        return data
+    }
+
+    // MARK: - Thermostat
+
+    /// Sends a thermostat control request and returns the refreshed indoor climate status.
+    @discardableResult
+    static func controlThermostat(
+        _ command: ThermostatCommand,
+        isStillValid: @Sendable () -> Bool = { true }
+    ) async throws -> IndoorClimateState? {
+        let data = try await post(path: command.path, body: command.body, isStillValid: isStillValid)
+        return try? JSONDecoder().decode(IndoorClimateState.self, from: data)
     }
 
     // MARK: - Robots

@@ -390,6 +390,8 @@ struct MacApp: App {
     @State private var chat = Chat()
     @State private var scooter: Scooter?
     @State private var airPurifier: AirPurifier?
+    /// One thermostat controller per signed-in session, shared by every Climate screen.
+    @State private var thermostat: Thermostat?
     @State private var metrics = MetricsService()
     @AppStorage("showMenuBarExtra") private var showMenuBar = true
     @Environment(\.openWindow) private var openWindow
@@ -418,6 +420,8 @@ struct MacApp: App {
                     self.car = nil
                     self.scooter = nil
                     self.airPurifier = nil
+                    self.thermostat?.invalidate()
+                    self.thermostat = nil
                     WidgetReloader.reset()
                 }
                 .onOpenURL { url in
@@ -447,6 +451,7 @@ struct MacApp: App {
                     .keyboardShortcut("1", modifiers: .command)
                 Button("Weather") { postNavigation("Weather") }
                     .keyboardShortcut("2", modifiers: .command)
+                Button("Climate") { postNavigation("Climate") }
                 Button("Scenes") { postNavigation("Scenes") }
                     .keyboardShortcut("3", modifiers: .command)
                 Button("Appliances") { postNavigation("Appliances") }
@@ -518,7 +523,7 @@ struct MacApp: App {
                 ) { object in
                     handleDataUpdated(object)
                 }
-        } else if let hconn, let miele, let robots, let car, let scooter, let airPurifier {
+        } else if let hconn, let miele, let robots, let car, let scooter, let airPurifier, let thermostat {
             ContentView(
                 fluxHausConsts: fluxHausConsts,
                 hconn: hconn,
@@ -528,6 +533,7 @@ struct MacApp: App {
                 car: car,
                 scooter: scooter,
                 apiResponse: apiResponse,
+                thermostat: thermostat,
                 airPurifier: airPurifier,
                 metrics: metrics,
                 chat: chat
@@ -629,6 +635,7 @@ struct MacApp: App {
             self.scooter?.setApiResponse(apiResponse: self.apiResponse)
             self.airPurifier = AirPurifier()
             self.airPurifier?.setApiResponse(apiResponse: self.apiResponse)
+            self.thermostat = Thermostat.forCurrentSession(reusing: self.thermostat, apiResponse: self.apiResponse)
             self.hconn = HomeConnect(apiResponse: self.apiResponse)
         }
     }

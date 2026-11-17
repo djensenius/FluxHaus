@@ -16,6 +16,7 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var thermostat: Thermostat
     var airPurifier: AirPurifier
     var metrics: MetricsService
     @State private var whereWeAre = WhereWeAre()
@@ -26,6 +27,13 @@ struct ContentView: View {
     @State private var selectedTab = "home"
     @State private var morePath: [String] = []
     @State private var tabCustomization = TabViewCustomization()
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+    /// Climate is its own tab in wide iPad windows; on iPhone (even a large one in landscape,
+    /// which is also regular width) and in narrow iPad windows it heads the More list.
+    private var showsClimateTab: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass == .regular
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -37,6 +45,12 @@ struct ContentView: View {
                 weatherTab
             }
             .customizationID("weather")
+            if showsClimateTab {
+                Tab("Climate", systemImage: "thermometer.medium", value: "climate") {
+                    NavigationStack { climateView }
+                }
+                .customizationID("climate")
+            }
             if authManager.isOIDC {
                 Tab("Assistant", systemImage: "bubble.left.and.bubble.right.fill", value: "assistant") {
                     ChatView(chat: chat)
@@ -61,14 +75,26 @@ struct ContentView: View {
                 handleNavigationRequest(section)
             }
         }
+        .onChange(of: showsClimateTab) { _, hasTab in
+            if hasTab, selectedTab == "more", morePath == ["climate"] {
+                selectedTab = "climate"
+                morePath = []
+            } else if !hasTab, selectedTab == "climate" {
+                selectedTab = "more"
+                morePath = ["climate"]
+            }
+        }
     }
 
     private var primaryTabValues: Set<String> {
-        authManager.isOIDC ? ["home", "weather", "assistant", "car", "more"] : ["home", "weather", "car", "more"]
+        var tabs: Set<String> = ["home", "weather", "car", "more"]
+        if authManager.isOIDC { tabs.insert("assistant") }
+        if showsClimateTab { tabs.insert("climate") }
+        return tabs
     }
 
     private var moreDestinationValues: Set<String> {
-        ["scooter", "cleanbot", "robots", "appliances", "scenes", "metrics", "settings"]
+        ["climate", "scooter", "cleanbot", "robots", "appliances", "scenes", "metrics", "settings"]
     }
 
     private func handleNavigationRequest(_ requestedSection: String) {
@@ -89,6 +115,15 @@ struct ContentView: View {
     private var moreTab: some View {
         NavigationStack(path: $morePath) {
             List {
+                if !showsClimateTab {
+                    Section {
+                        NavigationLink(value: "climate") {
+                            Label("Climate", systemImage: "thermometer.medium")
+                        }
+                    }
+                    .listRowBackground(Theme.Colors.secondaryBackground)
+                }
+
                 Section("Devices") {
                     NavigationLink(value: "scooter") {
                         Label {
@@ -133,6 +168,8 @@ struct ContentView: View {
     @ViewBuilder
     private func moreDestination(for destination: String) -> some View {
         switch destination {
+        case "climate":
+            climateView
         case "scooter":
             scooterTab
         case "cleanbot", "robots":
@@ -166,6 +203,8 @@ struct ContentView: View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
+            // The compact layout doesn't scroll, so keep the summary to two rows.
+            indoorSummary(maxRooms: 4)
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             appliancesHeader
             appliancesGrid
@@ -181,6 +220,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.large) {
                     DateTimeView()
                     WeatherView(lman: locationManager)
+                    indoorSummary()
                     HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                     footer
                 }
@@ -195,6 +235,14 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    private func indoorSummary(maxRooms: Int? = nil) -> some View {
+        IndoorSummaryView(apiResponse: apiResponse, maxRooms: maxRooms) { handleNavigationRequest("climate") }
+    }
+
+    private var climateView: some View {
+        ClimateView(apiResponse: apiResponse, thermostat: thermostat, airPurifier: airPurifier, metrics: metrics)
     }
 
     private var appliancesHeader: some View {
@@ -225,7 +273,8 @@ struct ContentView: View {
         WeatherDetailView(
             locationManager: locationManager,
             radarService: radarService,
-            metrics: metrics
+            metrics: metrics,
+            apiResponse: apiResponse
         )
     }
 
@@ -283,6 +332,7 @@ struct ContentView: View {
 
 #if DEBUG
 #Preview {
+    let api = MockData.createApi()
     ContentView(
         fluxHausConsts: {
             let config = FluxHausConsts()
@@ -295,7 +345,8 @@ struct ContentView: View {
         battery: MockData.createBattery(),
         car: MockData.createCar(),
         scooter: Scooter(),
-        apiResponse: MockData.createApi(),
+        apiResponse: api,
+        thermostat: Thermostat(apiResponse: api),
         airPurifier: MockData.createAirPurifier(),
         metrics: MetricsService()
     )

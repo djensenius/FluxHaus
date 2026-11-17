@@ -18,6 +18,7 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var thermostat: Thermostat
     var airPurifier: AirPurifier
     var metrics: MetricsService
     @State private var whereWeAre = WhereWeAre()
@@ -35,6 +36,13 @@ struct ContentView: View {
             weatherTab
                 .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
                 .tag("Weather")
+            NavigationStack {
+                ClimateView(
+                    apiResponse: apiResponse, thermostat: thermostat, airPurifier: airPurifier, metrics: metrics
+                )
+            }
+            .tabItem { Label("Climate", systemImage: "thermometer.medium") }
+            .tag("Climate")
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .tabItem { Label("Scenes", systemImage: "lightbulb.fill") }
                 .tag("Scenes")
@@ -82,6 +90,7 @@ struct ContentView: View {
             VStack {
                 DateTimeView()
                 WeatherView(lman: locationManager)
+                IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "Climate" }
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
@@ -109,7 +118,8 @@ struct ContentView: View {
         WeatherDetailView(
             locationManager: locationManager,
             radarService: radarService,
-            metrics: metrics
+            metrics: metrics,
+            apiResponse: apiResponse
         )
     }
 
@@ -156,6 +166,7 @@ struct ContentView: View {
 
 #if DEBUG
 #Preview(windowStyle: .automatic) {
+    let api = MockData.createApi()
     ContentView(
         fluxHausConsts: {
             let config = FluxHausConsts()
@@ -168,7 +179,8 @@ struct ContentView: View {
         battery: MockData.createBattery(),
         car: MockData.createCar(),
         scooter: Scooter(),
-        apiResponse: MockData.createApi(),
+        apiResponse: api,
+        thermostat: Thermostat(apiResponse: api),
         airPurifier: MockData.createAirPurifier(),
         metrics: MetricsService()
     )

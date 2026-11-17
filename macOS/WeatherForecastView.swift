@@ -190,12 +190,14 @@ struct WeatherDetailView: View {
     var locationManager: LocationManager
     var radarService: RadarService
     var metrics: MetricsService
+    var apiResponse: Api
     @State private var frameIndex = 0
     @State private var isPlaying = false
     @State private var animationTask: Task<Void, Never>?
     @State private var tilesReady = false
     @State private var showFullRadar = false
     @State private var showEnvironmentMetrics = false
+    @State private var showIndoorMetrics = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -213,9 +215,13 @@ struct WeatherDetailView: View {
                     }
                 }
             } else {
+                // Indoor readings come from FluxHaus, so show them while WeatherKit loads.
                 ScrollView {
-                    loadingView
-                        .padding()
+                    VStack(spacing: 16) {
+                        indoorClimateCard
+                        loadingView
+                    }
+                    .padding()
                 }
             }
         }
@@ -231,6 +237,16 @@ struct WeatherDetailView: View {
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showEnvironmentMetrics = false }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showIndoorMetrics) {
+            NavigationStack {
+                IndoorClimateMetricsView(metrics: metrics)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showIndoorMetrics = false }
                         }
                     }
             }
@@ -261,6 +277,7 @@ struct WeatherDetailView: View {
                     if let alerts = weather.weatherAlerts, !alerts.isEmpty {
                         weatherAlertsCard(alerts: alerts)
                     }
+                    indoorClimateCard
                     precipitationTimelineCard(weather: weather)
                     forecastCard(weather: weather)
                     environmentMetricsCard
@@ -278,11 +295,20 @@ struct WeatherDetailView: View {
             if let alerts = weather.weatherAlerts, !alerts.isEmpty {
                 weatherAlertsCard(alerts: alerts)
             }
+            indoorClimateCard
             radarCard
             precipitationTimelineCard(weather: weather)
             forecastCard(weather: weather)
             environmentMetricsCard
             weatherAttribution
+        }
+    }
+
+    /// Every indoor temperature sensor (thermostat + remote rooms).
+    @ViewBuilder
+    private var indoorClimateCard: some View {
+        if let state = apiResponse.response?.indoorClimate, state.hasData {
+            IndoorClimateCard(state: state) { showIndoorMetrics = true }
         }
     }
 

@@ -10,6 +10,7 @@ import SwiftUI
 enum SidebarItem: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
     case weather = "Weather"
+    case climate = "Climate"
     case scenes = "Scenes"
     case appliances = "Appliances"
     case car = "Car"
@@ -24,6 +25,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard: return "house.fill"
         case .weather: return "cloud.sun.fill"
+        case .climate: return "thermometer.medium"
         case .scenes: return "lightbulb.fill"
         case .appliances: return "washer.fill"
         case .car: return "car.fill"
@@ -44,6 +46,7 @@ struct ContentView: View {
     var car: Car
     var scooter: Scooter
     var apiResponse: Api
+    var thermostat: Thermostat
     var airPurifier: AirPurifier
     var metrics: MetricsService
     var chat: Chat
@@ -140,9 +143,12 @@ struct ContentView: View {
             WeatherDetailView(
                 locationManager: locationManager,
                 radarService: radarService,
-                metrics: metrics
+                metrics: metrics,
+                apiResponse: apiResponse
             )
             .navigationTitle("Weather")
+        case .climate:
+            ClimateView(apiResponse: apiResponse, thermostat: thermostat, airPurifier: airPurifier, metrics: metrics)
         case .scenes:
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .navigationTitle("Scenes")
@@ -445,6 +451,7 @@ struct RobotsMacView: View {
 
 #if DEBUG
 #Preview {
+    let api = MockData.createApi()
     ContentView(
         fluxHausConsts: {
             let config = FluxHausConsts()
@@ -459,7 +466,8 @@ struct RobotsMacView: View {
         battery: MockData.createBattery(),
         car: MockData.createCar(),
         scooter: Scooter(),
-        apiResponse: MockData.createApi(),
+        apiResponse: api,
+        thermostat: Thermostat(apiResponse: api),
         airPurifier: MockData.createAirPurifier(),
         metrics: MetricsService(),
         chat: Chat()
