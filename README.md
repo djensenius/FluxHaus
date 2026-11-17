@@ -28,8 +28,9 @@ make test
 The Climate section brings the home's environment together: the Ecobee thermostat
 (current temperature, activity, humidity, setpoints, mode, comfort setting, fan, and
 “Resume schedule”), every room's temperature named after its Home Assistant area, the
-air purifier, and indoor history. It is a tab on iPad and Vision Pro and a sidebar item
-on Mac; on iPhone it heads the **More** list. Tapping the indoor summary on Home opens it.
+air purifier, and indoor history. It is a tab on Vision Pro and in wide iPad windows, and a
+sidebar item on Mac; on iPhone, and in narrow iPad windows, it heads the **More** list.
+Tapping the indoor summary on Home opens it.
 
 Setpoint taps are combined and sent after a short pause, and the change shows right away
 while the request is in flight. Changes reach the thermostat one at a time in the order

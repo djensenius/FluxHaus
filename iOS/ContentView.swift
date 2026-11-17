@@ -29,8 +29,11 @@ struct ContentView: View {
     @State private var tabCustomization = TabViewCustomization()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    /// Climate is its own tab where there's room (iPad); on iPhone it heads the More list.
-    private var showsClimateTab: Bool { horizontalSizeClass == .regular }
+    /// Climate is its own tab in wide iPad windows; on iPhone (even a large one in landscape,
+    /// which is also regular width) and in narrow iPad windows it heads the More list.
+    private var showsClimateTab: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass == .regular
+    }
 
     var body: some View {
         TabView(selection: $selectedTab) {

@@ -43,6 +43,14 @@ public enum ThermostatCommand: Equatable, Sendable {
         case .resumeSchedule: return ["resumeAll": true]
         }
     }
+
+    /// Setpoints are chosen for the mode the thermostat is in.
+    var isSetpoint: Bool {
+        switch self {
+        case .setTemperature, .setRange: return true
+        case .setMode, .setPreset, .setFan, .resumeSchedule: return false
+        }
+    }
 }
 
 // MARK: - Labels
@@ -157,6 +165,11 @@ enum ThermostatSetpoint {
     /// The kind of setpoint edited since it was last queued. A range still on its way
     /// can outlive a switch to a single-setpoint mode, so the edit decides what is sent.
     @ObservationIgnored private var unsentSetpoint: SetpointKind?
+    /// Ties setpoints to the mode switch they were chosen after. It moves on with each switch,
+    /// and after a failed one, so edits made once the failure is shown aren't tied to it.
+    @ObservationIgnored private var modeGeneration = 0
+    /// The most recent mode switch that failed; setpoints chosen for it are dropped.
+    @ObservationIgnored private var failedModeGeneration: Int?
     /// The last queued command. Commands run one at a time in the order the user
     /// made them, so the thermostat ends up in the last state chosen.
     @ObservationIgnored private var queueTail: Task<Void, Never>?
@@ -326,20 +339,27 @@ enum ThermostatSetpoint {
 
     @discardableResult
     private func enqueue(_ command: ThermostatCommand) -> Task<Void, Never> {
+        if case .setMode = command { modeGeneration += 1 }
+        let generation = modeGeneration
         let previous = queueTail
         inFlight += 1
         let request = Task {
             await previous?.value
-            await self.perform(command)
+            await self.perform(command, generation: generation)
             self.inFlight -= 1
         }
         queueTail = request
         return request
     }
 
-    private func perform(_ command: ThermostatCommand) async {
+    private func perform(_ command: ThermostatCommand, generation: Int) async {
         // Checked before every command, so nothing queued under a previous account is sent.
         guard isSessionCurrent() else { return }
+        if command.isSetpoint, generation == failedModeGeneration {
+            // Chosen for a mode the thermostat didn't switch to; that error stays shown.
+            clearPending(sentBy: command)
+            return
+        }
         lastError = nil
         defer { clearPending(sentBy: command) }
         do {
@@ -355,7 +375,28 @@ enum ThermostatSetpoint {
             guard isSessionCurrent() else { return }
             logger.error("Thermostat command \(command.path) failed: \(error.localizedDescription)")
             lastError = error.localizedDescription
+            if case .setMode = command { dropSetpoints(chosenFor: generation) }
         }
+    }
+
+    /// After a mode switch fails, drops the setpoints chosen for that mode: queued ones are
+    /// skipped, and an unsent one is discarded unless another mode was chosen since.
+    private func dropSetpoints(chosenFor generation: Int) {
+        failedModeGeneration = generation
+        guard generation == modeGeneration else { return }
+        modeGeneration += 1
+        commitTask?.cancel()
+        commitTask = nil
+        switch unsentSetpoint {
+        case .single:
+            pendingTarget = nil
+        case .range:
+            pendingLow = nil
+            pendingHigh = nil
+        case nil:
+            break
+        }
+        unsentSetpoint = nil
     }
 
     /// The controller to use after a data refresh. Polls arrive every few seconds, so the
@@ -396,13 +437,14 @@ enum ThermostatSetpoint {
     }
 
     /// Clears only the optimistic values this command carried, so a newer edit made
-    /// while the request was in flight stays pending.
+    /// while the request was in flight stays pending, even if it matches the value sent.
     private func clearPending(sentBy command: ThermostatCommand) {
         switch command {
         case .setTemperature(let value):
+            guard unsentSetpoint != .single else { return }
             pendingTarget = Self.cleared(pendingTarget, sent: value)
         case let .setRange(low, high):
-            guard pendingLow == low, pendingHigh == high else { return }
+            guard unsentSetpoint != .range, pendingLow == low, pendingHigh == high else { return }
             pendingLow = nil
             pendingHigh = nil
         case .setMode(let mode):

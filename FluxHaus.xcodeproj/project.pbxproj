@@ -240,6 +240,7 @@
 		634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */; };
 		634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D22E47FFC2001F8278 /* SharedTests.swift */; };
 		E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D8936656126C7639887626E /* ThermostatTests.swift */; };
+		8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */; };
 		634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D02E47FFC2001F8278 /* IntegrationTests.swift */; };
 		634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D12E47FFC2001F8278 /* QueryFluxTests.swift */; };
 		634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
@@ -666,6 +667,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 		634056D12E47FFC2001F8278 /* QueryFluxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFluxTests.swift; sourceTree = "<group>"; };
 		634056D22E47FFC2001F8278 /* SharedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTests.swift; sourceTree = "<group>"; };
 4D8936656126C7639887626E /* ThermostatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTests.swift; sourceTree = "<group>"; };
+		E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatModelTests.swift; sourceTree = "<group>"; };
 		634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAreTests.swift; sourceTree = "<group>"; };
 		634056D42E47FFC2001F8278 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
 		635BD66A2B9DF8A6009CEEA9 /* Robots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Robots.swift; sourceTree = "<group>"; };
@@ -1061,6 +1063,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 				634056D12E47FFC2001F8278 /* QueryFluxTests.swift */,
 				634056D22E47FFC2001F8278 /* SharedTests.swift */,
 				4D8936656126C7639887626E /* ThermostatTests.swift */,
+				E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */,
 				634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */,
 				634056D42E47FFC2001F8278 /* WidgetTests.swift */,
 				4BFC7684CFC56D913ACB314A /* AppIntentsTests.swift */,
@@ -1955,6 +1958,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 				634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */,
 				634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */,
 				E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */,
+				8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */,
 				634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */,
 				634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */,
 				634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
