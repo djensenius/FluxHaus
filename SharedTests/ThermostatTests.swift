@@ -27,6 +27,7 @@ struct ThermostatCommandTests {
         #expect(ThermostatCommand.setFan("on").path == "/thermostat/fan")
         #expect(ThermostatCommand.setFan("on").body["mode"] as? String == "on")
         #expect(ThermostatCommand.resumeSchedule.path == "/thermostat/resume")
+        #expect(ThermostatCommand.resumeSchedule.body["resumeAll"] as? Bool == true)
     }
 
     @Test("Decodes the thermostat's control capabilities")

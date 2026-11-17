@@ -39,7 +39,8 @@ public enum ThermostatCommand: Equatable, Sendable {
         case .setMode(let mode): return ["mode": mode]
         case .setPreset(let preset): return ["preset": preset]
         case .setFan(let mode): return ["mode": mode]
-        case .resumeSchedule: return ["resumeAll": false]
+        // Clears every hold, not just the latest, so the schedule really resumes.
+        case .resumeSchedule: return ["resumeAll": true]
         }
     }
 }
