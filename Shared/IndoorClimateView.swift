@@ -235,6 +235,9 @@ struct IndoorRoomTile: View {
 /// each sensor's Home Assistant area.
 struct IndoorSummaryView: View {
     var apiResponse: Api
+    /// Caps the room chips on space-constrained layouts; the rest are reachable
+    /// through `onTap`.
+    var maxRooms: Int?
     var onTap: () -> Void
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 8)]
@@ -246,14 +249,18 @@ struct IndoorSummaryView: View {
                 VStack(alignment: .trailing, spacing: 8) {
                     headline(state: state, temperature: temp)
                     if state.sensors.count > 1 {
+                        let (shown, hidden) = Self.visibleRooms(state.rooms, limit: maxRooms)
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                            ForEach(state.rooms) { sensor in
+                            ForEach(shown) { sensor in
                                 IndoorRoomChip(
                                     sensor: sensor,
                                     name: state.displayName(for: sensor),
                                     warmth: state.warmth(of: sensor),
                                     unit: state.unit
                                 )
+                            }
+                            if hidden > 0 {
+                                MoreRoomsChip(count: hidden)
                             }
                         }
                         .padding(.horizontal)
@@ -264,6 +271,16 @@ struct IndoorSummaryView: View {
             .buttonStyle(.plain)
             .accessibilityHint("Shows indoor climate details")
         }
+    }
+
+    /// The rooms to show and how many are hidden. When over the limit, one slot
+    /// goes to the "more" chip so the grid keeps the same height.
+    static func visibleRooms(
+        _ rooms: [IndoorTemperatureSensor], limit: Int?
+    ) -> (shown: [IndoorTemperatureSensor], hidden: Int) {
+        guard let limit, limit > 0, rooms.count > limit else { return (rooms, 0) }
+        let shown = Array(rooms.prefix(limit - 1))
+        return (shown, rooms.count - shown.count)
     }
 
     private func headline(state: IndoorClimateState, temperature: Double) -> some View {
@@ -298,6 +315,28 @@ struct IndoorSummaryView: View {
 }
 
 /// One room in the Home tab breakdown: area name, reading, and occupancy.
+private struct MoreRoomsChip: View {
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "ellipsis.circle")
+                .font(Theme.Fonts.caption)
+                .foregroundColor(Theme.Colors.textSecondary)
+                .frame(width: 16)
+                .accessibilityHidden(true)
+            Text("\(count) more")
+                .font(Theme.Fonts.bodySmall)
+                .foregroundColor(Theme.Colors.textSecondary)
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
+        .accessibilityLabel("\(count) more rooms")
+    }
+}
+
 struct IndoorRoomChip: View {
     let sensor: IndoorTemperatureSensor
     let name: String
@@ -364,10 +403,14 @@ struct IndoorRoomChip: View {
 struct IndoorClimateMetricsView: View {
     @Bindable var metrics: MetricsService
 
+    /// The server adds the outdoor reading to these metrics as "Outside"; it
+    /// belongs on the outdoor charts, not here.
+    private static let outdoorSeries: Set<String> = ["Outside"]
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.large) {
-                MetricRangePicker(metrics: metrics)
+                MetricRangePicker(metrics: metrics, scope: \.indoorCatalog)
                 content
             }
             .padding(.vertical)
@@ -380,7 +423,7 @@ struct IndoorClimateMetricsView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
-                    Task { await metrics.refresh() }
+                    Task { await metrics.refresh(scope: \.indoorCatalog) }
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                         .symbolEffect(
@@ -393,15 +436,12 @@ struct IndoorClimateMetricsView: View {
             }
         }
         .task {
-            if metrics.catalog.isEmpty {
-                await metrics.refresh()
-            } else if metrics.indoorCatalog.isEmpty {
+            if metrics.catalog.isEmpty || metrics.indoorCatalog.isEmpty {
                 // A catalog cached before the server added indoor metrics won't
                 // include them; re-fetch so they appear without a manual refresh.
-                await metrics.loadCatalog()
-                await metrics.loadAllSeries()
-            } else if metrics.series.isEmpty {
-                await metrics.loadAllSeries()
+                await metrics.refresh(scope: \.indoorCatalog)
+            } else if !metrics.hasSeries(for: metrics.indoorCatalog) {
+                await metrics.loadSeries(metrics.indoorCatalog)
             }
         }
     }
@@ -421,7 +461,10 @@ struct IndoorClimateMetricsView: View {
             .padding(.top, 40)
         } else {
             ForEach(metrics.indoorCatalog) { metric in
-                MetricChartCard(metric: metric, response: metrics.series[metric.id])
+                MetricChartCard(
+                    metric: metric,
+                    response: metrics.series[metric.id]?.excludingSeries(named: Self.outdoorSeries)
+                )
             }
         }
     }
