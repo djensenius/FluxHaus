@@ -104,6 +104,26 @@ struct ThermostatSetpointTests {
         #expect(!ThermostatStatus(entityId: "climate.home").reports(.setTemperature(21), from: nil))
     }
 
+    @Test("A command awaits its report until the status shows it or moves on from where it was")
+    func testAwaits() {
+        let before = ThermostatStatus(
+            entityId: "climate.home", hvacMode: "heat", targetTemperature: 21,
+            targetTemperatureLow: 19, targetTemperatureHigh: 25, presetMode: "home"
+        )
+        let moved = ThermostatStatus(
+            entityId: "climate.home", hvacMode: "cool", targetTemperature: 20,
+            targetTemperatureLow: 18, targetTemperatureHigh: 25, presetMode: "sleep"
+        )
+        let commands: [ThermostatCommand] = [
+            .setTemperature(21.1), .setRange(low: 19, high: 25.5), .setMode("heat_cool"), .setPreset("away")
+        ]
+        for command in commands {
+            #expect(before.awaits(command, from: before) && !moved.awaits(command, from: before))
+        }
+        #expect(before.awaits(.setTemperature(22), from: nil) && !before.awaits(.setTemperature(21), from: nil))
+        #expect(!before.awaits(.resumeSchedule, from: before))
+    }
+
     @Test("Labels read naturally and modes are shown Heat, Cool, Auto, Off")
     func testLabels() {
         #expect(ThermostatLabels.ordered(["heat_cool", "fan_only", "heat", "cool", "off"])

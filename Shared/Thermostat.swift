@@ -124,10 +124,11 @@ enum ThermostatLabels {
     /// Commands queued or on the wire.
     private var inFlight = 0
     var isSending: Bool { inFlight > 0 }
-    /// The last command's error, else a notice until the newest snapshot shows its change.
+    /// The last command's error, else a notice until the newest snapshot shows its change
+    /// or has moved on from where the thermostat was.
     var lastError: String? {
         guard failure == nil, let unreported else { return failure }
-        return status?.reports(unreported.command, from: unreported.before) == true ? nil : Self.unconfirmed
+        return status?.awaits(unreported.command, from: unreported.before) == false ? nil : Self.unconfirmed
     }
     private var failure: String?
     /// The last command and the status it was sent from, if the thermostat hadn't reported

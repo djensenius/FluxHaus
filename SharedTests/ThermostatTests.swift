@@ -102,6 +102,12 @@ struct ThermostatControllerTests {
         }
         await thermostat.setMode("cool")
         #expect(thermostat.lastError == Thermostat.unconfirmed)
+        // A schedule moving the thermostat elsewhere ends the wait too.
+        let scheduled = autoState(low: 18, high: 24, mode: "heat", at: "2099-01-03T00:00:00Z")
+        thermostat.apiResponse?.response = LoginResponse(
+            timestamp: "", favouriteHomeKit: [], cleanbot: Robot(), indoorClimate: scheduled
+        )
+        #expect(thermostat.lastError == nil)
         await thermostat.resumeSchedule()
         #expect(thermostat.lastError == nil)
     }

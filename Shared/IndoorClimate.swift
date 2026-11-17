@@ -419,24 +419,44 @@ enum ThermostatSetpoint {
 }
 
 extension ThermostatStatus {
-    /// Whether this status shows the change `command` asked of the thermostat as it was
-    /// `before`. As on the server, setpoints match within 0.25°, narrowed to half of a
-    /// smaller change so the old value never passes for the new one.
-    func reports(_ command: ThermostatCommand, from before: ThermostatStatus?) -> Bool {
-        let near = { (reported: Double?, value: Double, previous: Double?) -> Bool in
-            guard let reported else { return false }
-            let change = previous.map { abs(value - $0) } ?? 0
-            return abs(reported - value) < (change > 0 ? min(0.25, change / 2) : 0.25)
-        }
+    /// Whether `command`, sent to the thermostat as it was `before`, is still unreported:
+    /// this status neither shows the change nor has moved on from `before` (to a schedule's
+    /// setpoint, say), either of which ends the wait.
+    func awaits(_ command: ThermostatCommand, from before: ThermostatStatus?) -> Bool {
+        guard !reports(command, from: before) else { return false }
+        guard let before else { return true }
         switch command {
-        case .setTemperature(let value): return near(targetTemperature, value, before?.targetTemperature)
+        case .setTemperature(let value): return Self.near(targetTemperature, before.targetTemperature, value)
         case let .setRange(low, high):
-            return near(targetTemperatureLow, low, before?.targetTemperatureLow)
-                && near(targetTemperatureHigh, high, before?.targetTemperatureHigh)
+            return Self.near(targetTemperatureLow, before.targetTemperatureLow, low)
+                && Self.near(targetTemperatureHigh, before.targetTemperatureHigh, high)
+        case .setMode: return hvacMode == before.hvacMode
+        case .setPreset: return presetMode == before.presetMode
+        case .setFan: return fanMode == before.fanMode
+        case .resumeSchedule: return false
+        }
+    }
+
+    /// Whether this status shows the change `command` asked of the thermostat as it was
+    /// `before`.
+    func reports(_ command: ThermostatCommand, from before: ThermostatStatus?) -> Bool {
+        switch command {
+        case .setTemperature(let value): return Self.near(targetTemperature, value, before?.targetTemperature)
+        case let .setRange(low, high):
+            return Self.near(targetTemperatureLow, low, before?.targetTemperatureLow)
+                && Self.near(targetTemperatureHigh, high, before?.targetTemperatureHigh)
         case .setMode(let mode): return hvacMode == mode
         case .setPreset(let preset): return presetMode == preset
         case .setFan(let mode): return fanMode == mode
         case .resumeSchedule: return true
         }
+    }
+
+    /// Whether `reported` is `value`. As on the server, setpoints match within 0.25°,
+    /// narrowed to half of a smaller change from `other` so the two never pass for each other.
+    private static func near(_ reported: Double?, _ value: Double?, _ other: Double?) -> Bool {
+        guard let reported, let value else { return reported == nil && value == nil }
+        let change = other.map { abs(value - $0) } ?? 0
+        return abs(reported - value) < (change > 0 ? min(0.25, change / 2) : 0.25)
     }
 }
