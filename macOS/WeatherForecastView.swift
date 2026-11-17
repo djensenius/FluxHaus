@@ -215,9 +215,13 @@ struct WeatherDetailView: View {
                     }
                 }
             } else {
+                // Indoor readings come from FluxHaus, so show them while WeatherKit loads.
                 ScrollView {
-                    loadingView
-                        .padding()
+                    VStack(spacing: 16) {
+                        indoorClimateCard
+                        loadingView
+                    }
+                    .padding()
                 }
             }
         }

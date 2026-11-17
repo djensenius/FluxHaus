@@ -204,6 +204,16 @@ extension IndoorClimateState {
 
     public var isFahrenheit: Bool { unit.uppercased().contains("F") }
 
+    /// A sensor's reading converted into the home's unit, so rooms reported in
+    /// °C and °F can be compared and averaged.
+    public func temperature(of sensor: IndoorTemperatureSensor) -> Double? {
+        guard let value = sensor.temperature else { return nil }
+        let sensorUnit = sensor.unit?.uppercased() ?? ""
+        if sensorUnit.contains("F") && !isFahrenheit { return (value - 32) * 5 / 9 }
+        if sensorUnit.contains("C") && isFahrenheit { return value * 9 / 5 + 32 }
+        return value
+    }
+
     /// The headline indoor temperature: what the thermostat reports (Ecobee
     /// averages its participating sensors), falling back to the thermostat's own
     /// sensor, then the mean of every available room.
@@ -212,21 +222,21 @@ extension IndoorClimateState {
             return current
         }
         let available = availableSensors
-        if let own = available.first(where: { $0.isThermostat == true })?.temperature {
+        if let own = available.first(where: { $0.isThermostat == true }).flatMap(temperature(of:)) {
             return own
         }
         return averageTemperature
     }
 
     public var averageTemperature: Double? {
-        let temps = availableSensors.compactMap(\.temperature)
+        let temps = availableSensors.compactMap(temperature(of:))
         guard !temps.isEmpty else { return nil }
         return temps.reduce(0, +) / Double(temps.count)
     }
 
     /// Coolest → warmest room, only meaningful with two or more rooms.
     public var temperatureRange: ClosedRange<Double>? {
-        let temps = availableSensors.compactMap(\.temperature)
+        let temps = availableSensors.compactMap(temperature(of:))
         guard temps.count >= 2, let low = temps.min(), let high = temps.max() else { return nil }
         return low...high
     }
@@ -235,7 +245,7 @@ extension IndoorClimateState {
     /// (±1 °C / ±1.8 °F).
     public func warmth(of sensor: IndoorTemperatureSensor) -> IndoorWarmth {
         guard availableSensors.count >= 2,
-              let temp = sensor.temperature, sensor.isAvailable,
+              let temp = temperature(of: sensor), sensor.isAvailable,
               let average = averageTemperature else { return .typical }
         let threshold = isFahrenheit ? 1.8 : 1.0
         if temp - average >= threshold { return .warmer }

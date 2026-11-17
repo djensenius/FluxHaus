@@ -412,6 +412,25 @@ struct IndoorClimateTests {
         #expect(state.warmth(of: rooms[1]) == .typical)
         #expect(state.warmth(of: rooms[2]) == .warmer)
     }
+
+    @Test("Rooms reported in another unit are converted before comparing")
+    func testMixedUnitAggregation() throws {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.a", name: "A", temperature: 20, unit: "°C"),
+            IndoorTemperatureSensor(entityId: "sensor.b", name: "B", temperature: 68, unit: "°F"),
+            IndoorTemperatureSensor(entityId: "sensor.c", name: "C", temperature: 22, unit: nil)
+        ]
+        let state = IndoorClimateState(unit: "°C", sensors: rooms)
+        let converted = try #require(state.temperature(of: rooms[1]))
+        #expect(abs(converted - 20) < 0.001)
+        let range = try #require(state.temperatureRange)
+        #expect(abs(range.lowerBound - 20) < 0.001 && range.upperBound == 22)
+        #expect(state.warmth(of: rooms[1]) == .typical)
+
+        let fahrenheitHome = IndoorClimateState(unit: "°F", sensors: rooms)
+        #expect(fahrenheitHome.temperature(of: rooms[0]) == 68)
+        #expect(fahrenheitHome.temperature(of: rooms[2]) == 22)
+    }
 }
 
 // Helper functions and imports for testing
