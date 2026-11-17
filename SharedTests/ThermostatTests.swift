@@ -458,3 +458,42 @@ struct ThermostatControllerTests {
         #expect(thermostat.canControl == false)
     }
 }
+
+extension ThermostatControllerTests {
+    @Test("Choosing the reported value again after a change the thermostat hasn't reported still sends it")
+    func testUndoUnreported() async {
+        let recorder = CommandRecorder()
+        let reported = MockData.createApi().response?.indoorClimate
+        // Each change is accepted, but the thermostat keeps reporting how it was before.
+        recorder.reply = { _ in
+            IndoorClimateState(
+                timestamp: reported?.timestamp, unit: "°C", thermostat: reported?.thermostat,
+                sensors: [], confirmed: false
+            )
+        }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("cool")
+        await thermostat.setFan("on")
+        await thermostat.setPreset("away")
+        #expect(thermostat.mode == "heat")
+        await thermostat.setMode("heat")
+        await thermostat.setFan("auto")
+        await thermostat.setPreset("home")
+        thermostat.nudgeTarget(by: 1)
+        await thermostat.commitSetpoint()
+        thermostat.nudgeTarget(by: 1)
+        thermostat.nudgeTarget(by: -1)
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent == [
+            .setMode("cool"), .setFan("on"), .setPreset("away"), .setMode("heat"), .setFan("auto"),
+            .setPreset("home"), .setTemperature(22), .setTemperature(21.5)
+        ])
+
+        // The last changes match what's reported, so choosing them again sends nothing.
+        await thermostat.setMode("heat")
+        thermostat.nudgeTarget(by: 1)
+        thermostat.nudgeTarget(by: -1)
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent.count == 8)
+    }
+}

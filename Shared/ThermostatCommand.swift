@@ -2,7 +2,8 @@
 //  ThermostatCommand.swift
 //  FluxHaus
 //
-//  Thermostat control requests for the server's `/thermostat/*` routes.
+//  Thermostat control requests for the server's `/thermostat/*` routes, and
+//  display labels for thermostat values.
 //
 
 import Foundation
@@ -50,5 +51,55 @@ public enum ThermostatCommand: Equatable, Sendable {
     var movesSetpoints: Bool {
         if case .setFan = self { return false }
         return true
+    }
+}
+
+// MARK: - Labels
+
+enum ThermostatLabels {
+    static let defaultModes = ["heat", "cool", "heat_cool", "off"]
+
+    /// Heat, Cool, Auto, Off first, then anything else in the order reported.
+    static func ordered(_ modes: [String]) -> [String] {
+        let preferred = ["heat", "cool", "heat_cool", "auto", "off"]
+        let rank = { (mode: String) in preferred.firstIndex(of: mode.lowercased()) ?? preferred.count }
+        return modes.enumerated()
+            .sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }
+            .map(\.element)
+    }
+
+    static func mode(_ raw: String) -> String {
+        switch raw.lowercased() {
+        case "heat_cool", "auto": return "Auto"
+        case "fan_only": return "Fan"
+        case "off": return "Off"
+        default: return titled(raw)
+        }
+    }
+
+    static func modeIcon(_ raw: String) -> String {
+        switch raw.lowercased() {
+        case "heat": return "flame"
+        case "cool": return "snowflake"
+        case "heat_cool", "auto": return "arrow.up.arrow.down"
+        case "off": return "power"
+        case "fan_only": return "fan"
+        case "dry": return "humidity"
+        default: return "thermometer.medium"
+        }
+    }
+
+    static func preset(_ raw: String) -> String {
+        switch raw.lowercased() {
+        case "temp": return "Hold"
+        case "away_indefinitely": return "Away (indefinitely)"
+        default: return titled(raw)
+        }
+    }
+
+    static func fan(_ raw: String) -> String { titled(raw) }
+
+    private static func titled(_ raw: String) -> String {
+        raw.replacingOccurrences(of: "_", with: " ").capitalized
     }
 }

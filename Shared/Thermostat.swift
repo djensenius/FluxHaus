@@ -2,64 +2,14 @@
 //  Thermostat.swift
 //  FluxHaus
 //
-//  Thermostat control: display labels and an observable controller with
-//  optimistic updates for the Climate section.
+//  Thermostat control: an observable controller with optimistic updates
+//  for the Climate section.
 //
 
 import Foundation
 import os
 
 private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Thermostat")
-
-// MARK: - Labels
-
-enum ThermostatLabels {
-    static let defaultModes = ["heat", "cool", "heat_cool", "off"]
-
-    /// Heat, Cool, Auto, Off first, then anything else in the order reported.
-    static func ordered(_ modes: [String]) -> [String] {
-        let preferred = ["heat", "cool", "heat_cool", "auto", "off"]
-        let rank = { (mode: String) in preferred.firstIndex(of: mode.lowercased()) ?? preferred.count }
-        return modes.enumerated()
-            .sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }
-            .map(\.element)
-    }
-
-    static func mode(_ raw: String) -> String {
-        switch raw.lowercased() {
-        case "heat_cool", "auto": return "Auto"
-        case "fan_only": return "Fan"
-        case "off": return "Off"
-        default: return titled(raw)
-        }
-    }
-
-    static func modeIcon(_ raw: String) -> String {
-        switch raw.lowercased() {
-        case "heat": return "flame"
-        case "cool": return "snowflake"
-        case "heat_cool", "auto": return "arrow.up.arrow.down"
-        case "off": return "power"
-        case "fan_only": return "fan"
-        case "dry": return "humidity"
-        default: return "thermometer.medium"
-        }
-    }
-
-    static func preset(_ raw: String) -> String {
-        switch raw.lowercased() {
-        case "temp": return "Hold"
-        case "away_indefinitely": return "Away (indefinitely)"
-        default: return titled(raw)
-        }
-    }
-
-    static func fan(_ raw: String) -> String { titled(raw) }
-
-    private static func titled(_ raw: String) -> String {
-        raw.replacingOccurrences(of: "_", with: " ").capitalized
-    }
-}
 
 // MARK: - Controller
 
@@ -91,9 +41,13 @@ enum ThermostatLabels {
         return status?.awaits(unreported.command, from: unreported.before) == false ? nil : Self.unconfirmed
     }
     private var failure: String?
-    /// The last command and the status it was sent from, if the thermostat hadn't reported
-    /// its change when it was accepted.
-    private var unreported: (command: ThermostatCommand, before: ThermostatStatus?)?
+    /// A command and the status it was sent from.
+    private typealias Sent = (command: ThermostatCommand, before: ThermostatStatus?)
+    /// The last command, if the thermostat hadn't reported its change when it was accepted.
+    private var unreported: Sent?
+    /// Accepted changes the thermostat hasn't reported yet, by the field each changes. Until
+    /// one is reported, that field's reported value may be out of date.
+    @ObservationIgnored private var unreportedFields: [PendingField: Sent] = [:]
     @ObservationIgnored private var unreportedWatch = 0
     /// Set once the session this controller belongs to has ended.
     private(set) var isInvalidated = false
@@ -233,10 +187,11 @@ enum ThermostatLabels {
         commitTask = nil
         guard let kind = unsentSetpoint else { return }
         unsentSetpoint = nil
-        // An edit back to the reported setpoints, with nothing on its way that could change
-        // them, would only place a hold.
+        // An edit back to the reported setpoints, with nothing on its way or unreported that
+        // could change them, would only place a hold.
         let unchanged = { (value: Double, reported: Double?) in
-            self.setpointMovesInFlight == 0 && reported.map { abs(value - $0) < 0.001 } == true
+            self.setpointMovesInFlight == 0 && !self.awaitsReport(.target, .range, .mode, .preset)
+                && reported.map { abs(value - $0) < 0.001 } == true
         }
         switch kind {
         case .range:
@@ -267,10 +222,19 @@ enum ThermostatLabels {
     /// Whether a setpoint edit hasn't reached the thermostat yet.
     private var hasSetpointEdit: Bool { pendingTarget != nil || pendingLow != nil || pendingHigh != nil }
 
+    /// Whether a change to one of these fields was accepted but hasn't been reported yet.
+    private func awaitsReport(_ fields: PendingField...) -> Bool {
+        fields.contains { field in
+            guard let sent = unreportedFields[field] else { return false }
+            return status?.awaits(sent.command, from: sent.before) != false
+        }
+    }
+
     // MARK: Modes
 
     func setMode(_ mode: String) async {
-        guard canControl, mode != self.mode else { return }
+        // The reported mode may be out of date while a change to it waits to be reported.
+        guard canControl, mode != self.mode || (pendingMode == nil && awaitsReport(.mode)) else { return }
         // Edits made so far belong to the current mode, so they go first; edits
         // made after the switch are queued behind it.
         queueSetpoint()
@@ -282,15 +246,17 @@ enum ThermostatLabels {
     func setPreset(_ preset: String) async {
         guard canControl else { return }
         queueSetpoint()
-        // A setpoint edit creates a hold, so re-selecting the current preset still applies it.
-        guard preset != self.preset || hasSetpointEdit else { return }
+        // A setpoint edit creates a hold, so re-selecting the current preset still applies it. The
+        // reported preset may also be out of date while a change to it, or a hold, waits to be reported.
+        let unreportedChange = pendingPreset == nil && awaitsReport(.preset, .target, .range)
+        guard preset != self.preset || hasSetpointEdit || unreportedChange else { return }
         pendingPreset = preset
         edited(.preset)
         await enqueue(.setPreset(preset)).value
     }
 
     func setFan(_ fan: String) async {
-        guard canControl, fan != self.fan else { return }
+        guard canControl, fan != self.fan || (pendingFan == nil && awaitsReport(.fan)) else { return }
         pendingFan = fan
         edited(.fan)
         await enqueue(.setFan(fan)).value
@@ -349,8 +315,10 @@ enum ThermostatLabels {
                 latest = updated
             }
             // Resuming a schedule that matches the hold changes nothing the thermostat can report.
-            if updated?.confirmed == false, command != .resumeSchedule {
-                unreported = (command, before)
+            let waiting: Sent? = updated?.confirmed == false && command != .resumeSchedule ? (command, before) : nil
+            for field in Self.fields(replacedBy: command) { unreportedFields[field] = waiting }
+            if let waiting {
+                unreported = waiting
                 unreportedWatch += 1
                 settleUnreported(unreportedWatch)
             }
@@ -366,14 +334,14 @@ enum ThermostatLabels {
         }
     }
 
-    /// Ends the wait once a status shows the change or moves on, so the old values coming
+    /// Ends each wait once a status shows the change or moves on, so the old values coming
     /// back later (when a hold ends, say) don't bring the notice back.
     private func settleUnreported(_ watch: Int) {
-        guard watch == unreportedWatch, let unreported else { return }
-        guard status?.awaits(unreported.command, from: unreported.before) != false else {
-            self.unreported = nil
-            return
-        }
+        guard watch == unreportedWatch else { return }
+        let settled = { (sent: Sent) in self.status?.awaits(sent.command, from: sent.before) == false }
+        if let unreported, settled(unreported) { self.unreported = nil }
+        unreportedFields = unreportedFields.filter { !settled($0.value) }
+        guard unreported != nil || !unreportedFields.isEmpty else { return }
         withObservationTracking { _ = self.status } onChange: { [weak self] in
             Task { @MainActor in self?.settleUnreported(watch) }
         }
@@ -435,6 +403,7 @@ enum ThermostatLabels {
         latest = nil
         failure = nil
         unreported = nil
+        unreportedFields = [:]
     }
 
     private func edited(_ field: PendingField) {
@@ -470,6 +439,12 @@ enum ThermostatLabels {
         case .setFan: return .fan
         case .resumeSchedule: return nil
         }
+    }
+
+    /// The fields whose earlier unreported changes a successful command replaces; resuming
+    /// the schedule replaces any hold.
+    private static func fields(replacedBy command: ThermostatCommand) -> [PendingField] {
+        command == .resumeSchedule ? [.target, .range, .preset] : field(changedBy: command).map { [$0] } ?? []
     }
 
     private static func isNewer(_ candidate: IndoorClimateState, than current: IndoorClimateState?) -> Bool {
