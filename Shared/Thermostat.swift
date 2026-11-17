@@ -441,10 +441,13 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Thermo
         }
     }
 
-    /// The fields whose earlier unreported changes a successful command replaces; resuming
-    /// the schedule replaces any hold.
+    /// The fields whose earlier unreported changes a successful command replaces. A preset
+    /// brings its own setpoints, and resuming the schedule replaces any hold.
     private static func fields(replacedBy command: ThermostatCommand) -> [PendingField] {
-        command == .resumeSchedule ? [.target, .range, .preset] : field(changedBy: command).map { [$0] } ?? []
+        switch command {
+        case .setPreset, .resumeSchedule: return [.target, .range, .preset]
+        default: return field(changedBy: command).map { [$0] } ?? []
+        }
     }
 
     private static func isNewer(_ candidate: IndoorClimateState, than current: IndoorClimateState?) -> Bool {
