@@ -137,7 +137,14 @@ struct MockData {
                 hvacMode: "heat",
                 hvacAction: "heating",
                 targetTemperature: 21.5,
-                presetMode: "home"
+                presetMode: "home",
+                hvacModes: ["heat_cool", "heat", "cool", "off"],
+                presetModes: ["away", "home", "sleep", "away_indefinitely"],
+                fanMode: "auto",
+                fanModes: ["on", "auto"],
+                minTemp: 7,
+                maxTemp: 35,
+                targetTempStep: 0.5
             ),
             sensors: [
                 IndoorTemperatureSensor(

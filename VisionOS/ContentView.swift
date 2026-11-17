@@ -35,6 +35,11 @@ struct ContentView: View {
             weatherTab
                 .tabItem { Label("Weather", systemImage: "cloud.sun.fill") }
                 .tag("Weather")
+            NavigationStack {
+                ClimateView(apiResponse: apiResponse, airPurifier: airPurifier, metrics: metrics)
+            }
+            .tabItem { Label("Climate", systemImage: "thermometer.medium") }
+            .tag("Climate")
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .tabItem { Label("Scenes", systemImage: "lightbulb.fill") }
                 .tag("Scenes")
@@ -82,7 +87,7 @@ struct ContentView: View {
             VStack {
                 DateTimeView()
                 WeatherView(lman: locationManager)
-                IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "Weather" }
+                IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "Climate" }
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")

@@ -60,6 +60,14 @@ public struct ThermostatStatus: Codable, Hashable, Sendable {
     public let targetTemperatureLow: Double?
     public let targetTemperatureHigh: Double?
     public let presetMode: String?
+    // Control capabilities (absent on servers that predate thermostat control).
+    public let hvacModes: [String]?
+    public let presetModes: [String]?
+    public let fanMode: String?
+    public let fanModes: [String]?
+    public let minTemp: Double?
+    public let maxTemp: Double?
+    public let targetTempStep: Double?
 
     public init(
         entityId: String,
@@ -73,7 +81,14 @@ public struct ThermostatStatus: Codable, Hashable, Sendable {
         targetTemperature: Double? = nil,
         targetTemperatureLow: Double? = nil,
         targetTemperatureHigh: Double? = nil,
-        presetMode: String? = nil
+        presetMode: String? = nil,
+        hvacModes: [String]? = nil,
+        presetModes: [String]? = nil,
+        fanMode: String? = nil,
+        fanModes: [String]? = nil,
+        minTemp: Double? = nil,
+        maxTemp: Double? = nil,
+        targetTempStep: Double? = nil
     ) {
         self.entityId = entityId
         self.name = name
@@ -87,6 +102,13 @@ public struct ThermostatStatus: Codable, Hashable, Sendable {
         self.targetTemperatureLow = targetTemperatureLow
         self.targetTemperatureHigh = targetTemperatureHigh
         self.presetMode = presetMode
+        self.hvacModes = hvacModes
+        self.presetModes = presetModes
+        self.fanMode = fanMode
+        self.fanModes = fanModes
+        self.minTemp = minTemp
+        self.maxTemp = maxTemp
+        self.targetTempStep = targetTempStep
     }
 }
 

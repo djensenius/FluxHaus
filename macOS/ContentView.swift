@@ -10,6 +10,7 @@ import SwiftUI
 enum SidebarItem: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
     case weather = "Weather"
+    case climate = "Climate"
     case scenes = "Scenes"
     case appliances = "Appliances"
     case car = "Car"
@@ -24,6 +25,7 @@ enum SidebarItem: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard: return "house.fill"
         case .weather: return "cloud.sun.fill"
+        case .climate: return "thermometer.medium"
         case .scenes: return "lightbulb.fill"
         case .appliances: return "washer.fill"
         case .car: return "car.fill"
@@ -144,6 +146,8 @@ struct ContentView: View {
                 apiResponse: apiResponse
             )
             .navigationTitle("Weather")
+        case .climate:
+            ClimateView(apiResponse: apiResponse, airPurifier: airPurifier, metrics: metrics)
         case .scenes:
             SceneView(favouriteScenes: fluxHausConsts.favouriteScenes)
                 .navigationTitle("Scenes")

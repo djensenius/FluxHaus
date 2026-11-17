@@ -447,6 +447,7 @@ struct MacApp: App {
                     .keyboardShortcut("1", modifiers: .command)
                 Button("Weather") { postNavigation("Weather") }
                     .keyboardShortcut("2", modifiers: .command)
+                Button("Climate") { postNavigation("Climate") }
                 Button("Scenes") { postNavigation("Scenes") }
                     .keyboardShortcut("3", modifiers: .command)
                 Button("Appliances") { postNavigation("Appliances") }

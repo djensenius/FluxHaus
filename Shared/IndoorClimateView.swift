@@ -53,30 +53,22 @@ private extension IndoorClimateState {
 
 struct IndoorClimateCard: View {
     let state: IndoorClimateState
-    var onShowHistory: (() -> Void)?
-
-    private let columns = [GridItem(.adaptive(minimum: 104), spacing: 12)]
+    var actionTitle: LocalizedStringKey = "Indoor history"
+    var actionIcon = "chart.xyaxis.line"
+    /// Adds a footer button (e.g. history or the Climate section) when set.
+    var onAction: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             header
             if !state.sensors.isEmpty {
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(state.rooms) { sensor in
-                        IndoorRoomTile(
-                            sensor: sensor,
-                            name: state.displayName(for: sensor),
-                            warmth: state.warmth(of: sensor),
-                            unit: state.unit
-                        )
-                    }
-                }
+                IndoorRoomsGrid(state: state)
             }
-            if let onShowHistory {
+            if let onAction {
                 Divider()
-                Button(action: onShowHistory) {
+                Button(action: onAction) {
                     HStack {
-                        Label("Indoor history", systemImage: "chart.xyaxis.line")
+                        Label(actionTitle, systemImage: actionIcon)
                             .font(Theme.Fonts.bodyMedium)
                             .foregroundColor(Theme.Colors.textPrimary)
                         Spacer()
@@ -154,6 +146,26 @@ struct IndoorClimateCard: View {
             return nil
         }
         return preset.replacingOccurrences(of: "_", with: " ").capitalized
+    }
+}
+
+/// A tile per room, named after its Home Assistant area, thermostat first.
+struct IndoorRoomsGrid: View {
+    let state: IndoorClimateState
+
+    private let columns = [GridItem(.adaptive(minimum: 104), spacing: 12)]
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(state.rooms) { sensor in
+                IndoorRoomTile(
+                    sensor: sensor,
+                    name: state.displayName(for: sensor),
+                    warmth: state.warmth(of: sensor),
+                    unit: state.unit
+                )
+            }
+        }
     }
 }
 
