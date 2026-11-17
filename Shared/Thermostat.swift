@@ -170,6 +170,10 @@ enum ThermostatSetpoint {
     @ObservationIgnored private var modeGeneration = 0
     /// The most recent mode switch that failed; setpoints chosen for it are dropped.
     @ObservationIgnored private var failedModeGeneration: Int?
+    /// Numbers each optimistic edit per field, so a finished request clears a value only
+    /// if no newer edit has replaced it, even one that happens to match.
+    @ObservationIgnored private var editCount = 0
+    @ObservationIgnored private var latestEdits: [PendingField: Int] = [:]
     /// The last queued command. Commands run one at a time in the order the user
     /// made them, so the thermostat ends up in the last state chosen.
     @ObservationIgnored private var queueTail: Task<Void, Never>?
@@ -264,6 +268,7 @@ enum ThermostatSetpoint {
     }
 
     private func scheduleSetpointCommit(_ kind: SetpointKind) {
+        edited(kind == .single ? .target : .range)
         unsentSetpoint = kind
         commitTask?.cancel()
         let delay = setpointDelay
@@ -306,6 +311,7 @@ enum ThermostatSetpoint {
         // made after the switch are queued behind it.
         queueSetpoint()
         pendingMode = mode
+        edited(.mode)
         await enqueue(.setMode(mode)).value
     }
 
@@ -314,12 +320,14 @@ enum ThermostatSetpoint {
         guard canControl, preset != self.preset || hasSetpointEdit else { return }
         queueSetpoint()
         pendingPreset = preset
+        edited(.preset)
         await enqueue(.setPreset(preset)).value
     }
 
     func setFan(_ fan: String) async {
         guard canControl, fan != self.fan else { return }
         pendingFan = fan
+        edited(.fan)
         await enqueue(.setFan(fan)).value
     }
 
@@ -341,27 +349,28 @@ enum ThermostatSetpoint {
     private func enqueue(_ command: ThermostatCommand) -> Task<Void, Never> {
         if case .setMode = command { modeGeneration += 1 }
         let generation = modeGeneration
+        let edit = Self.field(changedBy: command).flatMap { latestEdits[$0] }
         let previous = queueTail
         inFlight += 1
         let request = Task {
             await previous?.value
-            await self.perform(command, generation: generation)
+            await self.perform(command, generation: generation, edit: edit)
             self.inFlight -= 1
         }
         queueTail = request
         return request
     }
 
-    private func perform(_ command: ThermostatCommand, generation: Int) async {
+    private func perform(_ command: ThermostatCommand, generation: Int, edit: Int?) async {
         // Checked before every command, so nothing queued under a previous account is sent.
         guard isSessionCurrent() else { return }
         if command.isSetpoint, generation == failedModeGeneration {
             // Chosen for a mode the thermostat didn't switch to; that error stays shown.
-            clearPending(sentBy: command)
+            clearPending(sentBy: command, edit: edit)
             return
         }
         lastError = nil
-        defer { clearPending(sentBy: command) }
+        defer { clearPending(sentBy: command, edit: edit) }
         do {
             let updated = try await send(command, isSessionValid)
             guard isSessionCurrent() else { return }
@@ -436,25 +445,38 @@ enum ThermostatSetpoint {
         lastError = nil
     }
 
-    /// Clears only the optimistic values this command carried, so a newer edit made
-    /// while the request was in flight stays pending, even if it matches the value sent.
-    private func clearPending(sentBy command: ThermostatCommand) {
-        switch command {
-        case .setTemperature(let value):
-            guard unsentSetpoint != .single else { return }
-            pendingTarget = Self.cleared(pendingTarget, sent: value)
-        case let .setRange(low, high):
-            guard unsentSetpoint != .range, pendingLow == low, pendingHigh == high else { return }
+    private func edited(_ field: PendingField) {
+        editCount += 1
+        latestEdits[field] = editCount
+    }
+
+    /// Clears the optimistic value this command carried, unless a newer edit (queued or
+    /// still unsent) has replaced it since the command was queued.
+    private func clearPending(sentBy command: ThermostatCommand, edit: Int?) {
+        guard let field = Self.field(changedBy: command), let edit, latestEdits[field] == edit else { return }
+        switch field {
+        case .target:
+            pendingTarget = nil
+        case .range:
             pendingLow = nil
             pendingHigh = nil
-        case .setMode(let mode):
-            pendingMode = Self.cleared(pendingMode, sent: mode)
-        case .setPreset(let preset):
-            pendingPreset = Self.cleared(pendingPreset, sent: preset)
-        case .setFan(let fan):
-            pendingFan = Self.cleared(pendingFan, sent: fan)
-        case .resumeSchedule:
-            break
+        case .mode:
+            pendingMode = nil
+        case .preset:
+            pendingPreset = nil
+        case .fan:
+            pendingFan = nil
+        }
+    }
+
+    private static func field(changedBy command: ThermostatCommand) -> PendingField? {
+        switch command {
+        case .setTemperature: return .target
+        case .setRange: return .range
+        case .setMode: return .mode
+        case .setPreset: return .preset
+        case .setFan: return .fan
+        case .resumeSchedule: return nil
         }
     }
 
@@ -464,9 +486,6 @@ enum ThermostatSetpoint {
         return (candidate.timestamp ?? "") >= (current.timestamp ?? "")
     }
 
-    private static func cleared<Value: Equatable>(_ pending: Value?, sent: Value) -> Value? {
-        pending == sent ? nil : pending
-    }
-
     private enum SetpointKind { case single, range }
+    private enum PendingField { case target, range, mode, preset, fan }
 }

@@ -253,6 +253,28 @@ struct ThermostatControllerTests {
         #expect(recorder.sent == [.setTemperature(22), .setTemperature(22)])
     }
 
+    @Test("A finished request keeps a newer queued choice shown, even one with the same value")
+    func testNewerQueuedChoiceStays() async {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        let thermostat = recorder.makeThermostat()
+        let cool = Task { await thermostat.setMode("cool") }
+        await recorder.waitUntilHeld(.setMode("cool"))
+        let off = Task { await thermostat.setMode("off") }
+        let coolAgain = Task { await thermostat.setMode("cool") }
+        _ = await recorder.settledSends()
+
+        await recorder.release(.setMode("cool"))
+        await cool.value
+        #expect(thermostat.mode == "cool")
+        await recorder.release(.setMode("off"))
+        await recorder.release(.setMode("cool"))
+        await off.value
+        await coolAgain.value
+        #expect(recorder.sent == [.setMode("cool"), .setMode("off"), .setMode("cool")])
+        #expect(thermostat.pendingMode == nil)
+    }
+
     @Test("Setpoints chosen for a mode that couldn't be set are dropped")
     func testModeFailureDropsSetpoints() async {
         let recorder = CommandRecorder()
