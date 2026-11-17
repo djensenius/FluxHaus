@@ -140,7 +140,10 @@ enum ThermostatSetpoint {
     private(set) var pendingPreset: String?
     private(set) var pendingFan: String?
 
+    /// Debounce timer for unsent setpoint edits.
     @ObservationIgnored private var commitTask: Task<Void, Never>?
+    /// The setpoint request currently on the wire; later setpoints and mode changes wait for it.
+    @ObservationIgnored private var setpointSend: Task<Void, Never>?
     private let setpointDelay: Duration
     private let send: @MainActor (ThermostatCommand) async throws -> IndoorClimateState?
     private let refresh: @MainActor () -> Void
@@ -174,7 +177,8 @@ enum ThermostatSetpoint {
     var mode: String? { pendingMode ?? status?.hvacMode }
     var preset: String? { pendingPreset ?? status?.presetMode }
     var fan: String? { pendingFan ?? status?.fanMode }
-    var isAutoMode: Bool { ["heat_cool", "auto"].contains(mode?.lowercased() ?? "") }
+    /// Separate heat and cool setpoints; the server only accepts a range in `heat_cool`.
+    var usesSetpointRange: Bool { mode?.lowercased() == "heat_cool" }
 
     var target: Double? { pendingTarget ?? status?.targetTemperature }
     var targetLow: Double? { pendingLow ?? status?.targetTemperatureLow }
@@ -232,18 +236,39 @@ enum ThermostatSetpoint {
         }
     }
 
-    /// Sends any pending setpoint immediately (e.g. when the view disappears).
-    func commitSetpoint() async {
+    private func cancelSetpointTimer() {
         commitTask?.cancel()
+        commitTask = nil
+    }
+
+    /// Sends any unsent setpoint now (e.g. when the view disappears), after any
+    /// setpoint already in flight, so requests reach the thermostat in order.
+    func commitSetpoint() async {
+        cancelSetpointTimer()
         await sendPendingSetpoint()
     }
 
     private func sendPendingSetpoint() async {
-        commitTask = nil
+        await waitForSetpointSend()
+        // An edit sent by the request we waited for has already been cleared.
+        let command: ThermostatCommand
         if let low = pendingLow, let high = pendingHigh {
-            await perform(.setRange(low: low, high: high))
+            command = .setRange(low: low, high: high)
         } else if let target = pendingTarget {
-            await perform(.setTemperature(target))
+            command = .setTemperature(target)
+        } else {
+            return
+        }
+        let request = Task { await self.perform(command) }
+        setpointSend = request
+        await request.value
+        if setpointSend == request { setpointSend = nil }
+    }
+
+    private func waitForSetpointSend() async {
+        while let request = setpointSend {
+            await request.value
+            if setpointSend == request { setpointSend = nil }
         }
     }
 
@@ -259,6 +284,8 @@ enum ThermostatSetpoint {
 
     func setPreset(_ preset: String) async {
         guard canControl, preset != self.preset else { return }
+        // Send the setpoint first so the preset is the thermostat's final state.
+        await commitSetpoint()
         pendingPreset = preset
         await perform(.setPreset(preset))
     }
@@ -271,6 +298,12 @@ enum ThermostatSetpoint {
 
     func resumeSchedule() async {
         guard canControl else { return }
+        // An unsent setpoint would create a new hold right after resuming.
+        cancelSetpointTimer()
+        pendingTarget = nil
+        pendingLow = nil
+        pendingHigh = nil
+        await waitForSetpointSend()
         await perform(.resumeSchedule)
     }
 
@@ -284,7 +317,8 @@ enum ThermostatSetpoint {
             clearPending(sentBy: command)
         }
         do {
-            if let updated = try await send(command) {
+            // Overlapping commands can finish out of order; keep the newest snapshot.
+            if let updated = try await send(command), Self.isNewer(updated, than: latest) {
                 latest = updated
             }
             refresh()
@@ -313,6 +347,12 @@ enum ThermostatSetpoint {
         case .resumeSchedule:
             break
         }
+    }
+
+    private static func isNewer(_ candidate: IndoorClimateState, than current: IndoorClimateState?) -> Bool {
+        guard let current else { return true }
+        // ISO-8601 timestamps from the same server sort lexically.
+        return (candidate.timestamp ?? "") >= (current.timestamp ?? "")
     }
 
     private static func cleared<Value: Equatable>(_ pending: Value?, sent: Value) -> Value? {

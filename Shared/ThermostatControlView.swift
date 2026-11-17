@@ -84,7 +84,7 @@ struct ThermostatControlCard: View {
                 .font(Theme.Fonts.bodyMedium)
                 .foregroundColor(Theme.Colors.textSecondary)
                 .frame(maxWidth: .infinity)
-        } else if thermostat.isAutoMode {
+        } else if thermostat.usesSetpointRange {
             HStack(spacing: Theme.Spacing.large) {
                 SetpointStepper(
                     title: "Heat to", value: thermostat.targetLow, unit: state.unit,

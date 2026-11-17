@@ -93,6 +93,15 @@ struct ThermostatSetpointTests {
         #expect(SetThermostatIntent.dialog(mode: .off, temperature: 21, state: state)
             == "Turning the thermostat off.")
     }
+
+    @Test("Shortcuts reject requests the server would refuse before sending anything")
+    func testIntentValidation() throws {
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: nil, temperature: nil) }
+        #expect(throws: IntentError.self) { try SetThermostatIntent.validate(mode: .auto, temperature: 21) }
+        try SetThermostatIntent.validate(mode: .auto, temperature: nil)
+        try SetThermostatIntent.validate(mode: .heat, temperature: 21)
+        try SetThermostatIntent.validate(mode: nil, temperature: 21)
+    }
 }
 
 @MainActor
@@ -100,6 +109,9 @@ private final class CommandRecorder {
     var sent: [ThermostatCommand] = []
     var refreshes = 0
     var reply: (ThermostatCommand) throws -> IndoorClimateState? = { _ in nil }
+    /// When set, each request stays in flight until `release(_:)` is called for it.
+    var holdsRequests = false
+    private var held: [(command: ThermostatCommand, resume: CheckedContinuation<Void, Never>)] = []
 
     func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
         Thermostat(
@@ -107,10 +119,34 @@ private final class CommandRecorder {
             setpointDelay: delay,
             send: { [unowned self] command in
                 self.sent.append(command)
+                if self.holdsRequests {
+                    await withCheckedContinuation { self.held.append((command, $0)) }
+                }
                 return try self.reply(command)
             },
             refresh: { [unowned self] in self.refreshes += 1 }
         )
+    }
+
+    func waitUntilHeld(_ command: ThermostatCommand) async {
+        for _ in 0..<200 where !held.contains(where: { $0.command == command }) {
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+    }
+
+    func release(_ command: ThermostatCommand) async {
+        await waitUntilHeld(command)
+        guard let index = held.firstIndex(where: { $0.command == command }) else {
+            Issue.record("\(command) was never sent")
+            return
+        }
+        held.remove(at: index).resume.resume()
+    }
+
+    /// Gives queued work a chance to run, then reports what has been sent.
+    func settledSends() async -> [ThermostatCommand] {
+        try? await Task.sleep(for: .milliseconds(30))
+        return sent
     }
 }
 
@@ -171,7 +207,7 @@ struct ThermostatControllerTests {
         thermostat.nudgeTarget(by: 1)
         await thermostat.setMode("heat_cool")
         #expect(recorder.sent == [.setTemperature(22), .setMode("heat_cool")])
-        #expect(thermostat.isAutoMode)
+        #expect(thermostat.usesSetpointRange)
 
         // Low can't pass high minus one step, and vice versa.
         thermostat.nudgeLow(by: 1)
@@ -203,6 +239,93 @@ struct ThermostatControllerTests {
         #expect(thermostat.lastError == "Thermostat unavailable")
         #expect(thermostat.isSending == false)
         #expect(recorder.refreshes == 0)
+    }
+
+    @Test("Flushing waits for the setpoint in flight instead of resending it")
+    func testInFlightSetpoint() async {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        let thermostat = recorder.makeThermostat()
+        thermostat.nudgeTarget(by: 1)
+        let firstCommit = Task { await thermostat.commitSetpoint() }
+        await recorder.waitUntilHeld(.setTemperature(22))
+
+        thermostat.nudgeTarget(by: 1)
+        let modeChange = Task { await thermostat.setMode("cool") }
+        let leaving = Task { await thermostat.commitSetpoint() }
+        #expect(await recorder.settledSends() == [.setTemperature(22)])
+
+        await recorder.release(.setTemperature(22))
+        await recorder.release(.setTemperature(22.5))
+        await recorder.release(.setMode("cool"))
+        await firstCommit.value
+        await modeChange.value
+        await leaving.value
+        #expect(recorder.sent == [.setTemperature(22), .setTemperature(22.5), .setMode("cool")])
+    }
+
+    @Test("A comfort preset is sent after the pending setpoint")
+    func testPresetFlushesSetpoint() async {
+        let recorder = CommandRecorder()
+        let thermostat = recorder.makeThermostat()
+        thermostat.nudgeTarget(by: 1)
+        await thermostat.setPreset("away")
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent == [.setTemperature(22), .setPreset("away")])
+    }
+
+    @Test("Resuming the schedule discards an unsent setpoint")
+    func testResumeDiscardsSetpoint() async {
+        let recorder = CommandRecorder()
+        let thermostat = recorder.makeThermostat()
+        thermostat.nudgeTarget(by: 1)
+        await thermostat.resumeSchedule()
+        await thermostat.commitSetpoint()
+        #expect(recorder.sent == [.resumeSchedule])
+        #expect(thermostat.target == 21.5)
+    }
+
+    @Test("An older reply doesn't replace a newer one")
+    func testOutOfOrderReplies() async {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        recorder.reply = { command in
+            let older = command == .setFan("on")
+            return IndoorClimateState(
+                timestamp: older ? "2099-01-01T00:00:01Z" : "2099-01-01T00:00:02Z",
+                unit: "°C",
+                thermostat: ThermostatStatus(
+                    entityId: "climate.home", hvacMode: "heat", targetTemperature: 21,
+                    presetMode: older ? "home" : "away", fanMode: "on"
+                ),
+                sensors: []
+            )
+        }
+        let thermostat = recorder.makeThermostat()
+        let fan = Task { await thermostat.setFan("on") }
+        let preset = Task { await thermostat.setPreset("away") }
+        await recorder.release(.setPreset("away"))
+        await preset.value
+        await recorder.release(.setFan("on"))
+        await fan.value
+        #expect(thermostat.preset == "away")
+        #expect(thermostat.state?.timestamp == "2099-01-01T00:00:02Z")
+    }
+
+    @Test("Only heat_cool uses separate heat and cool setpoints")
+    func testRangeOnlyInHeatCool() async {
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in
+            IndoorClimateState(
+                timestamp: "2099-01-01T00:00:00Z", unit: "°C",
+                thermostat: ThermostatStatus(entityId: "climate.home", hvacMode: "auto", targetTemperature: 21),
+                sensors: []
+            )
+        }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("auto")
+        #expect(thermostat.usesSetpointRange == false)
+        #expect(thermostat.target == 21)
     }
 
     @Test("Choosing the current value sends nothing")

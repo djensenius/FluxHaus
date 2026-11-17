@@ -46,9 +46,7 @@ struct SetThermostatIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        guard temperature != nil || mode != nil else {
-            throw IntentError.rejected("Choose a temperature or a mode.")
-        }
+        try Self.validate(mode: mode, temperature: temperature)
         var state: IndoorClimateState?
         if let mode {
             state = try await FluxIntentActions.controlThermostat(.setMode(mode.rawValue))
@@ -58,6 +56,18 @@ struct SetThermostatIntent: AppIntent {
         }
         await donateIntent(self)
         return .result(dialog: "\(Self.dialog(mode: mode, temperature: temperature, state: state))")
+    }
+
+    /// Rejects requests the server would refuse, before anything is changed.
+    static func validate(mode: ThermostatModeOption?, temperature: Double?) throws {
+        guard temperature != nil || mode != nil else {
+            throw IntentError.rejected("Choose a temperature or a mode.")
+        }
+        if mode == .auto, temperature != nil {
+            throw IntentError.rejected(
+                "Auto uses separate heat and cool temperatures. Set them in FluxHaus, or choose Auto on its own."
+            )
+        }
     }
 
     static func dialog(mode: ThermostatModeOption?, temperature: Double?, state: IndoorClimateState?) -> String {
