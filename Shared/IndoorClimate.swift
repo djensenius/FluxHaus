@@ -122,9 +122,11 @@ public struct IndoorClimateState: Codable, Sendable {
     public let reportedUnit: String?
     public let thermostat: ThermostatStatus?
     public let sensors: [IndoorTemperatureSensor]
+    /// On a thermostat control response, whether the thermostat has reported the change yet.
+    public let confirmed: Bool?
 
     enum CodingKeys: String, CodingKey {
-        case timestamp, thermostat, sensors
+        case timestamp, thermostat, sensors, confirmed
         case reportedUnit = "unit"
     }
 
@@ -132,12 +134,14 @@ public struct IndoorClimateState: Codable, Sendable {
         timestamp: String? = nil,
         unit: String? = nil,
         thermostat: ThermostatStatus? = nil,
-        sensors: [IndoorTemperatureSensor]
+        sensors: [IndoorTemperatureSensor],
+        confirmed: Bool? = nil
     ) {
         self.timestamp = timestamp
         self.reportedUnit = unit
         self.thermostat = thermostat
         self.sensors = sensors
+        self.confirmed = confirmed
     }
 
     /// Home Assistant data can be messy, so a malformed thermostat or sensor is
@@ -151,6 +155,7 @@ public struct IndoorClimateState: Codable, Sendable {
             [LenientDecodable<IndoorTemperatureSensor>].self, forKey: .sensors
         )
         sensors = (entries ?? nil)?.compactMap(\.value) ?? []
+        confirmed = try? container.decodeIfPresent(Bool.self, forKey: .confirmed)
     }
 }
 

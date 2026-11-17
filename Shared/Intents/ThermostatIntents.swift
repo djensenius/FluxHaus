@@ -77,18 +77,20 @@ struct SetThermostatIntent: AppIntent {
     static func dialog(mode: ThermostatModeOption?, temperature: Double?, state: IndoorClimateState?) -> String {
         let unit = state?.thermostatUnit ?? ""
         let target = temperature.map { IndoorClimateFormat.temperature($0, unit: unit, precise: false) }
+        let action: String
         switch (mode, target) {
         case (.off?, _):
-            return "Turning the thermostat off."
+            action = "Turning the thermostat off."
         case let (mode?, target?):
-            return "Setting the thermostat to \(ThermostatLabels.mode(mode.rawValue)) at \(target)."
+            action = "Setting the thermostat to \(ThermostatLabels.mode(mode.rawValue)) at \(target)."
         case let (mode?, nil):
-            return "Setting the thermostat to \(ThermostatLabels.mode(mode.rawValue))."
+            action = "Setting the thermostat to \(ThermostatLabels.mode(mode.rawValue))."
         case let (nil, target?):
-            return "Setting the thermostat to \(target)."
+            action = "Setting the thermostat to \(target)."
         case (nil, nil):
             return "No thermostat changes."
         }
+        return state?.confirmed == false ? "\(action) It hasn't reported the change yet." : action
     }
 }
 

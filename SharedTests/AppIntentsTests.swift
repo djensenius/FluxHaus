@@ -187,6 +187,9 @@ struct ThermostatIntentTests {
             == "Setting the thermostat to Auto.")
         #expect(SetThermostatIntent.dialog(mode: .off, temperature: 21, state: state)
             == "Turning the thermostat off.")
+        let unconfirmed = IndoorClimateState(unit: "°C", sensors: [], confirmed: false)
+        #expect(SetThermostatIntent.dialog(mode: .cool, temperature: nil, state: unconfirmed)
+            == "Setting the thermostat to Cool. It hasn't reported the change yet.")
     }
 
     @Test("Shortcuts reject requests the server would refuse before sending anything")

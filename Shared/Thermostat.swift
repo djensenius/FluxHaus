@@ -197,6 +197,8 @@ enum ThermostatSetpoint {
         self.refresh = refresh
     }
 
+    static let unconfirmed = "Sent, but the thermostat hasn't reported the change yet."
+
     /// True only while the session signed in when this is called is still the current one.
     nonisolated static func currentSessionCheck() -> @Sendable () -> Bool {
         let origin = AuthManager.shared.widgetSessionID()
@@ -379,6 +381,8 @@ enum ThermostatSetpoint {
                 latest = updated
             }
             refresh()
+            // Resuming a schedule that matches the hold changes nothing the thermostat can report.
+            if updated?.confirmed == false, command != .resumeSchedule { lastError = Self.unconfirmed }
         } catch {
             // A request refused because the account changed isn't the new account's error.
             guard isSessionCurrent() else { return }

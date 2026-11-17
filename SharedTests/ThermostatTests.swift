@@ -78,7 +78,9 @@ private struct SendFailure: LocalizedError {
     var errorDescription: String? { "Thermostat unavailable" }
 }
 
-private func autoState(low: Double, high: Double, target: Double? = nil) -> IndoorClimateState {
+private func autoState(
+    low: Double, high: Double, target: Double? = nil, confirmed: Bool? = nil
+) -> IndoorClimateState {
     IndoorClimateState(
         timestamp: "2099-01-01T00:00:00Z",
         unit: "°C",
@@ -86,7 +88,8 @@ private func autoState(low: Double, high: Double, target: Double? = nil) -> Indo
             entityId: "climate.home", hvacMode: "heat_cool", targetTemperature: target,
             targetTemperatureLow: low, targetTemperatureHigh: high, targetTempStep: 0.5
         ),
-        sensors: []
+        sensors: [],
+        confirmed: confirmed
     )
 }
 
@@ -163,6 +166,17 @@ struct ThermostatControllerTests {
         #expect(thermostat.lastError == "Thermostat unavailable")
         #expect(thermostat.isSending == false)
         #expect(recorder.refreshes == 0)
+    }
+
+    @Test("A change the thermostat hasn't reported says so; a schedule resume doesn't")
+    func testUnconfirmed() async {
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 25, confirmed: false) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+        #expect(thermostat.lastError == Thermostat.unconfirmed)
+        await thermostat.resumeSchedule()
+        #expect(thermostat.lastError == nil)
     }
 
     @Test("Edits made before a mode change are sent first, one request at a time")
