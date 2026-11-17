@@ -2,8 +2,8 @@
 //  Thermostat.swift
 //  FluxHaus
 //
-//  Thermostat control: request building, setpoint math, display labels, and an
-//  observable controller with optimistic updates for the Climate section.
+//  Thermostat control: request building, display labels, and an observable
+//  controller with optimistic updates for the Climate section.
 //
 
 import Foundation
@@ -103,30 +103,6 @@ enum ThermostatLabels {
     }
 }
 
-// MARK: - Setpoint math
-
-enum ThermostatSetpoint {
-    /// Step used for ± buttons: the thermostat's reported step, else 0.5 °C / 1 °F.
-    static func step(for thermostat: ThermostatStatus, fahrenheit: Bool) -> Double {
-        if let step = thermostat.targetTempStep, step > 0 { return step }
-        return fahrenheit ? 1 : 0.5
-    }
-
-    /// Allowed setpoints: the thermostat's reported range, else Ecobee's defaults.
-    static func bounds(for thermostat: ThermostatStatus, fahrenheit: Bool) -> ClosedRange<Double> {
-        let low = thermostat.minTemp ?? (fahrenheit ? 45 : 7)
-        let high = thermostat.maxTemp ?? (fahrenheit ? 92 : 33)
-        return low <= high ? low...high : high...low
-    }
-
-    /// Moves `value` by `steps`, snapping to the step grid and clamping to `bounds`.
-    static func adjust(_ value: Double, by steps: Int, step: Double, bounds: ClosedRange<Double>) -> Double {
-        let snapped = (value / step).rounded() * step
-        let moved = snapped + Double(steps) * step
-        return min(max(moved, bounds.lowerBound), bounds.upperBound)
-    }
-}
-
 // MARK: - Controller
 
 /// One controller is shared by every Climate screen of a signed-in session, so all
@@ -148,7 +124,14 @@ enum ThermostatSetpoint {
     /// Commands queued or on the wire.
     private var inFlight = 0
     var isSending: Bool { inFlight > 0 }
-    var lastError: String?
+    /// The last command's error, else a notice until the newest snapshot shows its change.
+    var lastError: String? {
+        guard failure == nil, let unreported else { return failure }
+        return status?.reports(unreported) == true ? nil : Self.unconfirmed
+    }
+    private var failure: String?
+    /// The last command, if the thermostat hadn't reported its change when it was accepted.
+    private var unreported: ThermostatCommand?
     /// Set once the session this controller belongs to has ended.
     private(set) var isInvalidated = false
 
@@ -371,7 +354,8 @@ enum ThermostatSetpoint {
             clearPending(sentBy: command, edit: edit)
             return
         }
-        lastError = nil
+        failure = nil
+        unreported = nil
         defer { clearPending(sentBy: command, edit: edit) }
         do {
             let updated = try await send(command, isSessionValid)
@@ -380,16 +364,16 @@ enum ThermostatSetpoint {
             if let updated, Self.isNewer(updated, than: latest) {
                 latest = updated
             }
-            refresh()
             // Resuming a schedule that matches the hold changes nothing the thermostat can report.
-            if updated?.confirmed == false, command != .resumeSchedule { lastError = Self.unconfirmed }
+            if updated?.confirmed == false, command != .resumeSchedule { unreported = command }
+            refresh()
         } catch {
             // A request refused because the account changed isn't the new account's error.
             guard isSessionCurrent() else { return }
             // Server-supplied error text stays out of device logs; it's only shown in the UI.
             let kind = String(reflecting: type(of: error))
             logger.error("Thermostat command \(command.path, privacy: .public) failed: \(kind, privacy: .public)")
-            lastError = error.localizedDescription
+            failure = error.localizedDescription
             if case .setMode = command { dropSetpoints(chosenFor: generation) }
         }
     }
@@ -448,7 +432,8 @@ enum ThermostatSetpoint {
         pendingPreset = nil
         pendingFan = nil
         latest = nil
-        lastError = nil
+        failure = nil
+        unreported = nil
     }
 
     private func edited(_ field: PendingField) {

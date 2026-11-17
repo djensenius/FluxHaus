@@ -393,3 +393,43 @@ enum IndoorClimateFormat {
         "\(Int(value.rounded()))%"
     }
 }
+
+// MARK: - Setpoint math
+
+enum ThermostatSetpoint {
+    /// Step used for ± buttons: the thermostat's reported step, else 0.5 °C / 1 °F.
+    static func step(for thermostat: ThermostatStatus, fahrenheit: Bool) -> Double {
+        if let step = thermostat.targetTempStep, step > 0 { return step }
+        return fahrenheit ? 1 : 0.5
+    }
+
+    /// Allowed setpoints: the thermostat's reported range, else Ecobee's defaults.
+    static func bounds(for thermostat: ThermostatStatus, fahrenheit: Bool) -> ClosedRange<Double> {
+        let low = thermostat.minTemp ?? (fahrenheit ? 45 : 7)
+        let high = thermostat.maxTemp ?? (fahrenheit ? 92 : 33)
+        return low <= high ? low...high : high...low
+    }
+
+    /// Moves `value` by `steps`, snapping to the step grid and clamping to `bounds`.
+    static func adjust(_ value: Double, by steps: Int, step: Double, bounds: ClosedRange<Double>) -> Double {
+        let snapped = (value / step).rounded() * step
+        let moved = snapped + Double(steps) * step
+        return min(max(moved, bounds.lowerBound), bounds.upperBound)
+    }
+}
+
+extension ThermostatStatus {
+    /// Whether this status shows the change `command` asks for. Setpoints match within
+    /// 0.25°, the widest tolerance the server confirms changes with.
+    func reports(_ command: ThermostatCommand) -> Bool {
+        let near = { (reported: Double?, value: Double) in reported.map { abs($0 - value) < 0.25 } ?? false }
+        switch command {
+        case .setTemperature(let value): return near(targetTemperature, value)
+        case let .setRange(low, high): return near(targetTemperatureLow, low) && near(targetTemperatureHigh, high)
+        case .setMode(let mode): return hvacMode == mode
+        case .setPreset(let preset): return presetMode == preset
+        case .setFan(let mode): return fanMode == mode
+        case .resumeSchedule: return true
+        }
+    }
+}

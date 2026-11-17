@@ -9,90 +9,6 @@ import Testing
 import Foundation
 @testable import FluxHaus
 
-/// Stands in for the signed-in session; tests flip it to simulate another account signing in.
-private final class SessionStub: @unchecked Sendable {
-    private let lock = NSLock()
-    private var current = true
-
-    var isCurrent: Bool {
-        get { lock.withLock { current } }
-        set { lock.withLock { current = newValue } }
-    }
-}
-
-@MainActor
-private final class CommandRecorder {
-    var sent: [ThermostatCommand] = []
-    var refreshes = 0
-    var reply: (ThermostatCommand) throws -> IndoorClimateState? = { _ in nil }
-    /// When set, each request stays in flight until `release(_:)` is called for it.
-    var holdsRequests = false
-    let session = SessionStub()
-    /// The session check handed to the sender with each request.
-    private(set) var sessionChecks: [@Sendable () -> Bool] = []
-    private var held: [(command: ThermostatCommand, resume: CheckedContinuation<Void, Never>)] = []
-
-    func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
-        let session = self.session
-        return Thermostat(
-            apiResponse: MockData.createApi(),
-            setpointDelay: delay,
-            isSessionValid: { session.isCurrent },
-            send: { [unowned self] command, isStillValid in
-                self.sent.append(command)
-                self.sessionChecks.append(isStillValid)
-                if self.holdsRequests {
-                    await withCheckedContinuation { self.held.append((command, $0)) }
-                }
-                // Like the real sender: checked right before credentials would be attached.
-                guard isStillValid() else { throw IntentError.notSignedIn }
-                return try self.reply(command)
-            },
-            refresh: { [unowned self] in self.refreshes += 1 }
-        )
-    }
-
-    func waitUntilHeld(_ command: ThermostatCommand) async {
-        for _ in 0..<200 where !held.contains(where: { $0.command == command }) {
-            try? await Task.sleep(for: .milliseconds(5))
-        }
-    }
-
-    func release(_ command: ThermostatCommand) async {
-        await waitUntilHeld(command)
-        guard let index = held.firstIndex(where: { $0.command == command }) else {
-            Issue.record("\(command) was never sent")
-            return
-        }
-        held.remove(at: index).resume.resume()
-    }
-
-    /// Gives queued work a chance to run, then reports what has been sent.
-    func settledSends() async -> [ThermostatCommand] {
-        try? await Task.sleep(for: .milliseconds(30))
-        return sent
-    }
-}
-
-private struct SendFailure: LocalizedError {
-    var errorDescription: String? { "Thermostat unavailable" }
-}
-
-private func autoState(
-    low: Double, high: Double, target: Double? = nil, confirmed: Bool? = nil
-) -> IndoorClimateState {
-    IndoorClimateState(
-        timestamp: "2099-01-01T00:00:00Z",
-        unit: "°C",
-        thermostat: ThermostatStatus(
-            entityId: "climate.home", hvacMode: "heat_cool", targetTemperature: target,
-            targetTemperatureLow: low, targetTemperatureHigh: high, targetTempStep: 0.5
-        ),
-        sensors: [],
-        confirmed: confirmed
-    )
-}
-
 @MainActor
 struct ThermostatControllerTests {
     @Test("Repeated taps are combined into one setpoint request")
@@ -168,12 +84,23 @@ struct ThermostatControllerTests {
         #expect(recorder.refreshes == 0)
     }
 
-    @Test("A change the thermostat hasn't reported says so; a schedule resume doesn't")
+    @Test("A change the thermostat hasn't reported says so until a poll shows it; a schedule resume doesn't")
     func testUnconfirmed() async {
         let recorder = CommandRecorder()
-        recorder.reply = { _ in autoState(low: 19, high: 25, confirmed: false) }
+        recorder.reply = { _ in autoState(low: 19, high: 25, confirmed: false, mode: "heat") }
         let thermostat = recorder.makeThermostat()
         await thermostat.setMode("heat_cool")
+        #expect(thermostat.lastError == Thermostat.unconfirmed)
+
+        // Polls update the shared response in place, as the iOS home screen does.
+        for (mode, notice) in [("heat", Thermostat.unconfirmed), ("heat_cool", nil)] as [(String, String?)] {
+            let polled = autoState(low: 19, high: 25, mode: mode, at: "2099-01-02T00:00:00Z")
+            thermostat.apiResponse?.response = LoginResponse(
+                timestamp: "", favouriteHomeKit: [], cleanbot: Robot(), indoorClimate: polled
+            )
+            #expect(thermostat.lastError == notice)
+        }
+        await thermostat.setMode("cool")
         #expect(thermostat.lastError == Thermostat.unconfirmed)
         await thermostat.resumeSchedule()
         #expect(thermostat.lastError == nil)
