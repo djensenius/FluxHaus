@@ -166,7 +166,8 @@ struct ContentView: View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
-            indoorSummary
+            // The compact layout doesn't scroll, so keep the summary to two rows.
+            indoorSummary(maxRooms: 4)
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             appliancesHeader
             appliancesGrid
@@ -182,7 +183,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.large) {
                     DateTimeView()
                     WeatherView(lman: locationManager)
-                    indoorSummary
+                    indoorSummary()
                     HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                     footer
                 }
@@ -199,8 +200,8 @@ struct ContentView: View {
         }
     }
 
-    private var indoorSummary: some View {
-        IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "weather" }
+    private func indoorSummary(maxRooms: Int? = nil) -> some View {
+        IndoorSummaryView(apiResponse: apiResponse, maxRooms: maxRooms) { selectedTab = "weather" }
     }
 
     private var appliancesHeader: some View {

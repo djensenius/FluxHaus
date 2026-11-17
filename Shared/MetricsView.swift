@@ -100,6 +100,8 @@ struct OutdoorConditionsCard: View {
 /// Segmented range picker shared by the metrics dashboards.
 struct MetricRangePicker: View {
     @Bindable var metrics: MetricsService
+    /// When set, a range change reloads only these metrics.
+    var scope: KeyPath<MetricsService, [MetricCatalogItem]>?
 
     var body: some View {
         Picker("Range", selection: $metrics.selectedRange) {
@@ -110,7 +112,13 @@ struct MetricRangePicker: View {
         .pickerStyle(.segmented)
         .padding(.horizontal)
         .onChange(of: metrics.selectedRange) {
-            Task { await metrics.loadAllSeries() }
+            Task {
+                if let scope {
+                    await metrics.loadSeries(metrics[keyPath: scope])
+                } else {
+                    await metrics.loadAllSeries()
+                }
+            }
         }
     }
 }
@@ -142,6 +150,9 @@ struct MetricsView: View {
         .task {
             if metrics.catalog.isEmpty {
                 await metrics.refresh()
+            } else if !metrics.hasSeries(for: metrics.groupedCatalog.flatMap(\.metrics)) {
+                // Another screen may have loaded only its own metrics.
+                await metrics.loadAllSeries()
             }
             // Keep the dashboard live: refresh series periodically until the
             // view goes away (the task is cancelled automatically on disappear).
@@ -473,7 +484,7 @@ struct EnvironmentMetricsView: View {
                 // requiring a manual refresh elsewhere in the app.
                 await metrics.loadCatalog()
                 await metrics.loadAllSeries()
-            } else if metrics.series.isEmpty {
+            } else if !metrics.hasSeries(for: metrics.outdoorCatalog) {
                 await metrics.loadAllSeries()
             }
         }
