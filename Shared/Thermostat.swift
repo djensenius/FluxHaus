@@ -382,7 +382,9 @@ enum ThermostatSetpoint {
         } catch {
             // A request refused because the account changed isn't the new account's error.
             guard isSessionCurrent() else { return }
-            logger.error("Thermostat command \(command.path) failed: \(error.localizedDescription)")
+            // Server-supplied error text stays out of device logs; it's only shown in the UI.
+            let kind = String(reflecting: type(of: error))
+            logger.error("Thermostat command \(command.path, privacy: .public) failed: \(kind, privacy: .public)")
             lastError = error.localizedDescription
             if case .setMode = command { dropSetpoints(chosenFor: generation) }
         }
