@@ -82,6 +82,8 @@ enum ThermostatLabels {
     /// Commands queued or on the wire.
     private var inFlight = 0
     var isSending: Bool { inFlight > 0 }
+    /// Queued or on-the-wire commands that can change the setpoints.
+    @ObservationIgnored private var setpointMovesInFlight = 0
     /// The last command's error, else a notice until the newest snapshot shows its change
     /// or has moved on from where the thermostat was.
     var lastError: String? {
@@ -231,10 +233,10 @@ enum ThermostatLabels {
         commitTask = nil
         guard let kind = unsentSetpoint else { return }
         unsentSetpoint = nil
-        // An edit back to the reported setpoints, with nothing on its way to change them,
-        // would only place a hold.
+        // An edit back to the reported setpoints, with nothing on its way that could change
+        // them, would only place a hold.
         let unchanged = { (value: Double, reported: Double?) in
-            self.inFlight == 0 && reported.map { abs(value - $0) < 0.001 } == true
+            self.setpointMovesInFlight == 0 && reported.map { abs(value - $0) < 0.001 } == true
         }
         switch kind {
         case .range:
@@ -314,11 +316,14 @@ enum ThermostatLabels {
         let generation = modeGeneration
         let edit = Self.field(changedBy: command).flatMap { latestEdits[$0] }
         let previous = queueTail
+        let moves = command.movesSetpoints
         inFlight += 1
+        if moves { setpointMovesInFlight += 1 }
         let request = Task {
             await previous?.value
             await self.perform(command, generation: generation, edit: edit)
             self.inFlight -= 1
+            if moves { self.setpointMovesInFlight -= 1 }
         }
         queueTail = request
         return request

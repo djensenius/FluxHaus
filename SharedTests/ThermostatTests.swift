@@ -367,6 +367,20 @@ struct ThermostatControllerTests {
         await thermostat.commitSetpoint()
         #expect(recorder.sent.isEmpty)
         #expect(thermostat.target == 21.5)
+
+        // A fan change on its way can't move the setpoint, so the revert still sends nothing.
+        recorder.holdsRequests = true
+        let fan = Task { await thermostat.setFan("on") }
+        #expect(await recorder.settledSends() == [.setFan("on")])
+        thermostat.nudgeTarget(by: 1)
+        thermostat.nudgeTarget(by: -1)
+        let commit = Task { await thermostat.commitSetpoint() }
+        #expect(await recorder.settledSends() == [.setFan("on")])
+        await recorder.release(.setFan("on"))
+        await fan.value
+        await commit.value
+        #expect(recorder.sent == [.setFan("on")])
+        #expect(thermostat.target == 21.5)
     }
 
     @Test("Changes queued before another account signs in are discarded, not sent")

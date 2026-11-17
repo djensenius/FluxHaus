@@ -45,4 +45,10 @@ public enum ThermostatCommand: Equatable, Sendable {
         case .setMode, .setPreset, .setFan, .resumeSchedule: return false
         }
     }
+
+    /// Whether the command can change the thermostat's setpoints.
+    var movesSetpoints: Bool {
+        if case .setFan = self { return false }
+        return true
+    }
 }
