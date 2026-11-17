@@ -35,16 +35,31 @@ struct ThermostatCommandTests {
         let json = Data("""
         {"entityId":"climate.home","hvacModes":["heat_cool","heat","cool","off"],
          "presetModes":["away","home","sleep"],"fanMode":"auto","fanModes":["on","auto"],
-         "minTemp":7,"maxTemp":35,"targetTempStep":0.5}
+         "minTemp":7,"maxTemp":35,"targetTempStep":0.5,"temperatureUnit":"°C"}
         """.utf8)
         let status = try JSONDecoder().decode(ThermostatStatus.self, from: json)
         #expect(status.hvacModes == ["heat_cool", "heat", "cool", "off"])
         #expect(status.presetModes == ["away", "home", "sleep"])
         #expect(status.fanMode == "auto" && status.fanModes == ["on", "auto"])
         #expect(status.minTemp == 7 && status.maxTemp == 35 && status.targetTempStep == 0.5)
+        #expect(status.temperatureUnit == "°C")
 
         let legacy = try JSONDecoder().decode(ThermostatStatus.self, from: Data(#"{"entityId":"climate.home"}"#.utf8))
-        #expect(legacy.hvacModes == nil && legacy.targetTempStep == nil)
+        #expect(legacy.hvacModes == nil && legacy.targetTempStep == nil && legacy.temperatureUnit == nil)
+    }
+
+    @Test("Thermostat values use the thermostat's unit; the headline is in the home's unit")
+    func testThermostatUnit() {
+        let thermostat = ThermostatStatus(
+            entityId: "climate.home", currentTemperature: 20, targetTemperature: 21, temperatureUnit: "°C"
+        )
+        let state = IndoorClimateState(unit: "°F", thermostat: thermostat, sensors: [])
+        #expect(state.thermostatUnit == "°C")
+        #expect(state.primaryTemperature == 68)
+
+        let bare = ThermostatStatus(entityId: "climate.home")
+        let unreported = IndoorClimateState(unit: "°F", thermostat: bare, sensors: [])
+        #expect(unreported.thermostatUnit == "°F")
     }
 }
 
@@ -241,7 +256,7 @@ struct ThermostatControllerTests {
         #expect(recorder.refreshes == 0)
     }
 
-    @Test("Flushing waits for the setpoint in flight instead of resending it")
+    @Test("Edits made before a mode change are sent first, one request at a time")
     func testInFlightSetpoint() async {
         let recorder = CommandRecorder()
         recorder.holdsRequests = true
@@ -262,6 +277,60 @@ struct ThermostatControllerTests {
         await modeChange.value
         await leaving.value
         #expect(recorder.sent == [.setTemperature(22), .setTemperature(22.5), .setMode("cool")])
+    }
+
+    @Test("Edits made after choosing a mode are sent after the mode change")
+    func testEditDuringModeChange() async {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        let thermostat = recorder.makeThermostat()
+        thermostat.nudgeTarget(by: 1)
+        let modeChange = Task { await thermostat.setMode("cool") }
+        await recorder.waitUntilHeld(.setTemperature(22))
+        #expect(thermostat.mode == "cool")
+
+        thermostat.nudgeTarget(by: 1)
+        let leaving = Task { await thermostat.commitSetpoint() }
+        await recorder.release(.setTemperature(22))
+        await recorder.release(.setMode("cool"))
+        await recorder.release(.setTemperature(22.5))
+        await modeChange.value
+        await leaving.value
+        #expect(recorder.sent == [.setTemperature(22), .setMode("cool"), .setTemperature(22.5)])
+    }
+
+    @Test("Quick selections are applied one at a time in the order chosen")
+    func testSerializedSelections() async {
+        let recorder = CommandRecorder()
+        recorder.holdsRequests = true
+        let thermostat = recorder.makeThermostat()
+        let cool = Task { await thermostat.setMode("cool") }
+        let off = Task { await thermostat.setMode("off") }
+        let fan = Task { await thermostat.setFan("on") }
+        #expect(await recorder.settledSends() == [.setMode("cool")])
+        #expect(thermostat.mode == "off")
+        #expect(thermostat.isSending)
+
+        await recorder.release(.setMode("cool"))
+        #expect(await recorder.settledSends() == [.setMode("cool"), .setMode("off")])
+        #expect(thermostat.mode == "off")
+        await recorder.release(.setMode("off"))
+        await recorder.release(.setFan("on"))
+        await cool.value
+        await off.value
+        await fan.value
+        #expect(recorder.sent == [.setMode("cool"), .setMode("off"), .setFan("on")])
+        #expect(thermostat.isSending == false)
+    }
+
+    @Test("Re-selecting the current comfort preset after an edit still applies it")
+    func testPresetAfterEdit() async {
+        let recorder = CommandRecorder()
+        let thermostat = recorder.makeThermostat()
+        #expect(thermostat.preset == "home")
+        thermostat.nudgeTarget(by: 1)
+        await thermostat.setPreset("home")
+        #expect(recorder.sent == [.setTemperature(22), .setPreset("home")])
     }
 
     @Test("A comfort preset is sent after the pending setpoint")
@@ -286,9 +355,8 @@ struct ThermostatControllerTests {
     }
 
     @Test("An older reply doesn't replace a newer one")
-    func testOutOfOrderReplies() async {
+    func testOlderReply() async {
         let recorder = CommandRecorder()
-        recorder.holdsRequests = true
         recorder.reply = { command in
             let older = command == .setFan("on")
             return IndoorClimateState(
@@ -302,12 +370,8 @@ struct ThermostatControllerTests {
             )
         }
         let thermostat = recorder.makeThermostat()
-        let fan = Task { await thermostat.setFan("on") }
-        let preset = Task { await thermostat.setPreset("away") }
-        await recorder.release(.setPreset("away"))
-        await preset.value
-        await recorder.release(.setFan("on"))
-        await fan.value
+        await thermostat.setPreset("away")
+        await thermostat.setFan("on")
         #expect(thermostat.preset == "away")
         #expect(thermostat.state?.timestamp == "2099-01-01T00:00:02Z")
     }

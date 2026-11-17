@@ -27,7 +27,7 @@ enum ThermostatModeOption: String, AppEnum {
 struct SetThermostatIntent: AppIntent {
     static let title: LocalizedStringResource = "Set Thermostat"
     static let description = IntentDescription("""
-        Change the home thermostat's mode and/or temperature, in the home's unit. \
+        Change the home thermostat's mode and/or temperature, in the thermostat's unit. \
         In Auto mode, set the heat and cool temperatures in FluxHaus instead.
         """)
 
@@ -71,7 +71,7 @@ struct SetThermostatIntent: AppIntent {
     }
 
     static func dialog(mode: ThermostatModeOption?, temperature: Double?, state: IndoorClimateState?) -> String {
-        let unit = state?.unit ?? ""
+        let unit = state?.thermostatUnit ?? ""
         let target = temperature.map { IndoorClimateFormat.temperature($0, unit: unit, precise: false) }
         switch (mode, target) {
         case (.off?, _):

@@ -128,6 +128,7 @@ enum ThermostatSetpoint {
     /// Status returned by the last successful control request; preferred until a
     /// newer `GET /` payload arrives.
     private(set) var latest: IndoorClimateState?
+    /// Commands queued or on the wire.
     private var inFlight = 0
     var isSending: Bool { inFlight > 0 }
     var lastError: String?
@@ -142,8 +143,11 @@ enum ThermostatSetpoint {
 
     /// Debounce timer for unsent setpoint edits.
     @ObservationIgnored private var commitTask: Task<Void, Never>?
-    /// The setpoint request currently on the wire; later setpoints and mode changes wait for it.
-    @ObservationIgnored private var setpointSend: Task<Void, Never>?
+    /// Whether the pending setpoint has edits that haven't been queued yet.
+    @ObservationIgnored private var hasUnsentSetpoint = false
+    /// The last queued command. Commands run one at a time in the order the user
+    /// made them, so the thermostat ends up in the last state chosen.
+    @ObservationIgnored private var queueTail: Task<Void, Never>?
     private let setpointDelay: Duration
     private let send: @MainActor (ThermostatCommand) async throws -> IndoorClimateState?
     private let refresh: @MainActor () -> Void
@@ -171,7 +175,7 @@ enum ThermostatSetpoint {
     }
 
     var status: ThermostatStatus? { state?.thermostat }
-    var isFahrenheit: Bool { state?.isFahrenheit ?? false }
+    var isFahrenheit: Bool { state?.thermostatUnit.uppercased().contains("F") ?? false }
     var canControl: Bool { status != nil && status?.available != false }
 
     var mode: String? { pendingMode ?? status?.hvacMode }
@@ -227,97 +231,96 @@ enum ThermostatSetpoint {
     }
 
     private func scheduleSetpointCommit() {
+        hasUnsentSetpoint = true
         commitTask?.cancel()
         let delay = setpointDelay
         commitTask = Task { [weak self] in
             try? await Task.sleep(for: delay)
             guard !Task.isCancelled else { return }
-            await self?.sendPendingSetpoint()
+            self?.queueSetpoint()
         }
     }
 
-    private func cancelSetpointTimer() {
+    /// Queues the unsent setpoint, capturing its current values.
+    private func queueSetpoint() {
         commitTask?.cancel()
         commitTask = nil
-    }
-
-    /// Sends any unsent setpoint now (e.g. when the view disappears), after any
-    /// setpoint already in flight, so requests reach the thermostat in order.
-    func commitSetpoint() async {
-        cancelSetpointTimer()
-        await sendPendingSetpoint()
-    }
-
-    private func sendPendingSetpoint() async {
-        await waitForSetpointSend()
-        // An edit sent by the request we waited for has already been cleared.
-        let command: ThermostatCommand
+        guard hasUnsentSetpoint else { return }
+        hasUnsentSetpoint = false
         if let low = pendingLow, let high = pendingHigh {
-            command = .setRange(low: low, high: high)
+            enqueue(.setRange(low: low, high: high))
         } else if let target = pendingTarget {
-            command = .setTemperature(target)
-        } else {
-            return
+            enqueue(.setTemperature(target))
         }
-        let request = Task { await self.perform(command) }
-        setpointSend = request
-        await request.value
-        if setpointSend == request { setpointSend = nil }
     }
 
-    private func waitForSetpointSend() async {
-        while let request = setpointSend {
-            await request.value
-            if setpointSend == request { setpointSend = nil }
-        }
+    /// Sends any unsent setpoint now (e.g. when the view disappears) and waits
+    /// for every command queued so far.
+    func commitSetpoint() async {
+        queueSetpoint()
+        await queueTail?.value
     }
+
+    /// Whether a setpoint edit hasn't reached the thermostat yet.
+    private var hasSetpointEdit: Bool { pendingTarget != nil || pendingLow != nil || pendingHigh != nil }
 
     // MARK: Modes
 
     func setMode(_ mode: String) async {
         guard canControl, mode != self.mode else { return }
-        // Setpoints only make sense for the mode they were chosen in.
-        await commitSetpoint()
+        // Edits made so far belong to the current mode, so they go first; edits
+        // made after the switch are queued behind it.
+        queueSetpoint()
         pendingMode = mode
-        await perform(.setMode(mode))
+        await enqueue(.setMode(mode)).value
     }
 
     func setPreset(_ preset: String) async {
-        guard canControl, preset != self.preset else { return }
-        // Send the setpoint first so the preset is the thermostat's final state.
-        await commitSetpoint()
+        // A setpoint edit creates a hold, so re-selecting the current preset still applies it.
+        guard canControl, preset != self.preset || hasSetpointEdit else { return }
+        queueSetpoint()
         pendingPreset = preset
-        await perform(.setPreset(preset))
+        await enqueue(.setPreset(preset)).value
     }
 
     func setFan(_ fan: String) async {
         guard canControl, fan != self.fan else { return }
         pendingFan = fan
-        await perform(.setFan(fan))
+        await enqueue(.setFan(fan)).value
     }
 
     func resumeSchedule() async {
         guard canControl else { return }
         // An unsent setpoint would create a new hold right after resuming.
-        cancelSetpointTimer()
+        commitTask?.cancel()
+        commitTask = nil
+        hasUnsentSetpoint = false
         pendingTarget = nil
         pendingLow = nil
         pendingHigh = nil
-        await waitForSetpointSend()
-        await perform(.resumeSchedule)
+        await enqueue(.resumeSchedule).value
     }
 
     // MARK: Sending
 
-    private func perform(_ command: ThermostatCommand) async {
+    @discardableResult
+    private func enqueue(_ command: ThermostatCommand) -> Task<Void, Never> {
+        let previous = queueTail
         inFlight += 1
-        lastError = nil
-        defer {
-            inFlight -= 1
-            clearPending(sentBy: command)
+        let request = Task {
+            await previous?.value
+            await self.perform(command)
+            self.inFlight -= 1
         }
+        queueTail = request
+        return request
+    }
+
+    private func perform(_ command: ThermostatCommand) async {
+        lastError = nil
+        defer { clearPending(sentBy: command) }
         do {
-            // Overlapping commands can finish out of order; keep the newest snapshot.
+            // A poll can land between commands; keep the newest snapshot.
             if let updated = try await send(command), Self.isNewer(updated, than: latest) {
                 latest = updated
             }

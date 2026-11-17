@@ -57,7 +57,7 @@ struct ThermostatControlCard: View {
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 4) {
-                let summary = ThermostatSummary(thermostat: status) { format($0, unit: state.unit) }
+                let summary = ThermostatSummary(thermostat: status) { format($0, unit: state.thermostatUnit) }
                 Label(summary.text, systemImage: summary.systemImage)
                     .foregroundColor(summary.activity == .unavailable ? Theme.Colors.warning : Theme.Colors.textPrimary)
                 if let humidity = status.currentHumidity {
@@ -87,12 +87,12 @@ struct ThermostatControlCard: View {
         } else if thermostat.usesSetpointRange {
             HStack(spacing: Theme.Spacing.large) {
                 SetpointStepper(
-                    title: "Heat to", value: thermostat.targetLow, unit: state.unit,
+                    title: "Heat to", value: thermostat.targetLow, unit: state.thermostatUnit,
                     tint: Theme.Colors.accent, isPending: thermostat.pendingLow != nil,
                     isEnabled: thermostat.canControl
                 ) { thermostat.nudgeLow(by: $0) }
                 SetpointStepper(
-                    title: "Cool to", value: thermostat.targetHigh, unit: state.unit,
+                    title: "Cool to", value: thermostat.targetHigh, unit: state.thermostatUnit,
                     tint: Theme.Colors.info, isPending: thermostat.pendingHigh != nil,
                     isEnabled: thermostat.canControl
                 ) { thermostat.nudgeHigh(by: $0) }
@@ -100,7 +100,7 @@ struct ThermostatControlCard: View {
         } else {
             let cooling = thermostat.mode?.lowercased() == "cool"
             SetpointStepper(
-                title: cooling ? "Cool to" : "Heat to", value: thermostat.target, unit: state.unit,
+                title: cooling ? "Cool to" : "Heat to", value: thermostat.target, unit: state.thermostatUnit,
                 tint: cooling ? Theme.Colors.info : Theme.Colors.accent,
                 isPending: thermostat.pendingTarget != nil,
                 isEnabled: thermostat.canControl

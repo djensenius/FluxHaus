@@ -45,7 +45,9 @@ private extension IndoorClimateState {
 
     var thermostatSummary: ThermostatSummary? {
         guard let thermostat else { return nil }
-        return ThermostatSummary(thermostat: thermostat) { value in format(value, precise: false) }
+        return ThermostatSummary(thermostat: thermostat) { value in
+            IndoorClimateFormat.temperature(value, unit: thermostatUnit, precise: false)
+        }
     }
 }
 

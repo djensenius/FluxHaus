@@ -68,6 +68,8 @@ public struct ThermostatStatus: Codable, Hashable, Sendable {
     public let minTemp: Double?
     public let maxTemp: Double?
     public let targetTempStep: Double?
+    /// Unit of the thermostat's readings and setpoints (Home Assistant's system unit).
+    public let temperatureUnit: String?
 
     public init(
         entityId: String,
@@ -88,7 +90,8 @@ public struct ThermostatStatus: Codable, Hashable, Sendable {
         fanModes: [String]? = nil,
         minTemp: Double? = nil,
         maxTemp: Double? = nil,
-        targetTempStep: Double? = nil
+        targetTempStep: Double? = nil,
+        temperatureUnit: String? = nil
     ) {
         self.entityId = entityId
         self.name = name
@@ -109,6 +112,7 @@ public struct ThermostatStatus: Codable, Hashable, Sendable {
         self.minTemp = minTemp
         self.maxTemp = maxTemp
         self.targetTempStep = targetTempStep
+        self.temperatureUnit = temperatureUnit
     }
 }
 
@@ -204,13 +208,23 @@ extension IndoorClimateState {
 
     public var isFahrenheit: Bool { unit.uppercased().contains("F") }
 
+    /// Unit of the thermostat's readings and setpoints, which can differ from the
+    /// sensors' when a sensor's display unit was changed in Home Assistant.
+    public var thermostatUnit: String {
+        if let reported = thermostat?.temperatureUnit, !reported.isEmpty { return reported }
+        return unit
+    }
+
     /// A sensor's reading converted into the home's unit, so rooms reported in
     /// °C and °F can be compared and averaged.
     public func temperature(of sensor: IndoorTemperatureSensor) -> Double? {
-        guard let value = sensor.temperature else { return nil }
-        let sensorUnit = sensor.unit?.uppercased() ?? ""
-        if sensorUnit.contains("F") && !isFahrenheit { return (value - 32) * 5 / 9 }
-        if sensorUnit.contains("C") && isFahrenheit { return value * 9 / 5 + 32 }
+        sensor.temperature.map { converted($0, from: sensor.unit) }
+    }
+
+    private func converted(_ value: Double, from source: String?) -> Double {
+        let source = source?.uppercased() ?? ""
+        if source.contains("F") && !isFahrenheit { return (value - 32) * 5 / 9 }
+        if source.contains("C") && isFahrenheit { return value * 9 / 5 + 32 }
         return value
     }
 
@@ -219,7 +233,7 @@ extension IndoorClimateState {
     /// sensor, then the mean of every available room.
     public var primaryTemperature: Double? {
         if thermostat?.available != false, let current = thermostat?.currentTemperature {
-            return current
+            return converted(current, from: thermostatUnit)
         }
         let available = availableSensors
         if let own = available.first(where: { $0.isThermostat == true }).flatMap(temperature(of:)) {
