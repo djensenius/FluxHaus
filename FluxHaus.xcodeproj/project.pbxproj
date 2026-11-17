@@ -49,6 +49,8 @@
 		FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		07BD092EED13BAEC7ACFFD6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
 		1FDCA5D33F9BDFBB928D962F /* FluxWidgetMacExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -91,6 +93,8 @@
 		0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		E1709B31546625C01CB975BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
 		084EF9E1CB9648EF537A22E1 /* FluxWidgetVisionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 93EB9BE4C18BA03F62D15AFA /* FluxWidgetVisionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -137,6 +141,8 @@
 		1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC999E976448F6757BA7155 /* MockDataUITests.swift */; };
 		1D0580D31B64ED384590793B /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
 		1D3DB0F80B73727DC42CA95F /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		B142348909E1A6567C7B7A9E /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		1EE958BBEBFBE734319E4BAB /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		20B3C50781AECEC9A50DCD5D /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
@@ -172,8 +178,12 @@
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		40B023B629D97801E4222B9B /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		40EEA00C50058903160511F5 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		7F7C8F8E41FFFDE7EAADD186 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		240ECB75C9250605EA1D4786 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
 		43D36BFDE9C894B41DC54FFC /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		6719DD35223341CB20EEAD71 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		44AB10F051A0C91C563B0EE4 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		47DAD3A56DB24CE1A601DE56 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		49CC496DED762D35041AA043 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
@@ -311,6 +321,8 @@
 		6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
 		6FCFCDBD5CD529EC139A4A95 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		717D4AF7931630A9E88AE624 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		EF13D19F153D4A2986EE66E1 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		76BEC2C027094075424FAC66 /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
 		76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		773F6A161767F7B9301A70C8 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
@@ -343,6 +355,8 @@
 		A1319CBC6B75067B33D60A3B /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		A152D85348FCC4C08DA290B1 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
+		B02576EDF5A2AA35F7FC27F2 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
@@ -586,6 +600,8 @@
 		1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FluxStatusText.swift; sourceTree = "<group>"; };
 		222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceEntity.swift; sourceTree = "<group>"; };
 		2888C94C0601F4FE3B8598E0 /* Metrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
+		5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimate.swift; sourceTree = "<group>"; };
+		B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimateView.swift; sourceTree = "<group>"; };
 		292DC949B78661B688E040F2 /* AppIntentsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIntentsTests.swift; sourceTree = "<group>"; };
 		2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusIntents.swift; sourceTree = "<group>"; };
 		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -908,6 +924,8 @@
 				A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */,
 				7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */,
 				2888C94C0601F4FE3B8598E0 /* Metrics.swift */,
+				5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */,
+				B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */,
 				EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */,
 			);
 			path = Shared;
@@ -1498,6 +1516,8 @@
 				FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */,
 				928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */,
 				9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */,
+				AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */,
+				9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */,
 				07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1545,6 +1565,8 @@
 				0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */,
 				EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */,
 				D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */,
+				1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */,
+				25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */,
 				AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1628,6 +1650,8 @@
 				A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */,
 				5B438D8B41E74BCE6BC2C17F /* AirPurifierView.swift in Sources */,
 				A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */,
+				B02576EDF5A2AA35F7FC27F2 /* IndoorClimate.swift in Sources */,
+				CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */,
 				21B330CE9408AA1578972F0F /* MetricsView.swift in Sources */,
 				D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */,
 				0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */,
@@ -1715,6 +1739,8 @@
 				C326B080083CA782012B624F /* SymbolAnimation.swift in Sources */,
 				322919E39C024D5394F91AAB /* AirPurifierView.swift in Sources */,
 				717D4AF7931630A9E88AE624 /* Metrics.swift in Sources */,
+				EF13D19F153D4A2986EE66E1 /* IndoorClimate.swift in Sources */,
+				FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */,
 				20EC81A3A000AC07341A686F /* MetricsView.swift in Sources */,
 				3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */,
 				C356C9664EADA850E438227C /* FluxStatusText.swift in Sources */,
@@ -1778,6 +1804,8 @@
 				9B78596D56FBBFD6111E1D9B /* SymbolAnimation.swift in Sources */,
 				78F7ECC733E1ED102D2A6036 /* AirPurifierView.swift in Sources */,
 				40EEA00C50058903160511F5 /* Metrics.swift in Sources */,
+				7F7C8F8E41FFFDE7EAADD186 /* IndoorClimate.swift in Sources */,
+				240ECB75C9250605EA1D4786 /* IndoorClimateView.swift in Sources */,
 				56476772DC1C3CC92BB58030 /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1856,6 +1884,8 @@
 				C20BCB435D427473214CC26D /* SymbolAnimation.swift in Sources */,
 				D8DFFD9156EFE9C0279611C5 /* AirPurifierView.swift in Sources */,
 				1D3DB0F80B73727DC42CA95F /* Metrics.swift in Sources */,
+				B142348909E1A6567C7B7A9E /* IndoorClimate.swift in Sources */,
+				BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */,
 				8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */,
 				7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */,
 				7FBB022B7D830F6F03DFAA94 /* FluxStatusText.swift in Sources */,
@@ -1960,6 +1990,8 @@
 				F5E45585943A8816A131812F /* SymbolAnimation.swift in Sources */,
 				BDD3FF5256362CE98F8141F0 /* AirPurifierView.swift in Sources */,
 				43D36BFDE9C894B41DC54FFC /* Metrics.swift in Sources */,
+				6719DD35223341CB20EEAD71 /* IndoorClimate.swift in Sources */,
+				B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */,
 				6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */,
 				AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */,
 				A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */,

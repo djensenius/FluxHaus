@@ -82,6 +82,7 @@ struct ContentView: View {
             VStack {
                 DateTimeView()
                 WeatherView(lman: locationManager)
+                IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "Weather" }
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
@@ -109,7 +110,8 @@ struct ContentView: View {
         WeatherDetailView(
             locationManager: locationManager,
             radarService: radarService,
-            metrics: metrics
+            metrics: metrics,
+            apiResponse: apiResponse
         )
     }
 

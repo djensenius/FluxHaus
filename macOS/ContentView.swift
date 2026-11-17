@@ -140,7 +140,8 @@ struct ContentView: View {
             WeatherDetailView(
                 locationManager: locationManager,
                 radarService: radarService,
-                metrics: metrics
+                metrics: metrics,
+                apiResponse: apiResponse
             )
             .navigationTitle("Weather")
         case .scenes:

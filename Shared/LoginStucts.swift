@@ -463,6 +463,7 @@ public struct LoginResponse: Codable {
     public let washer: WasherDryer?
     public let scooter: ScooterSummary?
     public let airPurifier: AirPurifierState?
+    public let indoorClimate: IndoorClimateState?
 
     public init(
         timestamp: String,
@@ -476,7 +477,8 @@ public struct LoginResponse: Codable {
         dryer: WasherDryer? = nil,
         washer: WasherDryer? = nil,
         scooter: ScooterSummary? = nil,
-        airPurifier: AirPurifierState? = nil
+        airPurifier: AirPurifierState? = nil,
+        indoorClimate: IndoorClimateState? = nil
     ) {
         self.timestamp = timestamp
         self.favouriteHomeKit = favouriteHomeKit
@@ -490,6 +492,7 @@ public struct LoginResponse: Codable {
         self.washer = washer
         self.scooter = scooter
         self.airPurifier = airPurifier
+        self.indoorClimate = indoorClimate
     }
 }
 

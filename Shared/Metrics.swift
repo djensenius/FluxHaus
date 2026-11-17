@@ -113,6 +113,12 @@ public struct MetricSeriesResponse: Codable, Sendable {
         catalog.filter { $0.group.lowercased() == "outdoor" }
     }
 
+    /// Indoor temperature and humidity charts surfaced from the Inside card.
+    var indoorCatalog: [MetricCatalogItem] {
+        let ids = ["temperature", "humidity"]
+        return ids.compactMap { id in catalog.first { $0.id == id } }
+    }
+
     /// Preferred group ordering: Environment first, then Car, then Energy, then
     /// the rest alphabetically. "System" is filtered out entirely.
     private static func groupSort(_ lhs: String, _ rhs: String) -> Bool {

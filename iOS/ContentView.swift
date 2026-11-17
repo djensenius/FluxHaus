@@ -166,6 +166,7 @@ struct ContentView: View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
+            indoorSummary
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             appliancesHeader
             appliancesGrid
@@ -181,6 +182,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.large) {
                     DateTimeView()
                     WeatherView(lman: locationManager)
+                    indoorSummary
                     HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                     footer
                 }
@@ -195,6 +197,10 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+
+    private var indoorSummary: some View {
+        IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "weather" }
     }
 
     private var appliancesHeader: some View {
@@ -225,7 +231,8 @@ struct ContentView: View {
         WeatherDetailView(
             locationManager: locationManager,
             radarService: radarService,
-            metrics: metrics
+            metrics: metrics,
+            apiResponse: apiResponse
         )
     }
 

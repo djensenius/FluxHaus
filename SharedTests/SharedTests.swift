@@ -291,5 +291,128 @@ struct UtilityFunctionTests {
     }
 }
 
+struct IndoorClimateTests {
+    private func format(_ value: Double) -> String { String(format: "%.1f", value) }
+
+    @Test("Decodes the server's indoorClimate payload, tolerating nulls and missing keys")
+    func testDecodeIndoorClimate() throws {
+        let json = Data("""
+        {
+          "timestamp": "2026-07-14T12:00:00.000Z",
+          "unit": "°F",
+          "thermostat": {
+            "entityId": "climate.home", "name": "Home", "area": "Hallway", "available": true,
+            "currentTemperature": 21.3, "currentHumidity": 41, "hvacMode": "heat",
+            "hvacAction": "heating", "targetTemperature": 21.5,
+            "targetTemperatureLow": null, "targetTemperatureHigh": null, "presetMode": "home"
+          },
+          "sensors": [
+            { "entityId": "sensor.bedroom_temperature", "name": "Bedroom", "area": "Main Bedroom",
+              "temperature": 67.6, "unit": "°F", "available": true, "occupied": false, "isThermostat": false,
+              "lastUpdated": "2026-07-14T11:59:00.000Z" },
+            { "entityId": "sensor.broken_temperature", "name": "Broken", "temperature": "warm" },
+            { "entityId": "sensor.office_temperature", "name": "Office", "area": null, "temperature": null,
+              "unit": null, "available": false, "occupied": null, "isThermostat": false, "lastUpdated": null }
+          ]
+        }
+        """.utf8)
+        let state = try JSONDecoder().decode(IndoorClimateState.self, from: json)
+        #expect(state.thermostat?.hvacAction == "heating")
+        #expect(state.thermostat?.area == "Hallway")
+        #expect(state.isFahrenheit)
+        // The malformed sensor is dropped rather than failing the whole payload.
+        #expect(state.sensors.map(\.name) == ["Bedroom", "Office"])
+        #expect(state.sensors[0].area == "Main Bedroom")
+        #expect(state.sensors[1].isAvailable == false)
+        #expect(state.sensors[0].occupied == false)
+
+        let empty = try JSONDecoder().decode(IndoorClimateState.self, from: Data(#"{"thermostat":null}"#.utf8))
+        #expect(empty.sensors.isEmpty)
+        #expect(empty.hasData == false)
+    }
+
+    @Test("Headline temperature prefers the thermostat, then averages available rooms")
+    func testPrimaryTemperatureAndRange() {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.a", name: "A", temperature: 19.0),
+            IndoorTemperatureSensor(entityId: "sensor.b", name: "B", temperature: 23.0),
+            IndoorTemperatureSensor(entityId: "sensor.c", name: "C", temperature: nil, available: false)
+        ]
+        let withThermostat = IndoorClimateState(
+            thermostat: ThermostatStatus(entityId: "climate.home", currentTemperature: 21.4),
+            sensors: rooms
+        )
+        #expect(withThermostat.primaryTemperature == 21.4)
+        #expect(withThermostat.temperatureRange == 19.0...23.0)
+
+        let offlineThermostat = IndoorClimateState(
+            thermostat: ThermostatStatus(entityId: "climate.home", available: false, currentTemperature: 30),
+            sensors: rooms
+        )
+        #expect(offlineThermostat.primaryTemperature == 21.0)
+        #expect(offlineThermostat.warmth(of: rooms[0]) == .cooler)
+        #expect(offlineThermostat.warmth(of: rooms[1]) == .warmer)
+        #expect(offlineThermostat.warmth(of: rooms[2]) == .typical)
+    }
+
+    @Test("Thermostat summary describes what the HVAC is doing")
+    func testThermostatSummary() {
+        func summary(_ status: ThermostatStatus) -> ThermostatSummary {
+            ThermostatSummary(thermostat: status, format: format)
+        }
+        let heating = summary(ThermostatStatus(
+            entityId: "climate.home", hvacMode: "heat", hvacAction: "heating", targetTemperature: 21.5
+        ))
+        #expect(heating.activity == .heating)
+        #expect(heating.text == "Heating to 21.5")
+
+        let cooling = summary(ThermostatStatus(
+            entityId: "climate.home", hvacMode: "heat_cool", hvacAction: "cooling",
+            targetTemperatureLow: 20, targetTemperatureHigh: 24
+        ))
+        #expect(cooling.text == "Cooling to 24.0")
+
+        let autoIdle = summary(ThermostatStatus(
+            entityId: "climate.home", hvacMode: "heat_cool", hvacAction: "idle",
+            targetTemperatureLow: 20, targetTemperatureHigh: 24
+        ))
+        #expect(autoIdle.activity == .idle)
+        #expect(autoIdle.text == "Auto · 20.0–24.0")
+
+        #expect(summary(ThermostatStatus(entityId: "climate.home", hvacMode: "off")).activity == .off)
+        #expect(summary(ThermostatStatus(entityId: "climate.home", available: false)).activity == .unavailable)
+        #expect(summary(ThermostatStatus(entityId: "climate.home", hvacAction: "fan")).activity == .fan)
+        // An unknown mode must not be reported as "Off".
+        #expect(summary(ThermostatStatus(entityId: "climate.home")).activity == .idle)
+    }
+
+    @Test("Rooms use Home Assistant area names, thermostat first, and stay distinct when areas repeat")
+    func testRoomNames() {
+        let state = IndoorClimateState(sensors: [
+            IndoorTemperatureSensor(entityId: "sensor.office", name: "Office", area: "Den", temperature: 20),
+            IndoorTemperatureSensor(entityId: "sensor.attic", name: "Attic", temperature: 18),
+            IndoorTemperatureSensor(
+                entityId: "sensor.home", name: "Home", area: "Den", temperature: 21, isThermostat: true
+            ),
+            IndoorTemperatureSensor(entityId: "sensor.bed", name: "Bedroom", area: "Main Bedroom", temperature: 19)
+        ])
+        #expect(state.rooms.map(state.displayName(for:)) == ["Den Thermostat", "Attic", "Den · Office", "Main Bedroom"])
+    }
+
+    @Test("Warmth threshold scales for Fahrenheit homes")
+    func testFahrenheitWarmth() {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.a", name: "A", temperature: 69, unit: "°F"),
+            IndoorTemperatureSensor(entityId: "sensor.b", name: "B", temperature: 71, unit: "°F"),
+            IndoorTemperatureSensor(entityId: "sensor.c", name: "C", temperature: 73, unit: "°F")
+        ]
+        let state = IndoorClimateState(sensors: rooms)
+        #expect(state.isFahrenheit)
+        #expect(state.warmth(of: rooms[0]) == .cooler)
+        #expect(state.warmth(of: rooms[1]) == .typical)
+        #expect(state.warmth(of: rooms[2]) == .warmer)
+    }
+}
+
 // Helper functions and imports for testing
 // Extensions removed as memberwise inits should be accessible via @testable import

@@ -60,7 +60,10 @@ enum HomeStore {
         var snapshot = cached ?? HomeSnapshot(outdoorTrend: [])
         if let temp = fetched.temperature {
             let outdoor = temp.series.first { $0.name.lowercased() == "outside" }
-            let indoor = temp.series.first { $0.name.lowercased().contains("home") }
+            // Prefer the thermostat's own series; discovered room sensors may also
+            // contain "home" in their names.
+            let indoor = temp.series.first { $0.name.lowercased() == "home current temperature" }
+                ?? temp.series.first { $0.name.lowercased().contains("home") }
                 ?? temp.series.first { $0.name.lowercased() != "outside" }
             snapshot.indoorTemp = indoor?.points.last?.value
             snapshot.outdoorTemp = outdoor?.points.last?.value

@@ -124,6 +124,39 @@ struct MockData {
             brightness: 255,
             pm25: 4,
             filterLife: 100
+        ),
+        indoorClimate: IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z",
+            unit: "°C",
+            thermostat: ThermostatStatus(
+                entityId: "climate.home",
+                name: "Home",
+                area: "Hallway",
+                currentTemperature: 21.3,
+                currentHumidity: 41,
+                hvacMode: "heat",
+                hvacAction: "heating",
+                targetTemperature: 21.5,
+                presetMode: "home"
+            ),
+            sensors: [
+                IndoorTemperatureSensor(
+                    entityId: "sensor.home_current_temperature", name: "Home", area: "Hallway",
+                    temperature: 21.4, occupied: true, isThermostat: true
+                ),
+                IndoorTemperatureSensor(
+                    entityId: "sensor.bedroom_temperature", name: "Bedroom", area: "Main Bedroom",
+                    temperature: 19.8, occupied: false
+                ),
+                IndoorTemperatureSensor(
+                    entityId: "sensor.kitchen_temperature", name: "Kitchen", area: "Kitchen",
+                    temperature: 22.6, occupied: true
+                ),
+                IndoorTemperatureSensor(
+                    entityId: "sensor.office_temperature", name: "Office", area: "Office",
+                    temperature: 21.1, occupied: false
+                )
+            ]
         )
     )
 
