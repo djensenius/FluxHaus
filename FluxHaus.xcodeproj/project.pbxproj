@@ -7,175 +7,82 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		01F890231C04C6F9B56B1691 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
-		E83E3C49C252E4DB1B1575D7 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
-		0F6BBECE9E13C3D4B14F6FB9 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
-		9E3E173340DFD8A8DA8985FB /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
-		1E882C640B3CE3B119E9007E /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
-		9F3CA8FA9AF4640C9EEC5308 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
-		A5C27B6F63A3609403C833B1 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
-		8F608DA017F960D7AFD46953 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
-		E305CCB3312A9DE000CE64D1 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
-		E7693BC114C25CCF9552D9E6 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
-		C2F4B07CF7FC06158A6D90DB /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
-		402880B40BB1FDFAEC6F327E /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
-		EF0C8AE6A629E3DAFDBE7054 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
-		9A41584D6414F7233DD34319 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
-		1FFF28093AD7D270B56DE412 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
-		EABF1400B464886A22F747B1 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
-		CC1D1AF5761F9B02FA263133 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
-		0B6D1486F44F48F4AB686018 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
-		F839727DACC4CCA7024B43DC /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
-		B15CC6D7291B03F3C3F187BE /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
-		901B0811710754727FEC333D /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
-		D98F6480327CDD0A5B67025C /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
-		9A5B45B9E753B12D9605F4A8 /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
-		F2CE54B2276B4CFC9FAB6346 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
-		20675DA61D9CB2A8516E54E0 /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
-		0EA2F12F344D03456B021D2F /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
-		1585D0B553440591EFAA2B82 /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
-		44D6D63D32435029C84BC8A9 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
-		9E6DAA78FFCB4D2C6946EB44 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
-		27BE31867C663E4C4F2EF6D2 /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
-		662A80C36C823D3D171F0046 /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
-		328F68E3589EFECBCE21BC87 /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
-		E55A63F3F2AD9B52631ADA52 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
-		10795790D6B9BAEB354A3C17 /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
-		78879A4A6A2EC90E7F54B6CF /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
-		91B2B8C4EC266CD1A04C64F1 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
-		E39A28A936680238E494B272 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		D49EEC0C58AE0F6DEACA11C6 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
-		908FB4330033A7B16C07AD9A /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		5B6728109184ABF3992920FE /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
-		FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
-		928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
-		9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		C7E3455A3D22DE3A7F472DC5 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
-		5A6DE842DFF984BD6EC4B49C /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
-		07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
-		07BD092EED13BAEC7ACFFD6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
-		1FDCA5D33F9BDFBB928D962F /* FluxWidgetMacExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		309A2877AB995FF66C9552CC /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
-		5A1F232658BBA71446C0BB96 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
-		1CED9242AA40223102314AB6 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
-		3018C3BBBD70B78411D785E9 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
-		BB34CE1531B27FD1225EB87B /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
-		444BE8494070DF308C24F9A5 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
-		BE4356896D1D0E1317BD49A7 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
-		438E18CF42BD5EBC9060E228 /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
-		C50051852F03ABE2B45557EE /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
-		2B451096AD4DA6EE0111CF68 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
-		2A70E3B79406F9F6E72695FF /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
-		EF9D8AEBB0FAC840D343E66B /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
-		4A065878F5CC9D1EA1F4AF6A /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
-		A2091282C4852CEBAB6622E5 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
-		7459FA719805CDA8011F9565 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
-		A91CE075E06600508984055E /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
-		3B6B67F0BB57C77C7AFFBF49 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
-		B16ABF9F20CE02FE53EC2A67 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
-		AB705E4B22AC00065BC1807C /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
-		E436A9FB9C9710B27DB94308 /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
-		CB56E9D746E0A00CF4D40C39 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
-		B8C836EA3DA2E2694EA24B2D /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
-		0B0AD19BD9F27558CF8982BD /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
-		9F3CE2D3ED9FA44EB9AF833A /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
-		653DF28E735D230451545938 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
-		F2DCEB71317B2F195359B359 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
-		F072DEAFF74168ABCFF84822 /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
-		9FC5E4A6CB9609AAF4CF8850 /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
-		3D3CA2C8D048702C23C0756D /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
-		F4A52DA70979AF5BA8CD2D69 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
-		BA91F84F12E6C1FB1F3395C8 /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
-		251FE64A8426539BFAC36196 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
-		1A7F68A81D6013F8C5FB5B90 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
-		E7D2B9751FBC299A4D2F7C3B /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		3E026144CEA349DB588E9B08 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
-		DEA9855F95F9661D5BC412BF /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		1B7583CDD5918DD888AB3BD2 /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
-		0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
-		EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
-		D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		DDD6945D597CE5FFDDE31EB6 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
-		7C772181C42BA2B5378E75B3 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
-		AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
-		E1709B31546625C01CB975BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
-		084EF9E1CB9648EF537A22E1 /* FluxWidgetVisionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 93EB9BE4C18BA03F62D15AFA /* FluxWidgetVisionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		E334AE72C1FD9E6065B3498F /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
-		D8E8FFE5BC615BBF32804716 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
-		7D330080A6D72D7785E72E0D /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
-		5526CAEFACAF5AA2EE1DCA81 /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
-		A16EE217528DF27CDECE0A4C /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
-		3DD63F2F1EBE5D895AD2B074 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
-		4E956A57FCE5E04D87B04CFE /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
-		CA2700010000000000000001 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		CA2700010000000000000002 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		CA2700010000000000000003 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		CA2700010000000000000004 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		CA2700010000000000000005 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
-		CA2700110000000000000001 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
-		CA2700110000000000000002 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
-		CA2700110000000000000003 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
-		CA2700110000000000000004 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
-		CA2700210000000000000001 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
-		CA2700210000000000000002 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
-		CA2700210000000000000003 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
-		CA2700210000000000000004 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		01CDBF3D1C40C982D9108D0A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
+		01F890231C04C6F9B56B1691 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
 		0346F947F8AB67D4BD3DB774 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
 		0519DE362C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		057460FC18168E1CE9B3C520 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
+		07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
+		07BD092EED13BAEC7ACFFD6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
+		084EF9E1CB9648EF537A22E1 /* FluxWidgetVisionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 93EB9BE4C18BA03F62D15AFA /* FluxWidgetVisionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		0994C3ADF035F10B0D6FB017 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
 		0A9DBF07ABD0167C4A70A498 /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		0AC5EE3121562133680D3C3C /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
+		0B0AD19BD9F27558CF8982BD /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
 		0B1E0128C093516D2338D7B8 /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
+		0B6D1486F44F48F4AB686018 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		0CC21D2502790A21385B0E63 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		0CEF749139216C90BD12F288 /* AppIntentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFC7684CFC56D913ACB314A /* AppIntentsTests.swift */; };
+		0EA2F12F344D03456B021D2F /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
 		0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		0EBB163D8B0C468A99FB9F63 /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		0EF4C481904193CD67287296 /* OfflineAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */; };
+		0F6BBECE9E13C3D4B14F6FB9 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
 		0FDA7AE0AE986D66811CD243 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E37BE77DA97D1A7B4F3394 /* ContentView.swift */; };
 		1055B6B9BB3C5FAB335B47EE /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
+		10795790D6B9BAEB354A3C17 /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
+		116E8469C4F3A6591F2DAF99 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
 		13B057A4D3EA38D02E83D51B /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9B78F7F035E29316F494F7 /* ChatView.swift */; };
+		1585D0B553440591EFAA2B82 /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
 		15B1C3D6EF5DE28749332251 /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
 		16D5F398E31F40DA85FCEADF /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		16E5F0715B8C44C3462F4FA5 /* CarPlayVoiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7F4D12AFB5260CA5BD9CE33 /* CarPlayVoiceManager.swift */; };
 		17AB886CF899C855F246E0DA /* AppIntentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 292DC949B78661B688E040F2 /* AppIntentsTests.swift */; };
+		1A7F68A81D6013F8C5FB5B90 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
 		1B172CC6F51E41DD0346F2C7 /* MockDataUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC999E976448F6757BA7155 /* MockDataUITests.swift */; };
+		1B7583CDD5918DD888AB3BD2 /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
+		1CED9242AA40223102314AB6 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		1D0580D31B64ED384590793B /* AppliancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4988 /* AppliancesView.swift */; };
+		1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
 		1D3DB0F80B73727DC42CA95F /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		B142348909E1A6567C7B7A9E /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		6C77468BB032A021DD4EA705 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
-		116E8469C4F3A6591F2DAF99 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
-		69A3D8B9EC1FE8CD005D33B1 /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
-		7597E5056CF6B329955C4AAB /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
+		1E882C640B3CE3B119E9007E /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		1EE958BBEBFBE734319E4BAB /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
+		1FDCA5D33F9BDFBB928D962F /* FluxWidgetMacExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1FFF28093AD7D270B56DE412 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
+		20675DA61D9CB2A8516E54E0 /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
 		208C0E652C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		20B3C50781AECEC9A50DCD5D /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		20EC81A3A000AC07341A686F /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		21B330CE9408AA1578972F0F /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		225311E8D0A34FE1A853BFA7 /* RobotsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 023E1C2F41844A628251CE04 /* RobotsListView.swift */; };
 		233E302E4A3E42AEA96D94E2 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
+		240ECB75C9250605EA1D4786 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		251FE64A8426539BFAC36196 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		25558256993EB094B9855E7E /* OfflineAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */; };
+		255B1D6663B4323A39AB3406 /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
 		256B98E625030109C7B0072B /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
 		25E035A77577F0A7C6C1FAA6 /* WeatherKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */; };
+		25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		260466D11808C378D027C7C8 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		B0BE83B9A3B03AF453E601D6 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		2669250C23932E3E26B5387B /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
+		27BE31867C663E4C4F2EF6D2 /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
+		2A70E3B79406F9F6E72695FF /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
 		2A9B4E8BE8B7737DD9667E18 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		2B436CB5F8250F69DF304824 /* StatusIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */; };
+		2B451096AD4DA6EE0111CF68 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
 		2C8F07D87EFD2DA8DEFBB58F /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
 		2D20AA22F4ED2E10EAEFC33E /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
 		2E1D40C98BE0FF4DC9908011 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		AE46C3178759C3D83922364F /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		2F0F61B01E0417876339D892 /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
+		3018C3BBBD70B78411D785E9 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
+		309A2877AB995FF66C9552CC /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
+		31919743EDD6AEB16D89CE37 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		31FCD81922AE005906F0AC46 /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
 		322919E39C024D5394F91AAB /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		323C8C60BEA480D9040C3B37 /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
+		328F68E3589EFECBCE21BC87 /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
 		356CABB63DDB3E4A42EBEBEB /* FluxHausShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */; };
 		36CDAE36186F337CA02795D9 /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		36D5A7173B8D7FC007D2B1C0 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
@@ -185,39 +92,43 @@
 		37D0A0010000000000000004 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37D0A0000000000000000001 /* SuggestionChips.swift */; };
 		37DFA1D40B2108B26EA6A811 /* AppliancesViewExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7D25870CBB003E4999 /* AppliancesViewExtensions.swift */; };
 		3861C20261D19FA4398114C0 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
+		3A276A5334567470CB925F81 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		3B6B67F0BB57C77C7AFFBF49 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
 		3CFA1F5604BA445D83EE6D88 /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
+		3D3CA2C8D048702C23C0756D /* FluxWidgetLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62F2C5BDA8000E7884E /* FluxWidgetLiveActivity.swift */; };
 		3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
+		3DD63F2F1EBE5D895AD2B074 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
+		3E026144CEA349DB588E9B08 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		3F181EC009E59832882455EA /* WeatherHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */; };
+		402880B40BB1FDFAEC6F327E /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
 		40B023B629D97801E4222B9B /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		40EEA00C50058903160511F5 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		7F7C8F8E41FFFDE7EAADD186 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		827EDF601D53F29CEBEADFE2 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
-		D3DF4BE0688C91794DA4AB14 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		240ECB75C9250605EA1D4786 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		42E9D45E3DEE4ED4BF3EBB9C /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
+		438E18CF42BD5EBC9060E228 /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		43D36BFDE9C894B41DC54FFC /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		6719DD35223341CB20EEAD71 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		3A276A5334567470CB925F81 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
-		0994C3ADF035F10B0D6FB017 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
-		A0785E84D619F8F27E7FF23A /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
-		DE782E9163066F46A1699923 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
+		444BE8494070DF308C24F9A5 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
 		44AB10F051A0C91C563B0EE4 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
+		44D6D63D32435029C84BC8A9 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
 		47DAD3A56DB24CE1A601DE56 /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
+		490682650F02EFBDC20C35A6 /* ThermostatTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */; };
 		49CC496DED762D35041AA043 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		6DF12A1CA39C3E22466A0218 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
+		4A065878F5CC9D1EA1F4AF6A /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		4C4BF431831E40DDB81B5B12 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
 		4C7C9D7BE074D65A480045A1 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		4E7F93DA12B2963DD1150BD8 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
+		4E956A57FCE5E04D87B04CFE /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		4EE7C07CB284872F0B2165AB /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
 		4FD86E14AA62A32A6FF600A8 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		C32A9BAC50AE55A4B07F26DF /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
+		5526CAEFACAF5AA2EE1DCA81 /* ScenesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */; };
 		55FD5BBD882FC925D75E3214 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		56476772DC1C3CC92BB58030 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		56F7345E58951ECA4EEA6058 /* OfflineAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */; };
 		58489E7EBF8C80A6A3DFF2AD /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
+		5A1F232658BBA71446C0BB96 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		5A5D2CC899AC78FE86363152 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		5A6DE842DFF984BD6EC4B49C /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
 		5B438D8B41E74BCE6BC2C17F /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
+		5B6728109184ABF3992920FE /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		5B735B126D86700D42C36453 /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
 		5B774F20138F2ACFB6594502 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
 		5C3861FC78328082D3079690 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
@@ -244,10 +155,6 @@
 		634056DD2E47FFC2001F8278 /* HomeConnectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CF2E47FFC2001F8278 /* HomeConnectTests.swift */; };
 		634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056CE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift */; };
 		634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D22E47FFC2001F8278 /* SharedTests.swift */; };
-		E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D8936656126C7639887626E /* ThermostatTests.swift */; };
-		758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */; };
-		8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */; };
-		490682650F02EFBDC20C35A6 /* ThermostatTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */; };
 		634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D02E47FFC2001F8278 /* IntegrationTests.swift */; };
 		634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D12E47FFC2001F8278 /* QueryFluxTests.swift */; };
 		634056E32E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */; };
@@ -336,105 +243,166 @@
 		63EB92652BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		63EB92672BE7E63C00B73102 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		6459694F94969E90B6F5CD9F /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
+		653DF28E735D230451545938 /* FluxControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF58FA952582A0C6E843C0D4 /* FluxControls.swift */; };
 		65AC26A6D238F5635F082B02 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
 		66106D4DFC5F30C42C88F574 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
+		662A80C36C823D3D171F0046 /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
+		6719DD35223341CB20EEAD71 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
 		6761CEA937D36001BDB9337C /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
+		69A3D8B9EC1FE8CD005D33B1 /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
 		6A6F927023CD4F84FD5CC330 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		6C718CFE95C3BC769046E180 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
-		D81B8FC2A4A0A7187C941D23 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
+		6C77468BB032A021DD4EA705 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
 		6D3A6DF0ADB0547372080998 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 632CBC26258682C9003E4988 /* Assets.xcassets */; };
+		6DF12A1CA39C3E22466A0218 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		6FCFCDBD5CD529EC139A4A95 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		717D4AF7931630A9E88AE624 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		EF13D19F153D4A2986EE66E1 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		CF1162B1BFE4F18B173F291C /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		7459FA719805CDA8011F9565 /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		753F6695E6FAE987BC3B0425 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
-		255B1D6663B4323A39AB3406 /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
-		9BECA43AC1D26A40EE883D39 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
+		758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */; };
+		7597E5056CF6B329955C4AAB /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		76BEC2C027094075424FAC66 /* SceneIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */; };
 		76FDEBDB0F31F8539E4A8B91 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		773F6A161767F7B9301A70C8 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		77CDDA9FA1A142A79B3AEB86 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		77FD37A48518D9CC2AF19BFA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		78879A4A6A2EC90E7F54B6CF /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
 		78F7ECC733E1ED102D2A6036 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		792A9034DF4408D90BF13274 /* LoginStucts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A159272C5E9763003F3796 /* LoginStucts.swift */; };
 		7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
+		7C772181C42BA2B5378E75B3 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
 		7C912107F52EFE69ABBD2EC9 /* FluxHausShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */; };
+		7D330080A6D72D7785E72E0D /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
+		7F7C8F8E41FFFDE7EAADD186 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
 		7FBB022B7D830F6F03DFAA94 /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
+		827EDF601D53F29CEBEADFE2 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
 		84C5DCC07BF2CE1E4D72F885 /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
 		859EA2BB1807B3AB75746473 /* OfflineAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */; };
 		863DE0E082704AD840741003 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
 		863F05984934657C4DFF4C77 /* StatusIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */; };
 		8716D5FE3271F7DBCEF8D744 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
 		88A694EA13C5590830184818 /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
+		8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */; };
 		8D80E6BB0FEBF2D6F21674BD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC70F639352E9D9252F77D43 /* Cocoa.framework */; };
 		8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
+		8F608DA017F960D7AFD46953 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		901B0811710754727FEC333D /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		908FB4330033A7B16C07AD9A /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
 		914CBFB490B76988B7373B05 /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
+		91B2B8C4EC266CD1A04C64F1 /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
 		92895C4DCFEB63889AE653C5 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
+		928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		92BB68B7C6E3ED9215465CAB /* DateTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC25258682C8003E4988 /* DateTimeView.swift */; };
 		92D95E3AA3B5D0695A884C19 /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C755D2CAD40D63EDE9D51C7 /* CarPlaySceneDelegate.swift */; };
 		94150B7CEBCFBDF569235F89 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8757ED2EF3E226D6B1548CAE /* SettingsView.swift */; };
 		99ACB989B61624E98A2D48A8 /* Tests_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC4A258682C9003E4988 /* Tests_macOS.swift */; };
+		9A41584D6414F7233DD34319 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
+		9A5B45B9E753B12D9605F4A8 /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
+		9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
 		9B78596D56FBBFD6111E1D9B /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
+		9BECA43AC1D26A40EE883D39 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		9D14B888828F5291C3A1B2D5 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
+		9E3E173340DFD8A8DA8985FB /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
+		9E6DAA78FFCB4D2C6946EB44 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		9F0AB88C6586E3EEFCE46F8B /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
+		9F3CA8FA9AF4640C9EEC5308 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
+		9F3CE2D3ED9FA44EB9AF833A /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
+		9FC5E4A6CB9609AAF4CF8850 /* FluxWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC62D2C5BDA8000E7884E /* FluxWidgetBundle.swift */; };
+		A0785E84D619F8F27E7FF23A /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
 		A08741F491FBACE4244D359F /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
 		A0ED8B507C7C96F517EF4525 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
 		A1319CBC6B75067B33D60A3B /* BackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B4F258E912A00DE97BD /* BackgroundView.swift */; };
 		A152D85348FCC4C08DA290B1 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
+		A16EE217528DF27CDECE0A4C /* HomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EDFD564604E6BC10D952F /* HomeWidget.swift */; };
 		A193C3A71C8305DB25AF9904 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
-		B02576EDF5A2AA35F7FC27F2 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
-		EDE57F6B81F4242F8506EAC3 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
-		C785FC220B22C4DB5FE0DC6D /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
-		CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
-		CE53A75EA7507BFDB7EF8C2D /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
-		31919743EDD6AEB16D89CE37 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
 		A1CCCD19BBD09E2D3424B38F /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
+		A2091282C4852CEBAB6622E5 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		A27C5B7B1719C93BEFA5708C /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
+		A5C27B6F63A3609403C833B1 /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
 		A7EB26F31FDF9BA1C1907FEE /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
 		A833D279DDED4F415801541F /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
 		A8FDEEF5BAC3453BB825E1DF /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
+		A91CE075E06600508984055E /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
 		AA0002000000000000000001 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
 		AA0002000000000000000002 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
 		AA0003000000000000000001 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
 		AA0003000000000000000002 /* Chat.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000002 /* Chat.swift */; };
 		AA0004000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000003 /* ChatView.swift */; };
 		AA0005000000000000000001 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000004 /* ChatView.swift */; };
+		AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		AACC4A12682B6F5FB8E31A8D /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
+		AB705E4B22AC00065BC1807C /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
 		AC1754460EA8962B8C79B108 /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
+		AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
 		AD0002000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD0003000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD0004000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD0005000000000000000001 /* AppliancesDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0001000000000000000001 /* AppliancesDetailView.swift */; };
 		AD1C7468CA59FAB62BCDD1EC /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
+		AE46C3178759C3D83922364F /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
+		B02576EDF5A2AA35F7FC27F2 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		B0BE83B9A3B03AF453E601D6 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
+		B142348909E1A6567C7B7A9E /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		B15CC6D7291B03F3C3F187BE /* WhereWeAre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66F2B9DFAE1009CEEA9 /* WhereWeAre.swift */; };
+		B16ABF9F20CE02FE53EC2A67 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		B1A2C3D4E5F60718293A4B5C /* Tests_macOS_ViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */; };
 		B250E6A2C157F636EA648473 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
+		B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		B827CB85322A3D1293DB77D7 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
 		B87954247FC0FC7450CF2A8D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		B894A7B443EB0DAA9E9BC45B /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		B8C836EA3DA2E2694EA24B2D /* CarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8629F6E5E7AB9598EE49405D /* CarWidget.swift */; };
+		BA91F84F12E6C1FB1F3395C8 /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
 		BA938AC82C5E9763003F3796 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1287B4482C5E9763003F3796 /* Theme.swift */; };
 		BAC011F1870F66549C4C6D4E /* FluxHausShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */; };
+		BB34CE1531B27FD1225EB87B /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		BD30D0FA8BD289D1AB96975A /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
 		BDD3FF5256362CE98F8141F0 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
+		BE4356896D1D0E1317BD49A7 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		BE52C047E38648D2BBCF9F89 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
 		BEA67E939CA04EFAA36CEACF /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
 		C20BCB435D427473214CC26D /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		C26CB6CAACD7386DAA031965 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
+		C2F4B07CF7FC06158A6D90DB /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		C326B080083CA782012B624F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
+		C32A9BAC50AE55A4B07F26DF /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		C34D4AD44612F44CC7E6D464 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E37BE77DA97D1A7B4F3394 /* ContentView.swift */; };
 		C356C9664EADA850E438227C /* FluxStatusText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */; };
 		C407064D75A040943618FCF3 /* AskFluxHausIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */; };
 		C4441A6919614E6E833113C0 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
+		C50051852F03ABE2B45557EE /* Battery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636A05982B9E6EE800D42C0D /* Battery.swift */; };
 		C5CEC5CCBE620D65D2B1C9BC /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		C623C52748905A66CF3956EB /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76553EE6B9F944EC9FC27BB7 /* MenuBarView.swift */; };
 		C71F0FF178E911D9C59E3AF4 /* ViewAnnotations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */; };
+		C785FC220B22C4DB5FE0DC6D /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
+		C7E3455A3D22DE3A7F472DC5 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		CA2700010000000000000001 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000002 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000003 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000004 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700010000000000000005 /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
+		CA2700110000000000000001 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700110000000000000002 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700110000000000000003 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700110000000000000004 /* CarAnalyticsLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700100000000000000001 /* CarAnalyticsLink.swift */; };
+		CA2700210000000000000001 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
+		CA2700210000000000000002 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
+		CA2700210000000000000003 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
+		CA2700210000000000000004 /* CarAnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700200000000000000001 /* CarAnalyticsView.swift */; };
 		CAEFE947A078AF67A541DD37 /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		CB0002000000000000000001 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		CB0002000000000000000002 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		CB0002000000000000000003 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
 		CB0002000000000000000004 /* ChatBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0001000000000000000001 /* ChatBubble.swift */; };
+		CB56E9D746E0A00CF4D40C39 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
+		CC1D1AF5761F9B02FA263133 /* Robots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635BD66A2B9DF8A6009CEEA9 /* Robots.swift */; };
+		CE53A75EA7507BFDB7EF8C2D /* ClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6833FFF348CC59C34571131C /* ClimateView.swift */; };
+		CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
+		CF1162B1BFE4F18B173F291C /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
 		CSV0001000000000000000001 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
 		CSV0001000000000000000002 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
 		CSV0001000000000000000003 /* ConversationScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSV0000000000000000000001 /* ConversationScrollView.swift */; };
@@ -458,42 +426,74 @@
 		CWV0002000000000000000003 /* ConversationWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWV0001000000000000000001 /* ConversationWebView.swift */; };
 		CWV0002000000000000000004 /* ConversationWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWV0001000000000000000001 /* ConversationWebView.swift */; };
 		D170D5FEA1F77CDDD5473F1B /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B39258E57D400DE97BD /* WeatherView.swift */; };
+		D3DF4BE0688C91794DA4AB14 /* ThermostatCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */; };
 		D402DD36EF6240BBA92FBDBB /* FluxWidgetLiveActivityLegacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */; };
+		D49EEC0C58AE0F6DEACA11C6 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		D4CF7F9BD9DD51C77C6AB4C9 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9B78F7F035E29316F494F7 /* ChatView.swift */; };
+		D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2888C94C0601F4FE3B8598E0 /* Metrics.swift */; };
 		D54EA55F6764EF8E1469FF21 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8757ED2EF3E226D6B1548CAE /* SettingsView.swift */; };
+		D81B8FC2A4A0A7187C941D23 /* ThermostatIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */; };
 		D8A5836912F3F1DF56628A1C /* QueryFlux.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA352B9D7901000C8CA4 /* QueryFlux.swift */; };
 		D8D21373FC74A18689317FBB /* RobotDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637CE4C42BE71FC000258158 /* RobotDetailView.swift */; };
 		D8DFFD9156EFE9C0279611C5 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
+		D8E8FFE5BC615BBF32804716 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
 		D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */; };
 		D97C56BE82C2647B9CAD0455 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD54CBBAC6C6B09392534272 /* CarPlay.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		D98F6480327CDD0A5B67025C /* FluxWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6312C5BDA8000E7884E /* FluxWidget.swift */; };
 		DA526145341C4A909E252425 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
 		DB270713ED62FAF0BB0921F5 /* HomeKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B5A258FBB6300DE97BD /* HomeKitView.swift */; };
 		DB373BE2AB83A8BE0010308F /* HomeKitIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B61258FBB7A00DE97BD /* HomeKitIntegration.swift */; };
 		DB78985D9FBB18D56EADFDCE /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		DCC9A3A03C9AF7C96040469C /* WeatherAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6369A138259984E400888E5D /* WeatherAlertView.swift */; };
+		DDD6945D597CE5FFDDE31EB6 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		DE782E9163066F46A1699923 /* ThermostatControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9957AF184D1207FF021961EA /* ThermostatControlView.swift */; };
+		DEA9855F95F9661D5BC412BF /* CarAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA2700000000000000000001 /* CarAnalytics.swift */; };
 		DEE468C21D6F19457C5C6157 /* SceneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6709013ABF8AA633E63B128 /* SceneView.swift */; };
 		E0FFED608140DA7EB6F6D326 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
+		E1709B31546625C01CB975BD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 637BC6352C5BDA8000E7884E /* Assets.xcassets */; };
 		E222079D6E3C7E5941D2D5C0 /* CarHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 633F09472BBB8F8F0052C088 /* CarHelper.swift */; };
+		E305CCB3312A9DE000CE64D1 /* FluxHausConsts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC7625870B74003E4988 /* FluxHausConsts.swift */; };
+		E334AE72C1FD9E6065B3498F /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
+		E39A28A936680238E494B272 /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		E436A9FB9C9710B27DB94308 /* WidgetShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 832A3B3F4623AF774B7DE138 /* WidgetShared.swift */; };
 		E45053421DDDDCF16D51FBAD /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
+		E55A63F3F2AD9B52631ADA52 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
+		E7693BC114C25CCF9552D9E6 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
 		E7A98893E6A36343187C94F3 /* ApplianceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */; };
+		E7D2B9751FBC299A4D2F7C3B /* CarIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */; };
+		E83E3C49C252E4DB1B1575D7 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
 		E8F51AC7B9126DD96390720E /* StatusIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */; };
+		E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D8936656126C7639887626E /* ThermostatTests.swift */; };
 		EA4EE864901D2B3105A7F885 /* FluxIntentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */; };
+		EABF1400B464886A22F747B1 /* Miele.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC6F2586C79E003E4988 /* Miele.swift */; };
 		EB186FDC19BACF05F5B9FA83 /* FluxHausShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */; };
 		EDBA0282938D145D6381768C /* MacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 731A02EE588AFF8C715B9DEB /* MacApp.swift */; };
+		EDE57F6B81F4242F8506EAC3 /* Thermostat.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBBB79F8C384285F254E54F /* Thermostat.swift */; };
+		EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */; };
 		EE07E20294AB53EAC4703BE6 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
+		EF0C8AE6A629E3DAFDBE7054 /* Car.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D282BB86F230048B9FF /* Car.swift */; };
+		EF13D19F153D4A2986EE66E1 /* IndoorClimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */; };
+		EF9D8AEBB0FAC840D343E66B /* HomeConnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 632CBC8F2587B4AD003E4988 /* HomeConnect.swift */; };
 		EFE1927CBD7F01E5524E63DA /* ApplianceViewHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D2D2BB883DA0048B9FF /* ApplianceViewHelpers.swift */; };
+		F072DEAFF74168ABCFF84822 /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637BC6332C5BDA8000E7884E /* AppIntent.swift */; };
 		F0779E97B0AB462F8FA3C9F4 /* Scooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */; };
 		F0C99470023B4D8053698472 /* Tests_macOS_SwiftTesting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */; };
 		F10D9EC8F5EA4EE8B2DCD1D7 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726CDAE4D264490999414676 /* AuthManager.swift */; };
 		F27145294822FFB5FE80E84F /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
+		F2CE54B2276B4CFC9FAB6346 /* WidgetData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC8514600B773CD2F27ADEB9 /* WidgetData.swift */; };
+		F2DCEB71317B2F195359B359 /* SceneService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B21E737133023F1FB8033FE1 /* SceneService.swift */; };
 		F3C3D67FDFFEFDA41639835B /* RobotIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38B4A64D5666D588E647CA0 /* RobotIntents.swift */; };
+		F4A52DA70979AF5BA8CD2D69 /* FluxWidgetWatchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */; };
 		F57287FA1413E1215F02B546 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */; };
 		F595397493CD5FCACB96AE7B /* AirPurifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */; };
 		F5E45585943A8816A131812F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
+		F839727DACC4CCA7024B43DC /* QueryFluxWidgetExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639B4A7E2E4812C0001C9F42 /* QueryFluxWidgetExtensions.swift */; };
+		FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */; };
 		FBA9A54858486FCD8D6AD240 /* Weather.swift in Sources */ = {isa = PBXBuildFile; fileRef = 636B9B44258E5C3600DE97BD /* Weather.swift */; };
 		FC70519504B244809D095CEC /* ScooterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */; };
 		FD5BDD26916198636BEBC72A /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
 		FE6B445E3E47FC883C281562 /* MieleAppliance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 635F9D052BAF836C000700FD /* MieleAppliance.swift */; };
+		FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */; };
 		FFA3658FD36CD29E263AA8B0 /* Login.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA302B9D3671000C8CA4 /* Login.swift */; };
 		FFD5C7DCE9B4284348280B90 /* SystemNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6399EA2B2B9D2CCF000C8CA4 /* SystemNotifications.swift */; };
 		MD0002000000000000000001 /* MarkdownContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MD0001000000000000000001 /* MarkdownContentView.swift */; };
@@ -536,20 +536,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E1EB8A6A0EC88AA31FE41498 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = EBAB87E7AA69535E39B1F349;
-			remoteInfo = FluxWidgetMacExtension;
-		};
-		D4B70E392A81EC708D6D602B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4DDEC973F132E95D48D590E4;
-			remoteInfo = FluxWidgetVisionExtension;
-		};
 		632CBC3C258682C9003E4988 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
@@ -571,16 +557,30 @@
 			remoteGlobalIDString = 63DBD72D2B954215006603D0;
 			remoteInfo = VisionOS;
 		};
+		D4B70E392A81EC708D6D602B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4DDEC973F132E95D48D590E4;
+			remoteInfo = FluxWidgetVisionExtension;
+		};
+		E1EB8A6A0EC88AA31FE41498 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 632CBC1F258682C8003E4988 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EBAB87E7AA69535E39B1F349;
+			remoteInfo = FluxWidgetMacExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		CAB55BDC19B1953D94858385 /* Embed Foundation Extensions */ = {
+		63A39FC82C44391F00E62C09 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				1FDCA5D33F9BDFBB928D962F /* FluxWidgetMacExtension.appex in Embed Foundation Extensions */,
+				637BC63A2C5BDA8000E7884E /* FluxWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -596,13 +596,13 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		63A39FC82C44391F00E62C09 /* Embed Foundation Extensions */ = {
+		CAB55BDC19B1953D94858385 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				637BC63A2C5BDA8000E7884E /* FluxWidgetExtension.appex in Embed Foundation Extensions */,
+				1FDCA5D33F9BDFBB928D962F /* FluxWidgetMacExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -610,21 +610,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		452250903957BE1761BFABB9 /* WidgetReloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetReloader.swift; sourceTree = "<group>"; };
-		025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetMacExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		E2C522BAB88B72001E4009C8 /* FluxWidgetMacExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxWidgetMacExtension.entitlements; sourceTree = "<group>"; };
-		93EB9BE4C18BA03F62D15AFA /* FluxWidgetVisionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetVisionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		A16DBD8F52BC115B5D20FBFD /* FluxWidgetVisionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxWidgetVisionExtension.entitlements; sourceTree = "<group>"; };
-		832A3B3F4623AF774B7DE138 /* WidgetShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetShared.swift; sourceTree = "<group>"; };
-		EC8514600B773CD2F27ADEB9 /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
-		8629F6E5E7AB9598EE49405D /* CarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarWidget.swift; sourceTree = "<group>"; };
-		D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenesWidget.swift; sourceTree = "<group>"; };
-		887EDFD564604E6BC10D952F /* HomeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeWidget.swift; sourceTree = "<group>"; };
-		BF58FA952582A0C6E843C0D4 /* FluxControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxControls.swift; sourceTree = "<group>"; };
-		CA2700000000000000000001 /* CarAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalytics.swift; sourceTree = "<group>"; };
-		CA2700100000000000000001 /* CarAnalyticsLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsLink.swift; sourceTree = "<group>"; };
-		CA2700200000000000000001 /* CarAnalyticsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsView.swift; sourceTree = "<group>"; };
 		023E1C2F41844A628251CE04 /* RobotsListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotsListView.swift; sourceTree = "<group>"; };
+		025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetMacExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetWatchViews.swift; sourceTree = "<group>"; };
 		0DAA8E4FA345D42B212CB7AE /* WeatherKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = WeatherKit.framework; sourceTree = "<group>"; };
 		1287B4482C5E9763003F3796 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -633,22 +620,20 @@
 		1F9FBF74AB143FF6761453BC /* FluxStatusText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FluxStatusText.swift; sourceTree = "<group>"; };
 		222010D97EFEB5463D7FE4F4 /* DeviceEntity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceEntity.swift; sourceTree = "<group>"; };
 		2888C94C0601F4FE3B8598E0 /* Metrics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Metrics.swift; sourceTree = "<group>"; };
-		5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimate.swift; sourceTree = "<group>"; };
-EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Thermostat.swift; sourceTree = "<group>"; };
-9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatCommand.swift; sourceTree = "<group>"; };
-		B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimateView.swift; sourceTree = "<group>"; };
-6833FFF348CC59C34571131C /* ClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClimateView.swift; sourceTree = "<group>"; };
-9957AF184D1207FF021961EA /* ThermostatControlView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatControlView.swift; sourceTree = "<group>"; };
 		292DC949B78661B688E040F2 /* AppIntentsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIntentsTests.swift; sourceTree = "<group>"; };
 		2B56D970AFBA3A10835EE7D9 /* StatusIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusIntents.swift; sourceTree = "<group>"; };
 		35E37BE77DA97D1A7B4F3394 /* ContentView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		37D0A0000000000000000001 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		41D5E7C6F4C54541B6F1C1E9 /* FluxWidgetLiveActivityLegacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetLiveActivityLegacy.swift; sourceTree = "<group>"; };
+		452250903957BE1761BFABB9 /* WidgetReloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetReloader.swift; sourceTree = "<group>"; };
 		45C4E146327FD1D9CBFE6A47 /* CarIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarIntents.swift; sourceTree = "<group>"; };
-4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatIntents.swift; sourceTree = "<group>"; };
+		4B08890EF197DE9EB6613A4E /* ThermostatIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatIntents.swift; sourceTree = "<group>"; };
 		4BFC7684CFC56D913ACB314A /* AppIntentsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppIntentsTests.swift; sourceTree = "<group>"; };
+		4D8936656126C7639887626E /* ThermostatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTests.swift; sourceTree = "<group>"; };
 		54E080FFA20990ACE9D14FB1 /* FluxHaus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FluxHaus.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57CB3B0423E7608E287483D2 /* DashboardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		5DA81D4DB7B1D93DCFFBD2F6 /* IndoorClimate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimate.swift; sourceTree = "<group>"; };
+		6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTestSupport.swift; sourceTree = "<group>"; };
 		632CBC24258682C8003E4988 /* FluxHausApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxHausApp.swift; sourceTree = "<group>"; };
 		632CBC25258682C8003E4988 /* DateTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTimeView.swift; sourceTree = "<group>"; };
 		632CBC26258682C9003E4988 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -676,10 +661,6 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 		634056D02E47FFC2001F8278 /* IntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 		634056D12E47FFC2001F8278 /* QueryFluxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryFluxTests.swift; sourceTree = "<group>"; };
 		634056D22E47FFC2001F8278 /* SharedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTests.swift; sourceTree = "<group>"; };
-4D8936656126C7639887626E /* ThermostatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTests.swift; sourceTree = "<group>"; };
-		E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatUnreportedTests.swift; sourceTree = "<group>"; };
-		E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatModelTests.swift; sourceTree = "<group>"; };
-		6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatTestSupport.swift; sourceTree = "<group>"; };
 		634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhereWeAreTests.swift; sourceTree = "<group>"; };
 		634056D42E47FFC2001F8278 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
 		635BD66A2B9DF8A6009CEEA9 /* Robots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Robots.swift; sourceTree = "<group>"; };
@@ -728,6 +709,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 		63DBD7522B954343006603D0 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = Platforms/XROS.platform/Developer/SDKs/XROS1.0.sdk/System/Library/Frameworks/HealthKit.framework; sourceTree = DEVELOPER_DIR; };
 		63DBD75D2B954931006603D0 /* VisionOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = VisionOS.entitlements; sourceTree = "<group>"; };
 		63EB92642BE7E63C00B73102 /* ApplianceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplianceDetailView.swift; sourceTree = "<group>"; };
+		6833FFF348CC59C34571131C /* ClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClimateView.swift; sourceTree = "<group>"; };
 		6BC999E976448F6757BA7155 /* MockDataUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataUITests.swift; sourceTree = "<group>"; };
 		726CDAE4D264490999414676 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		731A02EE588AFF8C715B9DEB /* MacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MacApp.swift; sourceTree = "<group>"; };
@@ -736,10 +718,17 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 		77A49425BDF4F7DDFA1EE83F /* Tests_macOS_SwiftTesting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_SwiftTesting.swift; sourceTree = "<group>"; };
 		782942CD000CCCFFE0D7C43F /* AskFluxHausIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AskFluxHausIntent.swift; sourceTree = "<group>"; };
 		7EE43EF7F3A9147830DC77B9 /* AirPurifierView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AirPurifierView.swift; sourceTree = "<group>"; };
+		832A3B3F4623AF774B7DE138 /* WidgetShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetShared.swift; sourceTree = "<group>"; };
+		8629F6E5E7AB9598EE49405D /* CarWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarWidget.swift; sourceTree = "<group>"; };
 		8757ED2EF3E226D6B1548CAE /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		887EDFD564604E6BC10D952F /* HomeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeWidget.swift; sourceTree = "<group>"; };
 		8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OfflineAssistant.swift; sourceTree = "<group>"; };
+		9061759C56D7F77C8B25D9AD /* ThermostatCommand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatCommand.swift; sourceTree = "<group>"; };
+		93EB9BE4C18BA03F62D15AFA /* FluxWidgetVisionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetVisionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		9957AF184D1207FF021961EA /* ThermostatControlView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ThermostatControlView.swift; sourceTree = "<group>"; };
 		9E1EE68A8DCE61464036EA06 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Tests macOS.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A16DBD8F52BC115B5D20FBFD /* FluxWidgetVisionExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxWidgetVisionExtension.entitlements; sourceTree = "<group>"; };
 		A96158EDADA7F5C537A798F6 /* SymbolAnimation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SymbolAnimation.swift; sourceTree = "<group>"; };
 		A99B53B9664ECD2C6F981E9D /* SceneIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneIntents.swift; sourceTree = "<group>"; };
 		AA0001000000000000000001 /* ChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatService.swift; sourceTree = "<group>"; };
@@ -751,10 +740,15 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 		AD0001000000000000000001 /* AppliancesDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppliancesDetailView.swift; sourceTree = "<group>"; };
 		AD54CBBAC6C6B09392534272 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CarPlay.framework; path = System/Library/Frameworks/CarPlay.framework; sourceTree = SDKROOT; };
 		B21E737133023F1FB8033FE1 /* SceneService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneService.swift; sourceTree = "<group>"; };
+		B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IndoorClimateView.swift; sourceTree = "<group>"; };
+		BF58FA952582A0C6E843C0D4 /* FluxControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxControls.swift; sourceTree = "<group>"; };
 		C2B3D4E5F6071829A3B4C5D6 /* Tests_macOS_ViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests_macOS_ViewTests.swift; sourceTree = "<group>"; };
 		C4D432F22FDA43AC78A33FFF /* FluxHausShortcuts.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FluxHausShortcuts.swift; sourceTree = "<group>"; };
 		C6709013ABF8AA633E63B128 /* SceneView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneView.swift; sourceTree = "<group>"; };
 		C8CB990FC6404C8682E3BE62 /* ScooterDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScooterDetailView.swift; sourceTree = "<group>"; };
+		CA2700000000000000000001 /* CarAnalytics.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalytics.swift; sourceTree = "<group>"; };
+		CA2700100000000000000001 /* CarAnalyticsLink.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsLink.swift; sourceTree = "<group>"; };
+		CA2700200000000000000001 /* CarAnalyticsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarAnalyticsView.swift; sourceTree = "<group>"; };
 		CB0001000000000000000001 /* ChatBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatBubble.swift; sourceTree = "<group>"; };
 		CEF67D2F97BC4B6C8737FCC9 /* Scooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scooter.swift; sourceTree = "<group>"; };
 		CSV0000000000000000000001 /* ConversationScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationScrollView.swift; sourceTree = "<group>"; };
@@ -765,9 +759,15 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 		CTR0005000000000000000002 /* ChatTranscriptRendererTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatTranscriptRendererTests.swift; sourceTree = "<group>"; };
 		CWV0001000000000000000001 /* ConversationWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationWebView.swift; sourceTree = "<group>"; };
 		D19F8EEA5798CC3C15E2B3E7 /* AirPurifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AirPurifier.swift; sourceTree = "<group>"; };
+		D6CBA40E9DC111B7F09047EA /* ScenesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenesWidget.swift; sourceTree = "<group>"; };
 		D7F4D12AFB5260CA5BD9CE33 /* CarPlayVoiceManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayVoiceManager.swift; sourceTree = "<group>"; };
+		E2C522BAB88B72001E4009C8 /* FluxWidgetMacExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxWidgetMacExtension.entitlements; sourceTree = "<group>"; };
 		E38B4A64D5666D588E647CA0 /* RobotIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotIntents.swift; sourceTree = "<group>"; };
+		E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatModelTests.swift; sourceTree = "<group>"; };
+		E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatUnreportedTests.swift; sourceTree = "<group>"; };
+		EC8514600B773CD2F27ADEB9 /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
 		EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetricsView.swift; sourceTree = "<group>"; };
+		EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Thermostat.swift; sourceTree = "<group>"; };
 		F9D32097FA44F78B3A97A743 /* FluxIntentActions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FluxIntentActions.swift; sourceTree = "<group>"; };
 		FAAEBC8C9F79B50F67076AB6 /* WeatherHelpers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WeatherHelpers.swift; sourceTree = "<group>"; };
 		MD0001000000000000000001 /* MarkdownContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownContentView.swift; sourceTree = "<group>"; };
@@ -783,20 +783,6 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		6E5522922953CFDA3FE12C4D /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		90A4AB7822B47CFF7D44C4CA /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		632CBC28258682C9003E4988 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -847,6 +833,20 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6E5522922953CFDA3FE12C4D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90A4AB7822B47CFF7D44C4CA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FDEE4364CE8EE809E1F384B1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -875,7 +875,6 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 				75907B2840BE09DA3BF7A07C /* ViewAnnotations.swift */,
 				8DE247AD2606C4F2FA61EC4E /* OfflineAssistant.swift */,
 			);
-			name = Intents;
 			path = Intents;
 			sourceTree = "<group>";
 		};
@@ -1175,23 +1174,6 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		EBAB87E7AA69535E39B1F349 /* FluxWidgetMacExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A628CEF4B0D1C708242AB372 /* Build configuration list for PBXNativeTarget "FluxWidgetMacExtension" */;
-			buildPhases = (
-				38A6562043EC7DD486934BA8 /* Sources */,
-				6E5522922953CFDA3FE12C4D /* Frameworks */,
-				A7116D16F9B0A91312F04246 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = FluxWidgetMacExtension;
-			productName = FluxWidgetMacExtension;
-			productReference = 025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		4DDEC973F132E95D48D590E4 /* FluxWidgetVisionExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3585F9DB34D3CA60185BE1F2 /* Build configuration list for PBXNativeTarget "FluxWidgetVisionExtension" */;
@@ -1341,6 +1323,23 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			productReference = A014C8FED1F0DB5B5127FCB1 /* Tests macOS.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		EBAB87E7AA69535E39B1F349 /* FluxWidgetMacExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A628CEF4B0D1C708242AB372 /* Build configuration list for PBXNativeTarget "FluxWidgetMacExtension" */;
+			buildPhases = (
+				38A6562043EC7DD486934BA8 /* Sources */,
+				6E5522922953CFDA3FE12C4D /* Frameworks */,
+				A7116D16F9B0A91312F04246 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FluxWidgetMacExtension;
+			productName = FluxWidgetMacExtension;
+			productReference = 025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1351,6 +1350,9 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 				LastSwiftUpdateCheck = 1540;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
+					4DDEC973F132E95D48D590E4 = {
+						CreatedOnToolsVersion = 27.0;
+					};
 					632CBC2A258682C9003E4988 = {
 						CreatedOnToolsVersion = 12.2;
 					};
@@ -1361,18 +1363,15 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					637BC6282C5BDA7F00E7884E = {
 						CreatedOnToolsVersion = 15.4;
 					};
-					EBAB87E7AA69535E39B1F349 = {
-						CreatedOnToolsVersion = 27.0;
-					};
-					4DDEC973F132E95D48D590E4 = {
-						CreatedOnToolsVersion = 27.0;
-					};
 					63DBD72D2B954215006603D0 = {
 						CreatedOnToolsVersion = 15.2;
 					};
 					63DBD7412B954216006603D0 = {
 						CreatedOnToolsVersion = 15.2;
 						TestTargetID = 63DBD72D2B954215006603D0;
+					};
+					EBAB87E7AA69535E39B1F349 = {
+						CreatedOnToolsVersion = 27.0;
 					};
 				};
 			};
@@ -1403,22 +1402,6 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A7116D16F9B0A91312F04246 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				07BD092EED13BAEC7ACFFD6C /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		E65B0D36BECB97A5B907E4BD /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				E1709B31546625C01CB975BD /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		21420D8EE80B4840A70E3755 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1475,6 +1458,22 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A7116D16F9B0A91312F04246 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				07BD092EED13BAEC7ACFFD6C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E65B0D36BECB97A5B907E4BD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1709B31546625C01CB975BD /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F709AAB9ED5BC2309F52D4E2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1524,110 +1523,6 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		38A6562043EC7DD486934BA8 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				9E3E173340DFD8A8DA8985FB /* CarHelper.swift in Sources */,
-				1E882C640B3CE3B119E9007E /* LoginStucts.swift in Sources */,
-				9F3CA8FA9AF4640C9EEC5308 /* Theme.swift in Sources */,
-				A5C27B6F63A3609403C833B1 /* ApplianceViewHelpers.swift in Sources */,
-				8F608DA017F960D7AFD46953 /* Api.swift in Sources */,
-				E305CCB3312A9DE000CE64D1 /* FluxHausConsts.swift in Sources */,
-				E7693BC114C25CCF9552D9E6 /* MieleAppliance.swift in Sources */,
-				C2F4B07CF7FC06158A6D90DB /* SystemNotifications.swift in Sources */,
-				402880B40BB1FDFAEC6F327E /* Battery.swift in Sources */,
-				EF0C8AE6A629E3DAFDBE7054 /* Car.swift in Sources */,
-				9A41584D6414F7233DD34319 /* Scooter.swift in Sources */,
-				1FFF28093AD7D270B56DE412 /* HomeConnect.swift in Sources */,
-				EABF1400B464886A22F747B1 /* Miele.swift in Sources */,
-				CC1D1AF5761F9B02FA263133 /* Robots.swift in Sources */,
-				0B6D1486F44F48F4AB686018 /* QueryFlux.swift in Sources */,
-				F839727DACC4CCA7024B43DC /* QueryFluxWidgetExtensions.swift in Sources */,
-				B15CC6D7291B03F3C3F187BE /* WhereWeAre.swift in Sources */,
-				901B0811710754727FEC333D /* AuthManager.swift in Sources */,
-				D98F6480327CDD0A5B67025C /* FluxWidget.swift in Sources */,
-				9A5B45B9E753B12D9605F4A8 /* WidgetShared.swift in Sources */,
-				F2CE54B2276B4CFC9FAB6346 /* WidgetData.swift in Sources */,
-				20675DA61D9CB2A8516E54E0 /* CarWidget.swift in Sources */,
-				0EA2F12F344D03456B021D2F /* ScenesWidget.swift in Sources */,
-				1585D0B553440591EFAA2B82 /* HomeWidget.swift in Sources */,
-				44D6D63D32435029C84BC8A9 /* FluxControls.swift in Sources */,
-				9E6DAA78FFCB4D2C6946EB44 /* SceneService.swift in Sources */,
-				27BE31867C663E4C4F2EF6D2 /* AppIntent.swift in Sources */,
-				662A80C36C823D3D171F0046 /* FluxWidgetBundle.swift in Sources */,
-				328F68E3589EFECBCE21BC87 /* FluxWidgetLiveActivity.swift in Sources */,
-				E55A63F3F2AD9B52631ADA52 /* FluxWidgetWatchViews.swift in Sources */,
-				10795790D6B9BAEB354A3C17 /* FluxWidgetLiveActivityLegacy.swift in Sources */,
-				78879A4A6A2EC90E7F54B6CF /* FluxIntentActions.swift in Sources */,
-				91B2B8C4EC266CD1A04C64F1 /* RobotIntents.swift in Sources */,
-				E39A28A936680238E494B272 /* CarIntents.swift in Sources */,
-				D49EEC0C58AE0F6DEACA11C6 /* ThermostatIntents.swift in Sources */,
-				908FB4330033A7B16C07AD9A /* CarAnalytics.swift in Sources */,
-				5B6728109184ABF3992920FE /* AirPurifier.swift in Sources */,
-				FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */,
-				928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */,
-				9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */,
-				AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */,
-				C7E3455A3D22DE3A7F472DC5 /* Thermostat.swift in Sources */,
-				5A6DE842DFF984BD6EC4B49C /* ThermostatCommand.swift in Sources */,
-				9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */,
-				07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C86B22D3E2E8994F4C36D030 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				309A2877AB995FF66C9552CC /* CarHelper.swift in Sources */,
-				5A1F232658BBA71446C0BB96 /* LoginStucts.swift in Sources */,
-				1CED9242AA40223102314AB6 /* Theme.swift in Sources */,
-				3018C3BBBD70B78411D785E9 /* ApplianceViewHelpers.swift in Sources */,
-				BB34CE1531B27FD1225EB87B /* Api.swift in Sources */,
-				444BE8494070DF308C24F9A5 /* FluxHausConsts.swift in Sources */,
-				BE4356896D1D0E1317BD49A7 /* MieleAppliance.swift in Sources */,
-				438E18CF42BD5EBC9060E228 /* SystemNotifications.swift in Sources */,
-				C50051852F03ABE2B45557EE /* Battery.swift in Sources */,
-				2B451096AD4DA6EE0111CF68 /* Car.swift in Sources */,
-				2A70E3B79406F9F6E72695FF /* Scooter.swift in Sources */,
-				EF9D8AEBB0FAC840D343E66B /* HomeConnect.swift in Sources */,
-				4A065878F5CC9D1EA1F4AF6A /* Miele.swift in Sources */,
-				A2091282C4852CEBAB6622E5 /* Robots.swift in Sources */,
-				7459FA719805CDA8011F9565 /* QueryFlux.swift in Sources */,
-				A91CE075E06600508984055E /* QueryFluxWidgetExtensions.swift in Sources */,
-				3B6B67F0BB57C77C7AFFBF49 /* WhereWeAre.swift in Sources */,
-				B16ABF9F20CE02FE53EC2A67 /* AuthManager.swift in Sources */,
-				AB705E4B22AC00065BC1807C /* FluxWidget.swift in Sources */,
-				E436A9FB9C9710B27DB94308 /* WidgetShared.swift in Sources */,
-				CB56E9D746E0A00CF4D40C39 /* WidgetData.swift in Sources */,
-				B8C836EA3DA2E2694EA24B2D /* CarWidget.swift in Sources */,
-				0B0AD19BD9F27558CF8982BD /* ScenesWidget.swift in Sources */,
-				9F3CE2D3ED9FA44EB9AF833A /* HomeWidget.swift in Sources */,
-				653DF28E735D230451545938 /* FluxControls.swift in Sources */,
-				F2DCEB71317B2F195359B359 /* SceneService.swift in Sources */,
-				F072DEAFF74168ABCFF84822 /* AppIntent.swift in Sources */,
-				9FC5E4A6CB9609AAF4CF8850 /* FluxWidgetBundle.swift in Sources */,
-				3D3CA2C8D048702C23C0756D /* FluxWidgetLiveActivity.swift in Sources */,
-				F4A52DA70979AF5BA8CD2D69 /* FluxWidgetWatchViews.swift in Sources */,
-				BA91F84F12E6C1FB1F3395C8 /* FluxWidgetLiveActivityLegacy.swift in Sources */,
-				251FE64A8426539BFAC36196 /* FluxIntentActions.swift in Sources */,
-				1A7F68A81D6013F8C5FB5B90 /* RobotIntents.swift in Sources */,
-				E7D2B9751FBC299A4D2F7C3B /* CarIntents.swift in Sources */,
-				3E026144CEA349DB588E9B08 /* ThermostatIntents.swift in Sources */,
-				DEA9855F95F9661D5BC412BF /* CarAnalytics.swift in Sources */,
-				1B7583CDD5918DD888AB3BD2 /* AirPurifier.swift in Sources */,
-				0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */,
-				EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */,
-				D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */,
-				1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */,
-				DDD6945D597CE5FFDDE31EB6 /* Thermostat.swift in Sources */,
-				7C772181C42BA2B5378E75B3 /* ThermostatCommand.swift in Sources */,
-				25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */,
-				AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		07BA3F65B7BE442FC38C7B7E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1719,6 +1614,58 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 				0EBAC1813CD458838F17B68C /* FluxStatusText.swift in Sources */,
 				C71F0FF178E911D9C59E3AF4 /* ViewAnnotations.swift in Sources */,
 				0EF4C481904193CD67287296 /* OfflineAssistant.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		38A6562043EC7DD486934BA8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9E3E173340DFD8A8DA8985FB /* CarHelper.swift in Sources */,
+				1E882C640B3CE3B119E9007E /* LoginStucts.swift in Sources */,
+				9F3CA8FA9AF4640C9EEC5308 /* Theme.swift in Sources */,
+				A5C27B6F63A3609403C833B1 /* ApplianceViewHelpers.swift in Sources */,
+				8F608DA017F960D7AFD46953 /* Api.swift in Sources */,
+				E305CCB3312A9DE000CE64D1 /* FluxHausConsts.swift in Sources */,
+				E7693BC114C25CCF9552D9E6 /* MieleAppliance.swift in Sources */,
+				C2F4B07CF7FC06158A6D90DB /* SystemNotifications.swift in Sources */,
+				402880B40BB1FDFAEC6F327E /* Battery.swift in Sources */,
+				EF0C8AE6A629E3DAFDBE7054 /* Car.swift in Sources */,
+				9A41584D6414F7233DD34319 /* Scooter.swift in Sources */,
+				1FFF28093AD7D270B56DE412 /* HomeConnect.swift in Sources */,
+				EABF1400B464886A22F747B1 /* Miele.swift in Sources */,
+				CC1D1AF5761F9B02FA263133 /* Robots.swift in Sources */,
+				0B6D1486F44F48F4AB686018 /* QueryFlux.swift in Sources */,
+				F839727DACC4CCA7024B43DC /* QueryFluxWidgetExtensions.swift in Sources */,
+				B15CC6D7291B03F3C3F187BE /* WhereWeAre.swift in Sources */,
+				901B0811710754727FEC333D /* AuthManager.swift in Sources */,
+				D98F6480327CDD0A5B67025C /* FluxWidget.swift in Sources */,
+				9A5B45B9E753B12D9605F4A8 /* WidgetShared.swift in Sources */,
+				F2CE54B2276B4CFC9FAB6346 /* WidgetData.swift in Sources */,
+				20675DA61D9CB2A8516E54E0 /* CarWidget.swift in Sources */,
+				0EA2F12F344D03456B021D2F /* ScenesWidget.swift in Sources */,
+				1585D0B553440591EFAA2B82 /* HomeWidget.swift in Sources */,
+				44D6D63D32435029C84BC8A9 /* FluxControls.swift in Sources */,
+				9E6DAA78FFCB4D2C6946EB44 /* SceneService.swift in Sources */,
+				27BE31867C663E4C4F2EF6D2 /* AppIntent.swift in Sources */,
+				662A80C36C823D3D171F0046 /* FluxWidgetBundle.swift in Sources */,
+				328F68E3589EFECBCE21BC87 /* FluxWidgetLiveActivity.swift in Sources */,
+				E55A63F3F2AD9B52631ADA52 /* FluxWidgetWatchViews.swift in Sources */,
+				10795790D6B9BAEB354A3C17 /* FluxWidgetLiveActivityLegacy.swift in Sources */,
+				78879A4A6A2EC90E7F54B6CF /* FluxIntentActions.swift in Sources */,
+				91B2B8C4EC266CD1A04C64F1 /* RobotIntents.swift in Sources */,
+				E39A28A936680238E494B272 /* CarIntents.swift in Sources */,
+				D49EEC0C58AE0F6DEACA11C6 /* ThermostatIntents.swift in Sources */,
+				908FB4330033A7B16C07AD9A /* CarAnalytics.swift in Sources */,
+				5B6728109184ABF3992920FE /* AirPurifier.swift in Sources */,
+				FB8E63AED3A06F475FE35F9F /* SymbolAnimation.swift in Sources */,
+				928AAD5A0F4A75EEC14B31DB /* AirPurifierView.swift in Sources */,
+				9AB046B6514280C6C238F2B9 /* Metrics.swift in Sources */,
+				AC24E2D682293ADD3198A1BB /* IndoorClimate.swift in Sources */,
+				C7E3455A3D22DE3A7F472DC5 /* Thermostat.swift in Sources */,
+				5A6DE842DFF984BD6EC4B49C /* ThermostatCommand.swift in Sources */,
+				9067CC5DABEF6C007103F5ED /* IndoorClimateView.swift in Sources */,
+				07A1C94E9C654B601A5AF018 /* MetricsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2084,19 +2031,61 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C86B22D3E2E8994F4C36D030 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				309A2877AB995FF66C9552CC /* CarHelper.swift in Sources */,
+				5A1F232658BBA71446C0BB96 /* LoginStucts.swift in Sources */,
+				1CED9242AA40223102314AB6 /* Theme.swift in Sources */,
+				3018C3BBBD70B78411D785E9 /* ApplianceViewHelpers.swift in Sources */,
+				BB34CE1531B27FD1225EB87B /* Api.swift in Sources */,
+				444BE8494070DF308C24F9A5 /* FluxHausConsts.swift in Sources */,
+				BE4356896D1D0E1317BD49A7 /* MieleAppliance.swift in Sources */,
+				438E18CF42BD5EBC9060E228 /* SystemNotifications.swift in Sources */,
+				C50051852F03ABE2B45557EE /* Battery.swift in Sources */,
+				2B451096AD4DA6EE0111CF68 /* Car.swift in Sources */,
+				2A70E3B79406F9F6E72695FF /* Scooter.swift in Sources */,
+				EF9D8AEBB0FAC840D343E66B /* HomeConnect.swift in Sources */,
+				4A065878F5CC9D1EA1F4AF6A /* Miele.swift in Sources */,
+				A2091282C4852CEBAB6622E5 /* Robots.swift in Sources */,
+				7459FA719805CDA8011F9565 /* QueryFlux.swift in Sources */,
+				A91CE075E06600508984055E /* QueryFluxWidgetExtensions.swift in Sources */,
+				3B6B67F0BB57C77C7AFFBF49 /* WhereWeAre.swift in Sources */,
+				B16ABF9F20CE02FE53EC2A67 /* AuthManager.swift in Sources */,
+				AB705E4B22AC00065BC1807C /* FluxWidget.swift in Sources */,
+				E436A9FB9C9710B27DB94308 /* WidgetShared.swift in Sources */,
+				CB56E9D746E0A00CF4D40C39 /* WidgetData.swift in Sources */,
+				B8C836EA3DA2E2694EA24B2D /* CarWidget.swift in Sources */,
+				0B0AD19BD9F27558CF8982BD /* ScenesWidget.swift in Sources */,
+				9F3CE2D3ED9FA44EB9AF833A /* HomeWidget.swift in Sources */,
+				653DF28E735D230451545938 /* FluxControls.swift in Sources */,
+				F2DCEB71317B2F195359B359 /* SceneService.swift in Sources */,
+				F072DEAFF74168ABCFF84822 /* AppIntent.swift in Sources */,
+				9FC5E4A6CB9609AAF4CF8850 /* FluxWidgetBundle.swift in Sources */,
+				3D3CA2C8D048702C23C0756D /* FluxWidgetLiveActivity.swift in Sources */,
+				F4A52DA70979AF5BA8CD2D69 /* FluxWidgetWatchViews.swift in Sources */,
+				BA91F84F12E6C1FB1F3395C8 /* FluxWidgetLiveActivityLegacy.swift in Sources */,
+				251FE64A8426539BFAC36196 /* FluxIntentActions.swift in Sources */,
+				1A7F68A81D6013F8C5FB5B90 /* RobotIntents.swift in Sources */,
+				E7D2B9751FBC299A4D2F7C3B /* CarIntents.swift in Sources */,
+				3E026144CEA349DB588E9B08 /* ThermostatIntents.swift in Sources */,
+				DEA9855F95F9661D5BC412BF /* CarAnalytics.swift in Sources */,
+				1B7583CDD5918DD888AB3BD2 /* AirPurifier.swift in Sources */,
+				0CB35B8EFC40B2180F19E649 /* SymbolAnimation.swift in Sources */,
+				EDE76464D226E62CFBA54261 /* AirPurifierView.swift in Sources */,
+				D53D518588E4186EA9EE5FD2 /* Metrics.swift in Sources */,
+				1D0C49135818A1620ED72218 /* IndoorClimate.swift in Sources */,
+				DDD6945D597CE5FFDDE31EB6 /* Thermostat.swift in Sources */,
+				7C772181C42BA2B5378E75B3 /* ThermostatCommand.swift in Sources */,
+				25FFDF5CAF36ADB7270694A3 /* IndoorClimateView.swift in Sources */,
+				AAC3423278EF87E94A8142CD /* MetricsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		868B83AAAD25E0F9DAB0E811 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = EBAB87E7AA69535E39B1F349 /* FluxWidgetMacExtension */;
-			targetProxy = E1EB8A6A0EC88AA31FE41498 /* PBXContainerItemProxy */;
-		};
-		962579E87BBC8DDD4AD8C645 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4DDEC973F132E95D48D590E4 /* FluxWidgetVisionExtension */;
-			targetProxy = D4B70E392A81EC708D6D602B /* PBXContainerItemProxy */;
-		};
 		632CBC3D258682C9003E4988 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 632CBC2A258682C9003E4988 /* FluxHaus (iOS) */;
@@ -2112,165 +2101,19 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			target = 63DBD72D2B954215006603D0 /* VisionOS */;
 			targetProxy = 63DBD7432B954216006603D0 /* PBXContainerItemProxy */;
 		};
+		868B83AAAD25E0F9DAB0E811 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EBAB87E7AA69535E39B1F349 /* FluxWidgetMacExtension */;
+			targetProxy = E1EB8A6A0EC88AA31FE41498 /* PBXContainerItemProxy */;
+		};
+		962579E87BBC8DDD4AD8C645 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4DDEC973F132E95D48D590E4 /* FluxWidgetVisionExtension */;
+			targetProxy = D4B70E392A81EC708D6D602B /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		F475F55FD7AFD69B9E9A99E7 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ENTITLEMENTS = FluxWidgetMacExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9JALHNGRBQ;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FluxWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
-				);
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Debug;
-		};
-		E37E696493DFEA1D9A564AD5 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ENTITLEMENTS = FluxWidgetMacExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 9JALHNGRBQ;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FluxWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				VALIDATE_PRODUCT = YES;
-				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				SDKROOT = macosx;
-				SUPPORTED_PLATFORMS = macosx;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
-				);
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Release;
-		};
-		D73507920588212717BCDE4D /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ENTITLEMENTS = FluxWidgetVisionExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FluxWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				XROS_DEPLOYMENT_TARGET = 27.0;
-				SDKROOT = xros;
-				SUPPORTED_PLATFORMS = "xros xrsimulator";
-				TARGETED_DEVICE_FAMILY = 7;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Debug;
-		};
-		BB90841E6818523BB2DBAA15 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_ENTITLEMENTS = FluxWidgetVisionExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				ENABLE_APP_SANDBOX = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FluxWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				VALIDATE_PRODUCT = YES;
-				XROS_DEPLOYMENT_TARGET = 27.0;
-				SDKROOT = xros;
-				SUPPORTED_PLATFORMS = "xros xrsimulator";
-				TARGETED_DEVICE_FAMILY = 7;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-			};
-			name = Release;
-		};
 		1DF4D0D19B751E6DF17FAAFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2434,7 +2277,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -2467,7 +2310,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -2562,7 +2405,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2601,7 +2444,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2638,7 +2481,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2676,7 +2519,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2775,11 +2618,50 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		BB90841E6818523BB2DBAA15 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = FluxWidgetVisionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FluxWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.12;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = xros;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 7;
+				VALIDATE_PRODUCT = YES;
+				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
 		};
@@ -2815,7 +2697,7 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2840,18 +2722,126 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			};
 			name = Release;
 		};
+		D73507920588212717BCDE4D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = FluxWidgetVisionExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FluxWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.12;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = xros;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "xros xrsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 27.0;
+			};
+			name = Debug;
+		};
+		E37E696493DFEA1D9A564AD5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = FluxWidgetMacExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FluxWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.12;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F475F55FD7AFD69B9E9A99E7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = FluxWidgetMacExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 9JALHNGRBQ;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = FluxWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = FluxWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.12;
+				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A628CEF4B0D1C708242AB372 /* Build configuration list for PBXNativeTarget "FluxWidgetMacExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				F475F55FD7AFD69B9E9A99E7 /* Debug */,
-				E37E696493DFEA1D9A564AD5 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		3585F9DB34D3CA60185BE1F2 /* Build configuration list for PBXNativeTarget "FluxWidgetVisionExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -2911,6 +2901,15 @@ EEBBB79F8C384285F254E54F /* Thermostat.swift */ = {isa = PBXFileReference; inclu
 			buildConfigurations = (
 				63DBD74A2B954216006603D0 /* Debug */,
 				63DBD74B2B954216006603D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A628CEF4B0D1C708242AB372 /* Build configuration list for PBXNativeTarget "FluxWidgetMacExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F475F55FD7AFD69B9E9A99E7 /* Debug */,
+				E37E696493DFEA1D9A564AD5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
