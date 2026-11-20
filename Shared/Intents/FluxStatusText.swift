@@ -10,6 +10,26 @@
 import Foundation
 
 enum FluxStatusText {
+    static let maxLabelLength = 40
+    private static let labelCharacters = CharacterSet.alphanumerics
+        .union(.whitespaces)
+        .union(CharacterSet(charactersIn: "-'&/()+°%"))
+
+    /// Server-provided names (robot, room, program, step, mode) are read back to Siri, so keep each
+    /// one to a short phrase without sentence punctuation that could carry a separate instruction.
+    static func label(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let text = filtered(raw, allowing: labelCharacters)
+        guard !text.isEmpty else { return nil }
+        return String(text.prefix(maxLabelLength)).trimmingCharacters(in: .whitespaces)
+    }
+
+    /// Replaces characters outside `allowed` with spaces and collapses the result to one line.
+    static func filtered(_ text: String, allowing allowed: CharacterSet) -> String {
+        let characters = text.unicodeScalars.map { allowed.contains($0) ? Character($0) : " " }
+        return String(characters).split(whereSeparator: \.isWhitespace).joined(separator: " ")
+    }
+
     static func car(_ response: LoginResponse) -> String {
         guard let car = response.car, let evStatus = response.carEvStatus else {
             return "Car status isn't available right now."
@@ -27,21 +47,26 @@ enum FluxStatusText {
     }
 
     static func robot(_ robot: Robot) -> String {
-        let name = robot.name ?? "Robot"
+        let name = label(robot.name) ?? "Robot"
+        guard robot.stateKnown != false else {
+            return "\(name) status isn't available right now."
+        }
         let state: String
         if robot.running == true {
             state = "running"
-        } else if robot.docking == true || robot.charging == true {
-            state = "charging at the dock"
         } else if robot.paused == true {
             state = "paused"
+        } else if robot.docking == true {
+            state = "returning to the dock"
+        } else if robot.charging == true {
+            state = "charging at the dock"
         } else {
             state = "idle"
         }
         let binStatus = robot.binFull == true ? " Its bin is full." : ""
         let progress = robot.progressPercent.map { " It is \(Int($0.rounded()))% done." } ?? ""
         let remaining = robot.estimatedRemainingMinutes.map { " About \(Int($0.rounded())) minutes remain." } ?? ""
-        let room = robot.currentRoom.map { " It is currently in \($0)." } ?? ""
+        let room = label(robot.currentRoom).map { " It is currently in \($0)." } ?? ""
         if let battery = robot.batteryLevel {
             return "\(name) is \(state) at \(battery)%.\(progress)\(remaining)\(room)\(binStatus)"
         }
@@ -60,9 +85,9 @@ enum FluxStatusText {
         }
 
         var summary = "The dishwasher is \(dishwasher.operationState.displayText.lowercased())"
-        if let program = dishwasher.activeProgram?.displayName
-            ?? dishwasher.selectedProgram.map(formatApplianceDisplayText),
-           !program.isEmpty {
+        if let program = label(
+            dishwasher.activeProgram?.displayName ?? dishwasher.selectedProgram.map(formatApplianceDisplayText)
+        ) {
             summary += " on the \(program) program"
         }
         summary += "."
@@ -110,8 +135,8 @@ enum FluxStatusText {
         var sentences = [
             "The air purifier is online and the fan is \(purifier.fanOn ? "on" : "off")."
         ]
-        if let mode = purifier.presetMode, !mode.isEmpty {
-            sentences.append("It is in \(formatApplianceDisplayText(mode)) mode.")
+        if let mode = label(purifier.presetMode.map(formatApplianceDisplayText)) {
+            sentences.append("It is in \(mode) mode.")
         }
         if let particulate = purifier.pm25 {
             sentences.append("PM2.5 is \(Int(particulate.rounded())) micrograms per cubic meter.")
@@ -137,14 +162,14 @@ enum FluxStatusText {
             return "The \(name) is not running."
         }
 
-        let state = appliance.status.map(formatApplianceDisplayText) ?? "Running"
+        let state = label(appliance.status.map(formatApplianceDisplayText)) ?? "Running"
         var summary = "The \(name) is \(state.lowercased())"
-        if let program = appliance.programName.map(formatApplianceDisplayText), !program.isEmpty {
+        if let program = label(appliance.programName.map(formatApplianceDisplayText)) {
             summary += " on the \(program) program"
         }
         summary += "."
 
-        if let step = appliance.step.map(formatApplianceDisplayText), !step.isEmpty {
+        if let step = label(appliance.step.map(formatApplianceDisplayText)) {
             summary += " The current step is \(step)."
         }
         if let remaining = appliance.timeRemaining, remaining > 0 {

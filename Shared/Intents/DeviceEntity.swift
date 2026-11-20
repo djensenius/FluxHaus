@@ -15,6 +15,7 @@
 
 import AppIntents
 import CoreSpotlight
+import CoreTransferable
 import os
 
 /// The fixed set of FluxHaus devices that can be queried by name.
@@ -101,6 +102,15 @@ struct DeviceAppEntity: IndexedEntity {
     @Property(title: "Search Aliases", indexingKey: \.textContent)
     var searchableAliases: String
 
+    /// Live status text. Only set on entities returned by Device Status; it isn't
+    /// indexed because it goes stale.
+    @Property(title: "Status")
+    var status: String?
+
+    /// The account session the status was fetched under, so the card's buttons can't act
+    /// for a different account (see `DeviceSnippetActionIntent`). Not exposed to Siri.
+    let originSession: String?
+
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Device"
 
     var displayRepresentation: DisplayRepresentation {
@@ -113,10 +123,16 @@ struct DeviceAppEntity: IndexedEntity {
     static let defaultQuery = DeviceEntityQuery()
 
     init(kind: DeviceKind) {
-        self.id = kind.rawValue
+        self.init(id: kind.rawValue, kind: kind, status: nil, originSession: nil)
+    }
+
+    private init(id: String, kind: DeviceKind, status: String?, originSession: String?) {
+        self.id = id
         self.kind = kind
+        self.originSession = originSession
         self.name = kind.displayName
         self.searchableAliases = kind.searchTerms.joined(separator: "\n")
+        self.status = status
     }
 
     init?(id: String) {
@@ -131,10 +147,37 @@ struct DeviceAppEntity: IndexedEntity {
             outputId = id
         }
         guard let kind = DeviceKind(rawValue: normalizedId) else { return nil }
-        self.id = outputId
-        self.kind = kind
-        self.name = kind.displayName
-        self.searchableAliases = kind.searchTerms.joined(separator: "\n")
+        self.init(id: outputId, kind: kind, status: nil, originSession: nil)
+    }
+
+    /// Returns a new entity because `@Property` storage is shared between copies.
+    func withStatus(_ status: String, session: String?) -> DeviceAppEntity {
+        DeviceAppEntity(id: id, kind: kind, status: Self.siriStatus(status), originSession: session)
+    }
+
+    static let maxStatusLength = 300
+    private static let statusCharacters = CharacterSet.alphanumerics
+        .union(.whitespaces)
+        .union(CharacterSet(charactersIn: ".,:;'’%°()/-+&…"))
+
+    /// Status text includes server data and goes into Siri's context, so keep it to one
+    /// bounded line of letters, numbers, and plain sentence punctuation.
+    static func siriStatus(_ text: String) -> String {
+        let line = FluxStatusText.filtered(text, allowing: statusCharacters)
+        guard line.count > maxStatusLength else { return line }
+        return String(line.prefix(maxStatusLength - 1)) + "…"
+    }
+
+    /// Plain-text summary used when Siri shares or passes the device to another app.
+    var transferText: String {
+        guard let status else { return name }
+        return "\(name): \(status)"
+    }
+}
+
+extension DeviceAppEntity: Transferable {
+    static var transferRepresentation: some TransferRepresentation {
+        ProxyRepresentation { (device: DeviceAppEntity) in device.transferText }
     }
 }
 
@@ -221,17 +264,29 @@ struct DeviceEntityQuery: EntityStringQuery, IndexedEntityQuery {
 
 struct DeviceStatusIntent: AppIntent {
     static let title: LocalizedStringResource = "Device Status"
-    static let description = IntentDescription("Get the status of a FluxHaus device.")
+    static let description = IntentDescription(
+        "Get a FluxHaus device's live status, like car charge and locks, Cleanbot progress, or appliance time left."
+    )
 
-    @Parameter(title: "Device", requestValueDialog: "Which FluxHaus device?")
+    @Parameter(
+        title: "Device",
+        description: "The device to check: car, Cleanbot, dishwasher, washer, dryer, scooter, or air purifier.",
+        requestValueDialog: "Which FluxHaus device?"
+    )
     var device: DeviceAppEntity
 
     static var parameterSummary: some ParameterSummary {
         Summary("Get the status of \(\.$device)")
     }
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult & ReturnsValue<DeviceAppEntity> & ProvidesDialog {
+        try await requireIntentAuthentication()
+        // Like the widgets, treat a missing session ID (e.g. keychain failure) as signed out.
+        guard let session = AuthManager.shared.widgetSessionID() else { throw IntentError.notSignedIn }
         let response = try await fetchStatus()
-        return .result(dialog: "\(device.kind.status(from: response))")
+        // Don't return the previous account's status if the account changed during the fetch.
+        guard AuthManager.shared.widgetSessionID() == session else { throw IntentError.notSignedIn }
+        let status = DeviceAppEntity.siriStatus(device.kind.status(from: response))
+        return .result(value: device.withStatus(status, session: session), dialog: "\(status)")
     }
 }

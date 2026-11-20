@@ -2,7 +2,8 @@
 //  RobotIntents.swift
 //  FluxHaus
 //
-//  App Intents for controlling the Cleanbot robot.
+//  App Intents for controlling the Cleanbot robot. Siri AI tool conformances are in
+//  SiriTools.swift.
 //
 
 import AppIntents
@@ -25,11 +26,25 @@ enum RobotChoice: String, AppEnum {
     var kind: RobotKind { .cleanBot }
 }
 
+extension StartRobotIntent {
+    init(robot: RobotChoice) {
+        self.init()
+        self.robot = robot
+    }
+}
+
+extension StopRobotIntent {
+    init(robot: RobotChoice) {
+        self.init()
+        self.robot = robot
+    }
+}
+
 struct StartRobotIntent: AppIntent {
     static let title: LocalizedStringResource = "Start Robot"
-    static let description = IntentDescription("Start the FluxHaus cleaning robot.")
+    static let description = IntentDescription("Start a whole-home cleaning run with the FluxHaus cleaning robot.")
 
-    @Parameter(title: "Robot")
+    @Parameter(title: "Robot", description: "The cleaning robot to control. FluxHaus has one robot, Cleanbot.")
     var robot: RobotChoice
 
     static var parameterSummary: some ParameterSummary {
@@ -45,9 +60,9 @@ struct StartRobotIntent: AppIntent {
 
 struct StopRobotIntent: AppIntent {
     static let title: LocalizedStringResource = "Stop Robot"
-    static let description = IntentDescription("Stop the FluxHaus cleaning robot.")
+    static let description = IntentDescription("Stop the FluxHaus cleaning robot and send it back to its dock.")
 
-    @Parameter(title: "Robot")
+    @Parameter(title: "Robot", description: "The cleaning robot to control. FluxHaus has one robot, Cleanbot.")
     var robot: RobotChoice
 
     static var parameterSummary: some ParameterSummary {
@@ -87,5 +102,31 @@ struct CleanRoomIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         try await FluxIntentActions.cleanRoom(room)
         return .result(dialog: "Cleanbot is cleaning \(room.displayName).")
+    }
+}
+
+struct CleanRoomsIntent: AppIntent {
+    static let title: LocalizedStringResource = "Clean Rooms"
+    static let description = IntentDescription("Tell Cleanbot to clean one or more rooms in a single run.")
+
+    @Parameter(
+        title: "Rooms",
+        description: "Rooms to clean in one run: Hallway, Kitchen, Bathroom, Living Room, Master Bedroom, or Office."
+    )
+    var rooms: [CleanbotRoom]
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Clean \(\.$rooms)")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let selectedRooms = FluxIntentActions.uniqueRooms(rooms)
+        guard !selectedRooms.isEmpty else {
+            throw $rooms.needsValueError("Which rooms should Cleanbot clean?")
+        }
+        try await FluxIntentActions.cleanRooms(selectedRooms)
+        let roomList = ListFormatter.localizedString(byJoining: selectedRooms.map(\.displayName))
+        return .result(dialog: "Cleanbot is cleaning \(roomList).")
     }
 }
