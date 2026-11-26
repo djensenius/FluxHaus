@@ -367,6 +367,36 @@ struct IndoorCardSummaryTests {
         #expect(summary.status?.hasPrefix("Auto") == true)
     }
 
+    @Test("A reply's own rooms keep its sensors' scale even when it states no top-level unit")
+    @MainActor func testReplyRoomsKeepTheirOwnScale() async throws {
+        let polled = IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z", unit: "°C",
+            thermostat: thermostatOnly(unit: nil, thermostatUnit: "°C", current: 21.3).thermostat,
+            sensors: [IndoorTemperatureSensor(entityId: "sensor.hall", name: "Hall", temperature: 20, unit: "°C")]
+        )
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.den", name: "Den", temperature: 68, unit: "°F"),
+            IndoorTemperatureSensor(entityId: "sensor.attic", name: "Attic", temperature: 72, unit: nil)
+        ]
+        let reply = IndoorClimateState(
+            timestamp: "2099-01-01T00:00:00Z", unit: nil,
+            thermostat: thermostatOnly(unit: nil, thermostatUnit: "°C").thermostat, sensors: rooms
+        )
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in reply }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+
+        let state = try #require(IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
+        #expect(state.sensors == rooms)
+        #expect(state.isFahrenheit)
+        let summary = IndoorCardSummary(state: state)
+        #expect(summary.warmest == "Warmest Attic \(IndoorClimateFormat.temperature(72, unit: "°F"))")
+        #expect(summary.coolest == "Coolest Den \(IndoorClimateFormat.temperature(68, unit: "°F"))")
+        // The °C thermostat reading carried from the poll is shown in the reply's °F.
+        #expect(summary.value == IndoorClimateFormat.temperature(21.3 * 9 / 5 + 32, unit: "°F"))
+    }
+
     @Test("An offline thermostat's last polled reading is not shown as current after a change")
     @MainActor func testOfflineReadingNotCarried() async {
         let offline = thermostatOnly(unit: "°C", current: 21.3, available: false, timestamp: "2024-12-13T11:59:00Z")

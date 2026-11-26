@@ -32,7 +32,9 @@ extension IndoorCardSummary {
         }
         return IndoorClimateState(
             timestamp: current.timestamp,
-            unit: current.reportedUnit ?? polled.unit,
+            // The reply's own rooms keep the scale the reply gives them; only without one
+            // does the poll's apply. The reply's rooms are never re-stamped.
+            unit: sensorUnit(of: current) ?? polled.unit,
             thermostat: current.thermostat.map {
                 $0.filled(from: readingsFrom, unit: statedUnit(of: current) ?? pollUnit)
             } ?? polled.thermostat?.filled(from: nil, unit: pollUnit),
