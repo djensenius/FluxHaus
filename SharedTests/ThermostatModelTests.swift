@@ -356,6 +356,17 @@ struct IndoorCardSummaryTests {
         #expect(summary.status?.hasPrefix("Auto") == true)
     }
 
+    @Test("A °C reply never adopts a reading from a poll that states no unit, though the poll alone still shows it")
+    @MainActor func testStatedReplyIgnoresUnstatedPoll() async {
+        let unstated = thermostatOnly(unit: nil, current: 21.3, timestamp: "2024-12-13T11:59:00Z")
+        #expect(IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: nil, polled: unstated))
+            .value == format(21.3))
+
+        let summary = await summaryAfterReply(thermostatOnly(unit: "°C"), polled: unstated)
+        #expect(summary.value == IndoorCardSummary.placeholder)
+        #expect(summary.status?.hasPrefix("Auto") == true)
+    }
+
     @Test("An offline thermostat's last polled reading is not shown as current after a change")
     @MainActor func testOfflineReadingNotCarried() async {
         let offline = thermostatOnly(unit: "°C", current: 21.3, available: false, timestamp: "2024-12-13T11:59:00Z")
