@@ -215,8 +215,8 @@ struct IndoorCardSummaryTests {
         )
         #expect(current.status?.hasPrefix("Auto") == true)
         #expect(current.activity == .idle && !current.isActive)
-        // The reply has no rooms, so the polled ones still give a reading and the extremes.
-        #expect(current.value == format(21.4))
+        // The reply has no reading or rooms, so the polled thermostat reading and rooms are kept.
+        #expect(current.value == format(21.3))
         #expect(current.warmest == "Warmest Kitchen \(format(22.6))")
         #expect(current.coolest == "Coolest Main Bedroom \(format(19.8))")
 
@@ -262,7 +262,7 @@ struct IndoorCardSummaryTests {
             state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
         )
         #expect(current.status?.hasPrefix("Heating") == true)
-        #expect(current.value == format(21.4))
+        #expect(current.value == format(21.3))
         // Rendering must not change the controller; only its own session checks may invalidate it.
         #expect(!thermostat.isInvalidated)
     }
