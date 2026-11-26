@@ -105,19 +105,20 @@ struct SensorPlacementView: View {
                 Text("Possible return-from-away events: \(coverage.returnEvents) (detection availability unknown)")
             }
             if coverage.hvacHistoryAvailable {
-                if let start = coverage.hvacHistoryStart {
-                    Text("HVAC history starts: \(dateText(start))")
-                    if coverage.hvacHistoryStartsAfterWindow == true {
-                        Text("HVAC history covers only part of this window; suggestions may be limited.")
-                    }
+                if let earliest = coverage.hvacEarliestStateAt {
+                    Text("Earliest thermostat state returned: \(dateText(earliest))")
+                    Text("This may be a snapshot; it does not establish how much HVAC history is available.")
                 } else {
-                    Text("HVAC history is available, but its start is unknown; coverage may be incomplete.")
+                    Text("Some HVAC history is available, but its coverage is unknown.")
                 }
             } else {
                 Label(
                     "HVAC history unavailable; suggestions may be limited.",
                     systemImage: "exclamationmark.triangle"
                 )
+            }
+            if let count = coverage.unknownUnitReadings, count > 0 {
+                Text("Readings omitted because their temperature unit was unknown: \(count)")
             }
             Text("Generated: \(dateText(insights.generatedAt))")
         }
@@ -238,8 +239,9 @@ struct SensorPlacementView: View {
     {
       "generatedAt": "2026-03-20T12:00:00Z", "windowDays": 14, "unit": "°C",
       "coverage": {"start": "2026-03-06T12:00:00Z", "end": "2026-03-20T12:00:00Z",
-        "hvacHistoryAvailable": true, "hvacHistoryStart": "2026-03-10T12:00:00Z",
-        "returnHistoryAvailable": false, "morningEvents": 5, "inferredMorningEvents": 2, "returnEvents": 0},
+        "hvacHistoryAvailable": true, "hvacEarliestStateAt": "2026-03-10T12:00:00Z",
+        "returnHistoryAvailable": false, "morningEvents": 5, "inferredMorningEvents": 2, "returnEvents": 0,
+        "unknownUnitReadings": 3},
       "sensors": [{"id": "bedroom", "name": "Bedroom", "isThermostat": false,
         "averageOffset": -0.5, "morningOffset": -1.2, "returnOffset": null,
         "overshoot": null, "sampleCount": 60, "classification": "cold"}],

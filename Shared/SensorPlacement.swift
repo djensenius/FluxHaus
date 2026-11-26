@@ -31,7 +31,8 @@ struct PlacementInsights: Decodable, Sendable {
               Self.isoDate(generatedAt) != nil, Self.isoDate(coverage.start) != nil, Self.isoDate(coverage.end) != nil,
               coverage.morningEvents >= 0, coverage.returnEvents >= 0,
               coverage.inferredMorningEvents.map({ (0...coverage.morningEvents).contains($0) }) ?? true,
-              coverage.hvacHistoryStart.map({ Self.isoDate($0) != nil }) ?? true,
+              coverage.hvacEarliestStateAt.map({ Self.isoDate($0) != nil }) ?? true,
+              coverage.unknownUnitReadings.map({ $0 >= 0 }) ?? true,
               sensors.allSatisfy({ $0.sampleCount >= 0 && !$0.id.isEmpty && !$0.name.isEmpty }) else {
             throw DecodingError.dataCorruptedError(
                 forKey: .coverage, in: values, debugDescription: "Invalid placement insights"
@@ -53,9 +54,10 @@ struct PlacementInsights: Decodable, Sendable {
         let hvacHistoryAvailable: Bool
         let morningEvents: Int
         let returnEvents: Int
-        let hvacHistoryStart: String?
+        let hvacEarliestStateAt: String?
         let returnHistoryAvailable: Bool?
         let inferredMorningEvents: Int?
+        let unknownUnitReadings: Int?
 
         var observedMorningEvents: Int? {
             inferredMorningEvents.map { morningEvents - $0 }
@@ -65,12 +67,6 @@ struct PlacementInsights: Decodable, Sendable {
             returnHistoryAvailable == true ? returnEvents : nil
         }
 
-        var hvacHistoryStartsAfterWindow: Bool? {
-            guard hvacHistoryAvailable, let hvacHistoryStart,
-                  let historyStart = PlacementInsights.isoDate(hvacHistoryStart),
-                  let windowStart = PlacementInsights.isoDate(start) else { return nil }
-            return historyStart > windowStart
-        }
     }
 
     struct Sensor: Decodable, Identifiable, Sendable {
