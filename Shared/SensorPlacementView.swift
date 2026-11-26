@@ -117,8 +117,10 @@ struct SensorPlacementView: View {
                     systemImage: "exclamationmark.triangle"
                 )
             }
-            if let count = coverage.unknownUnitReadings, count > 0 {
-                Text("Readings omitted because their temperature unit was unknown: \(count)")
+            if let count = coverage.unknownUnitWindows, count > 0 {
+                Text(
+                    "15-minute sensor windows omitted for unknown or conflicting temperature units: \(count)"
+                )
             }
             Text("Generated: \(dateText(insights.generatedAt))")
         }
@@ -241,7 +243,7 @@ struct SensorPlacementView: View {
       "coverage": {"start": "2026-03-06T12:00:00Z", "end": "2026-03-20T12:00:00Z",
         "hvacHistoryAvailable": true, "hvacEarliestStateAt": "2026-03-10T12:00:00Z",
         "returnHistoryAvailable": false, "morningEvents": 5, "inferredMorningEvents": 2, "returnEvents": 0,
-        "unknownUnitReadings": 3},
+        "unknownUnitWindows": 3},
       "sensors": [{"id": "bedroom", "name": "Bedroom", "isThermostat": false,
         "averageOffset": -0.5, "morningOffset": -1.2, "returnOffset": null,
         "overshoot": null, "sampleCount": 60, "classification": "cold"}],

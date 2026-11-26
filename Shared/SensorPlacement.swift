@@ -32,7 +32,7 @@ struct PlacementInsights: Decodable, Sendable {
               coverage.morningEvents >= 0, coverage.returnEvents >= 0,
               coverage.inferredMorningEvents.map({ (0...coverage.morningEvents).contains($0) }) ?? true,
               coverage.hvacEarliestStateAt.map({ Self.isoDate($0) != nil }) ?? true,
-              coverage.unknownUnitReadings.map({ $0 >= 0 }) ?? true,
+              coverage.unknownUnitWindows.map({ $0 >= 0 }) ?? true,
               sensors.allSatisfy({ $0.sampleCount >= 0 && !$0.id.isEmpty && !$0.name.isEmpty }) else {
             throw DecodingError.dataCorruptedError(
                 forKey: .coverage, in: values, debugDescription: "Invalid placement insights"
@@ -57,7 +57,7 @@ struct PlacementInsights: Decodable, Sendable {
         let hvacEarliestStateAt: String?
         let returnHistoryAvailable: Bool?
         let inferredMorningEvents: Int?
-        let unknownUnitReadings: Int?
+        let unknownUnitWindows: Int?
 
         var observedMorningEvents: Int? {
             inferredMorningEvents.map { morningEvents - $0 }

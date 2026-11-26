@@ -12,9 +12,9 @@ private let placementJSON = Data("""
 {
   "generatedAt": "2026-03-20T12:00:00.000Z", "windowDays": 14, "unit": "°C",
   "coverage": {"start": "2026-03-06T12:00:00Z", "end": "2026-03-20T12:00:00Z",
-    "hvacHistoryAvailable": true, "hvacEarliestStateAt": "2026-03-10T12:00:00Z",
+    "hvacHistoryAvailable": true, "hvacEarliestStateAt": "2026-03-01T12:00:00Z",
     "returnHistoryAvailable": false, "morningEvents": 5, "inferredMorningEvents": 2, "returnEvents": 0,
-    "unknownUnitReadings": 3},
+    "unknownUnitWindows": 3},
   "sensors": [
     {"id": "bedroom", "name": "Bedroom", "isThermostat": false, "averageOffset": -0.5,
      "morningOffset": -1.2, "returnOffset": null, "overshoot": null, "sampleCount": 60,
@@ -69,8 +69,8 @@ struct SensorPlacementTests {
         let result = try insights()
         #expect(result.windowDays == 14)
         #expect(result.unit == "°C")
-        #expect(result.coverage.hvacEarliestStateAt == "2026-03-10T12:00:00Z")
-        #expect(result.coverage.unknownUnitReadings == 3)
+        #expect(result.coverage.hvacEarliestStateAt == "2026-03-01T12:00:00Z")
+        #expect(result.coverage.unknownUnitWindows == 3)
         #expect(result.coverage.returnHistoryAvailable == false)
         #expect(result.coverage.returnEvents == 0)
         #expect(result.coverage.detectedReturnEvents == nil)
@@ -97,8 +97,8 @@ struct SensorPlacementTests {
         let missingOffset = original.replacingOccurrences(of: "\"returnOffset\": null,", with: "")
         let missingSensorID = original.replacingOccurrences(of: "\"sensorId\": null,", with: "")
         let badDate = original.replacingOccurrences(of: "2026-03-20T12:00:00.000Z", with: "not-a-date")
-        let badUnits = original.replacingOccurrences(of: "\"unknownUnitReadings\": 3", with: """
-        "unknownUnitReadings": -1
+        let badUnits = original.replacingOccurrences(of: "\"unknownUnitWindows\": 3", with: """
+        "unknownUnitWindows": -1
         """)
         let badInference = original.replacingOccurrences(of: "\"inferredMorningEvents\": 2", with: """
         "inferredMorningEvents": 6
@@ -109,26 +109,43 @@ struct SensorPlacementTests {
             }
         }
         let legacy = original
-            .replacingOccurrences(of: "\"hvacEarliestStateAt\": \"2026-03-10T12:00:00Z\",", with: "")
+            .replacingOccurrences(of: "\"hvacEarliestStateAt\": \"2026-03-01T12:00:00Z\",", with: "")
             .replacingOccurrences(of: "\"returnHistoryAvailable\": false,", with: "")
             .replacingOccurrences(of: "\"inferredMorningEvents\": 2,", with: "")
-            .replacingOccurrences(of: ",\n    \"unknownUnitReadings\": 3", with: "")
+            .replacingOccurrences(of: ",\n    \"unknownUnitWindows\": 3", with: "")
             .replacingOccurrences(of: "\"returnEvents\": 0", with: "\"returnEvents\": 0, \"futureField\": true")
         let decoded = try JSONDecoder().decode(PlacementInsights.self, from: Data(legacy.utf8))
         #expect(decoded.coverage.hvacEarliestStateAt == nil)
-        #expect(decoded.coverage.unknownUnitReadings == nil)
+        #expect(decoded.coverage.unknownUnitWindows == nil)
         #expect(decoded.coverage.returnHistoryAvailable == nil)
         #expect(decoded.coverage.inferredMorningEvents == nil)
         #expect(decoded.coverage.observedMorningEvents == nil)
         #expect(decoded.coverage.detectedReturnEvents == nil)
         let available = original
             .replacingOccurrences(of: "\"returnHistoryAvailable\": false", with: "\"returnHistoryAvailable\": true")
-            .replacingOccurrences(of: "\"hvacEarliestStateAt\": \"2026-03-10T12:00:00Z\"", with: """
+            .replacingOccurrences(of: "\"hvacEarliestStateAt\": \"2026-03-01T12:00:00Z\"", with: """
             "hvacEarliestStateAt": null
             """)
         let availableResult = try JSONDecoder().decode(PlacementInsights.self, from: Data(available.utf8))
         #expect(availableResult.coverage.detectedReturnEvents == 0)
         #expect(availableResult.coverage.hvacEarliestStateAt == nil)
+    }
+
+    @Test("Gap-only HVAC history does not imply observable returns")
+    func gapOnlyHistory() throws {
+        let original = try #require(String(data: placementJSON, encoding: .utf8))
+        let gapOnly = original
+            .replacingOccurrences(of: "\"hvacHistoryAvailable\": true", with: "\"hvacHistoryAvailable\": false")
+            .replacingOccurrences(of: "\"hvacEarliestStateAt\": \"2026-03-01T12:00:00Z\"", with: """
+            "hvacEarliestStateAt": null
+            """)
+            .replacingOccurrences(of: "\"unknownUnitWindows\": 3", with: "\"unknownUnitWindows\": 0")
+        let result = try JSONDecoder().decode(PlacementInsights.self, from: Data(gapOnly.utf8))
+        #expect(!result.coverage.hvacHistoryAvailable)
+        #expect(result.coverage.hvacEarliestStateAt == nil)
+        #expect(result.coverage.returnHistoryAvailable == false)
+        #expect(result.coverage.detectedReturnEvents == nil)
+        #expect(result.coverage.unknownUnitWindows == 0)
     }
 
     @Test("Empty recommendations are successful, not an endpoint error")
