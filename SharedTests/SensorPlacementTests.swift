@@ -223,6 +223,49 @@ struct SensorPlacementTests {
         #expect(!service.isLoading)
     }
 
+    @Test("A replacement load runs while the cancelled load is still unwinding")
+    func overlappingCancellation() async throws {
+        let result = try insights()
+        let json = try #require(String(data: placementJSON, encoding: .utf8))
+        let stale = try JSONDecoder().decode(
+            PlacementInsights.self, from: Data(json.replacingOccurrences(of: "\"windowDays\": 14",
+                                                                          with: "\"windowDays\": 30").utf8)
+        )
+        var continuations: [CheckedContinuation<PlacementInsights, Never>] = []
+        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _ in
+            await withCheckedContinuation { continuations.append($0) }
+        })
+        let first = Task { await service.refresh() }
+        while continuations.count < 1 { await Task.yield() }
+        first.cancel()
+
+        let second = Task { await service.refresh() }
+        while continuations.count < 2 { await Task.yield() }
+        #expect(service.isLoading)
+        continuations[0].resume(returning: result)
+        await first.value
+        #expect(service.isLoading)
+        #expect(service.insights == nil)
+
+        continuations[1].resume(returning: result)
+        await second.value
+        #expect(!service.isLoading)
+        #expect(service.insights != nil)
+        #expect(service.error == nil)
+
+        let third = Task { await service.refresh() }
+        while continuations.count < 3 { await Task.yield() }
+        third.cancel()
+        let fourth = Task { await service.refresh() }
+        while continuations.count < 4 { await Task.yield() }
+        continuations[3].resume(returning: result)
+        await fourth.value
+        continuations[2].resume(returning: stale)
+        await third.value
+        #expect(service.insights?.windowDays == 14)
+        #expect(!service.isLoading)
+    }
+
     @Test("OIDC 401 refreshes once and retries with the refreshed token")
     func oidcRetry() async throws {
         var token = "Bearer old"

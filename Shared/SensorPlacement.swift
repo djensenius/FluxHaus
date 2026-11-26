@@ -169,6 +169,8 @@ enum PlacementRequestError: Error {
     private var storedInsights: PlacementInsights?
     private var loading = false
     private var storedError: String?
+    @ObservationIgnored private var loadTask: Task<PlacementInsights, Error>?
+    @ObservationIgnored private var loadGeneration = 0
     private let sessionCheck: SessionCheck
     private let fetch: @MainActor (@escaping SessionCheck) async throws -> PlacementInsights
 
@@ -190,17 +192,31 @@ enum PlacementRequestError: Error {
     }
 
     func refresh() async {
-        guard isSessionValid, !loading else { return }
+        guard isSessionValid, !Task.isCancelled else { return }
+        loadTask?.cancel()
+        loadGeneration &+= 1
+        let generation = loadGeneration
         loading = true
         storedError = nil
-        defer { loading = false }
+        let task = Task { try await fetch(sessionCheck) }
+        loadTask = task
+        defer {
+            if loadGeneration == generation {
+                loading = false
+                loadTask = nil
+            }
+        }
         do {
-            let result = try await fetch(sessionCheck)
+            let result = try await withTaskCancellationHandler {
+                try await task.value
+            } onCancel: {
+                task.cancel()
+            }
             try Task.checkCancellation()
-            guard isSessionValid else { return }
+            guard loadGeneration == generation, isSessionValid else { return }
             storedInsights = result
         } catch {
-            guard !Task.isCancelled, isSessionValid else { return }
+            guard !Task.isCancelled, loadGeneration == generation, isSessionValid else { return }
             if case PlacementRequestError.http(let code) = error {
                 storedError = "Could not load sensor placement (HTTP \(code))."
             } else {
