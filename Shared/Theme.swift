@@ -246,6 +246,8 @@ extension ButtonStyle where Self == FluxButtonStyle {
 enum AdaptiveLayout {
     static let dashboardBreakpoint: CGFloat = 700
     static let cardMinimumWidth: CGFloat = 300
+    /// Readable cap for full-width dashboards; wide enough for four device cards.
+    static let dashboardMaxContentWidth: CGFloat = 1280
 
     static func usesWideDashboard(width: CGFloat) -> Bool {
         width >= dashboardBreakpoint

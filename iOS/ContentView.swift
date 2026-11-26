@@ -191,7 +191,7 @@ struct ContentView: View {
     private var homeTab: some View {
         GeometryReader { proxy in
             if AdaptiveLayout.usesWideDashboard(width: proxy.size.width) {
-                wideHomeLayout(width: proxy.size.width)
+                wideHomeLayout
             } else {
                 compactHomeLayout
             }
@@ -203,42 +203,32 @@ struct ContentView: View {
         VStack {
             DateTimeView()
             WeatherView(lman: locationManager)
-            // The compact layout doesn't scroll, so keep the summary to two rows.
-            indoorSummary(maxRooms: 4)
             HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
             appliancesHeader
-            appliancesGrid
+            appliancesGrid()
             Spacer()
             footer
         }
     }
 
-    private func wideHomeLayout(width: CGFloat) -> some View {
-        let sidebarWidth = min(max(width * 0.34, 320), 440)
-        return HStack(alignment: .top, spacing: Theme.Spacing.large) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.large) {
-                    DateTimeView()
+    /// One full-width scrolling dashboard: date and weather side by side, then the
+    /// device cards across as many columns as fit, then HomeKit favourites.
+    private var wideHomeLayout: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+                HStack(alignment: .top, spacing: Theme.Spacing.large) {
+                    DateTimeView(leading: true)
                     WeatherView(lman: locationManager)
-                    indoorSummary()
-                    HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-                    footer
                 }
-                .padding()
-            }
-            .frame(width: sidebarWidth)
-            .background(Theme.Colors.secondaryBackground.opacity(0.55))
-
-            VStack(alignment: .leading, spacing: Theme.Spacing.small) {
                 appliancesHeader
-                appliancesGrid
+                appliancesGrid(scrolls: false)
+                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                footer
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.vertical)
+            .frame(maxWidth: AdaptiveLayout.dashboardMaxContentWidth)
+            .frame(maxWidth: .infinity)
         }
-    }
-
-    private func indoorSummary(maxRooms: Int? = nil) -> some View {
-        IndoorSummaryView(apiResponse: apiResponse, maxRooms: maxRooms) { handleNavigationRequest("climate") }
     }
 
     private var climateView: some View {
@@ -255,7 +245,7 @@ struct ContentView: View {
         }
     }
 
-    private var appliancesGrid: some View {
+    private func appliancesGrid(scrolls: Bool = true) -> some View {
         Appliances(
             fluxHausConsts: fluxHausConsts,
             hconn: hconn,
@@ -265,7 +255,9 @@ struct ContentView: View {
             battery: battery,
             car: car,
             locationManager: locationManager,
-            airPurifier: airPurifier
+            airPurifier: airPurifier,
+            onOpenClimate: { handleNavigationRequest("climate") },
+            scrolls: scrolls
         )
     }
 

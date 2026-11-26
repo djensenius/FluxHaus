@@ -18,6 +18,10 @@ struct Appliances: View {
     var car: Car
     var locationManager: LocationManager
     var airPurifier: AirPurifier
+    /// Opens the Climate section. When set, an Indoor card joins the grid.
+    var onOpenClimate: (() -> Void)?
+    /// Whether the grid scrolls on its own; turn off when embedded in a scrolling dashboard.
+    var scrolls = true
 
     @State private var showCarModal: Bool = false
     @State private var showScooterModal: Bool = false
@@ -42,7 +46,35 @@ struct Appliances: View {
     ]
 
     var body: some View {
-        ScrollView {
+        Group {
+            if scrolls {
+                ScrollView { grid }
+            } else {
+                grid
+            }
+        }
+        .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
+        .sheet(isPresented: self.$showCarModal) {
+            CarDetailView(car: car, locationManager: locationManager, showsDismissButton: true)
+        }
+        .sheet(isPresented: self.$showScooterModal) {
+            ScooterDetailView(
+                scooter: {
+                    let scooter = Scooter()
+                    scooter.setApiResponse(apiResponse: apiResponse)
+                    return scooter
+                }()
+            )
+        }
+        .sheet(isPresented: self.$showCleanbotModal) {
+            RobotDetailView(robot: robots.cleanBot, robots: robots)
+        }
+        .sheet(isPresented: self.$showAirPurifierModal) {
+            AirPurifierDetailView(purifier: airPurifier)
+        }
+    }
+
+    private var grid: some View {
                 LazyVGrid(columns: gridItemLayout, spacing: 10) {
                     ForEach((0..<theAppliances.count), id: \.self) { app in
                         if !(theAppliances[app].name == "Battery" && battery.model == .mac) {
@@ -123,6 +155,8 @@ struct Appliances: View {
                                         self.showCleanbotModal = true
                                     } else if theAppliances[app].name == "AirPurifier" {
                                         self.showAirPurifierModal = true
+                                    } else if theAppliances[app].name == "Indoor" {
+                                        onOpenClimate?()
                                     } else  if theAppliances[app].name != "Battery" {
                                         self.showApplianceModal[
                                             "\(theAppliances[app].name)-\(theAppliances[app].index)"
@@ -133,26 +167,6 @@ struct Appliances: View {
                         }
                     }.padding(.horizontal)
                 }
-        }
-        .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
-        .sheet(isPresented: self.$showCarModal) {
-            CarDetailView(car: car, locationManager: locationManager, showsDismissButton: true)
-        }
-        .sheet(isPresented: self.$showScooterModal) {
-            ScooterDetailView(
-                scooter: {
-                    let scooter = Scooter()
-                    scooter.setApiResponse(apiResponse: apiResponse)
-                    return scooter
-                }()
-            )
-        }
-        .sheet(isPresented: self.$showCleanbotModal) {
-            RobotDetailView(robot: robots.cleanBot, robots: robots)
-        }
-        .sheet(isPresented: self.$showAirPurifierModal) {
-            AirPurifierDetailView(purifier: airPurifier)
-        }
     }
 
     private func binding(for key: String) -> Binding<Bool> {
@@ -205,7 +219,10 @@ struct Appliances: View {
     }
 
     func sortAppliances() {
-        let appliances = originalAppliances
+        var appliances = originalAppliances
+        if onOpenClimate != nil {
+            appliances.append((name: "Indoor", index: 0))
+        }
 
         var activeAppliances: [(name: String, index: Int)] = []
         var inactiveAppliances: [(name: String, index: Int)] = []
@@ -229,6 +246,8 @@ struct Appliances: View {
             return robots.cleanBot.running != nil && (robots.cleanBot.running == true || robots.cleanBot.paused == true)
         case "AirPurifier":
             return airPurifier.status.online && airPurifier.status.fanOn
+        case "Indoor":
+            return indoorSummary.isActive
         case "Miele":
             return tApplianceTimeRemaining(tAppliance: miele.appliances, index: index) != "Off"
         case "HomeConnect":

@@ -139,3 +139,59 @@ struct ThermostatSetpointTests {
         #expect(ThermostatLabels.preset("Work From Home") == "Work From Home")
     }
 }
+
+struct IndoorCardSummaryTests {
+    private func format(_ value: Double) -> String {
+        IndoorClimateFormat.temperature(value, unit: "°C")
+    }
+
+    @Test("The Indoor card shows the thermostat, its status and the warmest and coolest rooms")
+    @MainActor func testSummaryFromMockData() throws {
+        let state = try #require(MockData.loginResponse.indoorClimate)
+        let summary = IndoorCardSummary(state: state)
+        #expect(summary.value == format(21.3))
+        #expect(summary.activity == .heating)
+        #expect(summary.isActive)
+        let status = try #require(summary.status)
+        #expect(status.hasPrefix("Heating"))
+        #expect(summary.extremes == "Warmest Kitchen \(format(22.6)) · Coolest Main Bedroom \(format(19.8))")
+        #expect(summary.detail == "\(status)\n\(summary.extremes ?? "")")
+    }
+
+    @Test("Without a thermostat or sensors the Indoor card is a muted placeholder")
+    func testSummaryWithoutReadings() {
+        for state in [nil, IndoorClimateState(sensors: [])] {
+            let summary = IndoorCardSummary(state: state)
+            #expect(summary.value == IndoorCardSummary.placeholder)
+            #expect(!summary.hasReadings && !summary.isActive)
+            #expect(summary.status == nil && summary.extremes == nil)
+            #expect(summary.detail == IndoorCardSummary.noReadings)
+        }
+    }
+
+    @Test("Sensors alone give a reading; equal or offline rooms give no extremes")
+    func testSummaryWithoutThermostat() {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.a", name: "A", temperature: 20),
+            IndoorTemperatureSensor(entityId: "sensor.b", name: "B", temperature: 20),
+            IndoorTemperatureSensor(entityId: "sensor.c", name: "C", temperature: 25, available: false)
+        ]
+        let summary = IndoorCardSummary(state: IndoorClimateState(unit: "°C", sensors: rooms))
+        #expect(summary.value == format(20))
+        #expect(summary.status == nil && summary.activity == nil && !summary.isActive)
+        #expect(summary.extremes == nil)
+        #expect(summary.detail.isEmpty)
+    }
+
+    @Test("An idle thermostat isn't sorted with running devices")
+    func testIdleThermostatIsInactive() {
+        let thermostat = ThermostatStatus(
+            entityId: "climate.home", currentTemperature: 20, hvacMode: "heat",
+            hvacAction: "idle", targetTemperature: 19
+        )
+        let summary = IndoorCardSummary(state: IndoorClimateState(unit: "°C", thermostat: thermostat, sensors: []))
+        #expect(summary.activity == .idle)
+        #expect(!summary.isActive)
+        #expect(summary.value == format(20))
+    }
+}
