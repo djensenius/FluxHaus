@@ -171,12 +171,11 @@ struct SensorPlacementView: View {
                             .fontWeight(.semibold)
                         Text(sensor.classificationLabel)
                         Text("Samples: \(countText(sensor.sampleCount))")
-                        Text("Average offset: \(offset(sensor.averageOffset, unit: insights.unit))")
-                        Text("Morning offset: \(offset(sensor.morningOffset, unit: insights.unit))")
-                        Text("Return-from-away offset: \(offset(sensor.returnOffset, unit: insights.unit))")
-                        Text(
-                            "Overshoot after confirmed heating stops: \(offset(sensor.overshoot, unit: insights.unit))"
-                        )
+                        Text("Average offset: \(Self.offset(sensor.averageOffset, unit: insights.unit))")
+                        Text("Morning offset: \(Self.offset(sensor.morningOffset, unit: insights.unit))")
+                        Text("Return-from-away offset: \(Self.offset(sensor.returnOffset, unit: insights.unit))")
+                        let overshoot = Self.offset(sensor.overshoot, unit: insights.unit)
+                        Text("Overshoot after confirmed heating stops: \(overshoot)")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
@@ -207,7 +206,7 @@ struct SensorPlacementView: View {
         count.map(String.init) ?? "Unavailable"
     }
 
-    private func offset(_ value: Double?, unit: String?) -> String {
+    static func offset(_ value: Double?, unit: String?) -> String {
         guard let value, let unit, !unit.isEmpty else { return "Unavailable" }
         // These are differences, not absolute temperatures: do not apply a temperature scale's zero point.
         let number = value.formatted(.number.precision(.fractionLength(1)).sign(strategy: .always()))

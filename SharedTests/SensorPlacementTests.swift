@@ -140,12 +140,20 @@ struct SensorPlacementTests {
             "hvacEarliestStateAt": null
             """)
             .replacingOccurrences(of: "\"unknownUnitWindows\": 3", with: "\"unknownUnitWindows\": 0")
+            .replacingOccurrences(of: "\"returnOffset\": 0.4", with: "\"returnOffset\": null")
+            .replacingOccurrences(of: "\"overshoot\": 0.8", with: "\"overshoot\": null")
         let result = try JSONDecoder().decode(PlacementInsights.self, from: Data(gapOnly.utf8))
         #expect(!result.coverage.hvacHistoryAvailable)
         #expect(result.coverage.hvacEarliestStateAt == nil)
         #expect(result.coverage.returnHistoryAvailable == false)
         #expect(result.coverage.detectedReturnEvents == nil)
         #expect(result.coverage.unknownUnitWindows == 0)
+        for sensor in result.sensors {
+            #expect(sensor.returnOffset == nil)
+            #expect(sensor.overshoot == nil)
+            #expect(SensorPlacementView.offset(sensor.returnOffset, unit: result.unit) == "Unavailable")
+            #expect(SensorPlacementView.offset(sensor.overshoot, unit: result.unit) == "Unavailable")
+        }
     }
 
     @Test("Empty recommendations are successful, not an endpoint error")
