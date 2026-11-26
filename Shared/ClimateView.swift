@@ -16,6 +16,7 @@ struct ClimateView: View {
     var airPurifier: AirPurifier
     var metrics: MetricsService
     @State private var showHistory = false
+    @State private var showPlacement = false
 
     var body: some View {
         ScrollView {
@@ -37,6 +38,7 @@ struct ClimateView: View {
                 AirPurifierView(purifier: airPurifier)
                     .fluxDeviceAnnotation(.airPurifier)
                 historyButton
+                placementButton
             }
             .padding()
         }
@@ -57,6 +59,16 @@ struct ClimateView: View {
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("Done") { showHistory = false }
+                        }
+                    }
+            }
+        }
+        .sheet(isPresented: $showPlacement) {
+            NavigationStack {
+                SensorPlacementView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showPlacement = false }
                         }
                     }
             }
@@ -92,6 +104,30 @@ struct ClimateView: View {
         } label: {
             HStack {
                 Label("Indoor history", systemImage: "chart.xyaxis.line")
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundColor(Theme.Colors.textPrimary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .accessibilityHidden(true)
+            }
+            .padding()
+            #if !os(visionOS)
+            .background(Theme.Colors.secondaryBackground)
+            #endif
+            .cornerRadius(Theme.cornerRadius)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var placementButton: some View {
+        Button {
+            showPlacement = true
+        } label: {
+            HStack {
+                Label("Sensor placement", systemImage: "thermometer.medium")
                     .font(Theme.Fonts.bodyMedium)
                     .foregroundColor(Theme.Colors.textPrimary)
                 Spacer()

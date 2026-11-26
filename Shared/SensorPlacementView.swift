@@ -1,0 +1,244 @@
+//
+//  SensorPlacementView.swift
+//  FluxHaus
+//
+
+import SwiftUI
+
+struct SensorPlacementView: View {
+    @State private var service: SensorPlacementService
+    @State private var refreshID = 0
+
+    init(service: SensorPlacementService = SensorPlacementService()) {
+        _service = State(initialValue: service)
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+                if let insights = service.insights {
+                    if service.isLoading {
+                        ProgressView("Refreshing sensor placement…")
+                    }
+                    if let error = service.error {
+                        errorMessage(error)
+                    }
+                    content(insights)
+                } else if let error = service.error {
+                    errorMessage(error)
+                } else {
+                    ProgressView("Loading sensor placement…")
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 40)
+                }
+            }
+            .padding()
+        }
+        .background(Theme.Colors.background)
+        .navigationTitle("Sensor placement")
+        #if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    refreshID += 1
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                }
+                .disabled(service.isLoading)
+            }
+        }
+        .task(id: refreshID) {
+            if service.insights == nil || refreshID > 0 {
+                await service.refresh()
+            }
+        }
+    }
+
+    private func errorMessage(_ error: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(error, systemImage: "exclamationmark.triangle")
+            Button("Retry") { refreshID += 1 }
+                .disabled(service.isLoading)
+        }
+        .foregroundColor(Theme.Colors.textPrimary)
+    }
+
+    private func content(_ insights: PlacementInsights) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+            Text("These preliminary suggestions are based on historical patterns, not proof of their causes.")
+                .foregroundColor(Theme.Colors.textSecondary)
+            coverage(insights)
+            recommendations(insights)
+            sensors(insights)
+        }
+    }
+
+    private func coverage(_ insights: PlacementInsights) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            heading("Data coverage")
+            if let days = insights.windowDays {
+                Text("Analysis window: \(days) days")
+            } else {
+                Text("Analysis window: unavailable")
+            }
+            if let coverage = insights.coverage {
+                Text("From: \(dateText(coverage.start))")
+                Text("To: \(dateText(coverage.end))")
+                Text("Possible morning events: \(countText(coverage.morningEvents))")
+                Text("Possible return-from-away events: \(countText(coverage.returnEvents))")
+                Text("Event counts may include inferred events; they are not verified routines.")
+                    .foregroundColor(Theme.Colors.textSecondary)
+                switch coverage.hvacHistoryAvailable {
+                case true:
+                    Text("Some HVAC history is available; its completeness is not established.")
+                case false:
+                    Label(
+                        "HVAC history unavailable; suggestions may be limited.",
+                        systemImage: "exclamationmark.triangle"
+                    )
+                case nil:
+                    Text("HVAC history availability unknown")
+                }
+            } else {
+                Text("Coverage details unavailable")
+            }
+            Text("Generated: \(dateText(insights.generatedAt))")
+        }
+        .font(Theme.Fonts.bodyMedium)
+    }
+
+    private func recommendations(_ insights: PlacementInsights) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            heading("Recommendations")
+            if insights.recommendations == nil {
+                Text("Recommendations are unavailable.")
+            } else if insights.rankedRecommendations.isEmpty {
+                Text("No recommendations for this window. There may not be enough history to make suggestions.")
+            } else {
+                ForEach(insights.rankedRecommendations) { recommendation in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(recommendation.title).fontWeight(.semibold)
+                        if let severity = recommendation.severity {
+                            Text("Priority: \(priority(severity))")
+                                .foregroundColor(Theme.Colors.textSecondary)
+                        }
+                        if let sensorID = recommendation.sensorId {
+                            let name = insights.sensors?.first(where: { $0.id == sensorID })?.name ?? sensorID
+                            Text("Sensor: \(name)")
+                        }
+                        if let action = actionLabel(recommendation.action) {
+                            Text("Suggested action: \(action)")
+                        }
+                        Text(recommendation.detail)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    #if !os(visionOS)
+                    .background(Theme.Colors.secondaryBackground)
+                    #endif
+                    .cornerRadius(Theme.cornerRadius)
+                }
+            }
+        }
+        .font(Theme.Fonts.bodyMedium)
+    }
+
+    private func sensors(_ insights: PlacementInsights) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            heading("Sensors")
+            if insights.sensors == nil {
+                Text("Sensor details are unavailable.")
+            } else if insights.sensors?.isEmpty == true {
+                Text("No sensor history is available for this window.")
+            } else {
+                ForEach(insights.sensors ?? []) { sensor in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(sensor.name + (sensor.isThermostat == true ? " · Thermostat" : ""))
+                            .fontWeight(.semibold)
+                        Text(sensor.classificationLabel)
+                        Text("Samples: \(countText(sensor.sampleCount))")
+                        Text("Average offset: \(offset(sensor.averageOffset, unit: insights.unit))")
+                        Text("Morning offset: \(offset(sensor.morningOffset, unit: insights.unit))")
+                        Text("Return-from-away offset: \(offset(sensor.returnOffset, unit: insights.unit))")
+                        Text("Overshoot: \(offset(sensor.overshoot, unit: insights.unit))")
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    #if !os(visionOS)
+                    .background(Theme.Colors.secondaryBackground)
+                    #endif
+                    .cornerRadius(Theme.cornerRadius)
+                }
+            }
+        }
+        .font(Theme.Fonts.bodyMedium)
+    }
+
+    private func heading(_ title: String) -> some View {
+        Text(title)
+            .font(Theme.Fonts.headerLarge())
+            .foregroundColor(Theme.Colors.textPrimary)
+            .accessibilityAddTraits(.isHeader)
+    }
+
+    private func dateText(_ value: String?) -> String {
+        guard let value else { return "Unavailable" }
+        guard let date = MetricPoint.parse(value) else { return value }
+        return date.formatted(date: .abbreviated, time: .shortened)
+    }
+
+    private func countText(_ count: Int?) -> String {
+        count.map(String.init) ?? "Unavailable"
+    }
+
+    private func offset(_ value: Double?, unit: String?) -> String {
+        guard let value, let unit, !unit.isEmpty else { return "Unavailable" }
+        // These are differences, not absolute temperatures: do not apply a temperature scale's zero point.
+        let number = value.formatted(.number.precision(.fractionLength(1)).sign(strategy: .always()))
+        return "\(number) \(unit)"
+    }
+
+    private func priority(_ value: String) -> String {
+        switch value {
+        case "high": return "High"
+        case "medium": return "Medium"
+        case "low": return "Low"
+        default: return "Unknown"
+        }
+    }
+
+    private func actionLabel(_ action: String?) -> String? {
+        switch action {
+        case "move": return "Consider moving"
+        case "exclude_from_comfort": return "Consider excluding from comfort"
+        case "include_in_comfort": return "Consider including in comfort"
+        case "none": return "No change suggested"
+        case nil: return nil
+        default: return "Unrecognized"
+        }
+    }
+}
+
+#if DEBUG
+#Preview {
+    let data = Data("""
+    {
+      "generatedAt": "2026-03-20T12:00:00Z", "windowDays": 14, "unit": "°C",
+      "coverage": {"start": "2026-03-06T12:00:00Z", "end": "2026-03-20T12:00:00Z",
+        "hvacHistoryAvailable": false, "morningEvents": 5, "returnEvents": 2},
+      "sensors": [{"id": "bedroom", "name": "Bedroom", "isThermostat": false,
+        "averageOffset": -0.5, "morningOffset": -1.2, "returnOffset": null,
+        "overshoot": 0.8, "sampleCount": 60, "classification": "cold"}],
+      "recommendations": [{"id": "move", "severity": "high", "sensorId": "bedroom",
+        "action": "move", "title": "Check the sensor location",
+        "detail": "Consider moving it away from a draft."}]
+    }
+    """.utf8)
+    let insights = try? JSONDecoder().decode(PlacementInsights.self, from: data)
+    return NavigationStack {
+        SensorPlacementView(service: SensorPlacementService(insights: insights))
+    }
+}
+#endif
