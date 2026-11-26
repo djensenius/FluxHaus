@@ -266,49 +266,6 @@ struct IndoorCardSummary: Equatable {
         return activity.color
     }
 
-    /// The freshest indoor state for Home: the session thermostat's last accepted change
-    /// until a newer poll, else the polled snapshot. A control reply may report only
-    /// settings, so the poll's rooms and thermostat reading fill in until the next poll.
-    /// A controller from another session, even one that hasn't noticed yet, is ignored.
-    @MainActor
-    static func currentState(thermostat: Thermostat?, polled: IndoorClimateState?) -> IndoorClimateState? {
-        guard let thermostat, thermostat.belongsToCurrentSession, let current = thermostat.state else {
-            return polled
-        }
-        guard let polled else { return current }
-        return IndoorClimateState(
-            timestamp: current.timestamp,
-            unit: current.reportedUnit ?? polled.reportedUnit,
-            thermostat: current.thermostat.map { carryReadings(into: $0, of: current, from: polled) }
-                ?? polled.thermostat,
-            sensors: current.sensors.isEmpty ? polled.sensors : current.sensors,
-            confirmed: current.confirmed
-        )
-    }
-
-    /// The reply's thermostat with the poll's reading and humidity where it has none. Only an
-    /// online reading from the same thermostat, in a unit both responses definitely agree on.
-    private static func carryReadings(
-        into status: ThermostatStatus, of current: IndoorClimateState, from polled: IndoorClimateState
-    ) -> ThermostatStatus {
-        guard status.currentTemperature == nil || status.currentHumidity == nil,
-              let old = polled.thermostat, old.entityId == status.entityId, old.available != false,
-              let unit = knownThermostatUnit(in: current), let scale = temperatureScale(unit),
-              scale == knownThermostatUnit(in: polled).flatMap(temperatureScale) else { return status }
-        return status.withReadings(from: old, unit: unit)
-    }
-
-    /// The unit a response gives for its thermostat, without assuming a default.
-    private static func knownThermostatUnit(in state: IndoorClimateState) -> String? {
-        let candidates = [state.thermostat?.temperatureUnit, state.reportedUnit] + state.sensors.map(\.unit)
-        return candidates.lazy.compactMap { $0 }.first { !$0.isEmpty }
-    }
-
-    private static func temperatureScale(_ unit: String) -> String? {
-        let unit = unit.uppercased()
-        return unit.contains("F") ? "F" : unit.contains("C") ? "C" : nil
-    }
-
     init(state: IndoorClimateState?) {
         guard let state, state.hasData else {
             value = Self.placeholder
@@ -339,22 +296,6 @@ struct IndoorCardSummary: Equatable {
               warmest.temp > coolest.temp else { return nil }
         return ("Warmest \(warmest.name) \(state.format(warmest.temp))",
                 "Coolest \(coolest.name) \(state.format(coolest.temp))")
-    }
-}
-
-private extension ThermostatStatus {
-    /// This status, stated in `unit`, with the polled reading and humidity filled in where it has none.
-    func withReadings(from polled: ThermostatStatus, unit: String) -> ThermostatStatus {
-        ThermostatStatus(
-            entityId: entityId, name: name, area: area, available: available,
-            currentTemperature: currentTemperature ?? polled.currentTemperature,
-            currentHumidity: currentHumidity ?? polled.currentHumidity,
-            hvacMode: hvacMode, hvacAction: hvacAction, targetTemperature: targetTemperature,
-            targetTemperatureLow: targetTemperatureLow, targetTemperatureHigh: targetTemperatureHigh,
-            presetMode: presetMode, hvacModes: hvacModes, presetModes: presetModes,
-            fanMode: fanMode, fanModes: fanModes, minTemp: minTemp, maxTemp: maxTemp,
-            targetTempStep: targetTempStep, temperatureUnit: unit
-        )
     }
 }
 

@@ -314,6 +314,48 @@ struct IndoorCardSummaryTests {
         #expect(afterMismatch.value == IndoorCardSummary.placeholder)
     }
 
+    @Test("A reply that gives no unit keeps the polled reading and rooms, all stated in the poll's unit")
+    @MainActor func testReplyWithoutUnitInheritsPollUnit() async throws {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.den", name: "Den", temperature: 72, unit: nil),
+            IndoorTemperatureSensor(entityId: "sensor.attic", name: "Attic", temperature: 66, unit: nil)
+        ]
+        let fahrenheit = try #require(thermostatOnly(unit: "°F", current: 70, timestamp: "2024-12-13T11:59:00Z")
+            .thermostat)
+        let polled = IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z", unit: "°F", thermostat: fahrenheit, sensors: rooms
+        )
+        let recorder = CommandRecorder()
+        let reply = thermostatOnly(unit: nil)
+        recorder.reply = { _ in reply }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+
+        let state = try #require(IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
+        #expect(state.thermostat?.temperatureUnit == "°F")
+        #expect(state.sensors.map(\.unit) == ["°F", "°F"])
+        let summary = IndoorCardSummary(state: state)
+        #expect(summary.value == IndoorClimateFormat.temperature(70, unit: "°F"))
+        #expect(summary.warmest == "Warmest Den \(IndoorClimateFormat.temperature(72, unit: "°F"))")
+        #expect(summary.status?.hasPrefix("Auto") == true)
+    }
+
+    @Test("A °F reply never takes over a °C poll's readings or its rooms without their own unit")
+    @MainActor func testDifferentReplyUnitCarriesNothing() async {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.den", name: "Den", temperature: 22, unit: nil),
+            IndoorTemperatureSensor(entityId: "sensor.attic", name: "Attic", temperature: 19, unit: nil)
+        ]
+        let polled = IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z", unit: "°C",
+            thermostat: thermostatOnly(unit: "°C", current: 21.3).thermostat, sensors: rooms
+        )
+        let summary = await summaryAfterReply(thermostatOnly(unit: "°F"), polled: polled)
+        #expect(summary.value == IndoorCardSummary.placeholder)
+        #expect(summary.warmest == nil && summary.coolest == nil)
+        #expect(summary.status?.hasPrefix("Auto") == true)
+    }
+
     @Test("An offline thermostat's last polled reading is not shown as current after a change")
     @MainActor func testOfflineReadingNotCarried() async {
         let offline = thermostatOnly(unit: "°C", current: 21.3, available: false, timestamp: "2024-12-13T11:59:00Z")
