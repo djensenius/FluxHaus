@@ -16,6 +16,7 @@
 		230000020000000000000003 /* SensorPlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000002 /* SensorPlacementView.swift */; };
 		230000020000000000000004 /* SensorPlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000002 /* SensorPlacementView.swift */; };
 		230000040000000000000001 /* SensorPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000003 /* SensorPlacementTests.swift */; };
+		230000040000000000000002 /* SensorPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000003 /* SensorPlacementTests.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		01CDBF3D1C40C982D9108D0A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
 		01F890231C04C6F9B56B1691 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
@@ -1786,6 +1787,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				230000040000000000000002 /* SensorPlacementTests.swift in Sources */,
 				634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */,
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
 				634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,

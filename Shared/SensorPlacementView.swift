@@ -16,7 +16,13 @@ struct SensorPlacementView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.large) {
-                if let insights = service.insights {
+                if !service.isSessionValid {
+                    ContentUnavailableView(
+                        "Session changed",
+                        systemImage: "person.crop.circle.badge.exclamationmark",
+                        description: Text("Close this screen and reopen it for the current account.")
+                    )
+                } else if let insights = service.insights {
                     if service.isLoading {
                         ProgressView("Refreshing sensor placement…")
                     }
@@ -46,10 +52,11 @@ struct SensorPlacementView: View {
                 } label: {
                     Label("Refresh", systemImage: "arrow.clockwise")
                 }
-                .disabled(service.isLoading)
+                .disabled(service.isLoading || !service.isSessionValid)
             }
         }
-        .task(id: refreshID) {
+        .task(id: "\(refreshID)-\(service.isSessionValid)") {
+            guard service.isSessionValid else { return }
             if service.insights == nil || refreshID > 0 {
                 await service.refresh()
             }
@@ -78,31 +85,39 @@ struct SensorPlacementView: View {
     private func coverage(_ insights: PlacementInsights) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             heading("Data coverage")
-            if let days = insights.windowDays {
-                Text("Analysis window: \(days) days")
-            } else {
-                Text("Analysis window: unavailable")
-            }
-            if let coverage = insights.coverage {
-                Text("From: \(dateText(coverage.start))")
-                Text("To: \(dateText(coverage.end))")
-                Text("Possible morning events: \(countText(coverage.morningEvents))")
-                Text("Possible return-from-away events: \(countText(coverage.returnEvents))")
-                Text("Event counts may include inferred events; they are not verified routines.")
+            Text("Analysis window: \(insights.windowDays) days")
+            let coverage = insights.coverage
+            Text("From: \(dateText(coverage.start))")
+            Text("To: \(dateText(coverage.end))")
+            if let inferred = coverage.inferredMorningEvents, let observed = coverage.observedMorningEvents {
+                Text("Observed morning events: \(observed)")
+                Text("Inferred morning events: \(inferred)")
+                Text("Inferred events are estimates, not verified routines.")
                     .foregroundColor(Theme.Colors.textSecondary)
-                switch coverage.hvacHistoryAvailable {
-                case true:
-                    Text("Some HVAC history is available; its completeness is not established.")
-                case false:
-                    Label(
-                        "HVAC history unavailable; suggestions may be limited.",
-                        systemImage: "exclamationmark.triangle"
-                    )
-                case nil:
-                    Text("HVAC history availability unknown")
+            } else {
+                Text("Morning events: \(coverage.morningEvents) (provenance unavailable)")
+            }
+            if coverage.returnHistoryAvailable == false {
+                Text("Return-from-away history is unavailable; returns cannot be detected.")
+            } else if let detected = coverage.detectedReturnEvents {
+                Text("Detected return-from-away events: \(detected)")
+            } else {
+                Text("Possible return-from-away events: \(coverage.returnEvents) (detection availability unknown)")
+            }
+            if coverage.hvacHistoryAvailable {
+                if let start = coverage.hvacHistoryStart {
+                    Text("HVAC history starts: \(dateText(start))")
+                    if coverage.hvacHistoryStartsAfterWindow == true {
+                        Text("HVAC history covers only part of this window; suggestions may be limited.")
+                    }
+                } else {
+                    Text("HVAC history is available, but its start is unknown; coverage may be incomplete.")
                 }
             } else {
-                Text("Coverage details unavailable")
+                Label(
+                    "HVAC history unavailable; suggestions may be limited.",
+                    systemImage: "exclamationmark.triangle"
+                )
             }
             Text("Generated: \(dateText(insights.generatedAt))")
         }
@@ -112,20 +127,16 @@ struct SensorPlacementView: View {
     private func recommendations(_ insights: PlacementInsights) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             heading("Recommendations")
-            if insights.recommendations == nil {
-                Text("Recommendations are unavailable.")
-            } else if insights.rankedRecommendations.isEmpty {
+            if insights.rankedRecommendations.isEmpty {
                 Text("No recommendations for this window. There may not be enough history to make suggestions.")
             } else {
                 ForEach(insights.rankedRecommendations) { recommendation in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(recommendation.title).fontWeight(.semibold)
-                        if let severity = recommendation.severity {
-                            Text("Priority: \(priority(severity))")
-                                .foregroundColor(Theme.Colors.textSecondary)
-                        }
+                        Text("Priority: \(priority(recommendation.severity))")
+                            .foregroundColor(Theme.Colors.textSecondary)
                         if let sensorID = recommendation.sensorId {
-                            let name = insights.sensors?.first(where: { $0.id == sensorID })?.name ?? sensorID
+                            let name = insights.sensors.first(where: { $0.id == sensorID })?.name ?? sensorID
                             Text("Sensor: \(name)")
                         }
                         if let action = actionLabel(recommendation.action) {
@@ -148,12 +159,10 @@ struct SensorPlacementView: View {
     private func sensors(_ insights: PlacementInsights) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             heading("Sensors")
-            if insights.sensors == nil {
-                Text("Sensor details are unavailable.")
-            } else if insights.sensors?.isEmpty == true {
+            if insights.sensors.isEmpty {
                 Text("No sensor history is available for this window.")
             } else {
-                ForEach(insights.sensors ?? []) { sensor in
+                ForEach(insights.sensors) { sensor in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(sensor.name + (sensor.isThermostat == true ? " · Thermostat" : ""))
                             .fontWeight(.semibold)
@@ -162,7 +171,9 @@ struct SensorPlacementView: View {
                         Text("Average offset: \(offset(sensor.averageOffset, unit: insights.unit))")
                         Text("Morning offset: \(offset(sensor.morningOffset, unit: insights.unit))")
                         Text("Return-from-away offset: \(offset(sensor.returnOffset, unit: insights.unit))")
-                        Text("Overshoot: \(offset(sensor.overshoot, unit: insights.unit))")
+                        Text(
+                            "Overshoot after confirmed heating stops: \(offset(sensor.overshoot, unit: insights.unit))"
+                        )
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
@@ -227,10 +238,11 @@ struct SensorPlacementView: View {
     {
       "generatedAt": "2026-03-20T12:00:00Z", "windowDays": 14, "unit": "°C",
       "coverage": {"start": "2026-03-06T12:00:00Z", "end": "2026-03-20T12:00:00Z",
-        "hvacHistoryAvailable": false, "morningEvents": 5, "returnEvents": 2},
+        "hvacHistoryAvailable": true, "hvacHistoryStart": "2026-03-10T12:00:00Z",
+        "returnHistoryAvailable": false, "morningEvents": 5, "inferredMorningEvents": 2, "returnEvents": 0},
       "sensors": [{"id": "bedroom", "name": "Bedroom", "isThermostat": false,
         "averageOffset": -0.5, "morningOffset": -1.2, "returnOffset": null,
-        "overshoot": 0.8, "sampleCount": 60, "classification": "cold"}],
+        "overshoot": null, "sampleCount": 60, "classification": "cold"}],
       "recommendations": [{"id": "move", "severity": "high", "sensorId": "bedroom",
         "action": "move", "title": "Check the sensor location",
         "detail": "Consider moving it away from a draft."}]
@@ -238,7 +250,7 @@ struct SensorPlacementView: View {
     """.utf8)
     let insights = try? JSONDecoder().decode(PlacementInsights.self, from: data)
     return NavigationStack {
-        SensorPlacementView(service: SensorPlacementService(insights: insights))
+        SensorPlacementView(service: SensorPlacementService(insights: insights, sessionCheck: { true }))
     }
 }
 #endif
