@@ -265,6 +265,23 @@ struct IndoorCardSummary: Equatable {
         return activity.color
     }
 
+    /// The freshest indoor state for Home: the session thermostat's view (its last accepted
+    /// change until a newer poll) when there is one, else the polled snapshot. A control
+    /// reply may carry no room sensors, so the polled rooms fill in until the next poll.
+    /// An ended session's controller has dropped its replies and shows the poll.
+    @MainActor
+    static func currentState(thermostat: Thermostat?, polled: IndoorClimateState?) -> IndoorClimateState? {
+        guard let current = thermostat?.state else { return polled }
+        guard current.sensors.isEmpty, let polled, !polled.sensors.isEmpty else { return current }
+        return IndoorClimateState(
+            timestamp: current.timestamp,
+            unit: current.reportedUnit ?? polled.reportedUnit,
+            thermostat: current.thermostat ?? polled.thermostat,
+            sensors: polled.sensors,
+            confirmed: current.confirmed
+        )
+    }
+
     init(state: IndoorClimateState?) {
         guard let state, state.hasData else {
             value = Self.placeholder
@@ -302,6 +319,20 @@ struct IndoorDashboardCard: View {
     var onOpen: () -> Void
 
     var body: some View {
+        // The whole card opens Climate, like the iPhone and iPad Indoor card.
+        Button(action: onOpen) {
+            content
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens Climate")
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "thermometer.medium")
@@ -331,17 +362,11 @@ struct IndoorDashboardCard: View {
             }
             .font(Theme.Fonts.bodyMedium)
             Divider()
-            HStack {
-                Button(action: onOpen, label: {
-                    Text("Climate →").font(Theme.Fonts.bodyMedium)
-                }).buttonStyle(.plain).foregroundColor(Theme.Colors.accent)
-                Spacer()
-            }
+            Text("Climate →")
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.accent)
+                .accessibilityHidden(true)
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Colors.secondaryBackground)
-        .cornerRadius(12)
     }
 }
 #endif

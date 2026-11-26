@@ -17,6 +17,8 @@ struct DashboardView: View {
     var scooter: Scooter
     var apiResponse: Api
     var airPurifier: AirPurifier
+    /// The session's thermostat controller, whose accepted changes are newer than the last poll.
+    var thermostat: Thermostat?
     var locationManager: LocationManager
     var radarService: RadarService
     var onNavigate: (SidebarItem) -> Void
@@ -70,7 +72,9 @@ struct DashboardView: View {
                 view: AnyView(applianceCard(appliance: item.appliance, source: item.source))
             ))
         }
-        let indoor = IndoorCardSummary(state: apiResponse.response?.indoorClimate)
+        let indoor = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: apiResponse.response?.indoorClimate)
+        )
         cards.append(DeviceCard(
             id: "indoor", isActive: indoor.isActive, priority: indoor.isActive ? 3 : 2,
             view: AnyView(IndoorDashboardCard(summary: indoor) { onNavigate(.climate) })

@@ -194,4 +194,47 @@ struct IndoorCardSummaryTests {
         #expect(!summary.isActive)
         #expect(summary.value == format(20))
     }
+
+    @Test("Home shows the thermostat's accepted change before the next poll, keeping the polled rooms")
+    @MainActor func testSummaryPrefersAcceptedChange() async throws {
+        let polled = try #require(MockData.loginResponse.indoorClimate)
+        #expect(IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: nil, polled: polled))
+            .status?.hasPrefix("Heating") == true)
+
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 24) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+
+        let current = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(current.status?.hasPrefix("Auto") == true)
+        #expect(current.activity == .idle && !current.isActive)
+        // The reply has no rooms, so the polled ones still give a reading and the extremes.
+        #expect(current.value == format(21.4))
+        #expect(current.extremes == "Warmest Kitchen \(format(22.6)) · Coolest Main Bedroom \(format(19.8))")
+
+        // Once the session ends, its controller's replies are dropped and Home shows the poll.
+        thermostat.invalidate()
+        let afterSignOut = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(afterSignOut.status?.hasPrefix("Heating") == true)
+    }
+}
+
+struct AdaptiveHomeLayoutTests {
+    @Test("Only a regular-width iPad window wide enough gets the full-width Home dashboard")
+    func testWideHomeDecision() {
+        // Full-screen iPads, landscape and portrait.
+        #expect(AdaptiveLayout.usesWideHome(width: 1366, isPad: true, isRegularWidth: true))
+        #expect(AdaptiveLayout.usesWideHome(width: 834, isPad: true, isRegularWidth: true))
+        // Split View / dual-screen halves are compact, and narrow regular windows too small.
+        #expect(!AdaptiveLayout.usesWideHome(width: 507, isPad: true, isRegularWidth: false))
+        #expect(!AdaptiveLayout.usesWideHome(width: 694, isPad: true, isRegularWidth: true))
+        // A large iPhone in landscape is regular width and wide, but keeps the compact Home.
+        #expect(!AdaptiveLayout.usesWideHome(width: 956, isPad: false, isRegularWidth: true))
+        #expect(!AdaptiveLayout.usesWideHome(width: 440, isPad: false, isRegularWidth: false))
+    }
 }

@@ -9,7 +9,11 @@ import SwiftUI
 
 extension Appliances {
     var indoorSummary: IndoorCardSummary {
-        IndoorCardSummary(state: apiResponse.response?.indoorClimate)
+        IndoorCardSummary(
+            state: IndoorCardSummary.currentState(
+                thermostat: thermostat, polled: apiResponse.response?.indoorClimate
+            )
+        )
     }
 
     func getIconColor(type: String, index: Int) -> Color {

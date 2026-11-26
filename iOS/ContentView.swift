@@ -190,7 +190,11 @@ struct ContentView: View {
 
     private var homeTab: some View {
         GeometryReader { proxy in
-            if AdaptiveLayout.usesWideDashboard(width: proxy.size.width) {
+            if AdaptiveLayout.usesWideHome(
+                width: proxy.size.width,
+                isPad: UIDevice.current.userInterfaceIdiom == .pad,
+                isRegularWidth: horizontalSizeClass == .regular
+            ) {
                 wideHomeLayout
             } else {
                 compactHomeLayout
@@ -256,6 +260,7 @@ struct ContentView: View {
             car: car,
             locationManager: locationManager,
             airPurifier: airPurifier,
+            thermostat: thermostat,
             onOpenClimate: { handleNavigationRequest("climate") },
             scrolls: scrolls
         )

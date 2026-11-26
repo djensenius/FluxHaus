@@ -107,6 +107,7 @@ struct ContentView: View {
                     car: car,
                     locationManager: locationManager,
                     airPurifier: airPurifier,
+                    thermostat: thermostat,
                     onOpenClimate: { selectedTab = "Climate" },
                     scrolls: false
                 )
