@@ -242,8 +242,9 @@ struct IndoorCardSummary: Equatable {
     let value: String
     /// Thermostat status, e.g. "Heating to 21.5°C" or "Heat · set to 21°C".
     let status: String?
-    /// "Warmest Kitchen 22.6°C · Coolest Main Bedroom 19.8°C", with two or more distinct readings.
-    let extremes: String?
+    /// The warmest and coolest rooms, e.g. "Warmest Kitchen 22.6°C", with two or more distinct readings.
+    let warmest: String?
+    let coolest: String?
     let activity: ThermostatSummary.Activity?
     /// SF Symbol for `status`.
     let statusImage: String?
@@ -255,7 +256,7 @@ struct IndoorCardSummary: Equatable {
 
     /// One line per fact for the card's secondary text.
     var detail: String {
-        let lines = [status, extremes].compactMap { $0 }
+        let lines = [status, warmest, coolest].compactMap { $0 }
         if lines.isEmpty { return hasReadings ? "" : Self.noReadings }
         return lines.joined(separator: "\n")
     }
@@ -265,19 +266,21 @@ struct IndoorCardSummary: Equatable {
         return activity.color
     }
 
-    /// The freshest indoor state for Home: the session thermostat's view (its last accepted
-    /// change until a newer poll) when there is one, else the polled snapshot. A control
-    /// reply may carry no room sensors, so the polled rooms fill in until the next poll.
-    /// An ended session's controller has dropped its replies and shows the poll.
+    /// The freshest indoor state for Home: the session thermostat's last accepted change
+    /// until a newer poll, else the polled snapshot. A control reply may report only
+    /// settings, so the poll's rooms and thermostat reading fill in until the next poll.
+    /// A controller from another session, even one that hasn't noticed yet, is ignored.
     @MainActor
     static func currentState(thermostat: Thermostat?, polled: IndoorClimateState?) -> IndoorClimateState? {
-        guard let current = thermostat?.state else { return polled }
-        guard current.sensors.isEmpty, let polled, !polled.sensors.isEmpty else { return current }
+        guard let thermostat, thermostat.belongsToCurrentSession, let current = thermostat.state else {
+            return polled
+        }
+        guard let polled else { return current }
         return IndoorClimateState(
             timestamp: current.timestamp,
             unit: current.reportedUnit ?? polled.reportedUnit,
-            thermostat: current.thermostat ?? polled.thermostat,
-            sensors: polled.sensors,
+            thermostat: current.thermostat.map { $0.withReadings(from: polled.thermostat) } ?? polled.thermostat,
+            sensors: current.sensors.isEmpty ? polled.sensors : current.sensors,
             confirmed: current.confirmed
         )
     }
@@ -286,7 +289,8 @@ struct IndoorCardSummary: Equatable {
         guard let state, state.hasData else {
             value = Self.placeholder
             status = nil
-            extremes = nil
+            warmest = nil
+            coolest = nil
             activity = nil
             statusImage = nil
             return
@@ -296,10 +300,12 @@ struct IndoorCardSummary: Equatable {
         status = summary?.text
         activity = summary?.activity
         statusImage = summary?.systemImage
-        extremes = Self.extremes(in: state)
+        let extremes = Self.extremes(in: state)
+        warmest = extremes?.warmest
+        coolest = extremes?.coolest
     }
 
-    private static func extremes(in state: IndoorClimateState) -> String? {
+    private static func extremes(in state: IndoorClimateState) -> (warmest: String, coolest: String)? {
         let readings = state.rooms.compactMap { sensor -> (name: String, temp: Double)? in
             guard sensor.isAvailable, let temp = state.temperature(of: sensor) else { return nil }
             return (state.displayName(for: sensor), temp)
@@ -307,8 +313,27 @@ struct IndoorCardSummary: Equatable {
         guard let warmest = readings.max(by: { $0.temp < $1.temp }),
               let coolest = readings.min(by: { $0.temp < $1.temp }),
               warmest.temp > coolest.temp else { return nil }
-        return "Warmest \(warmest.name) \(state.format(warmest.temp))"
-            + " · Coolest \(coolest.name) \(state.format(coolest.temp))"
+        return ("Warmest \(warmest.name) \(state.format(warmest.temp))",
+                "Coolest \(coolest.name) \(state.format(coolest.temp))")
+    }
+}
+
+private extension ThermostatStatus {
+    /// This status with the polled reading and humidity filled in where it has none,
+    /// keeping its own settings. Readings from another thermostat or unit are not used.
+    func withReadings(from polled: ThermostatStatus?) -> ThermostatStatus {
+        guard let polled, polled.entityId == entityId, polled.temperatureUnit == temperatureUnit,
+              currentTemperature == nil || currentHumidity == nil else { return self }
+        return ThermostatStatus(
+            entityId: entityId, name: name, area: area, available: available,
+            currentTemperature: currentTemperature ?? polled.currentTemperature,
+            currentHumidity: currentHumidity ?? polled.currentHumidity,
+            hvacMode: hvacMode, hvacAction: hvacAction, targetTemperature: targetTemperature,
+            targetTemperatureLow: targetTemperatureLow, targetTemperatureHigh: targetTemperatureHigh,
+            presetMode: presetMode, hvacModes: hvacModes, presetModes: presetModes,
+            fanMode: fanMode, fanModes: fanModes, minTemp: minTemp, maxTemp: maxTemp,
+            targetTempStep: targetTempStep, temperatureUnit: temperatureUnit
+        )
     }
 }
 
@@ -351,8 +376,12 @@ struct IndoorDashboardCard: View {
                     Label(status, systemImage: image)
                         .foregroundColor(summary.isActive ? summary.tint : Theme.Colors.textPrimary)
                 }
-                if let extremes = summary.extremes {
-                    Label(extremes, systemImage: "arrow.up.arrow.down")
+                if let warmest = summary.warmest {
+                    Label(warmest, systemImage: "arrow.up")
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                if let coolest = summary.coolest {
+                    Label(coolest, systemImage: "arrow.down")
                         .foregroundColor(Theme.Colors.textSecondary)
                 }
                 if !summary.hasReadings && summary.status == nil {

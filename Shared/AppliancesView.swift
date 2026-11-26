@@ -107,29 +107,31 @@ struct Appliances: View {
         }
     }
 
+    /// The name and value share a row when they fit; otherwise the value drops below the name so a
+    /// narrow column never breaks a word. The detail always spans the full card width.
     private func card(type: String, index: Int) -> some View {
-        HStack {
-            VStack(alignment: .leading) {
-                HStack {
-                    getIcon(type: type, index: index)
-                        .font(Theme.Fonts.headerLarge())
-                        .foregroundColor(getIconColor(type: type, index: index))
-                        .padding(.leading)
-                    Text(getApplianceName(type: type, index: index))
-                        .font(Theme.Fonts.headerLarge())
-                        .foregroundColor(Theme.Colors.textPrimary)
-                    Spacer()
+        VStack(alignment: .leading, spacing: Theme.Spacing.small) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    cardTitle(type: type, index: index)
+                    Spacer(minLength: Theme.Spacing.medium)
+                    cardValue(type: type, index: index)
                 }
-                Text(getProgram(type: type, index: index))
+                VStack(alignment: .leading, spacing: 0) {
+                    cardTitle(type: type, index: index)
+                    cardValue(type: type, index: index)
+                }
+            }
+            let detail = getProgram(type: type, index: index)
+            if !detail.isEmpty {
+                Text(detail)
                     .font(Theme.Fonts.caption)
                     .foregroundColor(Theme.Colors.textSecondary)
-                    .padding(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            Text(getTimeRemaining(type: type, index: index))
-                .font(Theme.Fonts.headerXL())
-                .foregroundColor(Theme.Colors.secondary)
-                .padding()
         }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         #if os(visionOS)
         .glassBackgroundEffect(in: .rect(cornerRadius: 12))
         #else
@@ -139,6 +141,27 @@ struct Appliances: View {
         #if !os(macOS)
         .hoverEffect()
         #endif
+    }
+
+    private func cardTitle(type: String, index: Int) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            getIcon(type: type, index: index)
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(getIconColor(type: type, index: index))
+            Text(getApplianceName(type: type, index: index))
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
+                .lineLimit(1)
+        }
+        .fixedSize()
+    }
+
+    private func cardValue(type: String, index: Int) -> some View {
+        Text(getTimeRemaining(type: type, index: index))
+            .font(Theme.Fonts.headerXL())
+            .foregroundColor(Theme.Colors.secondary)
+            .lineLimit(1)
+            .fixedSize()
     }
 
     private func openSheet(type: String, index: Int) {

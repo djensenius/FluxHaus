@@ -197,21 +197,26 @@ struct ContentView: View {
             ) {
                 wideHomeLayout
             } else {
-                compactHomeLayout
+                compactHomeLayout(height: proxy.size.height)
             }
         }
         .background(Theme.Colors.background)
     }
 
-    private var compactHomeLayout: some View {
-        VStack {
-            DateTimeView()
-            WeatherView(lman: locationManager)
-            HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-            appliancesHeader
-            appliancesGrid()
-            Spacer()
-            footer
+    /// Scrolls as one page so the cards stay reachable on short screens (a landscape
+    /// iPhone); at least a screen tall, so the footer still sits at the bottom.
+    private func compactHomeLayout(height: CGFloat) -> some View {
+        ScrollView {
+            VStack {
+                DateTimeView()
+                WeatherView(lman: locationManager)
+                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                appliancesHeader
+                appliancesGrid(scrolls: false)
+                Spacer(minLength: 0)
+                footer
+            }
+            .frame(minHeight: height)
         }
     }
 
@@ -249,7 +254,7 @@ struct ContentView: View {
         }
     }
 
-    private func appliancesGrid(scrolls: Bool = true) -> some View {
+    private func appliancesGrid(scrolls: Bool) -> some View {
         Appliances(
             fluxHausConsts: fluxHausConsts,
             hconn: hconn,

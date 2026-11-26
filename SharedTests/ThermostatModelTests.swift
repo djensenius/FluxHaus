@@ -154,8 +154,12 @@ struct IndoorCardSummaryTests {
         #expect(summary.isActive)
         let status = try #require(summary.status)
         #expect(status.hasPrefix("Heating"))
-        #expect(summary.extremes == "Warmest Kitchen \(format(22.6)) · Coolest Main Bedroom \(format(19.8))")
-        #expect(summary.detail == "\(status)\n\(summary.extremes ?? "")")
+        #expect(summary.warmest == "Warmest Kitchen \(format(22.6))")
+        #expect(summary.coolest == "Coolest Main Bedroom \(format(19.8))")
+        // One fact per line, so the card's narrow detail column never splits a room from its reading.
+        #expect(summary.detail.components(separatedBy: "\n") == [
+            status, "Warmest Kitchen \(format(22.6))", "Coolest Main Bedroom \(format(19.8))"
+        ])
     }
 
     @Test("Without a thermostat or sensors the Indoor card is a muted placeholder")
@@ -164,7 +168,7 @@ struct IndoorCardSummaryTests {
             let summary = IndoorCardSummary(state: state)
             #expect(summary.value == IndoorCardSummary.placeholder)
             #expect(!summary.hasReadings && !summary.isActive)
-            #expect(summary.status == nil && summary.extremes == nil)
+            #expect(summary.status == nil && summary.warmest == nil && summary.coolest == nil)
             #expect(summary.detail == IndoorCardSummary.noReadings)
         }
     }
@@ -179,7 +183,7 @@ struct IndoorCardSummaryTests {
         let summary = IndoorCardSummary(state: IndoorClimateState(unit: "°C", sensors: rooms))
         #expect(summary.value == format(20))
         #expect(summary.status == nil && summary.activity == nil && !summary.isActive)
-        #expect(summary.extremes == nil)
+        #expect(summary.warmest == nil && summary.coolest == nil)
         #expect(summary.detail.isEmpty)
     }
 
@@ -213,7 +217,8 @@ struct IndoorCardSummaryTests {
         #expect(current.activity == .idle && !current.isActive)
         // The reply has no rooms, so the polled ones still give a reading and the extremes.
         #expect(current.value == format(21.4))
-        #expect(current.extremes == "Warmest Kitchen \(format(22.6)) · Coolest Main Bedroom \(format(19.8))")
+        #expect(current.warmest == "Warmest Kitchen \(format(22.6))")
+        #expect(current.coolest == "Coolest Main Bedroom \(format(19.8))")
 
         // Once the session ends, its controller's replies are dropped and Home shows the poll.
         thermostat.invalidate()
@@ -221,6 +226,45 @@ struct IndoorCardSummaryTests {
             state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
         )
         #expect(afterSignOut.status?.hasPrefix("Heating") == true)
+    }
+
+    @Test("A thermostat-only home keeps its polled reading when the accepted reply has none")
+    @MainActor func testThermostatOnlyHomeKeepsReading() async throws {
+        let mock = try #require(MockData.loginResponse.indoorClimate)
+        let polled = IndoorClimateState(
+            timestamp: mock.timestamp, unit: mock.unit, thermostat: mock.thermostat, sensors: []
+        )
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 24) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+
+        let current = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(current.value == format(21.3))
+        #expect(current.status?.hasPrefix("Auto") == true)
+    }
+
+    @Test("A reply from an account that is no longer signed in is never shown or mixed with the new poll")
+    @MainActor func testAccountSwitchShowsOnlyNewPoll() async throws {
+        let polled = try #require(MockData.loginResponse.indoorClimate)
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 24) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+        #expect(IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
+            .status?.hasPrefix("Auto") == true)
+
+        // The credentials change without a sign-out event reaching this controller.
+        recorder.session.isCurrent = false
+        let current = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(current.status?.hasPrefix("Heating") == true)
+        #expect(current.value == format(21.4))
+        // Rendering must not change the controller; only its own session checks may invalidate it.
+        #expect(!thermostat.isInvalidated)
     }
 }
 
