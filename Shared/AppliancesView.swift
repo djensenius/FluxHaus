@@ -151,9 +151,12 @@ struct Appliances: View {
             Text(getApplianceName(type: type, index: index))
                 .font(Theme.Fonts.headerLarge())
                 .foregroundColor(Theme.Colors.textPrimary)
+                // One line, so a name never breaks mid-word; a name too long for the card
+                // shrinks a little, then ends with an ellipsis instead of overflowing.
                 .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .truncationMode(.tail)
         }
-        .fixedSize()
     }
 
     private func cardValue(type: String, index: Int) -> some View {

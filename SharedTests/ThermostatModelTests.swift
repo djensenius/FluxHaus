@@ -266,6 +266,60 @@ struct IndoorCardSummaryTests {
         // Rendering must not change the controller; only its own session checks may invalidate it.
         #expect(!thermostat.isInvalidated)
     }
+
+    /// The Indoor card after the thermostat accepts a change whose reply is `reply`, before the next poll of `polled`.
+    @MainActor private func summaryAfterReply(
+        _ reply: IndoorClimateState, polled: IndoorClimateState
+    ) async -> IndoorCardSummary {
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in reply }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+        return IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
+    }
+
+    private func thermostatOnly(
+        unit: String?, thermostatUnit: String? = nil, current: Double? = nil,
+        available: Bool = true, timestamp: String = "2099-01-01T00:00:00Z"
+    ) -> IndoorClimateState {
+        IndoorClimateState(
+            timestamp: timestamp, unit: unit,
+            thermostat: ThermostatStatus(
+                entityId: "climate.home", available: available, currentTemperature: current,
+                hvacMode: "heat_cool", targetTemperatureLow: 19, targetTemperatureHigh: 24,
+                temperatureUnit: thermostatUnit
+            ),
+            sensors: []
+        )
+    }
+
+    @Test("The polled reading is kept when each response states the same unit in a different place")
+    @MainActor func testReadingKeptWhenUnitsResolveTheSame() async {
+        let polled = thermostatOnly(unit: "°C", current: 21.3, timestamp: "2024-12-13T11:59:00Z")
+        let summary = await summaryAfterReply(thermostatOnly(unit: nil, thermostatUnit: "°C"), polled: polled)
+        #expect(summary.value == format(21.3))
+        #expect(summary.status?.hasPrefix("Auto") == true)
+    }
+
+    @Test("A polled reading is dropped unless both responses definitely give it the reply's unit")
+    @MainActor func testReadingDroppedWhenUnitsUnknownOrDiffer() async {
+        // The poll names no unit at all, so its 21.3 could be °C; it must not become 21.3 °F.
+        let unknown = thermostatOnly(unit: nil, current: 21.3, timestamp: "2024-12-13T11:59:00Z")
+        let afterUnknown = await summaryAfterReply(thermostatOnly(unit: "°F"), polled: unknown)
+        #expect(afterUnknown.value == IndoorCardSummary.placeholder)
+        #expect(afterUnknown.status?.hasPrefix("Auto") == true)
+
+        let celsius = thermostatOnly(unit: "°C", current: 21.3, timestamp: "2024-12-13T11:59:00Z")
+        let afterMismatch = await summaryAfterReply(thermostatOnly(unit: nil, thermostatUnit: "°F"), polled: celsius)
+        #expect(afterMismatch.value == IndoorCardSummary.placeholder)
+    }
+
+    @Test("An offline thermostat's last polled reading is not shown as current after a change")
+    @MainActor func testOfflineReadingNotCarried() async {
+        let offline = thermostatOnly(unit: "°C", current: 21.3, available: false, timestamp: "2024-12-13T11:59:00Z")
+        let summary = await summaryAfterReply(thermostatOnly(unit: "°C"), polled: offline)
+        #expect(summary.value == IndoorCardSummary.placeholder)
+    }
 }
 
 struct AdaptiveHomeLayoutTests {
