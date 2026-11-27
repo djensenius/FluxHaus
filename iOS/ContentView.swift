@@ -26,6 +26,7 @@ struct ContentView: View {
     @State private var radarService = RadarService()
     @State private var selectedTab = "home"
     @State private var morePath: [String] = []
+    @State private var showClimateSheet = false
     @State private var tabCustomization = TabViewCustomization()
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -68,6 +69,16 @@ struct ContentView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .tabViewCustomization($tabCustomization)
+        .sheet(isPresented: $showClimateSheet) {
+            NavigationStack {
+                climateView
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showClimateSheet = false }
+                        }
+                    }
+            }
+        }
         .onReceive(
             NotificationCenter.default.publisher(for: Notification.Name("navigateToSection"))
         ) { notification in
@@ -266,7 +277,7 @@ struct ContentView: View {
             locationManager: locationManager,
             airPurifier: airPurifier,
             thermostat: thermostat,
-            onOpenClimate: { handleNavigationRequest("climate") },
+            onOpenClimate: { showClimateSheet = true },
             scrolls: scrolls
         )
     }

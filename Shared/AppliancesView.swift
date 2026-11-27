@@ -84,8 +84,7 @@ struct Appliances: View {
                 if !(name == "Battery" && battery.model == .mac),
                    getApplianceName(type: name, index: index) != "Fetching" {
                     if name == "Indoor" {
-                        // Navigates rather than opening a sheet, so it's a real button for
-                        // VoiceOver, Full Keyboard Access and pointer/gaze focus.
+                        // A real button supports VoiceOver, Full Keyboard Access and pointer/gaze focus.
                         Button {
                             onOpenClimate?()
                         } label: {
