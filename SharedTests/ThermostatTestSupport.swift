@@ -46,10 +46,10 @@ final class CommandRecorder {
     }
     private var waiters: [Waiter] = []
     private var waits = 0
-    /// Tests that wait on requests are bounded by a one-minute `timeLimit`, which cancels the
+    /// Tests that wait on requests are bounded by a five-minute `timeLimit`, which cancels the
     /// waits. A held request is released after longer than that, so a test that forgets to
     /// release one fails instead of hanging the whole run, without racing a slow but passing test.
-    static let releaseHeldAfter: Duration = .seconds(120)
+    static let releaseHeldAfter: Duration = .seconds(6 * 60)
 
     func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
         let session = self.session
