@@ -305,6 +305,7 @@ enum PlacementRequestError: Error {
         + "analysis. Saved choices are kept for a server that supports them."
     static let pendingConfigNotice = "These tips may reflect an earlier thermostat setup. "
         + "The latest saved changes haven't been loaded yet."
+    static let pendingInitialLoadError = "Thermostat setup changed while loading. Retry to load the latest setup."
 
     struct Outcome: Sendable {
         let insights: PlacementInsights
@@ -334,7 +335,11 @@ enum PlacementRequestError: Error {
     }
     var config: PlacementConfig? { configSnapshot.config }
     var isLoading: Bool { isSessionValid && loading }
-    var error: String? { isSessionValid ? storedError : nil }
+    var error: String? {
+        guard isSessionValid else { return nil }
+        if let storedError { return storedError }
+        return storedInsights == nil && !loading && hasPendingConfig ? Self.pendingInitialLoadError : nil
+    }
     /// A non-fatal message when the tips couldn't use all of the saved thermostat setup.
     var notice: String? {
         guard isSessionValid, configSnapshot == storedSnapshot else { return nil }

@@ -170,4 +170,46 @@ struct SensorPlacementDisplayTests {
             "Cooling window: the units of some reference temperatures and setpoints \(suffix)"
         ])
     }
+
+    @Test("Cached detail offers Retry for pending setup changes, even when the sensor is missing")
+    func pendingDetailOffersRetry() async throws {
+        let cached = try insights(name: "Hallway temperature")
+        let defaults = UserDefaults(suiteName: "SensorPlacementDetailRetry-\(UUID().uuidString)")!
+        let store = PlacementConfigStore(account: "a", defaults: defaults)
+        let original = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        var changed = original
+        changed.followMe = true
+        store.save(original)
+        let writer = SensorPlacementService(insights: cached, sessionCheck: { true }, configStore: store)
+        var continuation: CheckedContinuation<PlacementInsights, Never>?
+        var requests: [PlacementConfig?] = []
+        let reader = SensorPlacementService(
+            insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                requests.append(config)
+                if requests.count == 1 { return await withCheckedContinuation { continuation = $0 } }
+                if requests.count == 2 { throw PlacementRequestError.http(503) }
+                return cached
+            }
+        )
+        let first = Task { await reader.refresh() }
+        while continuation == nil { await Task.yield() }
+        #expect(writer.updateConfig(changed))
+        #expect(reader.isLoading && reader.error == nil)
+        #expect(SensorPlacementDetailView.offersRetry(error: reader.error, pendingNotice: reader.pendingInsightsNotice))
+        continuation?.resume(returning: cached)
+        #expect(await first.value == false)
+        #expect(!reader.isLoading && reader.error == nil)
+        #expect(reader.insights?.sensors.contains(where: { $0.id == "missing" }) == false)
+        #expect(SensorPlacementDetailView.offersRetry(error: reader.error, pendingNotice: reader.pendingInsightsNotice))
+
+        #expect(await reader.refresh() == false)
+        #expect(reader.error == "Could not load sensor placement (HTTP 503).")
+        #expect(SensorPlacementDetailView.offersRetry(error: reader.error, pendingNotice: reader.pendingInsightsNotice))
+        #expect(await reader.refresh())
+        #expect(requests == [original, changed, changed])
+        #expect(!SensorPlacementDetailView.offersRetry(
+            error: reader.error, pendingNotice: reader.pendingInsightsNotice
+        ))
+        #expect(SensorPlacementDetailView.offersRetry(error: "Load failed", pendingNotice: nil))
+    }
 }

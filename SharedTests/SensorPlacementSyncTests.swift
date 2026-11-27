@@ -26,6 +26,11 @@ private final class SyncObservationFlag: @unchecked Sendable {
 }
 
 @MainActor
+private final class SyncTestSession {
+    var valid = true
+}
+
+@MainActor
 struct SensorPlacementSyncTests {
     private let original = PlacementConfig(
         home: ["bedroom", "hall", "unavailable"], sleep: ["unavailable"], away: [], followMe: true,
@@ -425,5 +430,56 @@ struct SensorPlacementSyncTests {
         #expect(isolated.config == original && !isolated.hasPendingConfig)
         #expect(await other.refresh())
         #expect(requests == [changed] && storeB.load() == changed)
+    }
+}
+
+extension SensorPlacementSyncTests {
+    @Test("An outdated or cancelled first load offers a retry for the current setup")
+    func initialLoadOffersRetry() async throws {
+        let stale = try insights(days: 30, thermostat: true)
+        let latest = try insights(thermostat: true)
+        let cases: [(PlacementConfig?, Bool)] = [(changed, false), (nil, false), (changed, true), (nil, true)]
+        for (replacement, cancelled) in cases {
+            let (storeA, storeB) = stores()
+            storeA.save(original)
+            let writer = SensorPlacementService(sessionCheck: { true }, configStore: storeA)
+            var continuation: CheckedContinuation<PlacementInsights, Never>?
+            var requests: [PlacementConfig?] = []
+            let session = SyncTestSession()
+            let reader = SensorPlacementService(
+                sessionCheck: { session.valid }, configStore: storeB, fetch: { config, _ in
+                    requests.append(config)
+                    if requests.count == 1 {
+                        return await withCheckedContinuation { continuation = $0 }
+                    }
+                    return latest
+                }
+            )
+            let first = Task { await reader.refresh() }
+            while continuation == nil { await Task.yield() }
+            #expect(writer.updateConfig(replacement))
+            #expect(reader.isLoading && reader.error == nil)
+            let observed = SyncObservationFlag()
+            withObservationTracking {
+                _ = reader.error
+            } onChange: {
+                observed.set()
+            }
+            if cancelled { first.cancel() }
+            continuation?.resume(returning: stale)
+            #expect(await first.value == false)
+            #expect(reader.insights == nil && !reader.isLoading && reader.hasPendingConfig)
+            #expect(observed.value)
+            #expect(reader.error == "Thermostat setup changed while loading. Retry to load the latest setup.")
+            #expect(storeB.load() == replacement)
+            session.valid = false
+            #expect(reader.error == nil && reader.insights == nil && !reader.hasPendingConfig)
+            session.valid = true
+
+            #expect(await reader.refresh())
+            #expect(requests == [original, replacement])
+            #expect(reader.insights?.windowDays == 14 && reader.error == nil && !reader.hasPendingConfig)
+            #expect(storeB.load() == replacement?.excluding(["hall"]))
+        }
     }
 }

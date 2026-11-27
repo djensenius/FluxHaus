@@ -12,6 +12,10 @@ struct SensorPlacementDetailView: View {
     static let thermostatParticipationExplanation = ThermostatSetupView.thermostatReadingExplanation
         + " The choices below describe the physical built-in sensor, not necessarily this listed sensor."
 
+    static func offersRetry(error: String?, pendingNotice: String?) -> Bool {
+        error != nil || pendingNotice != nil
+    }
+
     let service: SensorPlacementService
     let sensorID: String
     @State private var showSetup = false
@@ -20,23 +24,25 @@ struct SensorPlacementDetailView: View {
     var body: some View {
         let insights = service.insights
         let sensor = insights?.sensors.first(where: { $0.id == sensorID })
+        let error = service.error
+        let pendingNotice = service.pendingInsightsNotice
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.large) {
-                if let error = service.error {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label(error, systemImage: "exclamationmark.triangle")
-                        Button("Retry") { reloadID += 1 }
-                            .disabled(service.isLoading)
-                    }
+                if let error {
+                    Label(error, systemImage: "exclamationmark.triangle")
+                }
+                if let pendingNotice {
+                    Label(pendingNotice, systemImage: "exclamationmark.triangle")
+                }
+                if Self.offersRetry(error: error, pendingNotice: pendingNotice) {
+                    Button("Retry") { reloadID += 1 }
+                        .disabled(service.isLoading)
                 }
                 if let insights, let sensor {
                     if service.isLoading {
                         ProgressView("Refreshing sensor placement…")
                     }
                     if let notice = service.notice {
-                        Label(notice, systemImage: "exclamationmark.triangle")
-                    }
-                    if let notice = service.pendingInsightsNotice {
                         Label(notice, systemImage: "exclamationmark.triangle")
                     }
                     if let notice = service.thermostatParticipationNotice {
