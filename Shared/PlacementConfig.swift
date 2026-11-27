@@ -2,10 +2,9 @@
 //  PlacementConfig.swift
 //  FluxHaus
 //
-//  The thermostat setup sent with placement insights: model, per-session persistence and editor.
+//  The thermostat setup sent with placement insights: model, per-account persistence, editor and request.
 //
 
-import CryptoKit
 import SwiftUI
 
 /// The owner's Ecobee comfort-setting sensor participation and Follow Me choice.
@@ -70,33 +69,22 @@ struct PlacementConfig: Codable, Equatable, Sendable {
 }
 
 /// A stable, non-secret identifier for the signed-in account, so the setup survives sign-out and
-/// sign-in of the same account while staying separate per account. For OIDC it is a SHA-256 hash of
-/// the access token's `iss` and `sub` claims (read locally, never stored); the shared demo login is "demo".
+/// sign-in of the same account while staying separate per account. For OIDC it is a hash of the
+/// access token's `iss`/`sub` claims, or, for an opaque access token, the hash AuthManager kept from
+/// the ID token (see `OIDCAccount`). The shared demo login is "demo". Nil means no stable identity.
 enum PlacementAccount {
     static func current() -> String? {
-        identifier(accessToken: AuthManager.shared.getAccessToken(), hasDemoPassword: WhereWeAre.getPassword() != nil)
+        identifier(
+            accessToken: AuthManager.shared.getAccessToken(),
+            storedAccountID: AuthManager.shared.accountID(),
+            hasDemoPassword: WhereWeAre.getPassword() != nil
+        )
     }
 
-    static func identifier(accessToken: String?, hasDemoPassword: Bool) -> String? {
-        // Requests use the OIDC token when present, so an unreadable (opaque) token means no stable id.
-        if let accessToken { return subject(ofJWT: accessToken).map(hash) }
+    static func identifier(accessToken: String?, storedAccountID: String? = nil, hasDemoPassword: Bool) -> String? {
+        // Requests use the OIDC token when present, so the demo password never applies then.
+        if let accessToken { return OIDCAccount.identifier(fromJWT: accessToken) ?? storedAccountID }
         return hasDemoPassword ? "demo" : nil
-    }
-
-    private static func subject(ofJWT token: String) -> String? {
-        let parts = token.split(separator: ".", omittingEmptySubsequences: false)
-        guard parts.count == 3 else { return nil }
-        var payload = parts[1].replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
-        payload += String(repeating: "=", count: (4 - payload.count % 4) % 4)
-        guard let data = Data(base64Encoded: payload),
-              let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let iss = claims["iss"] as? String, !iss.isEmpty,
-              let sub = claims["sub"] as? String, !sub.isEmpty else { return nil }
-        return "\(iss)|\(sub)"
-    }
-
-    private static func hash(_ value: String) -> String {
-        SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 }
 
@@ -195,5 +183,67 @@ struct ThermostatSetupView: View {
         #if os(macOS)
         .frame(minWidth: 420, minHeight: 480)
         #endif
+    }
+}
+
+// MARK: - Request
+
+extension SensorPlacementService {
+    static func request(authorization: String, config: PlacementConfig? = nil) -> URLRequest {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.fluxhaus.io"
+        components.path = "/climate/placement-insights"
+        components.queryItems = [URLQueryItem(name: "days", value: "14")] + (config?.queryItems ?? [])
+        // URLComponents leaves "+" unescaped, which servers may read as a space.
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        // The fixed URL components above always form a valid URL.
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(authorization, forHTTPHeaderField: "Authorization")
+        return request
+    }
+
+    static func decode(data: Data, response: URLResponse) throws -> PlacementInsights {
+        guard let response = response as? HTTPURLResponse else { throw PlacementRequestError.invalidResponse }
+        guard (200...299).contains(response.statusCode) else { throw PlacementRequestError.http(response.statusCode) }
+        return try JSONDecoder().decode(PlacementInsights.self, from: data)
+    }
+
+    static func fetchInsights(
+        config: PlacementConfig? = nil,
+        sessionCheck: @escaping SessionCheck,
+        authorization: @MainActor () -> String? = { AuthManager.shared.authorizationHeader() },
+        hasOIDCToken: @MainActor () -> Bool = { AuthManager.shared.getAccessToken() != nil },
+        ensureToken: @MainActor () async -> Bool = { await AuthManager.shared.ensureValidToken() },
+        refreshToken: @MainActor () async -> Bool = { await AuthManager.shared.refreshTokenIfNeeded() },
+        send: @MainActor (URLRequest) async throws -> (Data, URLResponse) = {
+            try await URLSession.shared.data(for: $0)
+        }
+    ) async throws -> PlacementInsights {
+        try checkSession(sessionCheck)
+        if hasOIDCToken() {
+            _ = await ensureToken()
+            try checkSession(sessionCheck)
+        }
+        guard let header = authorization() else { throw PlacementRequestError.unauthorized }
+        try checkSession(sessionCheck)
+        var (data, response) = try await send(request(authorization: header, config: config))
+        try checkSession(sessionCheck)
+        if (response as? HTTPURLResponse)?.statusCode == 401, hasOIDCToken() {
+            let refreshed = await refreshToken()
+            try checkSession(sessionCheck)
+            guard refreshed, let newHeader = authorization() else { throw PlacementRequestError.unauthorized }
+            try checkSession(sessionCheck)
+            (data, response) = try await send(request(authorization: newHeader, config: config))
+            try checkSession(sessionCheck)
+        }
+        return try decode(data: data, response: response)
+    }
+
+    private static func checkSession(_ check: SessionCheck) throws {
+        try Task.checkCancellation()
+        guard check() else { throw PlacementRequestError.sessionChanged }
     }
 }

@@ -285,6 +285,8 @@ enum PlacementRequestError: Error {
     static let prunedNotice = "Sensors that are no longer reported were removed from your thermostat setup."
     static let rejectedNotice = "Your thermostat setup couldn't be used, so these tips don't account for it. "
         + "Review it in Thermostat setup."
+    static let setupUnavailableNotice = "Thermostat setup can't be saved because this sign-in doesn't identify "
+        + "your account. Sign out and sign in again to set it up."
 
     private struct Outcome: Sendable {
         let insights: PlacementInsights
@@ -297,6 +299,9 @@ enum PlacementRequestError: Error {
     private var loading = false
     private var storedError: String?
     private var storedNotice: String?
+    /// Bumped on every setup change; `appliedRevision` catches up only when a load succeeds.
+    private var configRevision = 0
+    private var appliedRevision = 0
     @ObservationIgnored private var loadTask: Task<Outcome, Error>?
     @ObservationIgnored private var loadGeneration = 0
     @ObservationIgnored private let configStore: PlacementConfigStore?
@@ -310,6 +315,10 @@ enum PlacementRequestError: Error {
     var error: String? { isSessionValid ? storedError : nil }
     /// A non-fatal message about the thermostat setup (e.g. unknown sensors were dropped).
     var notice: String? { isSessionValid ? storedNotice : nil }
+    /// False when there's no stable account identity to save the setup under; setup is then unavailable.
+    var canSaveConfig: Bool { configStore != nil }
+    /// A setup change hasn't been loaded yet (e.g. its refresh was cancelled), so views should retry.
+    var hasPendingConfig: Bool { isSessionValid && configRevision != appliedRevision }
 
     init(
         insights: PlacementInsights? = nil,
@@ -328,21 +337,26 @@ enum PlacementRequestError: Error {
     @discardableResult
     func updateConfig(_ config: PlacementConfig?) -> Bool {
         let config = config?.excluding(storedInsights?.thermostatIDs ?? [])
-        guard isSessionValid, config != storedConfig else { return false }
+        guard isSessionValid, let configStore, config != storedConfig else { return false }
         storedConfig = config
         storedNotice = nil
-        configStore?.save(config)
+        configStore.save(config)
+        configRevision &+= 1
         return true
     }
 
-    func refresh() async {
-        guard isSessionValid, !Task.isCancelled else { return }
+    /// Loads insights for the current setup. Returns true only on success (including an intentional
+    /// unconfigured fallback); a cancelled or failed load leaves a pending setup change pending.
+    @discardableResult
+    func refresh() async -> Bool {
+        guard isSessionValid, !Task.isCancelled else { return false }
         loadTask?.cancel()
         loadGeneration &+= 1
         let generation = loadGeneration
         loading = true
         storedError = nil
         let original = storedConfig
+        let revision = configRevision
         let config = original?.excluding(storedInsights?.thermostatIDs ?? [])
         let known = storedInsights?.roomSensorIDs
         let fetch = self.fetch
@@ -364,7 +378,7 @@ enum PlacementRequestError: Error {
                 task.cancel()
             }
             try Task.checkCancellation()
-            guard loadGeneration == generation, isSessionValid else { return }
+            guard loadGeneration == generation, isSessionValid else { return false }
             storedInsights = result.insights
             storedNotice = result.notice
             let final = result.config?.excluding(result.insights.thermostatIDs)
@@ -372,13 +386,16 @@ enum PlacementRequestError: Error {
                 storedConfig = final
                 configStore?.save(final)
             }
+            if configRevision == revision { appliedRevision = revision }
+            return true
         } catch {
-            guard !Task.isCancelled, loadGeneration == generation, isSessionValid else { return }
+            guard !Task.isCancelled, loadGeneration == generation, isSessionValid else { return false }
             if case PlacementRequestError.http(let code) = error {
                 storedError = "Could not load sensor placement (HTTP \(code))."
             } else {
                 storedError = "Could not load sensor placement. Please try again."
             }
+            return false
         }
     }
 
@@ -391,23 +408,24 @@ enum PlacementRequestError: Error {
             return Outcome(insights: try await fetch(config, sessionCheck), config: config, notice: nil)
         } catch PlacementRequestError.http(400) where config != nil {
             guard let config else { throw PlacementRequestError.http(400) }
-            var fallback: PlacementInsights?
-            var known = known
-            if known == nil {
-                let unconfigured = try await fetch(nil, sessionCheck)
-                fallback = unconfigured
-                known = unconfigured.roomSensorIDs
-            }
-            let pruned = config.pruned(to: known ?? [])
-            if pruned != config {
+            // Retries with a pruned config; nil when the server rejects that too.
+            func retry(_ pruned: PlacementConfig) async throws -> Outcome? {
                 do {
                     let insights = try await fetch(pruned, sessionCheck)
                     return Outcome(insights: insights, config: pruned, notice: prunedNotice)
-                } catch PlacementRequestError.http(400) {}
+                } catch PlacementRequestError.http(400) { return nil }
             }
-            let insights: PlacementInsights
-            if let fallback { insights = fallback } else { insights = try await fetch(nil, sessionCheck) }
-            return Outcome(insights: insights, config: config, notice: rejectedNotice)
+            // Try the cached sensor list first, then the fresh unconfigured response, which may
+            // show that a sensor the cache still lists is gone.
+            var tried = config
+            if let known, case let pruned = config.pruned(to: known), pruned != config {
+                if let outcome = try await retry(pruned) { return outcome }
+                tried = pruned
+            }
+            let fresh = try await fetch(nil, sessionCheck)
+            let pruned = config.pruned(to: fresh.roomSensorIDs)
+            if pruned != config, pruned != tried, let outcome = try await retry(pruned) { return outcome }
+            return Outcome(insights: fresh, config: config, notice: rejectedNotice)
         }
     }
 
@@ -418,63 +436,5 @@ enum PlacementRequestError: Error {
             _ = AuthManager.shared.authState
             return origin != nil && AuthManager.shared.widgetSessionID() == origin
         }
-    }
-
-    static func request(authorization: String, config: PlacementConfig? = nil) -> URLRequest {
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.fluxhaus.io"
-        components.path = "/climate/placement-insights"
-        components.queryItems = [URLQueryItem(name: "days", value: "14")] + (config?.queryItems ?? [])
-        // URLComponents leaves "+" unescaped, which servers may read as a space.
-        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
-        // The fixed URL components above always form a valid URL.
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue(authorization, forHTTPHeaderField: "Authorization")
-        return request
-    }
-
-    static func decode(data: Data, response: URLResponse) throws -> PlacementInsights {
-        guard let response = response as? HTTPURLResponse else { throw PlacementRequestError.invalidResponse }
-        guard (200...299).contains(response.statusCode) else { throw PlacementRequestError.http(response.statusCode) }
-        return try JSONDecoder().decode(PlacementInsights.self, from: data)
-    }
-
-    static func fetchInsights(
-        config: PlacementConfig? = nil,
-        sessionCheck: @escaping SessionCheck,
-        authorization: @MainActor () -> String? = { AuthManager.shared.authorizationHeader() },
-        hasOIDCToken: @MainActor () -> Bool = { AuthManager.shared.getAccessToken() != nil },
-        ensureToken: @MainActor () async -> Bool = { await AuthManager.shared.ensureValidToken() },
-        refreshToken: @MainActor () async -> Bool = { await AuthManager.shared.refreshTokenIfNeeded() },
-        send: @MainActor (URLRequest) async throws -> (Data, URLResponse) = {
-            try await URLSession.shared.data(for: $0)
-        }
-    ) async throws -> PlacementInsights {
-        try checkSession(sessionCheck)
-        if hasOIDCToken() {
-            _ = await ensureToken()
-            try checkSession(sessionCheck)
-        }
-        guard let header = authorization() else { throw PlacementRequestError.unauthorized }
-        try checkSession(sessionCheck)
-        var (data, response) = try await send(request(authorization: header, config: config))
-        try checkSession(sessionCheck)
-        if (response as? HTTPURLResponse)?.statusCode == 401, hasOIDCToken() {
-            let refreshed = await refreshToken()
-            try checkSession(sessionCheck)
-            guard refreshed, let newHeader = authorization() else { throw PlacementRequestError.unauthorized }
-            try checkSession(sessionCheck)
-            (data, response) = try await send(request(authorization: newHeader, config: config))
-            try checkSession(sessionCheck)
-        }
-        return try decode(data: data, response: response)
-    }
-
-    private static func checkSession(_ check: SessionCheck) throws {
-        try Task.checkCancellation()
-        guard check() else { throw PlacementRequestError.sessionChanged }
     }
 }

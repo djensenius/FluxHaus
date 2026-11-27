@@ -19,6 +19,13 @@ struct SensorPlacementDetailView: View {
         let sensor = insights?.sensors.first(where: { $0.id == sensorID })
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+                if let error = service.error {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                        Button("Retry") { reloadID += 1 }
+                            .disabled(service.isLoading)
+                    }
+                }
                 if let insights, let sensor {
                     if service.isLoading {
                         ProgressView("Refreshing sensor placement…")
@@ -56,7 +63,8 @@ struct SensorPlacementDetailView: View {
             }
         }
         .task(id: reloadID) {
-            if reloadID > 0 { await service.refresh() }
+            // Also finish a setup change whose load was cancelled (e.g. by navigating here).
+            if reloadID > 0 || service.hasPendingConfig { await service.refresh() }
         }
     }
 
@@ -127,12 +135,16 @@ struct SensorPlacementDetailView: View {
             }
             if let config {
                 LabeledContent("Follow Me", value: config.followMe ? "On" : "Off")
-            } else {
+            } else if service.canSaveConfig {
                 Text("Set up your thermostat so tips know which settings use this sensor.")
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
+            if !service.canSaveConfig {
+                Text(SensorPlacementService.setupUnavailableNotice)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
             Button(config == nil ? "Set Up Thermostat…" : "Edit Thermostat Setup…") { showSetup = true }
-                .disabled(service.insights?.roomSensorIDs.isEmpty ?? true)
+                .disabled(service.insights?.roomSensorIDs.isEmpty ?? true || !service.canSaveConfig)
         }
     }
 

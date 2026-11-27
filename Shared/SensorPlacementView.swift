@@ -66,12 +66,20 @@ struct SensorPlacementView: View {
         }
         .task(id: "\(refreshID)-\(service.isSessionValid)") {
             guard service.isSessionValid else { return }
-            // Only reload on request: this task also restarts when returning from a sensor's detail view.
-            if service.insights == nil || refreshID != completedRefreshID {
-                completedRefreshID = refreshID
-                await service.refresh()
-            }
+            let requested = refreshID
+            let reload = Self.needsReload(
+                hasInsights: service.insights != nil, requested: requested, completed: completedRefreshID,
+                pendingConfig: service.hasPendingConfig
+            )
+            // Mark the request done only on success, so a cancelled or failed load is retried.
+            if reload, await service.refresh() { completedRefreshID = requested }
         }
+    }
+
+    /// This task also restarts when returning from a sensor's detail view, so it reloads only when
+    /// nothing is loaded, a reload was requested and hasn't succeeded, or a setup change is pending.
+    static func needsReload(hasInsights: Bool, requested: Int, completed: Int, pendingConfig: Bool) -> Bool {
+        !hasInsights || requested != completed || pendingConfig
     }
 
     private func errorMessage(_ error: String) -> some View {
@@ -113,8 +121,12 @@ struct SensorPlacementView: View {
                 Text("Not set up. Tips can't tell which sensors your Home, Sleep and Away settings average.")
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
+            if !service.canSaveConfig {
+                Text(SensorPlacementService.setupUnavailableNotice)
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
             Button(service.config == nil ? "Set Up Thermostat…" : "Edit Thermostat Setup…") { showSetup = true }
-                .disabled(insights.roomSensorIDs.isEmpty)
+                .disabled(insights.roomSensorIDs.isEmpty || !service.canSaveConfig)
         }
         .font(Theme.Fonts.bodyMedium)
     }
