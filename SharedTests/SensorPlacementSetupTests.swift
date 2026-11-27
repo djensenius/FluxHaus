@@ -278,7 +278,7 @@ struct SensorPlacementSetupTests {
         let service = SensorPlacementService(
             insights: fresh, sessionCheck: { true }, configStore: store, fetch: { config, _ in
                 requests.append(config)
-                if config != nil { throw PlacementRequestError.http(400) }
+                if config != nil && requests.count <= 3 { throw PlacementRequestError.http(400) }
                 return fresh
             }
         )
@@ -288,6 +288,10 @@ struct SensorPlacementSetupTests {
         #expect(store.defaults.data(forKey: store.key) == savedData)
         #expect(service.notice == SensorPlacementService.rejectedNotice)
         #expect(service.notice?.contains("saved setup is kept") == true)
+        #expect(await service.refresh())
+        #expect(requests == [saved, nil, reduced, saved])
+        #expect(service.config == saved && store.load() == saved && service.notice == nil)
+        #expect(store.defaults.data(forKey: store.key) == savedData)
     }
 
     @Test("Period offset explanations do not assume a thermostat reading is present")
