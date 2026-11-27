@@ -181,7 +181,7 @@ struct SensorPlacementTests {
     func retry() async throws {
         var calls = 0
         let result = try insights()
-        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _ in
+        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _, _ in
             calls += 1
             if calls == 1 { throw PlacementRequestError.http(503) }
             return result
@@ -204,10 +204,12 @@ struct SensorPlacementTests {
             let origin = session.id
             var continuation: CheckedContinuation<PlacementInsights, Never>?
             var calls = 0
-            let service = SensorPlacementService(insights: result, sessionCheck: { session.id == origin }, fetch: { _ in
-                calls += 1
-                return await withCheckedContinuation { continuation = $0 }
-            })
+            let service = SensorPlacementService(
+                insights: result, sessionCheck: { session.id == origin }, fetch: { _, _ in
+                    calls += 1
+                    return await withCheckedContinuation { continuation = $0 }
+                }
+            )
             let task = Task { await service.refresh() }
             while continuation == nil { await Task.yield() }
             session.id = replacement
@@ -241,7 +243,7 @@ struct SensorPlacementTests {
     @Test("A cancelled request cannot publish a result or an error")
     func cancellation() async throws {
         let result = try insights()
-        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _ in
+        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _, _ in
             try? await Task.sleep(for: .seconds(30))
             return result
         })
@@ -263,7 +265,7 @@ struct SensorPlacementTests {
                                                                           with: "\"windowDays\": 30").utf8)
         )
         var continuations: [CheckedContinuation<PlacementInsights, Never>] = []
-        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _ in
+        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _, _ in
             await withCheckedContinuation { continuations.append($0) }
         })
         let first = Task { await service.refresh() }
@@ -385,7 +387,7 @@ struct SensorPlacementTests {
 
     @Test("A malformed successful HTTP response is surfaced as an error")
     func malformedSuccess() async {
-        let service = SensorPlacementService(sessionCheck: { true }, fetch: { check in
+        let service = SensorPlacementService(sessionCheck: { true }, fetch: { _, check in
             try await SensorPlacementService.fetchInsights(
                 sessionCheck: check, authorization: { "Basic demo" }, hasOIDCToken: { false },
                 send: { _ in (Data("{}".utf8), response(200)) }
