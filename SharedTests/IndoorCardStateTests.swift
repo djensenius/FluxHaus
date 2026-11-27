@@ -51,11 +51,15 @@ struct IndoorCardMergeTests {
     }
 
     @Test("The polled reading is kept when each response states the same unit in a different place")
-    @MainActor func testReadingKeptWhenUnitsResolveTheSame() async {
+    @MainActor func testReadingKeptWhenUnitsResolveTheSame() async throws {
         let polled = thermostatOnly(
             unit: nil, thermostatUnit: "°C", current: 21.3, timestamp: "2024-12-13T11:59:00Z"
         )
-        let summary = await summaryAfterReply(thermostatOnly(unit: "°C"), polled: polled)
+        let state = try #require(await stateAfterReply(thermostatOnly(unit: "°C"), polled: polled))
+        // The carried reading is stamped with the reply's unit, not left to inherit it.
+        #expect(state.thermostat?.currentTemperature == 21.3)
+        #expect(state.thermostat?.temperatureUnit == "°C")
+        let summary = IndoorCardSummary(state: state)
         #expect(summary.value == format(21.3))
         #expect(summary.status?.hasPrefix("Auto") == true)
     }
@@ -91,7 +95,7 @@ struct IndoorCardMergeTests {
         await thermostat.setMode("heat_cool")
 
         let state = try #require(IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
-        #expect(state.reportedUnit == "°F" && state.thermostatUnit == "°F")
+        #expect(state.reportedUnit == "°F" && state.thermostat?.temperatureUnit == "°F")
         #expect(state.sensors.map(\.unit) == ["°F", "°F"])
         let summary = IndoorCardSummary(state: state)
         #expect(summary.value == IndoorClimateFormat.temperature(70, unit: "°F"))

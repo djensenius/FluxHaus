@@ -40,8 +40,8 @@ extension IndoorCardSummary {
             let pollUnit = nonEmpty(polled.thermostat?.temperatureUnit) ?? nonEmpty(polled.reportedUnit)
             let replyUnit = nonEmpty(current.thermostat?.temperatureUnit) ?? unit
             let carriesReading = pollUnit.map { sameScale($0, unit) && sameScale($0, replyUnit) } ?? false
-            thermostat = current.thermostat.map { carriesReading ? $0.filled(from: readingsFrom, unit: nil) : $0 }
-                ?? (carriesReading ? polled.thermostat?.filled(from: nil, unit: pollUnit) : nil)
+            thermostat = current.thermostat.map { carriesReading ? $0.filled(from: readingsFrom, unit: unit) : $0 }
+                ?? (carriesReading ? polled.thermostat?.filled(from: nil, unit: unit) : nil)
             rooms = polled.sensors.compactMap { sensor in
                 guard let own = nonEmpty(sensor.unit) ?? nonEmpty(polled.reportedUnit),
                       sameScale(own, unit) else { return nil }
@@ -81,8 +81,8 @@ extension IndoorCardSummary {
 }
 
 private extension ThermostatStatus {
-    /// This status stated in `unit` unless it gives its own, with `polled`'s reading and
-    /// humidity filled in where it has none.
+    /// This status with `polled`'s reading and humidity filled in where it has none, stated
+    /// in `unit` when given (callers only pass a unit of the same scale), else in its own.
     func filled(from polled: ThermostatStatus?, unit: String?) -> ThermostatStatus {
         ThermostatStatus(
             entityId: entityId, name: name, area: area, available: available,
@@ -93,7 +93,7 @@ private extension ThermostatStatus {
             presetMode: presetMode, hvacModes: hvacModes, presetModes: presetModes,
             fanMode: fanMode, fanModes: fanModes, minTemp: minTemp, maxTemp: maxTemp,
             targetTempStep: targetTempStep,
-            temperatureUnit: temperatureUnit.flatMap { $0.isEmpty ? nil : $0 } ?? unit
+            temperatureUnit: unit ?? temperatureUnit
         )
     }
 }
