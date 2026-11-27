@@ -87,14 +87,14 @@ struct SensorPlacementDetailView: View {
     private func offsets(_ sensor: PlacementInsights.Sensor, unit: String) -> some View {
         let rows = Self.offsetRows(sensor)
         return VStack(alignment: .leading, spacing: 8) {
-            heading("Compared with the house")
+            heading("Temperature offsets")
             if rows.isEmpty {
                 Text("No offsets are available for this sensor.")
             } else {
                 Chart(rows, id: \.label) { row in
                     BarMark(x: .value("Offset", row.value), y: .value("Period", row.label))
                         .foregroundStyle(row.value < 0 ? Theme.Colors.info : Theme.Colors.accent)
-                    RuleMark(x: .value("House average", 0))
+                    RuleMark(x: .value("Baseline", 0))
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
                 .frame(height: CGFloat(rows.count) * 32 + 24)
@@ -102,7 +102,7 @@ struct SensorPlacementDetailView: View {
                 ForEach(rows, id: \.label) { row in
                     LabeledContent(row.label, value: SensorPlacementView.offset(row.value, unit: unit))
                 }
-                Text("Positive means warmer than the house's comfort average; negative means cooler.")
+                Text(Self.offsetBaseline(sensor))
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
         }
@@ -178,6 +178,15 @@ struct SensorPlacementDetailView: View {
                     ("While cooling", sensor.coolingOffset)]
         }
         return rows.compactMap { label, value in value.map { (label: label, value: $0) } }
+    }
+
+    /// What the offsets are relative to: `periodOffsets` compare with the house's effective comfort
+    /// average, while older servers' per-sensor offsets compare with the mean of all sensors.
+    static func offsetBaseline(_ sensor: PlacementInsights.Sensor) -> String {
+        sensor.periodOffsets != nil
+            ? "Positive means warmer than the house's effective comfort average (what the thermostat reports); "
+                + "negative means cooler."
+            : "Positive means warmer than the average of all sensors; negative means cooler."
     }
 
     static func patternLines(_ sensor: PlacementInsights.Sensor, unit: String) -> [String] {

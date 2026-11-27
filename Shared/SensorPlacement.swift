@@ -285,6 +285,8 @@ enum PlacementRequestError: Error {
     static let prunedNotice = "Sensors that are no longer reported were removed from your thermostat setup."
     static let rejectedNotice = "Your thermostat setup couldn't be used, so these tips don't account for it. "
         + "Review it in Thermostat setup."
+    static let sensorsUnavailableNotice = "Sensors aren't available right now, so these tips don't account for "
+        + "your thermostat setup. Your setup is kept and will be used once sensors are back."
     static let setupUnavailableNotice = "Thermostat setup can't be saved because this sign-in doesn't identify "
         + "your account. Sign out and sign in again to set it up."
 
@@ -416,14 +418,19 @@ enum PlacementRequestError: Error {
                 } catch PlacementRequestError.http(400) { return nil }
             }
             // Try the cached sensor list first, then the fresh unconfigured response, which may
-            // show that a sensor the cache still lists is gone.
+            // show that a sensor the cache still lists is gone. An empty list may be a temporary
+            // discovery failure, so it never prunes: the saved setup is kept for when sensors return.
             var tried = config
-            if let known, case let pruned = config.pruned(to: known), pruned != config {
+            if let known, !known.isEmpty, case let pruned = config.pruned(to: known), pruned != config {
                 if let outcome = try await retry(pruned) { return outcome }
                 tried = pruned
             }
             let fresh = try await fetch(nil, sessionCheck)
-            let pruned = config.pruned(to: fresh.roomSensorIDs)
+            let available = fresh.roomSensorIDs
+            guard !available.isEmpty else {
+                return Outcome(insights: fresh, config: config, notice: sensorsUnavailableNotice)
+            }
+            let pruned = config.pruned(to: available)
             if pruned != config, pruned != tried, let outcome = try await retry(pruned) { return outcome }
             return Outcome(insights: fresh, config: config, notice: rejectedNotice)
         }

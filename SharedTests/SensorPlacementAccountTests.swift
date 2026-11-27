@@ -10,11 +10,12 @@ import Testing
 @testable import FluxHaus
 
 /// Placement insights reporting the given room sensors plus the thermostat ("home").
-private func insights(rooms: [String]) throws -> PlacementInsights {
+private func insights(rooms: [String], sensorFields: String = "") throws -> PlacementInsights {
     let sensors = (rooms.map { ($0, false) } + [("home", true)]).map { id, thermostat in
         """
         {"id": "\(id)", "name": "\(id.capitalized)", "isThermostat": \(thermostat), "averageOffset": 0,
-         "morningOffset": null, "returnOffset": null, "overshoot": null, "sampleCount": 10, "classification": "ok"}
+         "morningOffset": null, "returnOffset": null, "overshoot": null, "sampleCount": 10,
+         "classification": "ok"\(sensorFields)}
         """
     }
     let json = """
@@ -159,6 +160,65 @@ struct SensorPlacementAccountTests {
         #expect(store.load() == corrected)
         #expect(service.notice == SensorPlacementService.prunedNotice)
         #expect(service.insights?.roomSensorIDs == ["bedroom", "kitchen"])
+    }
+
+    @Test("An empty sensor list never prunes the setup: cached inventory is skipped, fresh retries correctly")
+    func emptyCachedInventory() async throws {
+        let fresh = try insights(rooms: ["bedroom", "kitchen"])
+        let store = PlacementConfigStore(account: "a", defaults: defaults())
+        let stale = PlacementConfig(home: ["bedroom", "gone"], sleep: [], away: [], followMe: false)
+        store.save(stale)
+        var requested: [PlacementConfig?] = []
+        let service = SensorPlacementService(
+            insights: try insights(rooms: []), sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                requested.append(config)
+                if config?.home.contains("gone") == true { throw PlacementRequestError.http(400) }
+                return fresh
+            }
+        )
+        #expect(await service.refresh())
+        let corrected = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        // No request with an emptied setup, which the server would accept and the app would persist.
+        #expect(requested == [stale, nil, corrected])
+        #expect(store.load() == corrected)
+    }
+
+    @Test("When fresh inventory is empty too, the saved setup is kept and unconfigured insights are shown")
+    func emptyFreshInventory() async throws {
+        let empty = try insights(rooms: [])
+        let store = PlacementConfigStore(account: "a", defaults: defaults())
+        let saved = PlacementConfig(home: ["bedroom"], sleep: ["kitchen"], away: [], followMe: true)
+        store.save(saved)
+        for cached in [nil, empty] {
+            var requested: [PlacementConfig?] = []
+            let service = SensorPlacementService(
+                insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                    requested.append(config)
+                    if config != nil { throw PlacementRequestError.http(400) }
+                    return empty
+                }
+            )
+            #expect(await service.refresh())
+            #expect(requested == [saved, nil])
+            #expect(service.insights != nil)
+            #expect(service.config == saved)
+            #expect(store.load() == saved)
+            #expect(service.notice == SensorPlacementService.sensorsUnavailableNotice)
+            #expect(service.error == nil)
+        }
+    }
+
+    @Test("Offsets explain their baseline: house comfort average for period offsets, all sensors for legacy")
+    func offsetBaselineWording() throws {
+        let legacy = try #require(try insights(rooms: ["bedroom"]).sensors.first)
+        #expect(legacy.periodOffsets == nil)
+        #expect(SensorPlacementDetailView.offsetBaseline(legacy).contains("average of all sensors"))
+        #expect(SensorPlacementDetailView.offsetRows(legacy).map(\.label) == ["Overall"])
+        let fields = #", "periodOffsets": {"sleep": -0.4, "wake": null, "home": 0.2, "heatingRuns": null, "#
+            + #""cooling": null}"#
+        let current = try #require(try insights(rooms: ["bedroom"], sensorFields: fields).sensors.first)
+        #expect(SensorPlacementDetailView.offsetBaseline(current).contains("effective comfort average"))
+        #expect(SensorPlacementDetailView.offsetRows(current).map(\.label) == ["Overnight", "Home"])
     }
 
     @Test("A cancelled setup reload stays pending and is retried on return; success clears it")
