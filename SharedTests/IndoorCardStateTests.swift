@@ -9,6 +9,7 @@ import Testing
 import Foundation
 @testable import FluxHaus
 
+@Suite(.timeLimit(.minutes(5)))
 struct IndoorCardMergeTests {
     private func format(_ value: Double) -> String {
         IndoorClimateFormat.temperature(value, unit: "°C")

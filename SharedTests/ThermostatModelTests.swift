@@ -140,6 +140,7 @@ struct ThermostatSetpointTests {
     }
 }
 
+@Suite(.timeLimit(.minutes(5)))
 struct IndoorCardSummaryTests {
     private func format(_ value: Double) -> String {
         IndoorClimateFormat.temperature(value, unit: "°C")

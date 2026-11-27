@@ -10,6 +10,7 @@ import Foundation
 @testable import FluxHaus
 
 @MainActor
+@Suite(.timeLimit(.minutes(5)))
 struct ThermostatControllerTests {
     @Test("Repeated taps are combined into one setpoint request")
     func testDebouncedSetpoint() async {
@@ -32,6 +33,8 @@ struct ThermostatControllerTests {
     func testAutoCommit() async {
         let recorder = CommandRecorder()
         let thermostat = recorder.makeThermostat(delay: .milliseconds(10))
+        // The debounce task holds the thermostat weakly, so keep it alive until the request is sent.
+        defer { withExtendedLifetime(thermostat) {} }
         thermostat.nudgeTarget(by: -1)
         await recorder.waitUntilSent()
         #expect(recorder.sent == [.setTemperature(21)])

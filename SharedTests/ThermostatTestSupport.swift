@@ -38,10 +38,19 @@ final class CommandRecorder {
     private var held: [Held] = []
     private var timeouts: [Int: Task<Void, Never>] = [:]
     private var holds = 0
-    /// How long to wait for a request to be sent before recording an issue. Generous, since CI
-    /// machines can be slow; a held request is released after twice this, so a mistake fails
-    /// its test instead of hanging the whole run.
-    static let patience: Duration = .seconds(60)
+    /// Someone waiting for a request to be sent or held; resumed as soon as it is.
+    private struct Waiter {
+        let id: Int
+        let isMet: () -> Bool
+        let resume: CheckedContinuation<Void, Never>
+    }
+    private var waiters: [Waiter] = []
+    private var waits = 0
+    /// Every suite using a recorder runs under a five-minute `timeLimit`, which cancels the waits.
+    /// A held request is released after longer than that, so a test that forgets to release one
+    /// fails instead of hanging the whole run, without racing a slow but passing test. Keep this
+    /// longer than every such suite's time limit.
+    static let releaseHeldAfter: Duration = .seconds(6 * 60)
 
     func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
         let session = self.session
@@ -52,6 +61,7 @@ final class CommandRecorder {
             send: { [unowned self] command, isStillValid in
                 self.sent.append(command)
                 self.sessionChecks.append(isStillValid)
+                self.wakeWaiters()
                 if self.holdsRequests { await self.hold(command) }
                 // Like the real sender: checked right before credentials would be attached.
                 guard isStillValid() else { throw IntentError.notSignedIn }
@@ -66,8 +76,9 @@ final class CommandRecorder {
         let id = holds
         await withCheckedContinuation { continuation in
             held.append(Held(id: id, command: command, resume: continuation))
+            wakeWaiters()
             timeouts[id] = Task { [weak self] in
-                try? await Task.sleep(for: Self.patience * 2)
+                try? await Task.sleep(for: Self.releaseHeldAfter)
                 guard !Task.isCancelled, let self else { return }
                 Issue.record("\(command) was never released")
                 self.resume(id)
@@ -81,19 +92,44 @@ final class CommandRecorder {
         held.remove(at: index).resume.resume()
     }
 
+    // The wait helpers have no deadline of their own: they return only once the request
+    // arrives or the waiting task is cancelled. Call them only from a suite with a
+    // `.timeLimit`, and keep `releaseHeldAfter` longer than that limit.
+
     /// Waits for the request to be sent and held; use it before expecting a request was sent.
+    /// Only bounded by the calling suite's time limit.
     func waitUntilHeld(_ command: ThermostatCommand) async {
-        let deadline = ContinuousClock.now + Self.patience
-        while !held.contains(where: { $0.command == command }), ContinuousClock.now < deadline {
-            try? await Task.sleep(for: .milliseconds(5))
+        await wait { self.held.contains { $0.command == command } }
+    }
+
+    /// Waits for a request to be sent. Only bounded by the calling suite's time limit.
+    func waitUntilSent() async {
+        await wait { !self.sent.isEmpty }
+    }
+
+    /// Returns once `isMet` holds, rechecking whenever a request is sent or held, or when the
+    /// waiting task is cancelled (e.g. by the test's time limit).
+    private func wait(until isMet: @escaping () -> Bool) async {
+        guard !isMet() else { return }
+        waits += 1
+        let id = waits
+        await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                guard !isMet(), !Task.isCancelled else { return continuation.resume() }
+                waiters.append(Waiter(id: id, isMet: isMet, resume: continuation))
+            }
+        } onCancel: {
+            Task { @MainActor in self.stopWaiting(id) }
         }
     }
 
-    func waitUntilSent() async {
-        let deadline = ContinuousClock.now + Self.patience
-        while sent.isEmpty, ContinuousClock.now < deadline {
-            try? await Task.sleep(for: .milliseconds(10))
-        }
+    private func wakeWaiters() {
+        for waiter in waiters where waiter.isMet() { stopWaiting(waiter.id) }
+    }
+
+    private func stopWaiting(_ id: Int) {
+        guard let index = waiters.firstIndex(where: { $0.id == id }) else { return }
+        waiters.remove(at: index).resume.resume()
     }
 
     func release(_ command: ThermostatCommand) async {
