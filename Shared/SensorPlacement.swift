@@ -63,6 +63,7 @@ struct PlacementInsights: Decodable, Sendable {
         let inferredMorningEvents: Int?
         let unknownUnitWindows: Int?
         let participationConfigured: Bool?
+        let thermostatParticipationSupported: Bool?
         let followMe: Bool?
         let occupancyAvailable: Bool?
         let comfortScheduleAvailable: Bool?
@@ -289,6 +290,8 @@ enum PlacementRequestError: Error {
         + "your thermostat setup. Your setup is kept and will be used once sensors are back."
     static let setupUnavailableNotice = "Thermostat setup can't be saved because this sign-in doesn't identify "
         + "your account. Sign out and sign in again to set it up."
+    static let thermostatUnsupportedNotice = "This server can't use built-in thermostat sensor choices in its "
+        + "analysis. Saved choices are kept for a server that supports them."
 
     private struct Outcome: Sendable {
         let insights: PlacementInsights
@@ -317,6 +320,10 @@ enum PlacementRequestError: Error {
     var error: String? { isSessionValid ? storedError : nil }
     /// A non-fatal message about the thermostat setup (e.g. unknown sensors were dropped).
     var notice: String? { isSessionValid ? storedNotice : nil }
+    var thermostatParticipationNotice: String? {
+        guard let insights, insights.coverage.thermostatParticipationSupported != true else { return nil }
+        return Self.thermostatUnsupportedNotice
+    }
     /// False when there's no stable account identity to save the setup under; setup is then unavailable.
     var canSaveConfig: Bool { configStore != nil }
     /// A setup change hasn't been loaded yet (e.g. its refresh was cancelled), so views should retry.

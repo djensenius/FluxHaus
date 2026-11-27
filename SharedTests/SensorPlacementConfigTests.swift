@@ -4,7 +4,9 @@
 //
 
 import Foundation
+import SwiftUI
 import Testing
+import UIKit
 @testable import FluxHaus
 
 private let configJSON = """
@@ -65,32 +67,46 @@ struct SensorPlacementConfigTests {
         return defaults
     }
 
-    private let sample = PlacementConfig(home: ["kitchen", "bedroom"], sleep: [], away: ["a+b"], followMe: true)
+    private let sample = PlacementConfig(
+        home: ["kitchen", "bedroom"], sleep: [], away: ["a+b"], followMe: true,
+        thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+    )
 
-    @Test("Config is sent as sorted comma-separated ids, empty for none, plus Follow Me")
+    @Test("Config keeps the old query order and appends known thermostat choices")
     func queryEncoding() throws {
+        let legacy = PlacementConfig(home: ["kitchen", "bedroom"], sleep: [], away: ["a+b"], followMe: true)
+        let legacyRequest = SensorPlacementService.request(authorization: "Bearer x", config: legacy)
+        #expect(legacyRequest.url?.absoluteString == "https://api.fluxhaus.io/climate/placement-insights"
+                + "?days=14&home=bedroom,kitchen&sleep=&away=a%2Bb&followMe=true")
         let request = SensorPlacementService.request(authorization: "Bearer x", config: sample)
         let url = try #require(request.url)
         #expect(url.absoluteString == "https://api.fluxhaus.io/climate/placement-insights"
-                + "?days=14&home=bedroom,kitchen&sleep=&away=a%2Bb&followMe=true")
+                + "?days=14&home=bedroom,kitchen&sleep=&away=a%2Bb&followMe=true"
+                + "&thermostatHome=true&thermostatSleep=false")
         let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems
         #expect(items?.first(where: { $0.name == "away" })?.value == "a+b")
         let unconfigured = SensorPlacementService.request(authorization: "Bearer x", config: nil)
         #expect(unconfigured.url?.query == "days=14")
     }
 
-    @Test("fetchInsights sends the config")
+    @Test("A token refresh retries with the same room and thermostat choices")
     func fetchSendsConfig() async throws {
         var queries: [String?] = []
         _ = try await SensorPlacementService.fetchInsights(
-            config: sample, sessionCheck: { true }, authorization: { "Basic demo" }, hasOIDCToken: { false },
+            config: sample, sessionCheck: { true }, authorization: { "Bearer token" }, hasOIDCToken: { true },
+            ensureToken: { true }, refreshToken: { true },
             send: { request in
                 queries.append(request.url?.query)
-                let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+                let response = HTTPURLResponse(url: request.url!, statusCode: queries.count == 1 ? 401 : 200,
+                                               httpVersion: nil, headerFields: nil)!
                 return (Data(configJSON.utf8), response)
             }
         )
+        #expect(queries.count == 2)
+        #expect(queries[0] == queries[1])
         #expect(queries.first??.contains("followMe=true") == true)
+        #expect(queries.first??.contains("thermostatHome=true&thermostatSleep=false") == true)
+        #expect(queries.first??.contains("thermostatAway") == false)
     }
 
     /// An unsigned JWT with the given claims; only the payload is read for the account id.
@@ -145,7 +161,10 @@ struct SensorPlacementConfigTests {
             fetch: { _, _ in throw PlacementRequestError.invalidResponse }
         )
         #expect(serviceB.config == nil)
-        let configB = PlacementConfig(home: ["kitchen"], sleep: ["kitchen"], away: [], followMe: false)
+        let configB = PlacementConfig(
+            home: ["kitchen"], sleep: ["kitchen"], away: [], followMe: false,
+            thermostatHome: false, thermostatSleep: nil, thermostatAway: true
+        )
         #expect(serviceB.updateConfig(configB))
 
         // Account A signs in again with a new token: its own choices come back, B's are untouched.
@@ -160,14 +179,20 @@ struct SensorPlacementConfigTests {
         #expect(try store("user-b", "session-6").load() == configB)
     }
 
-    @Test("The thermostat (Ecobee average) can't be a comfort-setting participant")
+    @Test("The thermostat average is excluded from room ids without losing the built-in sensor choices")
     func thermostatExcluded() async throws {
         let result = try decode()
         #expect(result.roomSensorIDs == ["bedroom", "kitchen"])
         #expect(result.thermostatIDs == ["home"])
         let store = PlacementConfigStore(account: "first", defaults: defaults())
-        let withThermostat = PlacementConfig(home: ["home", "bedroom"], sleep: ["home"], away: [], followMe: false)
-        let rooms = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        let withThermostat = PlacementConfig(
+            home: ["home", "bedroom"], sleep: ["home"], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
+        let rooms = PlacementConfig(
+            home: ["bedroom"], sleep: [], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         store.save(withThermostat)
         var requested: [PlacementConfig?] = []
         let service = SensorPlacementService(
@@ -185,9 +210,14 @@ struct SensorPlacementConfigTests {
         var edited = rooms
         edited.set(true, sensor: "home", in: .away)
         edited.set(true, sensor: "kitchen", in: .away)
+        edited.setThermostat(false, in: .home)
+        edited.setThermostat(true, in: .away)
         #expect(service.updateConfig(edited))
         #expect(service.config?.away == ["kitchen"])
-        #expect(store.load()?.away == ["kitchen"])
+        #expect(store.load() == edited.excluding(["home"]))
+        #expect(store.load()?.thermostatHome == false)
+        #expect(store.load()?.thermostatSleep == false)
+        #expect(store.load()?.thermostatAway == true)
     }
 
     @Test("Mode badges mark heating and cooling tips; general tips still render without one")
@@ -219,6 +249,71 @@ struct SensorPlacementConfigTests {
         #expect(service.config == nil)
         #expect(!service.updateConfig(sample))
         #expect(store.load() == nil)
+    }
+
+    @Test("Older servers warn without discarding choices; a supported server clears the warning")
+    func thermostatCapability() async throws {
+        let legacy = try decode()
+        func response(_ value: String) throws -> PlacementInsights {
+            try decode(configJSON.replacingOccurrences(
+                of: "\"participationConfigured\": true",
+                with: "\"thermostatParticipationSupported\": \(value), \"participationConfigured\": true"
+            ))
+        }
+        let unsupported = try response("false")
+        let supported = try response("true")
+        #expect(legacy.coverage.thermostatParticipationSupported == nil)
+        #expect(try response("null").coverage.thermostatParticipationSupported == nil)
+        #expect(unsupported.coverage.thermostatParticipationSupported == false)
+        #expect(supported.coverage.thermostatParticipationSupported == true)
+
+        let store = PlacementConfigStore(account: "first", defaults: defaults())
+        store.save(sample)
+        let session = ConfigTestSession()
+        let responses = [legacy, unsupported, supported]
+        var requests: [PlacementConfig?] = []
+        let service = SensorPlacementService(
+            insights: legacy, sessionCheck: { session.valid }, configStore: store, fetch: { config, _ in
+                requests.append(config)
+                return responses[requests.count - 1]
+            }
+        )
+        let notice = try #require(service.thermostatParticipationNotice)
+        #expect(notice.contains("can't use built-in thermostat sensor choices"))
+        #expect(notice.contains("Saved choices are kept"))
+        var edited = sample
+        edited.setThermostat(false, in: .away)
+        #expect(service.updateConfig(edited))
+        #expect(service.thermostatParticipationNotice == notice)
+        #expect(await service.refresh())
+        #expect(service.thermostatParticipationNotice == notice)
+        #expect(await service.refresh())
+        #expect(service.thermostatParticipationNotice == notice)
+        #expect(await service.refresh())
+        #expect(service.thermostatParticipationNotice == nil)
+        #expect(requests == [edited, edited, edited])
+        #expect(service.config == edited && store.load() == edited)
+        session.valid = false
+        #expect(service.thermostatParticipationNotice == nil)
+    }
+
+    @Test("The setup renders on iOS and visionOS with only room sensors and a compatibility notice")
+    func setupViewRenders() throws {
+        let result = try decode()
+        for notice in [nil, SensorPlacementService.thermostatUnsupportedNotice] {
+            let view = ThermostatSetupView(
+                sensors: result.sensors, config: sample, thermostatParticipationNotice: notice
+            ) { _ in }
+            #expect(view.sensors.map(\.id) == ["bedroom", "kitchen"])
+            #expect(view.thermostatParticipationNotice == notice)
+            let controller = UIHostingController(rootView: view)
+            controller.loadViewIfNeeded()
+            for size in [CGSize(width: 393, height: 852), CGSize(width: 1024, height: 768)] {
+                controller.view.frame = CGRect(origin: .zero, size: size)
+                controller.view.layoutIfNeeded()
+            }
+            #expect(controller.view != nil)
+        }
     }
 
     @Test("New fields decode and unknown enum values fall back instead of failing")
@@ -319,7 +414,10 @@ struct SensorPlacementConfigTests {
     func staleSensorIsPruned() async throws {
         let result = try decode()
         let store = PlacementConfigStore(account: "first", defaults: defaults())
-        let stale = PlacementConfig(home: ["bedroom", "gone"], sleep: [], away: [], followMe: false)
+        let stale = PlacementConfig(
+            home: ["bedroom", "gone"], sleep: [], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         store.save(stale)
         #expect(!result.roomSensorIDs.contains("home"))
         var requested: [PlacementConfig?] = []
@@ -331,7 +429,10 @@ struct SensorPlacementConfigTests {
             }
         )
         await service.refresh()
-        let pruned = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        let pruned = PlacementConfig(
+            home: ["bedroom"], sleep: [], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         #expect(requested == [stale, pruned])
         #expect(service.config == pruned)
         #expect(store.load() == pruned)
@@ -343,7 +444,10 @@ struct SensorPlacementConfigTests {
     func rejectedConfigFallsBack() async throws {
         let result = try decode()
         let store = PlacementConfigStore(account: "first", defaults: defaults())
-        let config = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: true)
+        let config = PlacementConfig(
+            home: ["bedroom"], sleep: [], away: [], followMe: true,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         store.save(config)
         var requested: [PlacementConfig?] = []
         let service = SensorPlacementService(sessionCheck: { true }, configStore: store, fetch: { config, _ in

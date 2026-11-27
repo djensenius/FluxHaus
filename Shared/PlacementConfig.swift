@@ -21,8 +21,13 @@ struct PlacementConfig: Codable, Equatable, Sendable {
     var sleep: Set<String>
     var away: Set<String>
     var followMe: Bool
+    // The physical sensor is separate from the thermostat's reported average.
+    // Missing keys in an older saved setup decode as unknown, not excluded.
+    var thermostatHome: Bool?
+    var thermostatSleep: Bool?
+    var thermostatAway: Bool?
 
-    /// Ecobee's default: every sensor participates in every comfort setting, Follow Me off.
+    /// Ecobee's default for room sensors: all included, Follow Me off; thermostat participation is unknown.
     static func allIncluded(_ sensorIDs: [String]) -> PlacementConfig {
         let ids = Set(sensorIDs)
         return PlacementConfig(home: ids, sleep: ids, away: ids, followMe: false)
@@ -46,10 +51,36 @@ struct PlacementConfig: Codable, Equatable, Sendable {
         }
     }
 
-    /// Drops the given sensor ids (e.g. the thermostat, which is Ecobee's average rather than a sensor).
+    func thermostat(in setting: Setting) -> Bool? {
+        switch setting {
+        case .home: return thermostatHome
+        case .sleep: return thermostatSleep
+        case .away: return thermostatAway
+        }
+    }
+
+    mutating func setThermostat(_ included: Bool?, in setting: Setting) {
+        switch setting {
+        case .home: thermostatHome = included
+        case .sleep: thermostatSleep = included
+        case .away: thermostatAway = included
+        }
+    }
+
+    func thermostatLabel(in setting: Setting) -> String {
+        thermostat(in: setting).map { $0 ? "Included" : "Not included" } ?? "Unknown"
+    }
+
+    /// Ecobee may fall back to the thermostat sensor if no other sensor is selected.
+    func needsThermostatFallbackNotice(in setting: Setting) -> Bool {
+        sensors(in: setting).isEmpty && thermostat(in: setting) == false
+    }
+
+    /// Drops the given ids (e.g. the thermostat's average, which is not a room sensor).
     func excluding(_ ids: Set<String>) -> PlacementConfig {
         PlacementConfig(
-            home: home.subtracting(ids), sleep: sleep.subtracting(ids), away: away.subtracting(ids), followMe: followMe
+            home: home.subtracting(ids), sleep: sleep.subtracting(ids), away: away.subtracting(ids), followMe: followMe,
+            thermostatHome: thermostatHome, thermostatSleep: thermostatSleep, thermostatAway: thermostatAway
         )
     }
 
@@ -57,14 +88,22 @@ struct PlacementConfig: Codable, Equatable, Sendable {
     func pruned(to known: Set<String>) -> PlacementConfig {
         PlacementConfig(
             home: home.intersection(known), sleep: sleep.intersection(known),
-            away: away.intersection(known), followMe: followMe
+            away: away.intersection(known), followMe: followMe,
+            thermostatHome: thermostatHome, thermostatSleep: thermostatSleep, thermostatAway: thermostatAway
         )
     }
 
-    /// Query items in a stable order; an empty value means the setting explicitly has no sensors.
+    /// Query items in a stable order; an empty room-ID value explicitly selects no room sensors.
     var queryItems: [URLQueryItem] {
-        Setting.allCases.map { URLQueryItem(name: $0.rawValue, value: sensors(in: $0).sorted().joined(separator: ",")) }
+        let rooms = Setting.allCases.map {
+            URLQueryItem(name: $0.rawValue, value: sensors(in: $0).sorted().joined(separator: ","))
+        }
             + [URLQueryItem(name: "followMe", value: followMe ? "true" : "false")]
+        let thermostat = [("thermostatHome", thermostatHome), ("thermostatSleep", thermostatSleep),
+                          ("thermostatAway", thermostatAway)]
+        return rooms + thermostat.compactMap { name, included in
+            included.map { URLQueryItem(name: name, value: $0 ? "true" : "false") }
+        }
     }
 }
 
@@ -115,18 +154,26 @@ struct PlacementConfigStore {
 }
 
 struct ThermostatSetupView: View {
+    static let emptySettingNotice = "Ecobee uses the thermostat's built-in sensor if the last sensor is removed. "
+        + "Check settings with no room sensors and an excluded thermostat in Ecobee; actual participation may differ."
+
     let sensors: [PlacementInsights.Sensor]
     let wasConfigured: Bool
+    let thermostatParticipationNotice: String?
     let onSave: (PlacementConfig?) -> Void
     @State private var draft: PlacementConfig
     @Environment(\.dismiss) private var dismiss
 
-    init(sensors: [PlacementInsights.Sensor], config: PlacementConfig?, onSave: @escaping (PlacementConfig?) -> Void) {
-        // The thermostat reading is Ecobee's comfort average, not a sensor that can participate.
+    init(
+        sensors: [PlacementInsights.Sensor], config: PlacementConfig?, thermostatParticipationNotice: String?,
+        onSave: @escaping (PlacementConfig?) -> Void
+    ) {
+        // The reported thermostat reading is Ecobee's comfort average, not a room sensor.
         let rooms = sensors.filter { !$0.isThermostat }
         let ids = rooms.map(\.id)
         self.sensors = rooms
         self.wasConfigured = config != nil
+        self.thermostatParticipationNotice = thermostatParticipationNotice
         self.onSave = onSave
         _draft = State(initialValue: (config ?? .allIncluded(ids)).pruned(to: Set(ids)))
     }
@@ -135,9 +182,16 @@ struct ThermostatSetupView: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Match the sensors each Ecobee comfort setting uses. HomeKit doesn't share these, "
-                         + "so tips can only name the sensor skewing the average when they're set here.")
+                    Text("Match the room sensors each Ecobee comfort setting uses. HomeKit doesn't share these, "
+                         + "so tips need your setup to identify a room sensor that may skew the average.")
                         .foregroundStyle(.secondary)
+                    Text("Choose the thermostat's physical built-in sensor separately from room sensors. "
+                         + "The displayed thermostat temperature is an average; its independent temperature "
+                         + "isn't available.")
+                        .foregroundStyle(.secondary)
+                    if let thermostatParticipationNotice {
+                        Label(thermostatParticipationNotice, systemImage: "exclamationmark.triangle")
+                    }
                 }
                 ForEach(PlacementConfig.Setting.allCases) { setting in
                     Section(setting.title) {
@@ -146,6 +200,20 @@ struct ThermostatSetupView: View {
                                 get: { draft.sensors(in: setting).contains(sensor.id) },
                                 set: { draft.set($0, sensor: sensor.id, in: setting) }
                             ))
+                        }
+                        Picker("Thermostat built-in sensor", selection: Binding(
+                            get: { draft.thermostat(in: setting) },
+                            set: { draft.setThermostat($0, in: setting) }
+                        )) {
+                            Text("Unknown").tag(Optional<Bool>.none)
+                            Text("Included").tag(Optional.some(true))
+                            Text("Not included").tag(Optional.some(false))
+                        }
+                        .accessibilityLabel("Thermostat built-in sensor for \(setting.title)")
+                        .accessibilityHint("Choose whether the physical built-in sensor is used in this setting.")
+                        if draft.needsThermostatFallbackNotice(in: setting) {
+                            Text(Self.emptySettingNotice)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }

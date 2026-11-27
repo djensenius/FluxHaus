@@ -74,6 +74,91 @@ struct SensorPlacementAccountTests {
         })
     }
 
+    @Test("Legacy saved setups migrate with unknown thermostat choices")
+    func legacyConfigMigration() throws {
+        let defaults = defaults()
+        let store = PlacementConfigStore(account: "a", defaults: defaults)
+        let legacy = """
+        {"home": ["bedroom", "gone", "home"], "sleep": ["bedroom"], "away": [], "followMe": true}
+        """
+        defaults.set(Data(legacy.utf8), forKey: store.key)
+        let loaded = try #require(store.load())
+        #expect(loaded.home == ["bedroom", "gone", "home"])
+        #expect(loaded.sleep == ["bedroom"] && loaded.away.isEmpty && loaded.followMe)
+        for setting in PlacementConfig.Setting.allCases {
+            #expect(loaded.thermostat(in: setting) == nil)
+            #expect(loaded.thermostatLabel(in: setting) == "Unknown")
+            #expect(PlacementConfig.allIncluded(["bedroom"]).thermostat(in: setting) == nil)
+        }
+
+        var migrated = loaded.pruned(to: ["bedroom", "home"]).excluding(["home"])
+        store.save(migrated)
+        #expect(store.load() == migrated)
+        #expect(migrated.home == ["bedroom"] && migrated.sleep == ["bedroom"])
+        #expect(migrated.thermostatHome == nil && migrated.thermostatSleep == nil && migrated.thermostatAway == nil)
+        migrated.setThermostat(true, in: .home)
+        migrated.setThermostat(false, in: .sleep)
+        store.save(migrated)
+        #expect(store.load() == migrated)
+    }
+
+    @Test("All true, false and unknown combinations persist and encode as optional query booleans")
+    func thermostatChoicesRoundTrip() throws {
+        let store = PlacementConfigStore(account: "a", defaults: defaults())
+        let choices: [Bool?] = [nil, true, false]
+        for home in choices {
+            for sleep in choices {
+                for away in choices {
+                    var config = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+                    config.setThermostat(home, in: .home)
+                    config.setThermostat(sleep, in: .sleep)
+                    config.setThermostat(away, in: .away)
+                    for (setting, value) in zip(PlacementConfig.Setting.allCases, [home, sleep, away]) {
+                        #expect(config.thermostat(in: setting) == value)
+                        #expect(config.thermostatLabel(in: setting)
+                                == (value.map { $0 ? "Included" : "Not included" } ?? "Unknown"))
+                    }
+                    store.save(config)
+                    #expect(store.load() == config)
+                    let data = try #require(store.defaults.data(forKey: store.key))
+                    let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+                    let expected = [("thermostatHome", home), ("thermostatSleep", sleep), ("thermostatAway", away)]
+                    for (name, value) in expected {
+                        #expect((json[name] as? Bool) == value)
+                        #expect((json[name] != nil) == (value != nil))
+                    }
+                    let request = SensorPlacementService.request(authorization: "Basic demo", config: config)
+                    let url = try #require(request.url)
+                    let items = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
+                    #expect(Array(items.prefix(5)).map(\.name) == ["days", "home", "sleep", "away", "followMe"])
+                    let thermostatItems = expected.compactMap { name, value in
+                        value.map { URLQueryItem(name: name, value: $0 ? "true" : "false") }
+                    }
+                    #expect(Array(items.dropFirst(5)) == thermostatItems)
+                }
+            }
+        }
+    }
+
+    @Test("An empty room list with an excluded thermostat displays Ecobee's possible fallback")
+    func emptySettingNotice() {
+        for setting in PlacementConfig.Setting.allCases {
+            var config = PlacementConfig.allIncluded(["gone"])
+            config.setThermostat(false, in: setting)
+            #expect(!config.needsThermostatFallbackNotice(in: setting))
+            config = config.pruned(to: [])
+            #expect(config.needsThermostatFallbackNotice(in: setting))
+            #expect(config.thermostat(in: setting) == false)
+            config.setThermostat(nil, in: setting)
+            #expect(!config.needsThermostatFallbackNotice(in: setting))
+            #expect(config.thermostatLabel(in: setting) == "Unknown")
+            config.setThermostat(true, in: setting)
+            #expect(!config.needsThermostatFallbackNotice(in: setting))
+        }
+        #expect(ThermostatSetupView.emptySettingNotice.contains("if the last sensor is removed"))
+        #expect(ThermostatSetupView.emptySettingNotice.contains("actual participation may differ"))
+    }
+
     @Test("The ID token's account hash identifies opaque access tokens; it needs both iss and sub")
     func idTokenAccount() throws {
         let idA = try #require(OIDCAccount.identifier(fromJWT: try jwt(["iss": issuer, "sub": "user-a"])))
@@ -95,8 +180,14 @@ struct SensorPlacementAccountTests {
         let tokenA = try jwt(["iss": issuer, "sub": "user-a", "nonce": "1"])
         let tokenB = try jwt(["iss": issuer, "sub": "user-b"])
         var keychain = StoredAccount()
-        let configA = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: true)
-        let configB = PlacementConfig(home: ["kitchen"], sleep: ["kitchen"], away: [], followMe: false)
+        let configA = PlacementConfig(
+            home: ["bedroom"], sleep: [], away: [], followMe: true,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
+        let configB = PlacementConfig(
+            home: ["kitchen"], sleep: ["kitchen"], away: [], followMe: false,
+            thermostatHome: false, thermostatSleep: nil, thermostatAway: true
+        )
 
         keychain.signIn(idToken: tokenA)
         let accountA = try #require(keychain.placementAccount)
@@ -143,7 +234,10 @@ struct SensorPlacementAccountTests {
         let cached = try insights(rooms: ["bedroom", "gone"])
         let fresh = try insights(rooms: ["bedroom", "kitchen"])
         let store = PlacementConfigStore(account: "a", defaults: defaults())
-        let stale = PlacementConfig(home: ["bedroom", "gone"], sleep: ["gone"], away: [], followMe: false)
+        let stale = PlacementConfig(
+            home: ["bedroom", "gone"], sleep: ["gone"], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         store.save(stale)
         var requested: [PlacementConfig?] = []
         let service = SensorPlacementService(
@@ -154,7 +248,10 @@ struct SensorPlacementAccountTests {
             }
         )
         #expect(await service.refresh())
-        let corrected = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        let corrected = PlacementConfig(
+            home: ["bedroom"], sleep: [], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         #expect(requested == [stale, nil, corrected])
         #expect(service.config == corrected)
         #expect(store.load() == corrected)
@@ -187,7 +284,10 @@ struct SensorPlacementAccountTests {
     func emptyFreshInventory() async throws {
         let empty = try insights(rooms: [])
         let store = PlacementConfigStore(account: "a", defaults: defaults())
-        let saved = PlacementConfig(home: ["bedroom"], sleep: ["kitchen"], away: [], followMe: true)
+        let saved = PlacementConfig(
+            home: ["bedroom"], sleep: ["kitchen"], away: [], followMe: true,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
         store.save(saved)
         for cached in [nil, empty] {
             var requested: [PlacementConfig?] = []
@@ -226,15 +326,21 @@ struct SensorPlacementAccountTests {
         let result = try insights(rooms: ["bedroom", "kitchen"])
         let gate = FetchGate()
         let store = PlacementConfigStore(account: "a", defaults: defaults())
+        var requested: [PlacementConfig?] = []
         let service = SensorPlacementService(
-            insights: result, sessionCheck: { true }, configStore: store, fetch: { _, _ in
+            insights: result, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                requested.append(config)
                 gate.started += 1
                 if gate.blocked { try await Task.sleep(for: .seconds(60)) }
                 return result
             }
         )
         #expect(!service.hasPendingConfig)
-        #expect(service.updateConfig(PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)))
+        let config = PlacementConfig(
+            home: ["bedroom"], sleep: [], away: [], followMe: false,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
+        #expect(service.updateConfig(config))
         #expect(service.hasPendingConfig)
 
         // Leaving the screen cancels the reload mid-request.
@@ -251,6 +357,8 @@ struct SensorPlacementAccountTests {
         #expect(SensorPlacementView.needsReload(hasInsights: true, requested: 2, completed: 1, pendingConfig: false))
         gate.blocked = false
         #expect(await service.refresh())
+        #expect(requested == [config, config])
+        #expect(store.load() == config)
         #expect(!service.hasPendingConfig)
         #expect(!SensorPlacementView.needsReload(hasInsights: true, requested: 1, completed: 1, pendingConfig: false))
     }

@@ -59,7 +59,10 @@ struct SensorPlacementView: View {
         }
         .sheet(isPresented: $showSetup) {
             if let insights = service.insights {
-                ThermostatSetupView(sensors: insights.sensors, config: service.config) { config in
+                ThermostatSetupView(
+                    sensors: insights.sensors, config: service.config,
+                    thermostatParticipationNotice: service.thermostatParticipationNotice
+                ) { config in
                     if service.updateConfig(config) { refreshID += 1 }
                 }
             }
@@ -100,6 +103,11 @@ struct SensorPlacementView: View {
                     .font(Theme.Fonts.bodyMedium)
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
+            if let notice = service.thermostatParticipationNotice {
+                Label(notice, systemImage: "exclamationmark.triangle")
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
             thermostatSetup(insights)
             coverage(insights)
             recommendations(insights)
@@ -112,9 +120,18 @@ struct SensorPlacementView: View {
             heading("Thermostat setup")
             if let config = service.config {
                 ForEach(PlacementConfig.Setting.allCases) { setting in
-                    let names = insights.sensors.filter { config.sensors(in: setting).contains($0.id) }
+                    let ids = config.sensors(in: setting)
+                    let names = insights.sensors.filter { !$0.isThermostat && ids.contains($0.id) }
                         .map(\.displayName)
-                    Text("\(setting.title): \(names.isEmpty ? "No sensors" : names.joined(separator: ", "))")
+                    let missing = !ids.subtracting(insights.roomSensorIDs).isEmpty
+                    let displayed = names + (missing ? ["Unavailable"] : [])
+                    Text("\(setting.title) room sensors: "
+                         + (displayed.isEmpty ? "None selected" : displayed.joined(separator: ", ")))
+                    Text("\(setting.title) thermostat built-in sensor: \(config.thermostatLabel(in: setting))")
+                    if config.needsThermostatFallbackNotice(in: setting) {
+                        Text(ThermostatSetupView.emptySettingNotice)
+                            .foregroundStyle(Theme.Colors.textSecondary)
+                    }
                 }
                 Text("Follow Me: \(config.followMe ? "On" : "Off")")
             } else {
@@ -255,7 +272,7 @@ struct SensorPlacementView: View {
                 if sensor.coolingOffset != nil {
                     Text("Cooling offset: \(Self.offset(sensor.coolingOffset, unit: unit))")
                 }
-                if let participation = Self.participationText(sensor.participation) {
+                if !sensor.isThermostat, let participation = Self.participationText(sensor.participation) {
                     Text(participation)
                 }
                 Text("Overshoot after confirmed heating stops: \(Self.offset(sensor.overshoot, unit: unit))")

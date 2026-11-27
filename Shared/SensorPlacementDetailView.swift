@@ -33,6 +33,9 @@ struct SensorPlacementDetailView: View {
                     if let notice = service.notice {
                         Label(notice, systemImage: "info.circle")
                     }
+                    if let notice = service.thermostatParticipationNotice {
+                        Label(notice, systemImage: "exclamationmark.triangle")
+                    }
                     summary(sensor)
                     offsets(sensor, unit: insights.unit)
                     patterns(sensor, unit: insights.unit)
@@ -57,7 +60,10 @@ struct SensorPlacementDetailView: View {
         #endif
         .sheet(isPresented: $showSetup) {
             if let insights {
-                ThermostatSetupView(sensors: insights.sensors, config: service.config) { config in
+                ThermostatSetupView(
+                    sensors: insights.sensors, config: service.config,
+                    thermostatParticipationNotice: service.thermostatParticipationNotice
+                ) { config in
                     if service.updateConfig(config) { reloadID += 1 }
                 }
             }
@@ -124,8 +130,12 @@ struct SensorPlacementDetailView: View {
             heading("Comfort settings")
             let config = service.config
             if sensor.isThermostat {
-                Text("The thermostat reading is the average of the participating sensors, so it isn't one of them.")
+                Text("The thermostat reading is an average, not its built-in sensor's independent temperature. "
+                     + "The choices below describe the physical built-in sensor.")
                     .foregroundStyle(Theme.Colors.textSecondary)
+                ForEach(PlacementConfig.Setting.allCases) { setting in
+                    LabeledContent(setting.title, value: config?.thermostatLabel(in: setting) ?? "Unknown")
+                }
             } else {
                 ForEach(PlacementConfig.Setting.allCases) { setting in
                     let included = config.map { $0.sensors(in: setting).contains(sensorID) }
@@ -135,8 +145,14 @@ struct SensorPlacementDetailView: View {
             }
             if let config {
                 LabeledContent("Follow Me", value: config.followMe ? "On" : "Off")
+                if PlacementConfig.Setting.allCases.contains(where: { config.needsThermostatFallbackNotice(in: $0) }) {
+                    Text(ThermostatSetupView.emptySettingNotice)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                }
             } else if service.canSaveConfig {
-                Text("Set up your thermostat so tips know which settings use this sensor.")
+                Text(sensor.isThermostat
+                     ? "Set up your thermostat to record the built-in sensor's participation."
+                     : "Set up your thermostat so tips know which settings use this sensor.")
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             if !service.canSaveConfig {
