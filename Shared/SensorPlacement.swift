@@ -306,14 +306,14 @@ enum PlacementRequestError: Error {
     static let pendingConfigNotice = "These tips may reflect an earlier thermostat setup. "
         + "The latest saved changes haven't been loaded yet."
 
-    private struct Outcome: Sendable {
+    struct Outcome: Sendable {
         let insights: PlacementInsights
         let thermostatIDs: Set<String>
         let notice: String?
     }
 
     private var storedInsights: PlacementInsights?
-    private var storedConfig: PlacementConfig?
+    private var storedSnapshot: PlacementConfigSnapshot
     private var loading = false
     private var storedError: String?
     private var storedNotice: String?
@@ -328,13 +328,17 @@ enum PlacementRequestError: Error {
 
     var isSessionValid: Bool { sessionCheck() }
     var insights: PlacementInsights? { isSessionValid ? storedInsights : nil }
-    var config: PlacementConfig? { isSessionValid ? storedConfig : nil }
+    // Read storage on access; the store's in-process signal makes other windows redraw.
+    var configSnapshot: PlacementConfigSnapshot {
+        isSessionValid ? configStore?.snapshot() ?? .empty : .empty
+    }
+    var config: PlacementConfig? { configSnapshot.config }
     var isLoading: Bool { isSessionValid && loading }
     var error: String? { isSessionValid ? storedError : nil }
     /// A non-fatal message when the tips couldn't use all of the saved thermostat setup.
     var notice: String? {
-        guard isSessionValid else { return nil }
-        if storedConfig == nil && storedNotice == Self.setupNotUsedNotice { return nil }
+        guard isSessionValid, configSnapshot == storedSnapshot else { return nil }
+        if storedSnapshot.config == nil && storedNotice == Self.setupNotUsedNotice { return nil }
         return storedNotice
     }
     var thermostatParticipationNotice: String? {
@@ -346,7 +350,9 @@ enum PlacementRequestError: Error {
     /// A valid session, stable account and insights response permit editing, even without sensor history.
     var canEditConfig: Bool { canSaveConfig && insights != nil }
     /// A setup change hasn't been loaded yet (e.g. its refresh was cancelled), so views should retry.
-    var hasPendingConfig: Bool { isSessionValid && configRevision != appliedRevision }
+    var hasPendingConfig: Bool {
+        isSessionValid && (configRevision != appliedRevision || configSnapshot != storedSnapshot)
+    }
     var pendingInsightsNotice: String? {
         hasPendingConfig && insights != nil ? Self.pendingConfigNotice : nil
     }
@@ -360,23 +366,46 @@ enum PlacementRequestError: Error {
         self.storedInsights = insights
         self.sessionCheck = sessionCheck
         self.configStore = configStore
-        self.storedConfig = configStore?.load()
+        self.storedSnapshot = configStore?.snapshot() ?? .empty
         self.fetch = fetch
     }
 
     /// Saves a new thermostat setup (nil clears it). Returns true when it changed and insights should reload.
     @discardableResult
     func updateConfig(_ config: PlacementConfig?) -> Bool {
+        updateConfig(config, expected: storedSnapshot) == .changed
+    }
+
+    /// An editor may save only against the setup from which its draft was created.
+    @discardableResult
+    func updateConfig(_ config: PlacementConfig?, expected: PlacementConfigSnapshot) -> PlacementConfigUpdateResult {
+        guard isSessionValid, let configStore else { return .unavailable }
+        syncConfig()
+        guard storedSnapshot == expected else { return .conflict }
         let config = config?.excluding(storedInsights?.thermostatIDs ?? [])
-        guard isSessionValid, let configStore, config != storedConfig else { return false }
-        storedConfig = config
+        guard configStore.snapshot() == expected else {
+            syncConfig()
+            return .conflict
+        }
+        guard config != storedSnapshot.config else { return .unchanged }
+        let saved = configStore.save(config)
+        configRevision &+= 1
+        storedSnapshot = saved
         storedError = nil
         // The displayed legacy tips still ignored the setup even if a replacement refresh fails.
         if storedNotice != Self.setupNotUsedNotice { storedNotice = nil }
-        configStore.save(config)
-        configRevision &+= 1
         loadTask?.cancel()
-        return true
+        return .changed
+    }
+
+    private func syncConfig() {
+        let current = configStore?.snapshot() ?? .empty
+        guard current != storedSnapshot else { return }
+        configRevision &+= 1
+        storedSnapshot = current
+        storedError = nil
+        if storedNotice != Self.setupNotUsedNotice { storedNotice = nil }
+        loadTask?.cancel()
     }
 
     /// Loads insights for the current setup. Returns true only on success (including an intentional
@@ -384,18 +413,21 @@ enum PlacementRequestError: Error {
     @discardableResult
     func refresh() async -> Bool {
         guard isSessionValid, !Task.isCancelled else { return false }
+        syncConfig()
         loadTask?.cancel()
         loadGeneration &+= 1
         let generation = loadGeneration
         loading = true
         storedError = nil
-        let original = storedConfig
+        let original = storedSnapshot
         let revision = configRevision
-        let config = original?.excluding(storedInsights?.thermostatIDs ?? [])
+        let config = original.config?.excluding(storedInsights?.thermostatIDs ?? [])
         let fetch = self.fetch
         let sessionCheck = self.sessionCheck
+        let configStore = self.configStore
+        let isCurrent: SessionCheck = { sessionCheck() && (configStore?.snapshot() ?? .empty) == original }
         let task = Task {
-            try await Self.load(config: config, sessionCheck: sessionCheck, fetch: fetch)
+            try await Self.load(config: config, sessionCheck: isCurrent, fetch: fetch)
         }
         loadTask = task
         defer {
@@ -411,18 +443,20 @@ enum PlacementRequestError: Error {
                 task.cancel()
             }
             try Task.checkCancellation()
-            guard loadGeneration == generation, isSessionValid, configRevision == revision else { return false }
+            guard loadGeneration == generation, isCurrent(), configRevision == revision else { return false }
             storedInsights = result.insights
             storedNotice = result.notice
             let final = config?.excluding(result.thermostatIDs)
-            if final != original, storedConfig == original {
-                storedConfig = final
-                configStore?.save(final)
+            if final != original.config, storedSnapshot == original, let configStore,
+               configStore.snapshot() == original {
+                storedSnapshot = configStore.save(final)
             }
+            guard isSessionValid, configRevision == revision,
+                  (configStore?.snapshot() ?? .empty) == storedSnapshot else { return false }
             appliedRevision = revision
             return true
         } catch {
-            guard !Task.isCancelled, loadGeneration == generation, isSessionValid,
+            guard !Task.isCancelled, loadGeneration == generation, isCurrent(),
                   configRevision == revision else { return false }
             if case PlacementRequestError.http(let code) = error {
                 storedError = "Could not load sensor placement (HTTP \(code))."
@@ -430,39 +464,6 @@ enum PlacementRequestError: Error {
                 storedError = "Could not load sensor placement. Please try again."
             }
             return false
-        }
-    }
-
-    /// If the server rejects the setup, retry with fresh discovery without changing the saved room IDs.
-    private static func load(
-        config: PlacementConfig?, sessionCheck: @escaping SessionCheck, fetch: Fetch
-    ) async throws -> Outcome {
-        do {
-            let insights = try await fetch(config, sessionCheck)
-            let notice = config != nil && insights.coverage.participationConfigured != true ? setupNotUsedNotice : nil
-            return Outcome(insights: insights, thermostatIDs: insights.thermostatIDs, notice: notice)
-        } catch PlacementRequestError.http(400) where config != nil {
-            guard let config else { throw PlacementRequestError.http(400) }
-            // Cached inventory may omit a returned sensor, so only fresh discovery selects the retry.
-            let fresh = try await fetch(nil, sessionCheck)
-            let available = fresh.roomSensorIDs.subtracting(fresh.thermostatIDs)
-            guard !available.isEmpty else {
-                return Outcome(insights: fresh, thermostatIDs: fresh.thermostatIDs, notice: sensorsUnavailableNotice)
-            }
-            let reduced = config.excluding(fresh.thermostatIDs).pruned(to: available)
-            if reduced != config {
-                do {
-                    let insights = try await fetch(reduced, sessionCheck)
-                    let thermostatIDs = fresh.thermostatIDs.union(insights.thermostatIDs)
-                    let saved = config.excluding(thermostatIDs)
-                    let reducedNotice = reduced.excluding(thermostatIDs) == saved ? nil : reducedConfigNotice
-                    let notice = insights.coverage.participationConfigured == true ? reducedNotice : setupNotUsedNotice
-                    return Outcome(insights: insights, thermostatIDs: thermostatIDs, notice: notice)
-                } catch PlacementRequestError.http(400) {
-                    // The unconfigured response is still usable when the reduced request is rejected.
-                }
-            }
-            return Outcome(insights: fresh, thermostatIDs: fresh.thermostatIDs, notice: rejectedNotice)
         }
     }
 

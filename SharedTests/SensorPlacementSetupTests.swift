@@ -55,8 +55,8 @@ struct SensorPlacementSetupTests {
         #expect(!SensorPlacementService(sessionCheck: { true }, configStore: store).canEditConfig)
         #expect(!SensorPlacementService(insights: result, sessionCheck: { true }, configStore: nil).canEditConfig)
         let editor = ThermostatSetupView(
-            sensors: result.sensors, config: service.config, thermostatParticipationNotice: nil
-        ) { _ = service.updateConfig($0) }
+            sensors: result.sensors, snapshot: service.configSnapshot, thermostatParticipationNotice: nil
+        ) { config, expected in service.updateConfig(config, expected: expected) }
         #expect(editor.sensors.isEmpty && !editor.wasConfigured)
         let empty = ThermostatSetupView.initialDraft(config: nil, roomIDs: editor.sensors.map(\.id))
         for setting in PlacementConfig.Setting.allCases {
@@ -71,7 +71,7 @@ struct SensorPlacementSetupTests {
         #expect(ThermostatSetupView.followMeExplanation.contains("isn't detected"))
         #expect(ThermostatSetupView.followMeExplanation.contains("starts off"))
         #expect(ThermostatSetupView.followMeExplanation.contains("match it to your Ecobee setting"))
-        editor.onSave(empty)
+        #expect(editor.onSave(empty, service.configSnapshot) == .changed)
         #expect(store.load() == empty && service.canEditConfig)
 
         var thermostatOnly = empty
@@ -80,10 +80,10 @@ struct SensorPlacementSetupTests {
         #expect(store.load() == thermostatOnly)
         #expect(thermostatOnly.thermostatSleep == nil && thermostatOnly.thermostatAway == nil)
         let savedEditor = ThermostatSetupView(
-            sensors: result.sensors, config: service.config, thermostatParticipationNotice: nil
-        ) { _ = service.updateConfig($0) }
+            sensors: result.sensors, snapshot: service.configSnapshot, thermostatParticipationNotice: nil
+        ) { config, expected in service.updateConfig(config, expected: expected) }
         #expect(savedEditor.wasConfigured && savedEditor.sensors.isEmpty)
-        savedEditor.onSave(nil)
+        #expect(savedEditor.onSave(nil, service.configSnapshot) == .changed)
         #expect(store.load() == nil && service.canEditConfig)
         session.valid = false
         #expect(!service.canEditConfig && !service.updateConfig(empty))
@@ -105,8 +105,8 @@ struct SensorPlacementSetupTests {
             insights: result, sessionCheck: { true }, configStore: store, fetch: { _, _ in result }
         )
         let editor = ThermostatSetupView(
-            sensors: result.sensors, config: service.config, thermostatParticipationNotice: nil
-        ) { _ = service.updateConfig($0) }
+            sensors: result.sensors, snapshot: service.configSnapshot, thermostatParticipationNotice: nil
+        ) { config, expected in service.updateConfig(config, expected: expected) }
         #expect(editor.sensors.map(\.id) == ["bedroom"])
         #expect(editor.reportedSensorIDs == ["bedroom", "thermostat"])
         let unavailable = ThermostatSetupView.unavailableSensorIDs(
@@ -135,7 +135,7 @@ struct SensorPlacementSetupTests {
         #expect(store.load() == saved)
         draft.set(false, sensor: "missing-a", in: .home)
         draft.set(true, sensor: "missing-a", in: .sleep)
-        editor.onSave(draft)
+        #expect(editor.onSave(draft, service.configSnapshot) == .changed)
         let expected = draft.excluding(["thermostat"])
         #expect(service.config == expected && store.load() == expected)
         #expect(expected.home == ["bedroom", "missing-b"])
@@ -150,8 +150,9 @@ struct SensorPlacementSetupTests {
         for hasThermostat in [true, false] {
             let result = try setupInsights(rooms: [], includeThermostat: hasThermostat)
             let editor = ThermostatSetupView(
-                sensors: result.sensors, config: saved, thermostatParticipationNotice: nil
-            ) { _ in }
+                sensors: result.sensors, snapshot: .init(config: saved, revision: nil),
+                thermostatParticipationNotice: nil
+            ) { _, _ in .unchanged }
             #expect(editor.sensors.isEmpty && editor.wasConfigured)
             let unavailable = ThermostatSetupView.unavailableSensorIDs(
                 config: saved, reportedIDs: editor.reportedSensorIDs
@@ -409,9 +410,9 @@ struct SensorPlacementCompatibilityTests {
         #expect(service.pendingInsightsNotice == SensorPlacementService.pendingConfigNotice)
         #expect(store.load() == edited && store.defaults.data(forKey: store.key) == editedData)
         let editor = ThermostatSetupView(
-            sensors: legacy.sensors, config: service.config,
+            sensors: legacy.sensors, snapshot: service.configSnapshot,
             thermostatParticipationNotice: service.thermostatParticipationNotice, analysisNotice: service.notice
-        ) { _ in }
+        ) { _, _ in .unchanged }
         #expect(editor.analysisNotice == SensorPlacementService.setupNotUsedNotice)
         #expect(editor.thermostatParticipationNotice == SensorPlacementService.thermostatUnsupportedNotice)
         session.valid = false

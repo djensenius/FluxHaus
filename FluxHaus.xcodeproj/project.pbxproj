@@ -33,6 +33,8 @@
 		230000080000000000000003 /* SensorPlacementSetupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000080000000000000001 /* SensorPlacementSetupTests.swift */; };
 		230000090000000000000002 /* SensorPlacementDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000090000000000000001 /* SensorPlacementDisplayTests.swift */; };
 		230000090000000000000003 /* SensorPlacementDisplayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000090000000000000001 /* SensorPlacementDisplayTests.swift */; };
+		2300000A0000000000000002 /* SensorPlacementSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2300000A0000000000000001 /* SensorPlacementSyncTests.swift */; };
+		2300000A0000000000000003 /* SensorPlacementSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2300000A0000000000000001 /* SensorPlacementSyncTests.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		01CDBF3D1C40C982D9108D0A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
 		01F890231C04C6F9B56B1691 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
@@ -653,6 +655,7 @@
 		230000070000000000000001 /* SensorPlacementAccountTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPlacementAccountTests.swift; sourceTree = "<group>"; };
 		230000080000000000000001 /* SensorPlacementSetupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPlacementSetupTests.swift; sourceTree = "<group>"; };
 		230000090000000000000001 /* SensorPlacementDisplayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPlacementDisplayTests.swift; sourceTree = "<group>"; };
+		2300000A0000000000000001 /* SensorPlacementSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPlacementSyncTests.swift; sourceTree = "<group>"; };
 		023E1C2F41844A628251CE04 /* RobotsListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotsListView.swift; sourceTree = "<group>"; };
 		025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetMacExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetWatchViews.swift; sourceTree = "<group>"; };
@@ -1130,6 +1133,7 @@
 				230000070000000000000001 /* SensorPlacementAccountTests.swift */,
 				230000080000000000000001 /* SensorPlacementSetupTests.swift */,
 				230000090000000000000001 /* SensorPlacementDisplayTests.swift */,
+				2300000A0000000000000001 /* SensorPlacementSyncTests.swift */,
 				E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */,
 				898888366B5BE96D9A84123B /* IndoorCardStateTests.swift */,
 				E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */,
@@ -1839,6 +1843,7 @@
 				230000070000000000000003 /* SensorPlacementAccountTests.swift in Sources */,
 				230000080000000000000003 /* SensorPlacementSetupTests.swift in Sources */,
 				230000090000000000000003 /* SensorPlacementDisplayTests.swift in Sources */,
+				2300000A0000000000000003 /* SensorPlacementSyncTests.swift in Sources */,
 				634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */,
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
 				634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
@@ -2009,6 +2014,7 @@
 				230000070000000000000002 /* SensorPlacementAccountTests.swift in Sources */,
 				230000080000000000000002 /* SensorPlacementSetupTests.swift in Sources */,
 				230000090000000000000002 /* SensorPlacementDisplayTests.swift in Sources */,
+				2300000A0000000000000002 /* SensorPlacementSyncTests.swift in Sources */,
 				758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */,
 				8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */,
 				A39BBEB3E4AD91945EEB2151 /* IndoorCardStateTests.swift in Sources */,

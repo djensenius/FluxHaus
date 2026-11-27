@@ -60,10 +60,13 @@ struct SensorPlacementView: View {
         .sheet(isPresented: $showSetup) {
             if let insights = service.insights {
                 ThermostatSetupView(
-                    sensors: insights.sensors, config: service.config,
-                    thermostatParticipationNotice: service.thermostatParticipationNotice, analysisNotice: service.notice
-                ) { config in
-                    if service.updateConfig(config) { refreshID += 1 }
+                    sensors: insights.sensors, snapshot: service.configSnapshot,
+                    thermostatParticipationNotice: service.thermostatParticipationNotice,
+                    analysisNotice: service.pendingInsightsNotice ?? service.notice
+                ) { config, expected in
+                    let result = service.updateConfig(config, expected: expected)
+                    if result == .changed { refreshID += 1 }
+                    return result
                 }
             }
         }

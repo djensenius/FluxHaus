@@ -311,9 +311,10 @@ struct SensorPlacementConfigTests {
             for notice in [nil, SensorPlacementService.thermostatUnsupportedNotice] {
                 let analysisNotice = notice == nil ? nil : SensorPlacementService.setupNotUsedNotice
                 let view = ThermostatSetupView(
-                    sensors: sensors, config: config, thermostatParticipationNotice: notice,
+                    sensors: sensors, snapshot: .init(config: config, revision: nil),
+                    thermostatParticipationNotice: notice,
                     analysisNotice: analysisNotice
-                ) { _ in }
+                ) { _, _ in .unchanged }
                 #expect(view.sensors.map(\.id) == (sensors.isEmpty ? [] : ["bedroom", "kitchen"]))
                 #expect(view.thermostatParticipationNotice == notice)
                 #expect(view.analysisNotice == analysisNotice)

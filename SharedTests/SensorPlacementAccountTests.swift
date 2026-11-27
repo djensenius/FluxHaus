@@ -281,12 +281,12 @@ struct SensorPlacementAccountTests {
                 insights: result, sessionCheck: { true }, configStore: store, fetch: { _, _ in result }
             )
             let editor = ThermostatSetupView(
-                sensors: result.sensors, config: service.config, thermostatParticipationNotice: nil
-            ) { _ = service.updateConfig($0) }
+                sensors: result.sensors, snapshot: service.configSnapshot, thermostatParticipationNotice: nil
+            ) { config, expected in service.updateConfig(config, expected: expected) }
             var draft = ThermostatSetupView.initialDraft(config: service.config, roomIDs: editor.sensors.map(\.id))
             #expect(draft == saved)
             draft.setThermostat(true, in: .home)
-            editor.onSave(draft)
+            #expect(editor.onSave(draft, service.configSnapshot) == .changed)
             let expected = draft.excluding(["home"])
             #expect(service.config == expected && store.load() == expected)
             #expect(expected.home == ["bedroom", "missing"])

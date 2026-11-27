@@ -127,29 +127,78 @@ enum PlacementAccount {
     }
 }
 
-/// Persists the placement config per account (see `PlacementAccount`), one key per account.
+/// Signals in-process saves so every open window observes changes to its own stored account config.
+@MainActor @Observable private final class PlacementConfigChanges {
+    static let shared = PlacementConfigChanges()
+    var revision = 0
+}
+
+enum PlacementConfigUpdateResult: Equatable { case changed, unchanged, conflict, unavailable }
+
+struct PlacementConfigSnapshot: Equatable, Sendable {
+    let config: PlacementConfig?
+    let revision: String?
+
+    static let empty = PlacementConfigSnapshot(config: nil, revision: nil)
+}
+
+/// Persists the placement config and its revision under account-specific keys.
+@MainActor
 struct PlacementConfigStore {
     static let keyPrefix = "sensorPlacementConfig."
+    // Distinguish an updated-then-restored setup from an editor or request's older identical snapshot.
+    static let revisionKeyPrefix = "sensorPlacementConfigRevision."
 
     let account: String
     let defaults: UserDefaults
 
     var key: String { Self.keyPrefix + account }
+    var revisionKey: String { Self.revisionKeyPrefix + account }
 
     static func current(defaults: UserDefaults = .standard) -> PlacementConfigStore? {
         PlacementAccount.current().map { PlacementConfigStore(account: $0, defaults: defaults) }
     }
 
     func load() -> PlacementConfig? {
-        defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(PlacementConfig.self, from: $0) }
+        snapshot().config
     }
 
-    func save(_ config: PlacementConfig?) {
-        guard let config, let data = try? JSONEncoder().encode(config) else {
+    func snapshot() -> PlacementConfigSnapshot {
+        _ = PlacementConfigChanges.shared.revision
+        let config = defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(PlacementConfig.self, from: $0) }
+        return PlacementConfigSnapshot(config: config, revision: defaults.string(forKey: revisionKey))
+    }
+
+    @discardableResult
+    func save(_ config: PlacementConfig?) -> PlacementConfigSnapshot {
+        let saved: PlacementConfig?
+        if let config, let data = try? JSONEncoder().encode(config) {
+            defaults.set(data, forKey: key)
+            saved = config
+        } else {
             defaults.removeObject(forKey: key)
-            return
+            saved = nil
         }
-        defaults.set(data, forKey: key)
+        let revision = UUID().uuidString
+        defaults.set(revision, forKey: revisionKey)
+        PlacementConfigChanges.shared.revision &+= 1
+        return PlacementConfigSnapshot(config: saved, revision: revision)
+    }
+}
+
+@MainActor
+struct ThermostatSetupSaveState {
+    let initial: PlacementConfigSnapshot
+    var error: String?
+
+    var initialConfig: PlacementConfig? { initial.config }
+
+    mutating func save(
+        _ config: PlacementConfig?,
+        using onSave: (PlacementConfig?, PlacementConfigSnapshot) -> PlacementConfigUpdateResult
+    ) -> Bool {
+        error = ThermostatSetupView.saveFailureMessage(onSave(config, initial))
+        return error == nil
     }
 }
 
@@ -165,23 +214,28 @@ struct ThermostatSetupView: View {
     static let followMeExplanation = "Follow Me isn't detected. For a new setup this switch starts off; match it to "
         + "your Ecobee setting. The analysis assumes Follow Me averages occupied participating sensors; "
         + "if none are occupied, it averages all participating sensors. Actual behavior may differ."
+    static let conflictNotice = "Thermostat setup changed in another window. Your draft hasn't been saved. "
+        + "Review or note your changes, then cancel and reopen setup to review the latest choices."
+    static let saveUnavailableNotice = "Thermostat setup can't be saved in this session. Your draft hasn't been saved."
 
     let sensors: [PlacementInsights.Sensor]
     let reportedSensorIDs: Set<String>
     let wasConfigured: Bool
     let thermostatParticipationNotice: String?
     let analysisNotice: String?
-    let onSave: (PlacementConfig?) -> Void
+    let onSave: (PlacementConfig?, PlacementConfigSnapshot) -> PlacementConfigUpdateResult
     @State private var draft: PlacementConfig
     // Keep initially saved IDs visible in every setting throughout the editing session.
-    @State private var initialConfig: PlacementConfig?
+    @State private var saveState: ThermostatSetupSaveState
+    @State private var showSaveError = false
     @Environment(\.dismiss) private var dismiss
 
     init(
-        sensors: [PlacementInsights.Sensor], config: PlacementConfig?, thermostatParticipationNotice: String?,
+        sensors: [PlacementInsights.Sensor], snapshot: PlacementConfigSnapshot, thermostatParticipationNotice: String?,
         analysisNotice: String? = nil,
-        onSave: @escaping (PlacementConfig?) -> Void
+        onSave: @escaping (PlacementConfig?, PlacementConfigSnapshot) -> PlacementConfigUpdateResult
     ) {
+        let config = snapshot.config
         // Never offer a reported thermostat ID as a room, even if a duplicate entry says otherwise.
         let thermostatIDs = Set(sensors.filter(\.isThermostat).map(\.id))
         let rooms = sensors.filter { !$0.isThermostat && !thermostatIDs.contains($0.id) }
@@ -193,7 +247,7 @@ struct ThermostatSetupView: View {
         self.analysisNotice = analysisNotice
         self.onSave = onSave
         _draft = State(initialValue: Self.initialDraft(config: config, roomIDs: ids))
-        _initialConfig = State(initialValue: config)
+        _saveState = State(initialValue: ThermostatSetupSaveState(initial: snapshot))
     }
 
     static func initialDraft(config: PlacementConfig?, roomIDs: [String]) -> PlacementConfig {
@@ -212,9 +266,30 @@ struct ThermostatSetupView: View {
         "Unavailable saved ID in current sensor list: \(id)"
     }
 
+    static func saveFailureMessage(_ result: PlacementConfigUpdateResult) -> String? {
+        switch result {
+        case .changed, .unchanged: return nil
+        case .conflict: return conflictNotice
+        case .unavailable: return saveUnavailableNotice
+        }
+    }
+
+    private func save(_ config: PlacementConfig?) {
+        if saveState.save(config, using: onSave) {
+            dismiss()
+        } else {
+            showSaveError = true
+        }
+    }
+
     var body: some View {
         NavigationStack {
             Form {
+                if let saveError = saveState.error {
+                    Section {
+                        Label(saveError, systemImage: "exclamationmark.triangle")
+                    }
+                }
                 Section {
                     Text("Match the room sensors each Ecobee comfort setting uses. HomeKit doesn't share these, "
                          + "so tips need your setup to identify a room sensor that may skew the estimated average.")
@@ -242,7 +317,7 @@ struct ThermostatSetupView: View {
                             ))
                         }
                         ForEach(
-                            Self.unavailableSensorIDs(config: initialConfig, reportedIDs: reportedSensorIDs),
+                            Self.unavailableSensorIDs(config: saveState.initialConfig, reportedIDs: reportedSensorIDs),
                             id: \.self
                         ) { id in
                             Toggle(Self.unavailableSensorLabel(id), isOn: Binding(
@@ -275,11 +350,10 @@ struct ThermostatSetupView: View {
                 } footer: {
                     Text(Self.followMeExplanation)
                 }
-                if wasConfigured {
+                if saveState.initialConfig != nil {
                     Section {
                         Button("Clear Thermostat Setup", role: .destructive) {
-                            onSave(nil)
-                            dismiss()
+                            save(nil)
                         }
                     }
                 }
@@ -295,10 +369,14 @@ struct ThermostatSetupView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        onSave(draft)
-                        dismiss()
+                        save(draft)
                     }
                 }
+            }
+            .alert("Thermostat setup not saved", isPresented: $showSaveError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(saveState.error ?? Self.saveUnavailableNotice)
             }
         }
         #if os(macOS)
@@ -310,6 +388,55 @@ struct ThermostatSetupView: View {
 // MARK: - Request
 
 extension SensorPlacementService {
+    /// Retry with fresh discovery only while the original saved setup and session are still current.
+    static func load(
+        config: PlacementConfig?, sessionCheck: @escaping SessionCheck, fetch: Fetch
+    ) async throws -> Outcome {
+        func checkCurrent() throws {
+            try Task.checkCancellation()
+            guard sessionCheck() else { throw PlacementRequestError.sessionChanged }
+        }
+        func checkedFetch(_ config: PlacementConfig?) async throws -> PlacementInsights {
+            try checkCurrent()
+            do {
+                let result = try await fetch(config, sessionCheck)
+                try checkCurrent()
+                return result
+            } catch {
+                try checkCurrent()
+                throw error
+            }
+        }
+
+        do {
+            let insights = try await checkedFetch(config)
+            let notice = config != nil && insights.coverage.participationConfigured != true ? setupNotUsedNotice : nil
+            return Outcome(insights: insights, thermostatIDs: insights.thermostatIDs, notice: notice)
+        } catch PlacementRequestError.http(400) where config != nil {
+            guard let config else { throw PlacementRequestError.http(400) }
+            // Cached inventory may omit a returned sensor, so only fresh discovery selects the retry.
+            let fresh = try await checkedFetch(nil)
+            let available = fresh.roomSensorIDs.subtracting(fresh.thermostatIDs)
+            guard !available.isEmpty else {
+                return Outcome(insights: fresh, thermostatIDs: fresh.thermostatIDs, notice: sensorsUnavailableNotice)
+            }
+            let reduced = config.excluding(fresh.thermostatIDs).pruned(to: available)
+            if reduced != config {
+                do {
+                    let insights = try await checkedFetch(reduced)
+                    let thermostatIDs = fresh.thermostatIDs.union(insights.thermostatIDs)
+                    let saved = config.excluding(thermostatIDs)
+                    let reducedNotice = reduced.excluding(thermostatIDs) == saved ? nil : reducedConfigNotice
+                    let notice = insights.coverage.participationConfigured == true ? reducedNotice : setupNotUsedNotice
+                    return Outcome(insights: insights, thermostatIDs: thermostatIDs, notice: notice)
+                } catch PlacementRequestError.http(400) {
+                    // The unconfigured response is still usable when the reduced request is rejected.
+                }
+            }
+            return Outcome(insights: fresh, thermostatIDs: fresh.thermostatIDs, notice: rejectedNotice)
+        }
+    }
+
     static func request(authorization: String, config: PlacementConfig? = nil) -> URLRequest {
         var components = URLComponents()
         components.scheme = "https"
