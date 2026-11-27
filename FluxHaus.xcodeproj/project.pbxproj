@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		230000010000000000000001 /* SensorPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000001 /* SensorPlacement.swift */; };
+		230000010000000000000002 /* SensorPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000001 /* SensorPlacement.swift */; };
+		230000010000000000000003 /* SensorPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000001 /* SensorPlacement.swift */; };
+		230000010000000000000004 /* SensorPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000001 /* SensorPlacement.swift */; };
+		230000020000000000000001 /* SensorPlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000002 /* SensorPlacementView.swift */; };
+		230000020000000000000002 /* SensorPlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000002 /* SensorPlacementView.swift */; };
+		230000020000000000000003 /* SensorPlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000002 /* SensorPlacementView.swift */; };
+		230000020000000000000004 /* SensorPlacementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000002 /* SensorPlacementView.swift */; };
+		230000040000000000000001 /* SensorPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000003 /* SensorPlacementTests.swift */; };
+		230000040000000000000002 /* SensorPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230000030000000000000003 /* SensorPlacementTests.swift */; };
 		01682556DD76455141307783 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57CB3B0423E7608E287483D2 /* DashboardView.swift */; };
 		01CDBF3D1C40C982D9108D0A /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2A45F8EEDC9709FC705CE7 /* LoginView.swift */; };
 		01F890231C04C6F9B56B1691 /* WidgetReloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 452250903957BE1761BFABB9 /* WidgetReloader.swift */; };
@@ -618,6 +628,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		230000030000000000000001 /* SensorPlacement.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SensorPlacement.swift; sourceTree = "<group>"; };
+		230000030000000000000002 /* SensorPlacementView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SensorPlacementView.swift; sourceTree = "<group>"; };
+		230000030000000000000003 /* SensorPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorPlacementTests.swift; sourceTree = "<group>"; };
 		023E1C2F41844A628251CE04 /* RobotsListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotsListView.swift; sourceTree = "<group>"; };
 		025441C1652367E339FCE5E2 /* FluxWidgetMacExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FluxWidgetMacExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0398A1FEEF114AC2BF749CE3 /* FluxWidgetWatchViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluxWidgetWatchViews.swift; sourceTree = "<group>"; };
@@ -982,6 +995,8 @@
 				D97E1A41D80F8702EFEA587C /* IndoorCardState.swift */,
 				B73C3C82F598DA1782EA06E2 /* IndoorClimateView.swift */,
 				6833FFF348CC59C34571131C /* ClimateView.swift */,
+				230000030000000000000001 /* SensorPlacement.swift */,
+				230000030000000000000002 /* SensorPlacementView.swift */,
 				9957AF184D1207FF021961EA /* ThermostatControlView.swift */,
 				EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */,
 			);
@@ -1086,6 +1101,7 @@
 				634056D12E47FFC2001F8278 /* QueryFluxTests.swift */,
 				634056D22E47FFC2001F8278 /* SharedTests.swift */,
 				4D8936656126C7639887626E /* ThermostatTests.swift */,
+				230000030000000000000003 /* SensorPlacementTests.swift */,
 				E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */,
 				898888366B5BE96D9A84123B /* IndoorCardStateTests.swift */,
 				E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */,
@@ -1621,6 +1637,8 @@
 				CE7176DE2A005D4CE930E3C5 /* IndoorClimateView.swift in Sources */,
 				8895834EE097726387E0B7D5 /* IndoorCardState.swift in Sources */,
 				CE53A75EA7507BFDB7EF8C2D /* ClimateView.swift in Sources */,
+				230000010000000000000001 /* SensorPlacement.swift in Sources */,
+				230000020000000000000001 /* SensorPlacementView.swift in Sources */,
 				31919743EDD6AEB16D89CE37 /* ThermostatControlView.swift in Sources */,
 				21B330CE9408AA1578972F0F /* MetricsView.swift in Sources */,
 				D97A0D7D4A2A636354CD7940 /* DeviceEntity.swift in Sources */,
@@ -1769,6 +1787,8 @@
 				FF9F4E64353C2F5FBD950971 /* IndoorClimateView.swift in Sources */,
 				BFA588F4DEA201C0D9EF4EE2 /* IndoorCardState.swift in Sources */,
 				255B1D6663B4323A39AB3406 /* ClimateView.swift in Sources */,
+				230000010000000000000002 /* SensorPlacement.swift in Sources */,
+				230000020000000000000002 /* SensorPlacementView.swift in Sources */,
 				9BECA43AC1D26A40EE883D39 /* ThermostatControlView.swift in Sources */,
 				20EC81A3A000AC07341A686F /* MetricsView.swift in Sources */,
 				3D4693F230F53073C5CFF3EF /* DeviceEntity.swift in Sources */,
@@ -1782,6 +1802,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				230000040000000000000002 /* SensorPlacementTests.swift in Sources */,
 				634056CD2E47FDBA001F8278 /* Tests_iOS_SwiftTesting.swift in Sources */,
 				632CBC40258682C9003E4988 /* Tests_iOS.swift in Sources */,
 				634056DC2E47FFC2001F8278 /* WhereWeAreTests.swift in Sources */,
@@ -1924,6 +1945,8 @@
 				BD27BFF598C6533BA9EA1C66 /* IndoorClimateView.swift in Sources */,
 				9AC66BF3169DBFC0CB1B59BB /* IndoorCardState.swift in Sources */,
 				69A3D8B9EC1FE8CD005D33B1 /* ClimateView.swift in Sources */,
+				230000010000000000000003 /* SensorPlacement.swift in Sources */,
+				230000020000000000000003 /* SensorPlacementView.swift in Sources */,
 				7597E5056CF6B329955C4AAB /* ThermostatControlView.swift in Sources */,
 				8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */,
 				7A339080C36A716187EAD3F6 /* DeviceEntity.swift in Sources */,
@@ -1943,6 +1966,7 @@
 				634056DE2E47FFC2001F8278 /* BatteryAndWeatherTests.swift in Sources */,
 				634056DF2E47FFC2001F8278 /* SharedTests.swift in Sources */,
 				E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */,
+				230000040000000000000001 /* SensorPlacementTests.swift in Sources */,
 				758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */,
 				8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */,
 				A39BBEB3E4AD91945EEB2151 /* IndoorCardStateTests.swift in Sources */,
@@ -2041,6 +2065,8 @@
 				B5AB7A9CD6DC2B1D3D3AF853 /* IndoorClimateView.swift in Sources */,
 				88E9B198D01E8C20204559E8 /* IndoorCardState.swift in Sources */,
 				A0785E84D619F8F27E7FF23A /* ClimateView.swift in Sources */,
+				230000010000000000000004 /* SensorPlacement.swift in Sources */,
+				230000020000000000000004 /* SensorPlacementView.swift in Sources */,
 				DE782E9163066F46A1699923 /* ThermostatControlView.swift in Sources */,
 				6ADE9F9431C75D52982CF9F7 /* MetricsView.swift in Sources */,
 				AF58DC7C65F032DC5C1F7C17 /* DeviceEntity.swift in Sources */,
@@ -2142,7 +2168,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -2208,7 +2234,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -2269,7 +2295,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -2297,7 +2323,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -2330,7 +2356,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = iphoneos;
@@ -2359,7 +2385,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2386,7 +2412,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.Tests-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2425,7 +2451,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2464,7 +2490,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -2501,7 +2527,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2539,7 +2565,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_MODULE_NAME = FluxHaus;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2565,7 +2591,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2591,7 +2617,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jensenius.fluxhaus.VisionOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2638,7 +2664,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2670,7 +2696,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2717,7 +2743,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus;
 				PRODUCT_NAME = FluxHaus;
 				SDKROOT = macosx;
@@ -2733,7 +2759,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.11.1;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.davidjensenius.FluxHaus.Tests-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -2766,7 +2792,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = xros;
@@ -2807,7 +2833,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -2846,7 +2872,7 @@
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MACOSX_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.12;
+				MARKETING_VERSION = 1.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = org.davidjensenius.FluxHaus.FluxWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
