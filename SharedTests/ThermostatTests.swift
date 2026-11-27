@@ -10,6 +10,7 @@ import Foundation
 @testable import FluxHaus
 
 @MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct ThermostatControllerTests {
     @Test("Repeated taps are combined into one setpoint request")
     func testDebouncedSetpoint() async {
