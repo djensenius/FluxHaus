@@ -286,6 +286,7 @@
 		8716D5FE3271F7DBCEF8D744 /* ChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0001000000000000000001 /* ChatService.swift */; };
 		88A694EA13C5590830184818 /* CarDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63610D322BB8864F0048B9FF /* CarDetailView.swift */; };
 		8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */; };
+		A39BBEB3E4AD91945EEB2151 /* IndoorCardStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 898888366B5BE96D9A84123B /* IndoorCardStateTests.swift */; };
 		8D80E6BB0FEBF2D6F21674BD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC70F639352E9D9252F77D43 /* Cocoa.framework */; };
 		8D9A67B09C25FE371B9809FA /* MetricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */; };
 		8F608DA017F960D7AFD46953 /* Api.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63BCF7542C63FABB001D4375 /* Api.swift */; };
@@ -772,6 +773,7 @@
 		E2C522BAB88B72001E4009C8 /* FluxWidgetMacExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FluxWidgetMacExtension.entitlements; sourceTree = "<group>"; };
 		E38B4A64D5666D588E647CA0 /* RobotIntents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RobotIntents.swift; sourceTree = "<group>"; };
 		E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatModelTests.swift; sourceTree = "<group>"; };
+		898888366B5BE96D9A84123B /* IndoorCardStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndoorCardStateTests.swift; sourceTree = "<group>"; };
 		E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThermostatUnreportedTests.swift; sourceTree = "<group>"; };
 		EC8514600B773CD2F27ADEB9 /* WidgetData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetData.swift; sourceTree = "<group>"; };
 		EDA1299FF4CBBF0A30638E78 /* MetricsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetricsView.swift; sourceTree = "<group>"; };
@@ -1085,6 +1087,7 @@
 				634056D22E47FFC2001F8278 /* SharedTests.swift */,
 				4D8936656126C7639887626E /* ThermostatTests.swift */,
 				E76C1BAB13AB44B42DD74860 /* ThermostatUnreportedTests.swift */,
+				898888366B5BE96D9A84123B /* IndoorCardStateTests.swift */,
 				E4C93A0B8BBDD75B4E29C6FF /* ThermostatModelTests.swift */,
 				6057F6D2AAC2A7DA7B146B43 /* ThermostatTestSupport.swift */,
 				634056D32E47FFC2001F8278 /* WhereWeAreTests.swift */,
@@ -1942,6 +1945,7 @@
 				E955ACABE63A482A17B16B98 /* ThermostatTests.swift in Sources */,
 				758152A1AB1C1DCE8179BA0C /* ThermostatUnreportedTests.swift in Sources */,
 				8990BA1B14F1F1748013F384 /* ThermostatModelTests.swift in Sources */,
+				A39BBEB3E4AD91945EEB2151 /* IndoorCardStateTests.swift in Sources */,
 				490682650F02EFBDC20C35A6 /* ThermostatTestSupport.swift in Sources */,
 				634056E02E47FFC2001F8278 /* IntegrationTests.swift in Sources */,
 				634056E12E47FFC2001F8278 /* QueryFluxTests.swift in Sources */,

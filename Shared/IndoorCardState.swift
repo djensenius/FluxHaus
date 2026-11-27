@@ -23,60 +23,48 @@ extension IndoorCardSummary {
         return carry(from: polled, into: current)
     }
 
-    /// Conservative merge of a poll into a reply:
-    /// - The thermostat reading is carried only when the poll states its thermostat's unit
-    ///   (its own or the top-level one; a sensor's never counts) and the reply states the
-    ///   same, or states no unit anywhere. A reply in another unit takes nothing.
-    /// - A polled room is carried only with a unit of its own or the poll's top-level one,
-    ///   and is stamped with it; rooms of unknown unit are dropped.
-    /// - The reply's own rooms are never changed.
-    /// - When neither states any unit, both are shown as they are.
+    /// Conservative merge of a poll into a reply. The merged top-level unit is exactly the
+    /// reply's, and the reply's own rooms are never changed.
+    /// - A reply stating a top-level unit U takes the polled thermostat reading only when the
+    ///   poll's thermostat (or top-level) unit is explicitly U, and polled rooms only when their
+    ///   own (or the poll's top-level) unit is explicitly U, stamped with U.
+    /// - A reply without one takes nothing, unless neither response states any unit, when
+    ///   the poll fills in as it is.
     private static func carry(from polled: IndoorClimateState, into current: IndoorClimateState) -> IndoorClimateState {
         let readingsFrom = polled.thermostat.flatMap { old in
             old.available != false && old.entityId == current.thermostat?.entityId ? old : nil
         }
-        let pollUnit = thermostatUnit(of: polled)
-        let replyUnit = thermostatUnit(of: current)
         let thermostat: ThermostatStatus?
         let rooms: [IndoorTemperatureSensor]
-        let unit: String?
-        if !statesAnyUnit(polled) && !statesAnyUnit(current) {
+        if let unit = nonEmpty(current.reportedUnit) {
+            let pollUnit = nonEmpty(polled.thermostat?.temperatureUnit) ?? nonEmpty(polled.reportedUnit)
+            let replyUnit = nonEmpty(current.thermostat?.temperatureUnit) ?? unit
+            let carriesReading = pollUnit.map { sameScale($0, unit) && sameScale($0, replyUnit) } ?? false
+            thermostat = current.thermostat.map { carriesReading ? $0.filled(from: readingsFrom, unit: nil) : $0 }
+                ?? (carriesReading ? polled.thermostat?.filled(from: nil, unit: pollUnit) : nil)
+            rooms = polled.sensors.compactMap { sensor in
+                guard let own = nonEmpty(sensor.unit) ?? nonEmpty(polled.reportedUnit),
+                      sameScale(own, unit) else { return nil }
+                return sensor.stated(in: unit)
+            }
+        } else if !statesAnyUnit(polled) && !statesAnyUnit(current) {
             thermostat = current.thermostat.map { $0.filled(from: readingsFrom, unit: nil) } ?? polled.thermostat
             rooms = polled.sensors
-            unit = nil
         } else {
-            if let replyUnit, let pollUnit, !sameScale(replyUnit, pollUnit) { return current }
-            let carriesReading = pollUnit != nil && (replyUnit != nil || !statesAnyUnit(current))
-            thermostat = current.thermostat.map {
-                carriesReading ? $0.filled(from: readingsFrom, unit: replyUnit ?? pollUnit) : $0
-            } ?? (carriesReading ? polled.thermostat?.filled(from: nil, unit: pollUnit) : nil)
-            rooms = polled.sensors.compactMap { sensor in
-                (nonEmpty(sensor.unit) ?? nonEmpty(polled.reportedUnit)).map { sensor.stated(in: $0) }
-            }
-            unit = sensorUnit(of: current) ?? nonEmpty(polled.reportedUnit)
+            return current
         }
         return IndoorClimateState(
             timestamp: current.timestamp,
-            unit: unit,
+            unit: current.reportedUnit,
             thermostat: thermostat,
             sensors: current.sensors.isEmpty ? rooms : current.sensors,
             confirmed: current.confirmed
         )
     }
 
-    /// The unit a response states for its thermostat: the thermostat's own, else the
-    /// response's top-level unit. A sensor's unit is never evidence for it.
-    private static func thermostatUnit(of state: IndoorClimateState) -> String? {
-        nonEmpty(state.thermostat?.temperatureUnit) ?? nonEmpty(state.reportedUnit)
-    }
-
     private static func statesAnyUnit(_ state: IndoorClimateState) -> Bool {
-        thermostatUnit(of: state) != nil || state.sensors.contains { nonEmpty($0.unit) != nil }
-    }
-
-    /// The unit a response gives its sensors without a unit of their own, or nil when unstated.
-    private static func sensorUnit(of state: IndoorClimateState) -> String? {
-        nonEmpty(state.reportedUnit) ?? state.sensors.lazy.compactMap { nonEmpty($0.unit) }.first
+        nonEmpty(state.thermostat?.temperatureUnit) != nil || nonEmpty(state.reportedUnit) != nil
+            || state.sensors.contains { nonEmpty($0.unit) != nil }
     }
 
     private static func nonEmpty(_ unit: String?) -> String? {
