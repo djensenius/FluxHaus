@@ -17,6 +17,8 @@ struct DashboardView: View {
     var scooter: Scooter
     var apiResponse: Api
     var airPurifier: AirPurifier
+    /// The session's thermostat controller, whose accepted changes are newer than the last poll.
+    var thermostat: Thermostat?
     var locationManager: LocationManager
     var radarService: RadarService
     var onNavigate: (SidebarItem) -> Void
@@ -27,13 +29,6 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 weatherCard
-                if let indoor = apiResponse.response?.indoorClimate, indoor.hasData {
-                    IndoorClimateCard(
-                        state: indoor,
-                        actionTitle: "Climate controls",
-                        actionIcon: "thermometer.medium"
-                    ) { onNavigate(.climate) }
-                }
                 scenesCard
                 ForEach(sortedDeviceCards, id: \.id) { card in
                     card.view
@@ -77,6 +72,13 @@ struct DashboardView: View {
                 view: AnyView(applianceCard(appliance: item.appliance, source: item.source))
             ))
         }
+        let indoor = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: apiResponse.response?.indoorClimate)
+        )
+        cards.append(DeviceCard(
+            id: "indoor", isActive: indoor.isActive, priority: indoor.isActive ? 3 : 2,
+            view: AnyView(IndoorDashboardCard(summary: indoor) { onNavigate(.climate) })
+        ))
         cards.append(DeviceCard(id: "car", isActive: false, priority: 2, view: AnyView(carCard)))
         cards.append(DeviceCard(id: "scooter", isActive: false, priority: 2, view: AnyView(scooterCard)))
         let purifierActive = airPurifier.status.online && airPurifier.status.fanOn

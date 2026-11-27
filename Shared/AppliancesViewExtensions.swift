@@ -8,6 +8,14 @@
 import SwiftUI
 
 extension Appliances {
+    var indoorSummary: IndoorCardSummary {
+        IndoorCardSummary(
+            state: IndoorCardSummary.currentState(
+                thermostat: thermostat, polled: apiResponse.response?.indoorClimate
+            )
+        )
+    }
+
     func getIconColor(type: String, index: Int) -> Color {
         switch type {
         case "Miele":
@@ -17,6 +25,8 @@ extension Appliances {
         case "AirPurifier":
             return airPurifier.status.online && airPurifier.status.fanOn
                 ? Theme.Colors.accent : Theme.Colors.textSecondary
+        case "Indoor":
+            return indoorSummary.tint
         case "Battery":
             return getBatteryIconColor()
         case "Car":
@@ -76,6 +86,8 @@ extension Appliances {
                 .deviceSymbolAnimation(.variableColor, isActive: robotIsActive(robots.cleanBot))
         case "AirPurifier":
             Image(systemName: "air.purifier")
+        case "Indoor":
+            Image(systemName: "thermometer.medium")
         case "Battery":
             getDeviceIcon(battery: battery)
         case "Car":
@@ -111,6 +123,8 @@ extension Appliances {
             return "Cleanbot"
         } else if type == "AirPurifier" {
             return "Air Purifier"
+        } else if type == "Indoor" {
+            return "Indoor"
         } else if type == "Battery" {
             return batteryName()
         } else if type == "Car" {
@@ -165,6 +179,8 @@ extension Appliances {
            return getCleanbotText()
         } else if type == "AirPurifier" {
            return getAirPurifierText()
+        } else if type == "Indoor" {
+            return indoorSummary.detail
         } else if type == "Battery" {
             if battery.state == .charging {
                 return "Charging"
@@ -227,6 +243,8 @@ extension Appliances {
         } else if type == "AirPurifier" {
             if !airPurifier.status.online { return "Off" }
             return airPurifier.status.fanOn ? "On" : "Off"
+        } else if type == "Indoor" {
+            return indoorSummary.value
         } else if type == "Battery" {
             return "\(battery.percent)%"
         } else if type == "Car" {

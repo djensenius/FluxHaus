@@ -190,55 +190,54 @@ struct ContentView: View {
 
     private var homeTab: some View {
         GeometryReader { proxy in
-            if AdaptiveLayout.usesWideDashboard(width: proxy.size.width) {
-                wideHomeLayout(width: proxy.size.width)
+            if AdaptiveLayout.usesWideHome(
+                width: proxy.size.width,
+                isPad: UIDevice.current.userInterfaceIdiom == .pad,
+                isRegularWidth: horizontalSizeClass == .regular
+            ) {
+                wideHomeLayout
             } else {
-                compactHomeLayout
+                compactHomeLayout(height: proxy.size.height)
             }
         }
         .background(Theme.Colors.background)
     }
 
-    private var compactHomeLayout: some View {
-        VStack {
-            DateTimeView()
-            WeatherView(lman: locationManager)
-            // The compact layout doesn't scroll, so keep the summary to two rows.
-            indoorSummary(maxRooms: 4)
-            HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-            appliancesHeader
-            appliancesGrid
-            Spacer()
-            footer
-        }
-    }
-
-    private func wideHomeLayout(width: CGFloat) -> some View {
-        let sidebarWidth = min(max(width * 0.34, 320), 440)
-        return HStack(alignment: .top, spacing: Theme.Spacing.large) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.large) {
-                    DateTimeView()
-                    WeatherView(lman: locationManager)
-                    indoorSummary()
-                    HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
-                    footer
-                }
-                .padding()
-            }
-            .frame(width: sidebarWidth)
-            .background(Theme.Colors.secondaryBackground.opacity(0.55))
-
-            VStack(alignment: .leading, spacing: Theme.Spacing.small) {
+    /// Scrolls as one page so the cards stay reachable on short screens (a landscape
+    /// iPhone); at least a screen tall, so the footer still sits at the bottom.
+    private func compactHomeLayout(height: CGFloat) -> some View {
+        ScrollView {
+            VStack {
+                DateTimeView()
+                WeatherView(lman: locationManager)
+                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 appliancesHeader
-                appliancesGrid
+                appliancesGrid(scrolls: false)
+                Spacer(minLength: 0)
+                footer
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(minHeight: height)
         }
     }
 
-    private func indoorSummary(maxRooms: Int? = nil) -> some View {
-        IndoorSummaryView(apiResponse: apiResponse, maxRooms: maxRooms) { handleNavigationRequest("climate") }
+    /// One full-width scrolling dashboard: date and weather side by side, then the
+    /// device cards across as many columns as fit, then HomeKit favourites.
+    private var wideHomeLayout: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.Spacing.large) {
+                HStack(alignment: .top, spacing: Theme.Spacing.large) {
+                    DateTimeView(leading: true)
+                    WeatherView(lman: locationManager)
+                }
+                appliancesHeader
+                appliancesGrid(scrolls: false)
+                HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
+                footer
+            }
+            .padding(.vertical)
+            .frame(maxWidth: AdaptiveLayout.dashboardMaxContentWidth)
+            .frame(maxWidth: .infinity)
+        }
     }
 
     private var climateView: some View {
@@ -255,7 +254,7 @@ struct ContentView: View {
         }
     }
 
-    private var appliancesGrid: some View {
+    private func appliancesGrid(scrolls: Bool) -> some View {
         Appliances(
             fluxHausConsts: fluxHausConsts,
             hconn: hconn,
@@ -265,7 +264,10 @@ struct ContentView: View {
             battery: battery,
             car: car,
             locationManager: locationManager,
-            airPurifier: airPurifier
+            airPurifier: airPurifier,
+            thermostat: thermostat,
+            onOpenClimate: { handleNavigationRequest("climate") },
+            scrolls: scrolls
         )
     }
 

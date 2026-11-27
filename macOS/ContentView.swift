@@ -135,6 +135,7 @@ struct ContentView: View {
                 scooter: scooter,
                 apiResponse: apiResponse,
                 airPurifier: airPurifier,
+                thermostat: thermostat,
                 locationManager: locationManager,
                 radarService: radarService,
                 onNavigate: { selectedItem = $0 }

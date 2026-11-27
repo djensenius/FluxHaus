@@ -3,7 +3,7 @@
 //  FluxHaus
 //
 //  Indoor temperature UI: the "Inside" card (thermostat + a tile per room),
-//  the Home tab summary with a per-room breakdown, and the indoor history charts.
+//  the Indoor device card shown on Home, and the indoor history charts.
 //
 
 import SwiftUI
@@ -26,7 +26,7 @@ private extension IndoorWarmth {
     }
 }
 
-private extension ThermostatSummary.Activity {
+extension ThermostatSummary.Activity {
     var color: Color {
         switch self {
         case .heating: return Theme.Colors.accent
@@ -230,175 +230,137 @@ struct IndoorRoomTile: View {
     }
 }
 
-// MARK: - Home summary
+// MARK: - Indoor device card
 
-/// Indoor summary for the Home tab: a headline row styled like `WeatherView`'s
-/// right-aligned rows, followed by a compact per-room breakdown named after
-/// each sensor's Home Assistant area.
-struct IndoorSummaryView: View {
-    var apiResponse: Api
-    /// Caps the room chips on space-constrained layouts; the rest are reachable
-    /// through `onTap`.
-    var maxRooms: Int?
-    var onTap: () -> Void
+/// What the Indoor device card on Home shows: the headline temperature, what
+/// the thermostat is doing, and the warmest and coolest rooms.
+struct IndoorCardSummary: Equatable {
+    static let placeholder = "—"
+    static let noReadings = "No readings yet"
 
-    private let columns = [GridItem(.adaptive(minimum: 150), spacing: 8)]
+    /// Headline reading, or `placeholder` before any reading arrives.
+    let value: String
+    /// Thermostat status, e.g. "Heating to 21.5°C" or "Heat · set to 21°C".
+    let status: String?
+    /// The warmest and coolest rooms, e.g. "Warmest Kitchen 22.6°C", with two or more distinct readings.
+    let warmest: String?
+    let coolest: String?
+    let activity: ThermostatSummary.Activity?
+    /// SF Symbol for `status`.
+    let statusImage: String?
+
+    var hasReadings: Bool { value != Self.placeholder }
+
+    /// Sorted with the running devices while the thermostat is heating or cooling.
+    var isActive: Bool { activity == .heating || activity == .cooling }
+
+    /// One line per fact for the card's secondary text.
+    var detail: String {
+        let lines = [status, warmest, coolest].compactMap { $0 }
+        if lines.isEmpty { return hasReadings ? "" : Self.noReadings }
+        return lines.joined(separator: "\n")
+    }
+
+    var tint: Color {
+        guard hasReadings, let activity, activity != .idle else { return Theme.Colors.textSecondary }
+        return activity.color
+    }
+
+    init(state: IndoorClimateState?) {
+        guard let state, state.hasData else {
+            value = Self.placeholder
+            status = nil
+            warmest = nil
+            coolest = nil
+            activity = nil
+            statusImage = nil
+            return
+        }
+        value = state.primaryTemperature.map { state.format($0) } ?? Self.placeholder
+        let summary = state.thermostatSummary
+        status = summary?.text
+        activity = summary?.activity
+        statusImage = summary?.systemImage
+        let extremes = Self.extremes(in: state)
+        warmest = extremes?.warmest
+        coolest = extremes?.coolest
+    }
+
+    private static func extremes(in state: IndoorClimateState) -> (warmest: String, coolest: String)? {
+        let readings = state.rooms.compactMap { sensor -> (name: String, temp: Double)? in
+            guard sensor.isAvailable, let temp = state.temperature(of: sensor) else { return nil }
+            return (state.displayName(for: sensor), temp)
+        }
+        guard let warmest = readings.max(by: { $0.temp < $1.temp }),
+              let coolest = readings.min(by: { $0.temp < $1.temp }),
+              warmest.temp > coolest.temp else { return nil }
+        return ("Warmest \(warmest.name) \(state.format(warmest.temp))",
+                "Coolest \(coolest.name) \(state.format(coolest.temp))")
+    }
+}
+
+#if os(macOS)
+/// The Indoor device card on the Mac dashboard, styled like its other device cards.
+struct IndoorDashboardCard: View {
+    let summary: IndoorCardSummary
+    var onOpen: () -> Void
 
     var body: some View {
-        if let state = apiResponse.response?.indoorClimate, state.hasData,
-           let temp = state.primaryTemperature {
-            Button(action: onTap) {
-                VStack(alignment: .trailing, spacing: 8) {
-                    headline(state: state, temperature: temp)
-                    if state.sensors.count > 1 {
-                        let (shown, hidden) = Self.visibleRooms(state.rooms, limit: maxRooms)
-                        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                            ForEach(shown) { sensor in
-                                IndoorRoomChip(
-                                    sensor: sensor,
-                                    name: state.displayName(for: sensor),
-                                    warmth: state.warmth(of: sensor),
-                                    unit: state.unit
-                                )
-                            }
-                            if hidden > 0 {
-                                MoreRoomsChip(count: hidden)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
+        // The whole card opens Climate, like the iPhone and iPad Indoor card.
+        Button(action: onOpen) {
+            content
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.Colors.secondaryBackground)
+                .cornerRadius(12)
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens Climate")
+    }
+
+    private var content: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "thermometer.medium")
+                    .foregroundColor(summary.tint)
+                Text("Indoor")
+                    .font(Theme.Fonts.headerLarge())
+                    .foregroundColor(Theme.Colors.textPrimary)
+                Spacer()
+                Text(summary.value)
+                    .font(Theme.Fonts.headerXL())
+                    .foregroundColor(summary.hasReadings ? Theme.Colors.secondary : Theme.Colors.textSecondary)
+                    .monospacedDigit()
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                if let status = summary.status, let image = summary.statusImage {
+                    Label(status, systemImage: image)
+                        .foregroundColor(summary.isActive ? summary.tint : Theme.Colors.textPrimary)
                 }
-                .contentShape(Rectangle())
+                if let warmest = summary.warmest {
+                    Label(warmest, systemImage: "arrow.up")
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                if let coolest = summary.coolest {
+                    Label(coolest, systemImage: "arrow.down")
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
+                if !summary.hasReadings && summary.status == nil {
+                    Text(IndoorCardSummary.noReadings)
+                        .foregroundColor(Theme.Colors.textSecondary)
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityHint("Shows indoor climate details")
-        }
-    }
-
-    /// The rooms to show and how many are hidden. When over the limit, one slot
-    /// goes to the "more" chip so the grid keeps the same height.
-    nonisolated static func visibleRooms(
-        _ rooms: [IndoorTemperatureSensor], limit: Int?
-    ) -> (shown: [IndoorTemperatureSensor], hidden: Int) {
-        guard let limit, limit > 0, rooms.count > limit else { return (rooms, 0) }
-        let shown = Array(rooms.prefix(limit - 1))
-        return (shown, rooms.count - shown.count)
-    }
-
-    private func headline(state: IndoorClimateState, temperature: Double) -> some View {
-        HStack {
-            Spacer()
-            Image(systemName: "house.fill")
-                .foregroundColor(Theme.Colors.textSecondary)
+            .font(Theme.Fonts.bodyMedium)
+            Divider()
+            Text("Climate →")
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.accent)
                 .accessibilityHidden(true)
-            Text("Inside \(state.format(temperature))")
-                .foregroundColor(Theme.Colors.textPrimary)
-            if let summary = state.thermostatSummary, summary.activity != .off {
-                Image(systemName: summary.systemImage)
-                    .foregroundColor(summary.activity.color)
-                    .accessibilityHidden(true)
-                Text(summary.text)
-                    .foregroundColor(Theme.Colors.textPrimary)
-            }
-            if let humidity = state.thermostat?.currentHumidity {
-                Image(systemName: "humidity")
-                    .foregroundColor(Theme.Colors.textSecondary)
-                    .accessibilityHidden(true)
-                Text(IndoorClimateFormat.humidity(humidity))
-                    .foregroundColor(Theme.Colors.textPrimary)
-                    .accessibilityLabel("\(IndoorClimateFormat.humidity(humidity)) humidity")
-            }
         }
-        .font(Theme.Fonts.bodyMedium)
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
-        .padding(.trailing)
     }
 }
-
-/// One room in the Home tab breakdown: area name, reading, and occupancy.
-private struct MoreRoomsChip: View {
-    let count: Int
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "ellipsis.circle")
-                .font(Theme.Fonts.caption)
-                .foregroundColor(Theme.Colors.textSecondary)
-                .frame(width: 16)
-                .accessibilityHidden(true)
-            Text("\(count) more")
-                .font(Theme.Fonts.bodySmall)
-                .foregroundColor(Theme.Colors.textSecondary)
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
-        .accessibilityLabel("\(count) more rooms")
-    }
-}
-
-struct IndoorRoomChip: View {
-    let sensor: IndoorTemperatureSensor
-    let name: String
-    let warmth: IndoorWarmth
-    let unit: String
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(Theme.Fonts.caption)
-                .foregroundColor(iconColor)
-                .frame(width: 16)
-                .accessibilityHidden(true)
-            Text(name)
-                .font(Theme.Fonts.bodySmall)
-                .foregroundColor(Theme.Colors.textSecondary)
-                .lineLimit(1)
-                .truncationMode(.tail)
-            Spacer(minLength: 4)
-            Text(reading)
-                .font(Theme.Fonts.bodyMedium).fontWeight(.semibold)
-                .foregroundColor(sensor.isAvailable ? warmth.color : Theme.Colors.textSecondary)
-                .monospacedDigit()
-                .fixedSize()
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 8))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(name)
-        .accessibilityValue(accessibilityValue)
-    }
-
-    private var reading: String {
-        guard sensor.isAvailable, let temp = sensor.temperature else { return "—" }
-        return IndoorClimateFormat.temperature(temp, unit: sensor.unit ?? unit, precise: false)
-    }
-
-    private var icon: String {
-        if !sensor.isAvailable { return "wifi.slash" }
-        if sensor.isThermostat == true { return "thermometer.medium" }
-        if sensor.occupied == true { return "person.fill" }
-        return "sensor"
-    }
-
-    private var iconColor: Color {
-        if !sensor.isAvailable { return Theme.Colors.warning }
-        if sensor.occupied == true { return Theme.Colors.accent }
-        return Theme.Colors.textSecondary
-    }
-
-    private var accessibilityValue: String {
-        guard sensor.isAvailable, let temp = sensor.temperature else { return "Offline" }
-        var parts = [IndoorClimateFormat.temperature(temp, unit: sensor.unit ?? unit)]
-        if sensor.isThermostat == true { parts.append("Thermostat") }
-        if sensor.occupied == true { parts.append("Occupied") }
-        if let warmth = warmth.accessibilityDescription { parts.append(warmth) }
-        return parts.joined(separator: ", ")
-    }
-}
+#endif
 
 // MARK: - Indoor history
 

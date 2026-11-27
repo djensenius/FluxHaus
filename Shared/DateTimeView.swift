@@ -9,22 +9,27 @@ import SwiftUI
 
 struct DateTimeView: View {
     @State var date = Date()
+    /// Leading-aligns the date and time, e.g. beside the weather in a wide header.
+    var leading = false
+
     var body: some View {
-        VStack(alignment: .trailing) {
+        VStack(alignment: leading ? .leading : .trailing) {
             HStack {
-                Spacer()
+                if !leading { Spacer() }
                 Text("\(dateString(date: date))")
                     .onAppear(perform: {_ = self.updateTimer;})
                     .font(Theme.Fonts.headerXL())
                     .foregroundColor(Theme.Colors.textPrimary)
                     .padding(.horizontal)
+                if leading { Spacer() }
             }
             HStack {
-                Spacer()
+                if !leading { Spacer() }
                 Text("\(timeString(date: date))")
                     .font(Theme.Fonts.bodyLarge)
                     .foregroundColor(Theme.Colors.textSecondary)
                     .padding(.horizontal)
+                if leading { Spacer() }
             }
         }
     }
