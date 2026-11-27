@@ -215,8 +215,9 @@ struct SensorPlacementView: View {
             let lastSeason = Self.isEarlier(until, than: coverage.start)
             Text("Cooling\(lastSeason ? " (last season)" : ""): \(dateText(from)) – \(dateText(until))"
                  + (coverage.coolingEvents.map { ", \($0) cooling periods" } ?? ""))
-        } else if coverage.coolingEvents == 0 {
-            Text("No cooling activity in the past year; there are no cooling tips.")
+        }
+        if let notice = Self.noCoolingHistoryNotice(coverage) {
+            Text(notice)
         }
     }
 
@@ -311,6 +312,11 @@ struct SensorPlacementView: View {
 
     private func countText(_ count: Int?) -> String {
         count.map(String.init) ?? "Unavailable"
+    }
+
+    static func noCoolingHistoryNotice(_ coverage: PlacementInsights.Coverage) -> String? {
+        guard coverage.coolingEvents == 0, coverage.coolingFrom == nil || coverage.coolingTo == nil else { return nil }
+        return "No cooling activity was found in the available history; there are no cooling tips."
     }
 
     static func offset(_ value: Double?, unit: String?) -> String {

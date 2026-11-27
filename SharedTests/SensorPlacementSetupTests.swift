@@ -305,4 +305,31 @@ struct SensorPlacementSetupTests {
                 == "Positive means warmer than the estimated effective comfort average; negative means cooler.")
         #expect(ThermostatSetupView.thermostatReadingExplanation.contains("When HomeKit reports"))
     }
+
+    @Test("Zero cooling events describe available history only when there is no complete window")
+    func noCoolingHistoryNotice() throws {
+        let json = """
+        {"start": "2026-03-06T12:00:00Z", "end": "2026-03-20T12:00:00Z", "hvacHistoryAvailable": true,
+         "hvacEarliestStateAt": "2026-03-01T12:00:00Z", "morningEvents": 0, "returnEvents": 0, "coolingEvents": 0}
+        """
+        func notice(_ json: String) throws -> String? {
+            let coverage = try JSONDecoder().decode(PlacementInsights.Coverage.self, from: Data(json.utf8))
+            return SensorPlacementView.noCoolingHistoryNotice(coverage)
+        }
+        let expected = "No cooling activity was found in the available history; there are no cooling tips."
+        #expect(try notice(json) == expected)
+        #expect(try notice(json.replacingOccurrences(of: "true", with: "false")) == expected)
+        #expect(try notice(json.replacingOccurrences(
+            of: "\"coolingEvents\": 0", with: "\"coolingEvents\": null"
+        )) == nil)
+        #expect(try notice(json.replacingOccurrences(of: "\"coolingEvents\": 0", with: "\"coolingEvents\": 1")) == nil)
+        let start = "\"coolingFrom\": \"2026-03-01T00:00:00Z\""
+        let end = "\"coolingTo\": \"2026-03-19T00:00:00Z\""
+        func window(_ fields: String) -> String {
+            json.replacingOccurrences(of: "\"coolingEvents\": 0", with: "\"coolingEvents\": 0, \(fields)")
+        }
+        #expect(try notice(window(start + ", " + end)) == nil)
+        #expect(try notice(window(start)) == expected)
+        #expect(try notice(window(end)) == expected)
+    }
 }
