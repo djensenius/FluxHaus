@@ -180,7 +180,7 @@ struct PlacementInsights: Decodable, Sendable {
         let home: Double?
     }
 
-    /// Days whose daily mean offset was ≤ −0.5 (cold) or ≥ +0.5 (warm), for heating and cooling.
+    /// Sampled local calendar dates whose mean offset was ≤ −0.5 (cold) or ≥ +0.5 (warm); dates may be partial.
     struct Consistency: Decodable, Equatable, Sendable {
         let days: Int?
         let coldDays: Int?

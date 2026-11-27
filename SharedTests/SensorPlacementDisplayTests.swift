@@ -21,7 +21,8 @@ private let currentSummary = "This thermostat-associated sensor is not known to 
 @MainActor
 struct SensorPlacementDisplayTests {
     private func insights(
-        name: String, summary: String? = nil, roomSummary: String? = nil, unitAssumptions: String? = nil
+        name: String, summary: String? = nil, roomSummary: String? = nil, unitAssumptions: String? = nil,
+        roomConsistency: String? = nil
     ) throws -> PlacementInsights {
         func summaryField(_ value: String?) throws -> String {
             guard let value else { return "" }
@@ -29,11 +30,12 @@ struct SensorPlacementDisplayTests {
             return ", \"verdictSummary\": \(try #require(String(data: data, encoding: .utf8)))"
         }
         let roomField = try summaryField(roomSummary)
+        let consistencyField = roomConsistency.map { ", \"consistency\": \($0)" } ?? ""
         let rooms = ["bedroom", "office", "living"].map { id in
             """
             {"id": "\(id)", "name": "\(id.capitalized)", "isThermostat": false, "averageOffset": 0,
              "morningOffset": null, "returnOffset": null, "overshoot": null, "sampleCount": 10,
-             "classification": "ok"\(roomField)}
+             "classification": "ok"\(roomField)\(consistencyField)}
             """
         }
         let nameData = try JSONEncoder().encode(name)
@@ -100,6 +102,20 @@ struct SensorPlacementDisplayTests {
         #expect(thermostat.verdictSummary == legacySummary && thermostat.displayVerdictSummary == nil)
         #expect(SensorPlacementDetailView.thermostatFallback(thermostat) == neutralSummary)
         #expect(room.displayVerdictSummary == legacySummary)
+    }
+
+    @Test("Heating and cooling consistency describe sampled calendar dates, including partial dates")
+    func consistencyDates() throws {
+        let consistency = """
+        {"days": 15, "coldDays": 7, "warmDays": 2, "coolingDays": 3, "coolingColdDays": 1, "coolingWarmDays": 2}
+        """
+        let result = try insights(name: "Hallway temperature", roomConsistency: consistency)
+        #expect(result.windowDays == 14)
+        let sensor = try #require(result.sensors.first(where: { $0.id == "bedroom" }))
+        #expect(SensorPlacementDetailView.patternLines(sensor, unit: result.unit) == [
+            "Heating: cooler on 7 of 15 sampled calendar dates, warmer on 2 of 15; dates may be partial.",
+            "Cooling: cooler on 1 of 3 sampled calendar dates, warmer on 2 of 3; dates may be partial."
+        ])
     }
 
     @Test("Missing unit assumptions are unknown; false flags do not claim verified coverage")

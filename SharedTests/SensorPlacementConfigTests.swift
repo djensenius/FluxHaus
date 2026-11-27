@@ -400,7 +400,7 @@ struct SensorPlacementConfigTests {
         #expect(SensorPlacementDetailView.offsetRows(bedroom).map(\.label)
                 == ["Overnight", "Waking", "While heating"])
         #expect(SensorPlacementDetailView.patternLines(bedroom, unit: "°C").contains(
-            "Heating: cooler on 12 of 14 days, warmer on 0 of 14 days"))
+            "Heating: cooler on 12 of 14 sampled calendar dates, warmer on 0 of 14; dates may be partial."))
         #expect(!SensorPlacementDetailView.patternLines(bedroom, unit: "°C").contains { $0.hasPrefix("Cooling:") })
 
         let thermostat = try #require(result.sensors.first(where: { $0.isThermostat }))

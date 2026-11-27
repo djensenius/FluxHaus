@@ -229,12 +229,13 @@ struct SensorPlacementDetailView: View {
         }
         if let consistency = sensor.consistency {
             if let days = consistency.days, days > 0 {
-                lines.append("Heating: cooler on \(consistency.coldDays ?? 0) of \(days) days, "
-                             + "warmer on \(consistency.warmDays ?? 0) of \(days) days")
+                lines.append("Heating: cooler on \(consistency.coldDays ?? 0) of \(days) sampled calendar dates, "
+                             + "warmer on \(consistency.warmDays ?? 0) of \(days); dates may be partial.")
             }
             if let days = consistency.coolingDays, days > 0 {
-                lines.append("Cooling: cooler on \(consistency.coolingColdDays ?? 0) of \(days) days, "
-                             + "warmer on \(consistency.coolingWarmDays ?? 0) of \(days) days")
+                lines.append("Cooling: cooler on \(consistency.coolingColdDays ?? 0) of \(days) "
+                             + "sampled calendar dates, warmer on \(consistency.coolingWarmDays ?? 0) of \(days); "
+                             + "dates may be partial.")
             }
         }
         let percent = FloatingPointFormatStyle<Double>.Percent().precision(.fractionLength(0))
