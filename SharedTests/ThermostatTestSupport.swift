@@ -46,9 +46,10 @@ final class CommandRecorder {
     }
     private var waiters: [Waiter] = []
     private var waits = 0
-    /// Tests that wait on requests are bounded by a five-minute `timeLimit`, which cancels the
-    /// waits. A held request is released after longer than that, so a test that forgets to
-    /// release one fails instead of hanging the whole run, without racing a slow but passing test.
+    /// Every suite using a recorder runs under a five-minute `timeLimit`, which cancels the waits.
+    /// A held request is released after longer than that, so a test that forgets to release one
+    /// fails instead of hanging the whole run, without racing a slow but passing test. Keep this
+    /// longer than every such suite's time limit.
     static let releaseHeldAfter: Duration = .seconds(6 * 60)
 
     func makeThermostat(delay: Duration = .seconds(60)) -> Thermostat {
@@ -91,11 +92,17 @@ final class CommandRecorder {
         held.remove(at: index).resume.resume()
     }
 
+    // The wait helpers have no deadline of their own: they return only once the request
+    // arrives or the waiting task is cancelled. Call them only from a suite with a
+    // `.timeLimit`, and keep `releaseHeldAfter` longer than that limit.
+
     /// Waits for the request to be sent and held; use it before expecting a request was sent.
+    /// Only bounded by the calling suite's time limit.
     func waitUntilHeld(_ command: ThermostatCommand) async {
         await wait { self.held.contains { $0.command == command } }
     }
 
+    /// Waits for a request to be sent. Only bounded by the calling suite's time limit.
     func waitUntilSent() async {
         await wait { !self.sent.isEmpty }
     }
