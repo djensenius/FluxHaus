@@ -306,6 +306,28 @@ struct IndoorCardTintTests {
         #expect(tint(action: "off", mode: "off") == Theme.Colors.textSecondary)
         #expect(tint(action: nil, available: false) == Theme.Colors.warning)
     }
+
+    @Test("Without any reading, heating and cooling still tint the icon; other states stay muted")
+    func testTintWithoutReadings() {
+        func summary(action: String?, mode: String? = "heat", available: Bool = true) -> IndoorCardSummary {
+            let thermostat = ThermostatStatus(
+                entityId: "climate.home", available: available, hvacMode: mode, hvacAction: action
+            )
+            return IndoorCardSummary(state: IndoorClimateState(unit: "°C", thermostat: thermostat, sensors: []))
+        }
+        let heating = summary(action: "heating")
+        #expect(!heating.hasReadings)
+        #expect(heating.tint == Theme.Colors.error)
+        #expect(summary(action: "preheating").tint == Theme.Colors.error)
+        #expect(summary(action: "cooling", mode: "cool").tint == Theme.Colors.info)
+        for muted in [
+            summary(action: "idle"), summary(action: "fan", mode: "fan_only"),
+            summary(action: "off", mode: "off"), summary(action: nil, available: false)
+        ] {
+            #expect(!muted.hasReadings)
+            #expect(muted.tint == Theme.Colors.textSecondary)
+        }
+    }
 }
 
 @MainActor

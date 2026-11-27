@@ -263,7 +263,10 @@ struct IndoorCardSummary: Equatable {
     }
 
     var tint: Color {
-        guard hasReadings, let activity, activity != .idle else { return Theme.Colors.textSecondary }
+        guard let activity else { return Theme.Colors.textSecondary }
+        // Known heating or cooling shows even before a temperature reading arrives.
+        if isActive { return activity.color }
+        guard hasReadings, activity != .idle else { return Theme.Colors.textSecondary }
         return activity.color
     }
 
