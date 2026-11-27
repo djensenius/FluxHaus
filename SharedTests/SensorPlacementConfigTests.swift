@@ -113,6 +113,10 @@ struct SensorPlacementConfigTests {
         #expect(!idA.contains("user-a") && !first.contains(idA))
         #expect(PlacementAccount.identifier(accessToken: "opaque-token", hasDemoPassword: true) == nil)
         #expect(PlacementAccount.identifier(accessToken: try jwt(["iss": issuer]), hasDemoPassword: false) == nil)
+        // Both claims are required: a missing or empty issuer must not collapse to "|sub".
+        #expect(PlacementAccount.identifier(accessToken: try jwt(["sub": "user-a"]), hasDemoPassword: false) == nil)
+        let emptyIssuer = try jwt(["iss": "", "sub": "user-a"])
+        #expect(PlacementAccount.identifier(accessToken: emptyIssuer, hasDemoPassword: false) == nil)
         #expect(PlacementAccount.identifier(accessToken: nil, hasDemoPassword: true) == "demo")
         #expect(PlacementAccount.identifier(accessToken: nil, hasDemoPassword: false) == nil)
     }

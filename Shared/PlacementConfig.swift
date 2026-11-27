@@ -90,8 +90,9 @@ enum PlacementAccount {
         payload += String(repeating: "=", count: (4 - payload.count % 4) % 4)
         guard let data = Data(base64Encoded: payload),
               let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let iss = claims["iss"] as? String, !iss.isEmpty,
               let sub = claims["sub"] as? String, !sub.isEmpty else { return nil }
-        return "\(claims["iss"] as? String ?? "")|\(sub)"
+        return "\(iss)|\(sub)"
     }
 
     private static func hash(_ value: String) -> String {
