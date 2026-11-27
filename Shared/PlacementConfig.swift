@@ -5,6 +5,7 @@
 //  The thermostat setup sent with placement insights: model, per-session persistence and editor.
 //
 
+import CryptoKit
 import SwiftUI
 
 /// The owner's Ecobee comfort-setting sensor participation and Follow Me choice.
@@ -46,6 +47,13 @@ struct PlacementConfig: Codable, Equatable, Sendable {
         }
     }
 
+    /// Drops the given sensor ids (e.g. the thermostat, which is Ecobee's average rather than a sensor).
+    func excluding(_ ids: Set<String>) -> PlacementConfig {
+        PlacementConfig(
+            home: home.subtracting(ids), sleep: sleep.subtracting(ids), away: away.subtracting(ids), followMe: followMe
+        )
+    }
+
     /// Drops sensor ids the server no longer reports.
     func pruned(to known: Set<String>) -> PlacementConfig {
         PlacementConfig(
@@ -61,36 +69,59 @@ struct PlacementConfig: Codable, Equatable, Sendable {
     }
 }
 
-/// Persists the placement config tagged with the signed-in session (see `AuthManager.widgetSessionID()`),
-/// so a config is only ever returned for the session that saved it and never leaks across accounts.
-struct PlacementConfigStore {
-    static let key = "sensorPlacementConfig"
-
-    private struct Record: Codable {
-        let session: String
-        let config: PlacementConfig
+/// A stable, non-secret identifier for the signed-in account, so the setup survives sign-out and
+/// sign-in of the same account while staying separate per account. For OIDC it is a SHA-256 hash of
+/// the access token's `iss` and `sub` claims (read locally, never stored); the shared demo login is "demo".
+enum PlacementAccount {
+    static func current() -> String? {
+        identifier(accessToken: AuthManager.shared.getAccessToken(), hasDemoPassword: WhereWeAre.getPassword() != nil)
     }
 
-    let session: String
+    static func identifier(accessToken: String?, hasDemoPassword: Bool) -> String? {
+        // Requests use the OIDC token when present, so an unreadable (opaque) token means no stable id.
+        if let accessToken { return subject(ofJWT: accessToken).map(hash) }
+        return hasDemoPassword ? "demo" : nil
+    }
+
+    private static func subject(ofJWT token: String) -> String? {
+        let parts = token.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3 else { return nil }
+        var payload = parts[1].replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        payload += String(repeating: "=", count: (4 - payload.count % 4) % 4)
+        guard let data = Data(base64Encoded: payload),
+              let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let sub = claims["sub"] as? String, !sub.isEmpty else { return nil }
+        return "\(claims["iss"] as? String ?? "")|\(sub)"
+    }
+
+    private static func hash(_ value: String) -> String {
+        SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
+    }
+}
+
+/// Persists the placement config per account (see `PlacementAccount`), one key per account.
+struct PlacementConfigStore {
+    static let keyPrefix = "sensorPlacementConfig."
+
+    let account: String
     let defaults: UserDefaults
 
+    var key: String { Self.keyPrefix + account }
+
     static func current(defaults: UserDefaults = .standard) -> PlacementConfigStore? {
-        AuthManager.shared.widgetSessionID().map { PlacementConfigStore(session: $0, defaults: defaults) }
+        PlacementAccount.current().map { PlacementConfigStore(account: $0, defaults: defaults) }
     }
 
     func load() -> PlacementConfig? {
-        guard let data = defaults.data(forKey: Self.key),
-              let record = try? JSONDecoder().decode(Record.self, from: data),
-              record.session == session else { return nil }
-        return record.config
+        defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(PlacementConfig.self, from: $0) }
     }
 
     func save(_ config: PlacementConfig?) {
-        guard let config, let data = try? JSONEncoder().encode(Record(session: session, config: config)) else {
-            defaults.removeObject(forKey: Self.key)
+        guard let config, let data = try? JSONEncoder().encode(config) else {
+            defaults.removeObject(forKey: key)
             return
         }
-        defaults.set(data, forKey: Self.key)
+        defaults.set(data, forKey: key)
     }
 }
 
@@ -102,8 +133,10 @@ struct ThermostatSetupView: View {
     @Environment(\.dismiss) private var dismiss
 
     init(sensors: [PlacementInsights.Sensor], config: PlacementConfig?, onSave: @escaping (PlacementConfig?) -> Void) {
-        let ids = sensors.map(\.id)
-        self.sensors = sensors
+        // The thermostat reading is Ecobee's comfort average, not a sensor that can participate.
+        let rooms = sensors.filter { !$0.isThermostat }
+        let ids = rooms.map(\.id)
+        self.sensors = rooms
         self.wasConfigured = config != nil
         self.onSave = onSave
         _draft = State(initialValue: (config ?? .allIncluded(ids)).pruned(to: Set(ids)))

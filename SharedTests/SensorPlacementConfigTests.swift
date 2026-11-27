@@ -93,22 +93,111 @@ struct SensorPlacementConfigTests {
         #expect(queries.first??.contains("followMe=true") == true)
     }
 
-    @Test("Persistence is scoped to the session that saved it")
-    func persistenceScoping() {
+    /// An unsigned JWT with the given claims; only the payload is read for the account id.
+    private func jwt(_ claims: [String: Any]) throws -> String {
+        let payload = try JSONSerialization.data(withJSONObject: claims).base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+        return "eyJhbGciOiJub25lIn0.\(payload).signature"
+    }
+
+    @Test("The account id is stable across tokens for one account, distinct per account and not the raw subject")
+    func accountIdentifier() throws {
+        let issuer = "https://auth.fluxhaus.io/application/o/fluxhaus-server/"
+        let first = try jwt(["iss": issuer, "sub": "user-a", "exp": 1, "jti": "one"])
+        let relogin = try jwt(["iss": issuer, "sub": "user-a", "exp": 2, "jti": "two"])
+        let other = try jwt(["iss": issuer, "sub": "user-b", "exp": 1])
+        let idA = try #require(PlacementAccount.identifier(accessToken: first, hasDemoPassword: false))
+        #expect(PlacementAccount.identifier(accessToken: relogin, hasDemoPassword: false) == idA)
+        #expect(PlacementAccount.identifier(accessToken: other, hasDemoPassword: false) != idA)
+        #expect(!idA.contains("user-a") && !first.contains(idA))
+        #expect(PlacementAccount.identifier(accessToken: "opaque-token", hasDemoPassword: true) == nil)
+        #expect(PlacementAccount.identifier(accessToken: try jwt(["iss": issuer]), hasDemoPassword: false) == nil)
+        #expect(PlacementAccount.identifier(accessToken: nil, hasDemoPassword: true) == "demo")
+        #expect(PlacementAccount.identifier(accessToken: nil, hasDemoPassword: false) == nil)
+    }
+
+    @Test("Two accounts stay isolated and an account's setup is restored after sign-out and sign-in")
+    func accountScopedPersistence() throws {
         let defaults = defaults()
-        let first = PlacementConfigStore(session: "first", defaults: defaults)
-        first.save(sample)
-        #expect(first.load() == sample)
-        #expect(PlacementConfigStore(session: "first", defaults: defaults).load() == sample)
-        #expect(PlacementConfigStore(session: "second", defaults: defaults).load() == nil)
-        first.save(nil)
-        #expect(first.load() == nil)
+        let issuer = "https://auth.fluxhaus.io/application/o/fluxhaus-server/"
+        func store(_ sub: String, _ jti: String) throws -> PlacementConfigStore {
+            let token = try jwt(["iss": issuer, "sub": sub, "jti": jti])
+            let account = try #require(PlacementAccount.identifier(accessToken: token, hasDemoPassword: false))
+            return PlacementConfigStore(account: account, defaults: defaults)
+        }
+        let accountA = try store("user-a", "session-1")
+        let session = ConfigTestSession()
+        let serviceA = SensorPlacementService(sessionCheck: { session.valid }, configStore: accountA, fetch: { _, _ in
+            throw PlacementRequestError.invalidResponse
+        })
+        #expect(serviceA.updateConfig(sample))
+
+        // Sign out, then account B signs in on the same device.
+        session.valid = false
+        #expect(serviceA.config == nil)
+        let serviceB = SensorPlacementService(
+            sessionCheck: { true }, configStore: try store("user-b", "session-2"),
+            fetch: { _, _ in throw PlacementRequestError.invalidResponse }
+        )
+        #expect(serviceB.config == nil)
+        let configB = PlacementConfig(home: ["kitchen"], sleep: ["kitchen"], away: [], followMe: false)
+        #expect(serviceB.updateConfig(configB))
+
+        // Account A signs in again with a new token: its own choices come back, B's are untouched.
+        let restored = SensorPlacementService(
+            sessionCheck: { true }, configStore: try store("user-a", "session-3"),
+            fetch: { _, _ in throw PlacementRequestError.invalidResponse }
+        )
+        #expect(restored.config == sample)
+        #expect(try store("user-b", "session-4").load() == configB)
+        accountA.save(nil)
+        #expect(try store("user-a", "session-5").load() == nil)
+        #expect(try store("user-b", "session-6").load() == configB)
+    }
+
+    @Test("The thermostat (Ecobee average) can't be a comfort-setting participant")
+    func thermostatExcluded() async throws {
+        let result = try decode()
+        #expect(result.roomSensorIDs == ["bedroom", "kitchen"])
+        #expect(result.thermostatIDs == ["home"])
+        let store = PlacementConfigStore(account: "first", defaults: defaults())
+        let withThermostat = PlacementConfig(home: ["home", "bedroom"], sleep: ["home"], away: [], followMe: false)
+        let rooms = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        store.save(withThermostat)
+        var requested: [PlacementConfig?] = []
+        let service = SensorPlacementService(
+            insights: result, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                requested.append(config)
+                return result
+            }
+        )
+        // A previously saved thermostat id is never sent and is removed from storage.
+        await service.refresh()
+        #expect(requested == [rooms])
+        #expect(service.config == rooms)
+        #expect(store.load() == rooms)
+        // Saving a setup that names the thermostat stores only the room sensors.
+        var edited = rooms
+        edited.set(true, sensor: "home", in: .away)
+        edited.set(true, sensor: "kitchen", in: .away)
+        #expect(service.updateConfig(edited))
+        #expect(service.config?.away == ["kitchen"])
+        #expect(store.load()?.away == ["kitchen"])
+    }
+
+    @Test("Mode badges mark heating and cooling tips; general tips still render without one")
+    func modeBadges() {
+        #expect(PlacementRecommendationCard.modeBadge(.heating)?.title == "Heating")
+        #expect(PlacementRecommendationCard.modeBadge(.cooling)?.title == "Cooling")
+        #expect(PlacementRecommendationCard.modeBadge(.unknown) == nil)
+        #expect(PlacementRecommendationCard.modeBadge(nil) == nil)
     }
 
     @Test("The service loads, updates and hides the config with the session")
     func serviceConfig() {
         let defaults = defaults()
-        let store = PlacementConfigStore(session: "first", defaults: defaults)
+        let store = PlacementConfigStore(account: "first", defaults: defaults)
         store.save(sample)
         let session = ConfigTestSession()
         let service = SensorPlacementService(sessionCheck: { session.valid }, configStore: store, fetch: { _, _ in
@@ -225,9 +314,10 @@ struct SensorPlacementConfigTests {
     @Test("A rejected config drops unknown sensors and retries, persisting the pruned config")
     func staleSensorIsPruned() async throws {
         let result = try decode()
-        let store = PlacementConfigStore(session: "first", defaults: defaults())
+        let store = PlacementConfigStore(account: "first", defaults: defaults())
         let stale = PlacementConfig(home: ["bedroom", "gone"], sleep: [], away: [], followMe: false)
         store.save(stale)
+        #expect(!result.roomSensorIDs.contains("home"))
         var requested: [PlacementConfig?] = []
         let service = SensorPlacementService(
             insights: result, sessionCheck: { true }, configStore: store, fetch: { config, _ in
@@ -248,7 +338,7 @@ struct SensorPlacementConfigTests {
     @Test("An unusable config falls back to unconfigured insights with a clear message")
     func rejectedConfigFallsBack() async throws {
         let result = try decode()
-        let store = PlacementConfigStore(session: "first", defaults: defaults())
+        let store = PlacementConfigStore(account: "first", defaults: defaults())
         let config = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: true)
         store.save(config)
         var requested: [PlacementConfig?] = []
@@ -257,6 +347,7 @@ struct SensorPlacementConfigTests {
             if config != nil { throw PlacementRequestError.http(400) }
             return result
         })
+        // Without cached insights, the fallback learns room sensors from the unconfigured response.
         await service.refresh()
         #expect(requested == [config, nil])
         #expect(service.insights != nil)

@@ -246,6 +246,10 @@ struct PlacementInsights: Decodable, Sendable {
         }
     }
 
+    /// Physical room sensors that can participate in comfort settings (excludes the thermostat average).
+    var roomSensorIDs: Set<String> { Set(sensors.filter { !$0.isThermostat }.map(\.id)) }
+    var thermostatIDs: Set<String> { Set(sensors.filter(\.isThermostat).map(\.id)) }
+
     var rankedRecommendations: [Recommendation] {
         recommendations.enumerated().sorted {
             if $0.element.severityRank != $1.element.severityRank {
@@ -323,6 +327,7 @@ enum PlacementRequestError: Error {
     /// Saves a new thermostat setup (nil clears it). Returns true when it changed and insights should reload.
     @discardableResult
     func updateConfig(_ config: PlacementConfig?) -> Bool {
+        let config = config?.excluding(storedInsights?.thermostatIDs ?? [])
         guard isSessionValid, config != storedConfig else { return false }
         storedConfig = config
         storedNotice = nil
@@ -337,8 +342,9 @@ enum PlacementRequestError: Error {
         let generation = loadGeneration
         loading = true
         storedError = nil
-        let config = storedConfig
-        let known = storedInsights.map { Set($0.sensors.map(\.id)) }
+        let original = storedConfig
+        let config = original?.excluding(storedInsights?.thermostatIDs ?? [])
+        let known = storedInsights?.roomSensorIDs
         let fetch = self.fetch
         let sessionCheck = self.sessionCheck
         let task = Task {
@@ -361,9 +367,10 @@ enum PlacementRequestError: Error {
             guard loadGeneration == generation, isSessionValid else { return }
             storedInsights = result.insights
             storedNotice = result.notice
-            if result.config != config, storedConfig == config {
-                storedConfig = result.config
-                configStore?.save(result.config)
+            let final = result.config?.excluding(result.insights.thermostatIDs)
+            if final != original, storedConfig == original {
+                storedConfig = final
+                configStore?.save(final)
             }
         } catch {
             guard !Task.isCancelled, loadGeneration == generation, isSessionValid else { return }
@@ -389,7 +396,7 @@ enum PlacementRequestError: Error {
             if known == nil {
                 let unconfigured = try await fetch(nil, sessionCheck)
                 fallback = unconfigured
-                known = Set(unconfigured.sensors.map(\.id))
+                known = unconfigured.roomSensorIDs
             }
             let pruned = config.pruned(to: known ?? [])
             if pruned != config {

@@ -114,7 +114,7 @@ struct SensorPlacementView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Button(service.config == nil ? "Set Up Thermostat…" : "Edit Thermostat Setup…") { showSetup = true }
-                .disabled(insights.sensors.isEmpty)
+                .disabled(insights.roomSensorIDs.isEmpty)
         }
         .font(Theme.Fonts.bodyMedium)
     }

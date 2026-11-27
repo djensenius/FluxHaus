@@ -115,10 +115,15 @@ struct SensorPlacementDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             heading("Comfort settings")
             let config = service.config
-            ForEach(PlacementConfig.Setting.allCases) { setting in
-                let included = config.map { $0.sensors(in: setting).contains(sensorID) }
-                    ?? sensor.participation?.value(for: setting)
+            if sensor.isThermostat {
+                Text("The thermostat reading is the average of the participating sensors, so it isn't one of them.")
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            } else {
+                ForEach(PlacementConfig.Setting.allCases) { setting in
+                    let included = config.map { $0.sensors(in: setting).contains(sensorID) }
+                        ?? sensor.participation?.value(for: setting)
                 LabeledContent(setting.title, value: included.map { $0 ? "Included" : "Not included" } ?? "Unknown")
+                }
             }
             if let config {
                 LabeledContent("Follow Me", value: config.followMe ? "On" : "Off")
@@ -127,6 +132,7 @@ struct SensorPlacementDetailView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Button(config == nil ? "Set Up Thermostat…" : "Edit Thermostat Setup…") { showSetup = true }
+                .disabled(service.insights?.roomSensorIDs.isEmpty ?? true)
         }
     }
 
@@ -257,6 +263,15 @@ struct PlacementRecommendationCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
+            if let badge = Self.modeBadge(recommendation.mode) {
+                let color = recommendation.mode == .cooling ? Theme.Colors.info : Theme.Colors.accent
+                Label(badge.title, systemImage: badge.icon)
+                    .font(Theme.Fonts.bodySmall.weight(.semibold))
+                    .foregroundStyle(color)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(color.opacity(0.15), in: Capsule())
+            }
             Text(recommendation.title).fontWeight(.semibold)
             let badges = [SensorPlacementView.periodLabel(recommendation.period),
                           SensorPlacementView.settingLabel(recommendation.comfortSetting)].compactMap { $0 }
@@ -286,5 +301,13 @@ struct PlacementRecommendationCard: View {
         .background(Theme.Colors.secondaryBackground)
         #endif
         .cornerRadius(Theme.cornerRadius)
+    }
+
+    /// Heating/Cooling badge; nil for general (or unrecognized) recommendations, which still render.
+    static func modeBadge(_ mode: PlacementInsights.Mode?) -> (title: String, icon: String)? {
+        switch mode {
+        case .heating, .cooling: return (SensorPlacementView.modeTitle(mode), SensorPlacementView.modeIcon(mode))
+        case .unknown, nil: return nil
+        }
     }
 }
