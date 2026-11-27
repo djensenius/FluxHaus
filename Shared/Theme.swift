@@ -246,9 +246,18 @@ extension ButtonStyle where Self == FluxButtonStyle {
 enum AdaptiveLayout {
     static let dashboardBreakpoint: CGFloat = 700
     static let cardMinimumWidth: CGFloat = 300
+    /// Readable cap for full-width dashboards; wide enough for four device cards.
+    static let dashboardMaxContentWidth: CGFloat = 1280
 
     static func usesWideDashboard(width: CGFloat) -> Bool {
         width >= dashboardBreakpoint
+    }
+
+    /// The full-width iPad Home dashboard: only for an iPad in a regular-width window
+    /// that is wide enough. iPhones (even large ones in landscape) and compact iPad
+    /// windows, such as Split View or a dual-screen arrangement, keep the compact Home.
+    static func usesWideHome(width: CGFloat, isPad: Bool, isRegularWidth: Bool) -> Bool {
+        isPad && isRegularWidth && usesWideDashboard(width: width)
     }
 
     static func equalSplitWidth(totalWidth: CGFloat, spacing: CGFloat) -> CGFloat {

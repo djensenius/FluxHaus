@@ -378,6 +378,10 @@ private let logger = Logger(subsystem: "io.fluxhaus.FluxHaus", category: "Thermo
         return Thermostat(apiResponse: apiResponse)
     }
 
+    /// Whether this controller still belongs to the signed-in session. Unlike
+    /// `isSessionCurrent()` it never invalidates, so views can check it while rendering.
+    var belongsToCurrentSession: Bool { !isInvalidated && isSessionValid() }
+
     /// Whether commands may still be sent; invalidates the controller once its session has ended.
     func isSessionCurrent() -> Bool {
         if !isInvalidated, !isSessionValid() {

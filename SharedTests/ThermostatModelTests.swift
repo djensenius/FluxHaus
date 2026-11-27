@@ -139,3 +139,146 @@ struct ThermostatSetpointTests {
         #expect(ThermostatLabels.preset("Work From Home") == "Work From Home")
     }
 }
+
+struct IndoorCardSummaryTests {
+    private func format(_ value: Double) -> String {
+        IndoorClimateFormat.temperature(value, unit: "°C")
+    }
+
+    @Test("The Indoor card shows the thermostat, its status and the warmest and coolest rooms")
+    @MainActor func testSummaryFromMockData() throws {
+        let state = try #require(MockData.loginResponse.indoorClimate)
+        let summary = IndoorCardSummary(state: state)
+        #expect(summary.value == format(21.3))
+        #expect(summary.activity == .heating)
+        #expect(summary.isActive)
+        let status = try #require(summary.status)
+        #expect(status.hasPrefix("Heating"))
+        #expect(summary.warmest == "Warmest Kitchen \(format(22.6))")
+        #expect(summary.coolest == "Coolest Main Bedroom \(format(19.8))")
+        // One fact per line, so the card's narrow detail column never splits a room from its reading.
+        #expect(summary.detail.components(separatedBy: "\n") == [
+            status, "Warmest Kitchen \(format(22.6))", "Coolest Main Bedroom \(format(19.8))"
+        ])
+    }
+
+    @Test("Without a thermostat or sensors the Indoor card is a muted placeholder")
+    func testSummaryWithoutReadings() {
+        for state in [nil, IndoorClimateState(sensors: [])] {
+            let summary = IndoorCardSummary(state: state)
+            #expect(summary.value == IndoorCardSummary.placeholder)
+            #expect(!summary.hasReadings && !summary.isActive)
+            #expect(summary.status == nil && summary.warmest == nil && summary.coolest == nil)
+            #expect(summary.detail == IndoorCardSummary.noReadings)
+        }
+    }
+
+    @Test("Sensors alone give a reading; equal or offline rooms give no extremes")
+    func testSummaryWithoutThermostat() {
+        let rooms = [
+            IndoorTemperatureSensor(entityId: "sensor.a", name: "A", temperature: 20),
+            IndoorTemperatureSensor(entityId: "sensor.b", name: "B", temperature: 20),
+            IndoorTemperatureSensor(entityId: "sensor.c", name: "C", temperature: 25, available: false)
+        ]
+        let summary = IndoorCardSummary(state: IndoorClimateState(unit: "°C", sensors: rooms))
+        #expect(summary.value == format(20))
+        #expect(summary.status == nil && summary.activity == nil && !summary.isActive)
+        #expect(summary.warmest == nil && summary.coolest == nil)
+        #expect(summary.detail.isEmpty)
+    }
+
+    @Test("An idle thermostat isn't sorted with running devices")
+    func testIdleThermostatIsInactive() {
+        let thermostat = ThermostatStatus(
+            entityId: "climate.home", currentTemperature: 20, hvacMode: "heat",
+            hvacAction: "idle", targetTemperature: 19
+        )
+        let summary = IndoorCardSummary(state: IndoorClimateState(unit: "°C", thermostat: thermostat, sensors: []))
+        #expect(summary.activity == .idle)
+        #expect(!summary.isActive)
+        #expect(summary.value == format(20))
+    }
+
+    @Test("Home shows the thermostat's accepted change before the next poll, keeping the polled rooms")
+    @MainActor func testSummaryPrefersAcceptedChange() async throws {
+        let polled = try #require(MockData.loginResponse.indoorClimate)
+        #expect(IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: nil, polled: polled))
+            .status?.hasPrefix("Heating") == true)
+
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 24) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+
+        let current = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(current.status?.hasPrefix("Auto") == true)
+        #expect(current.activity == .idle && !current.isActive)
+        // The reply has no reading or rooms, so the polled thermostat reading and rooms are kept.
+        #expect(current.value == format(21.3))
+        #expect(current.warmest == "Warmest Kitchen \(format(22.6))")
+        #expect(current.coolest == "Coolest Main Bedroom \(format(19.8))")
+
+        // Once the session ends, its controller's replies are dropped and Home shows the poll.
+        thermostat.invalidate()
+        let afterSignOut = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(afterSignOut.status?.hasPrefix("Heating") == true)
+    }
+
+    @Test("A thermostat-only home keeps its polled reading when the accepted reply has none")
+    @MainActor func testThermostatOnlyHomeKeepsReading() async throws {
+        let mock = try #require(MockData.loginResponse.indoorClimate)
+        let polled = IndoorClimateState(
+            timestamp: mock.timestamp, unit: mock.unit, thermostat: mock.thermostat, sensors: []
+        )
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 24) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+
+        let current = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(current.value == format(21.3))
+        #expect(current.status?.hasPrefix("Auto") == true)
+    }
+
+    @Test("A reply from an account that is no longer signed in is never shown or mixed with the new poll")
+    @MainActor func testAccountSwitchShowsOnlyNewPoll() async throws {
+        let polled = try #require(MockData.loginResponse.indoorClimate)
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in autoState(low: 19, high: 24) }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+        #expect(IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
+            .status?.hasPrefix("Auto") == true)
+
+        // The credentials change without a sign-out event reaching this controller.
+        recorder.session.isCurrent = false
+        let current = IndoorCardSummary(
+            state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+        )
+        #expect(current.status?.hasPrefix("Heating") == true)
+        #expect(current.value == format(21.3))
+        // Rendering must not change the controller; only its own session checks may invalidate it.
+        #expect(!thermostat.isInvalidated)
+    }
+}
+
+struct AdaptiveHomeLayoutTests {
+    @Test("Only a regular-width iPad window wide enough gets the full-width Home dashboard")
+    func testWideHomeDecision() {
+        // Full-screen iPads, landscape and portrait.
+        #expect(AdaptiveLayout.usesWideHome(width: 1366, isPad: true, isRegularWidth: true))
+        #expect(AdaptiveLayout.usesWideHome(width: 834, isPad: true, isRegularWidth: true))
+        // Split View / dual-screen halves are compact, and narrow regular windows too small.
+        #expect(!AdaptiveLayout.usesWideHome(width: 507, isPad: true, isRegularWidth: false))
+        #expect(!AdaptiveLayout.usesWideHome(width: 694, isPad: true, isRegularWidth: true))
+        // A large iPhone in landscape is regular width and wide, but keeps the compact Home.
+        #expect(!AdaptiveLayout.usesWideHome(width: 956, isPad: false, isRegularWidth: true))
+        #expect(!AdaptiveLayout.usesWideHome(width: 440, isPad: false, isRegularWidth: false))
+    }
+}

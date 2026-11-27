@@ -12,29 +12,51 @@ struct WeatherView: View {
     @State private var showModal: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
-    var body: some View {
-        VStack {
+    private var currentConditions: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Image(systemName: weatherIcon())
+                .font(Theme.Fonts.bodyMedium)
+                .symbolRenderingMode(.multicolor)
+            Text(makeWeatherReport())
+                .font(Theme.Fonts.bodyMedium)
+                .foregroundColor(Theme.Colors.textPrimary)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder private var wind: some View {
+        if lman.weather != nil {
             HStack {
-                Spacer()
-                Image(systemName: weatherIcon())
-                    .font(Theme.Fonts.bodyMedium)
-                    .symbolRenderingMode(.multicolor)
-                Text(makeWeatherReport())
-                    .task {
-                        await lman.startMonitoring()
-                        await lman.fetchTheWeather()
-                        _ = self.updateTimer
-                    }
+                Image(systemName: "wind")
+                    .foregroundColor(Theme.Colors.textSecondary)
+                Text(getWind())
                     .font(Theme.Fonts.bodyMedium)
                     .foregroundColor(Theme.Colors.textPrimary)
-                if (lman.weather) != nil {
-                    Image(systemName: "wind")
-                        .foregroundColor(Theme.Colors.textSecondary)
-                    Text(getWind())
-                        .font(Theme.Fonts.bodyMedium)
-                        .foregroundColor(Theme.Colors.textPrimary)
-                        .padding(.trailing)
+            }
+        }
+    }
+
+    var body: some View {
+        VStack {
+            // One line when it fits; otherwise wind moves to its own line, so the row
+            // never runs past its column and the temperature and condition stay whole.
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    currentConditions
+                    wind
                 }
+                VStack(alignment: .trailing) {
+                    currentConditions
+                    wind
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.trailing)
+            .task {
+                await lman.startMonitoring()
+                await lman.fetchTheWeather()
+                _ = self.updateTimer
             }
             HStack {
                 Spacer()

@@ -432,20 +432,6 @@ struct IndoorClimateTests {
         #expect(fahrenheitHome.temperature(of: rooms[2]) == 22)
     }
 
-    @Test("The compact summary caps rooms and keeps a slot for the rest")
-    func testSummaryRoomLimit() {
-        let rooms = (1...6).map {
-            IndoorTemperatureSensor(entityId: "sensor.r\($0)", name: "R\($0)", temperature: 20)
-        }
-        let capped = IndoorSummaryView.visibleRooms(rooms, limit: 4)
-        #expect(capped.shown.map(\.entityId) == ["sensor.r1", "sensor.r2", "sensor.r3"])
-        #expect(capped.hidden == 3)
-
-        let fits = IndoorSummaryView.visibleRooms(Array(rooms.prefix(4)), limit: 4)
-        #expect(fits.shown.count == 4 && fits.hidden == 0)
-        #expect(IndoorSummaryView.visibleRooms(rooms, limit: nil).hidden == 0)
-    }
-
     @Test("Indoor charts drop the outdoor series and keep the rest")
     func testExcludingOutdoorSeries() {
         let point = [MetricPoint(time: "2026-01-01T00:00:00Z", value: 20)]

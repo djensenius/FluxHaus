@@ -18,6 +18,12 @@ struct Appliances: View {
     var car: Car
     var locationManager: LocationManager
     var airPurifier: AirPurifier
+    /// The session's thermostat controller, whose accepted changes are newer than the last poll.
+    var thermostat: Thermostat?
+    /// Opens the Climate section. When set, an Indoor card joins the grid.
+    var onOpenClimate: (() -> Void)?
+    /// Whether the grid scrolls on its own; turn off when embedded in a scrolling dashboard.
+    var scrolls = true
 
     @State private var showCarModal: Bool = false
     @State private var showScooterModal: Bool = false
@@ -42,97 +48,12 @@ struct Appliances: View {
     ]
 
     var body: some View {
-        ScrollView {
-                LazyVGrid(columns: gridItemLayout, spacing: 10) {
-                    ForEach((0..<theAppliances.count), id: \.self) { app in
-                        if !(theAppliances[app].name == "Battery" && battery.model == .mac) {
-                            if getApplianceName(
-                                type: theAppliances[app].name,
-                                index: theAppliances[app].index
-                            ) != "Fetching" {
-                                ZStack {
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            HStack {
-                                                getIcon(
-                                                    type: theAppliances[app].name,
-                                                    index: theAppliances[app].index
-                                                )
-                                                .font(Theme.Fonts.headerLarge())
-                                                .foregroundColor(getIconColor(
-                                                    type: theAppliances[app].name,
-                                                    index: theAppliances[app].index
-                                                ))
-                                                .padding(.leading)
-                                                Text(
-                                                    getApplianceName(
-                                                        type: theAppliances[app].name,
-                                                        index: theAppliances[app].index
-                                                    )
-                                                )
-                                                .font(Theme.Fonts.headerLarge())
-                                                .foregroundColor(Theme.Colors.textPrimary)
-                                                Spacer()
-                                            }
-                                            Text(
-                                                getProgram(
-                                                    type: theAppliances[app].name,
-                                                    index: theAppliances[app].index
-                                                )
-                                            )
-                                            .font(Theme.Fonts.caption)
-                                            .foregroundColor(Theme.Colors.textSecondary)
-                                            .padding(.leading)
-                                        }
-                                        Text(
-                                            getTimeRemaining(
-                                                type: theAppliances[app].name,
-                                                index: theAppliances[app].index
-                                            )
-                                        )
-                                        .font(Theme.Fonts.headerXL())
-                                        .foregroundColor(Theme.Colors.secondary)
-                                        .padding()
-                                    }
-                                    #if os(visionOS)
-                                    .glassBackgroundEffect(in: .rect(cornerRadius: 12))
-                                    #else
-                                    .background(Theme.Colors.secondaryBackground)
-                                    .cornerRadius(12)
-                                    #endif
-                                    #if !os(macOS)
-                                    .hoverEffect()
-                                    #endif
-                                    .sheet(
-                                        isPresented:
-                                            binding(for: "\(theAppliances[app].name)-\(theAppliances[app].index)")
-                                    ) {
-                                        getSheet(
-                                            type: theAppliances[app].name,
-                                            index: theAppliances[app].index
-                                        )
-                                    }
-                                }.onTapGesture {
-                                    if theAppliances[app].name == "Car" {
-                                        self.car.apiResponse = self.apiResponse
-                                        self.car.fetchCarDetails()
-                                        self.showCarModal = true
-                                    } else if theAppliances[app].name == "Scooter" {
-                                        self.showScooterModal = true
-                                    } else if theAppliances[app].name == "Cleanbot" {
-                                        self.showCleanbotModal = true
-                                    } else if theAppliances[app].name == "AirPurifier" {
-                                        self.showAirPurifierModal = true
-                                    } else  if theAppliances[app].name != "Battery" {
-                                        self.showApplianceModal[
-                                            "\(theAppliances[app].name)-\(theAppliances[app].index)"
-                                        ] = true
-                                    }
-                                }
-                            }
-                        }
-                    }.padding(.horizontal)
-                }
+        Group {
+            if scrolls {
+                ScrollView { grid }
+            } else {
+                grid
+            }
         }
         .onAppear(perform: {_ = self.updateTimer; fetchAppliances()})
         .sheet(isPresented: self.$showCarModal) {
@@ -152,6 +73,116 @@ struct Appliances: View {
         }
         .sheet(isPresented: self.$showAirPurifierModal) {
             AirPurifierDetailView(purifier: airPurifier)
+        }
+    }
+
+    private var grid: some View {
+        LazyVGrid(columns: gridItemLayout, spacing: 10) {
+            ForEach((0..<theAppliances.count), id: \.self) { app in
+                let name = theAppliances[app].name
+                let index = theAppliances[app].index
+                if !(name == "Battery" && battery.model == .mac),
+                   getApplianceName(type: name, index: index) != "Fetching" {
+                    if name == "Indoor" {
+                        // Navigates rather than opening a sheet, so it's a real button for
+                        // VoiceOver, Full Keyboard Access and pointer/gaze focus.
+                        Button {
+                            onOpenClimate?()
+                        } label: {
+                            card(type: name, index: index)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Opens Climate")
+                    } else {
+                        ZStack {
+                            card(type: name, index: index)
+                                .sheet(isPresented: binding(for: "\(name)-\(index)")) {
+                                    getSheet(type: name, index: index)
+                                }
+                        }
+                        .onTapGesture { openSheet(type: name, index: index) }
+                    }
+                }
+            }.padding(.horizontal)
+        }
+    }
+
+    /// The name and value share a row when they fit; otherwise the value drops below the name so a
+    /// narrow column never breaks a word. The detail always spans the full card width.
+    private func card(type: String, index: Int) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.small) {
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline) {
+                    cardTitle(type: type, index: index)
+                    Spacer(minLength: Theme.Spacing.medium)
+                    cardValue(type: type, index: index)
+                }
+                VStack(alignment: .leading, spacing: 0) {
+                    cardTitle(type: type, index: index)
+                    cardValue(type: type, index: index)
+                }
+            }
+            let detail = getProgram(type: type, index: index)
+            if !detail.isEmpty {
+                Text(detail)
+                    .font(Theme.Fonts.caption)
+                    .foregroundColor(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        #if os(visionOS)
+        .glassBackgroundEffect(in: .rect(cornerRadius: 12))
+        #else
+        .background(Theme.Colors.secondaryBackground)
+        .cornerRadius(12)
+        #endif
+        #if !os(macOS)
+        .hoverEffect()
+        #endif
+    }
+
+    private func cardTitle(type: String, index: Int) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            getIcon(type: type, index: index)
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(getIconColor(type: type, index: index))
+            Text(getApplianceName(type: type, index: index))
+                .font(Theme.Fonts.headerLarge())
+                .foregroundColor(Theme.Colors.textPrimary)
+                // One line, so a name never breaks mid-word; a name too long for the card
+                // shrinks a little, then ends with an ellipsis instead of overflowing.
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .truncationMode(.tail)
+        }
+    }
+
+    private func cardValue(type: String, index: Int) -> some View {
+        Text(getTimeRemaining(type: type, index: index))
+            .font(Theme.Fonts.headerXL())
+            .foregroundColor(Theme.Colors.secondary)
+            .lineLimit(1)
+            .fixedSize()
+    }
+
+    private func openSheet(type: String, index: Int) {
+        switch type {
+        case "Car":
+            car.apiResponse = apiResponse
+            car.fetchCarDetails()
+            showCarModal = true
+        case "Scooter":
+            showScooterModal = true
+        case "Cleanbot":
+            showCleanbotModal = true
+        case "AirPurifier":
+            showAirPurifierModal = true
+        case "Battery":
+            break
+        default:
+            showApplianceModal["\(type)-\(index)"] = true
         }
     }
 
@@ -205,7 +236,10 @@ struct Appliances: View {
     }
 
     func sortAppliances() {
-        let appliances = originalAppliances
+        var appliances = originalAppliances
+        if onOpenClimate != nil {
+            appliances.append((name: "Indoor", index: 0))
+        }
 
         var activeAppliances: [(name: String, index: Int)] = []
         var inactiveAppliances: [(name: String, index: Int)] = []
@@ -229,6 +263,8 @@ struct Appliances: View {
             return robots.cleanBot.running != nil && (robots.cleanBot.running == true || robots.cleanBot.paused == true)
         case "AirPurifier":
             return airPurifier.status.online && airPurifier.status.fanOn
+        case "Indoor":
+            return indoorSummary.isActive
         case "Miele":
             return tApplianceTimeRemaining(tAppliance: miele.appliances, index: index) != "Off"
         case "HomeConnect":

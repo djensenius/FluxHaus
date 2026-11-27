@@ -90,7 +90,6 @@ struct ContentView: View {
             VStack {
                 DateTimeView()
                 WeatherView(lman: locationManager)
-                IndoorSummaryView(apiResponse: apiResponse) { selectedTab = "Climate" }
                 HomeKitView(favouriteHomeKit: fluxHausConsts.favouriteHomeKit)
                 HStack {
                     Text("Appliances")
@@ -107,7 +106,10 @@ struct ContentView: View {
                     battery: battery,
                     car: car,
                     locationManager: locationManager,
-                    airPurifier: airPurifier
+                    airPurifier: airPurifier,
+                    thermostat: thermostat,
+                    onOpenClimate: { selectedTab = "Climate" },
+                    scrolls: false
                 )
             }
             .padding()
