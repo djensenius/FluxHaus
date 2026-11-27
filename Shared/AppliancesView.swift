@@ -36,7 +36,10 @@ struct Appliances: View {
         GridItem(.adaptive(minimum: AdaptiveLayout.cardMinimumWidth), spacing: 10)
     ]
 
-    var originalAppliances = [
+    var originalAppliances = Appliances.defaultAppliances
+
+    /// The Home grid's device order before running devices are lifted to the top.
+    static let defaultAppliances = [
         (name: "HomeConnect", index: 0),
         (name: "Miele", index: 0),
         (name: "Miele", index: 1),
@@ -236,23 +239,42 @@ struct Appliances: View {
     }
 
     func sortAppliances() {
-        var appliances = originalAppliances
-        if onOpenClimate != nil {
-            appliances.append((name: "Indoor", index: 0))
+        theAppliances = Self.orderedAppliances(
+            originalAppliances,
+            includeIndoor: onOpenClimate != nil,
+            isActive: isApplianceActive
+        )
+    }
+
+    /// Running devices first, each group in list order. Indoor, when shown, sits directly above
+    /// Car and is always active, so it stays there whatever the thermostat is doing.
+    static func orderedAppliances(
+        _ base: [(name: String, index: Int)],
+        includeIndoor: Bool,
+        isActive: (String, Int) -> Bool
+    ) -> [(name: String, index: Int)] {
+        var appliances = base
+        if includeIndoor {
+            let indoor = (name: "Indoor", index: 0)
+            if let carIndex = appliances.firstIndex(where: { $0.name == "Car" }) {
+                appliances.insert(indoor, at: carIndex)
+            } else {
+                appliances.append(indoor)
+            }
         }
 
         var activeAppliances: [(name: String, index: Int)] = []
         var inactiveAppliances: [(name: String, index: Int)] = []
 
         appliances.forEach { appliance in
-            if isApplianceActive(name: appliance.name, index: appliance.index) {
+            if appliance.name == "Indoor" || isActive(appliance.name, appliance.index) {
                 activeAppliances.append(appliance)
             } else {
                 inactiveAppliances.append(appliance)
             }
         }
 
-        theAppliances = activeAppliances + inactiveAppliances
+        return activeAppliances + inactiveAppliances
     }
 
     private func isApplianceActive(name: String, index: Int) -> Bool {
@@ -263,8 +285,6 @@ struct Appliances: View {
             return robots.cleanBot.running != nil && (robots.cleanBot.running == true || robots.cleanBot.paused == true)
         case "AirPurifier":
             return airPurifier.status.online && airPurifier.status.fanOn
-        case "Indoor":
-            return indoorSummary.isActive
         case "Miele":
             return tApplianceTimeRemaining(tAppliance: miele.appliances, index: index) != "Off"
         case "HomeConnect":

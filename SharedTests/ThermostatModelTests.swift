@@ -7,6 +7,7 @@
 
 import Testing
 import Foundation
+import SwiftUI
 @testable import FluxHaus
 
 struct ThermostatCommandTests {
@@ -281,5 +282,61 @@ struct AdaptiveHomeLayoutTests {
         // A large iPhone in landscape is regular width and wide, but keeps the compact Home.
         #expect(!AdaptiveLayout.usesWideHome(width: 956, isPad: false, isRegularWidth: true))
         #expect(!AdaptiveLayout.usesWideHome(width: 440, isPad: false, isRegularWidth: false))
+    }
+}
+
+struct IndoorCardTintTests {
+    private func tint(action: String?, mode: String? = "heat", available: Bool = true) -> Color {
+        let thermostat = ThermostatStatus(
+            entityId: "climate.home", available: available, currentTemperature: 20,
+            hvacMode: mode, hvacAction: action, targetTemperature: 21
+        )
+        // A room reading keeps the card live even when the thermostat is unavailable.
+        let room = IndoorTemperatureSensor(entityId: "sensor.kitchen", name: "Kitchen", temperature: 20)
+        return IndoorCardSummary(state: IndoorClimateState(unit: "°C", thermostat: thermostat, sensors: [room])).tint
+    }
+
+    @Test("The Indoor icon is red while heating, blue while cooling, and otherwise unchanged")
+    func testTintMapping() {
+        #expect(tint(action: "heating") == Theme.Colors.error)
+        #expect(tint(action: "preheating") == Theme.Colors.error)
+        #expect(tint(action: "cooling", mode: "cool") == Theme.Colors.info)
+        #expect(tint(action: "idle") == Theme.Colors.textSecondary)
+        #expect(tint(action: "fan", mode: "fan_only") == Theme.Colors.secondary)
+        #expect(tint(action: "off", mode: "off") == Theme.Colors.textSecondary)
+        #expect(tint(action: nil, available: false) == Theme.Colors.warning)
+    }
+}
+
+@MainActor
+struct HomeApplianceOrderTests {
+    private func names(includeIndoor: Bool, active: Set<String> = []) -> [String] {
+        Appliances.orderedAppliances(Appliances.defaultAppliances, includeIndoor: includeIndoor) { name, _ in
+            ["Car", "Scooter", "Battery"].contains(name) || active.contains(name)
+        }.map(\.name)
+    }
+
+    @Test("Indoor sits directly above Car, whether or not other devices are running")
+    func testIndoorAboveCar() throws {
+        for active in [Set<String>(), ["HomeConnect", "AirPurifier"]] {
+            let order = names(includeIndoor: true, active: active)
+            let indoor = try #require(order.firstIndex(of: "Indoor"))
+            #expect(order[indoor + 1] == "Car")
+            #expect(order.filter { $0 == "Indoor" }.count == 1)
+        }
+    }
+
+    @Test("Indoor is always sorted with the active cards")
+    func testIndoorAlwaysActive() {
+        // Indoor is active even though the closure reports otherwise for it.
+        let order = Appliances.orderedAppliances(Appliances.defaultAppliances, includeIndoor: true) { _, _ in
+            false
+        }.map(\.name)
+        #expect(order.first == "Indoor")
+    }
+
+    @Test("Without a Climate destination there's no Indoor card")
+    func testNoIndoorWithoutClimate() {
+        #expect(!names(includeIndoor: false).contains("Indoor"))
     }
 }

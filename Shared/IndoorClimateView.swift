@@ -29,7 +29,8 @@ private extension IndoorWarmth {
 extension ThermostatSummary.Activity {
     var color: Color {
         switch self {
-        case .heating: return Theme.Colors.accent
+        // Red while heating and blue while cooling; the status text carries the same state for accessibility.
+        case .heating: return Theme.Colors.error
         case .cooling: return Theme.Colors.info
         case .fan: return Theme.Colors.secondary
         case .idle, .off: return Theme.Colors.textSecondary
