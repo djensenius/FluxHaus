@@ -328,8 +328,8 @@ enum PlacementRequestError: Error {
     }
     /// False when there's no stable account identity to save the setup under; setup is then unavailable.
     var canSaveConfig: Bool { configStore != nil }
-    /// A reported room or thermostat permits editing; an entirely empty discovery does not.
-    var canEditConfig: Bool { canSaveConfig && insights?.sensors.isEmpty == false }
+    /// A valid session, stable account and insights response permit editing, even without sensor history.
+    var canEditConfig: Bool { canSaveConfig && insights != nil }
     /// A setup change hasn't been loaded yet (e.g. its refresh was cancelled), so views should retry.
     var hasPendingConfig: Bool { isSessionValid && configRevision != appliedRevision }
     var pendingInsightsNotice: String? {

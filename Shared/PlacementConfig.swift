@@ -156,34 +156,54 @@ struct PlacementConfigStore {
 struct ThermostatSetupView: View {
     static let emptySettingNotice = "Ecobee uses the thermostat's built-in sensor if the last sensor is removed. "
         + "Check settings with no room sensors and an excluded thermostat in Ecobee; actual participation may differ."
-    static let thermostatReadingExplanation = "The analysis uses HomeKit's reported thermostat temperature as an "
-        + "approximation of the comfort average. The built-in sensor's independent temperature isn't available."
-    static let followMeExplanation = "The analysis assumes Follow Me averages occupied participating sensors; "
+    static let noRoomSensorsNotice = "No room sensors are listed in this analysis. Saved IDs not in the current list "
+        + "stay selected unless you change them. For a setting with no room selections, saving selects no room sensors."
+    static let thermostatReadingExplanation = "The analysis estimates the comfort average from available readings. "
+        + "When HomeKit reports a thermostat temperature, it may serve as an approximation; the built-in sensor's "
+        + "independent temperature isn't available."
+    static let followMeExplanation = "Follow Me isn't detected. For a new setup this switch starts off; match it to "
+        + "your Ecobee setting. The analysis assumes Follow Me averages occupied participating sensors; "
         + "if none are occupied, it averages all participating sensors. Actual behavior may differ."
 
     let sensors: [PlacementInsights.Sensor]
+    let reportedSensorIDs: Set<String>
     let wasConfigured: Bool
     let thermostatParticipationNotice: String?
     let onSave: (PlacementConfig?) -> Void
     @State private var draft: PlacementConfig
+    // Keep initially saved selections visible after toggling them off, so they can be restored.
+    @State private var initialConfig: PlacementConfig?
     @Environment(\.dismiss) private var dismiss
 
     init(
         sensors: [PlacementInsights.Sensor], config: PlacementConfig?, thermostatParticipationNotice: String?,
         onSave: @escaping (PlacementConfig?) -> Void
     ) {
-        // The reported thermostat reading is treated as an average, not a room sensor.
-        let rooms = sensors.filter { !$0.isThermostat }
+        // Never offer a reported thermostat ID as a room, even if a duplicate entry says otherwise.
+        let thermostatIDs = Set(sensors.filter(\.isThermostat).map(\.id))
+        let rooms = sensors.filter { !$0.isThermostat && !thermostatIDs.contains($0.id) }
         let ids = rooms.map(\.id)
         self.sensors = rooms
+        self.reportedSensorIDs = Set(sensors.map(\.id))
         self.wasConfigured = config != nil
         self.thermostatParticipationNotice = thermostatParticipationNotice
         self.onSave = onSave
         _draft = State(initialValue: Self.initialDraft(config: config, roomIDs: ids))
+        _initialConfig = State(initialValue: config)
     }
 
     static func initialDraft(config: PlacementConfig?, roomIDs: [String]) -> PlacementConfig {
         config ?? .allIncluded(roomIDs)
+    }
+
+    static func unavailableSensorIDs(
+        in setting: PlacementConfig.Setting, config: PlacementConfig?, reportedIDs: Set<String>
+    ) -> [String] {
+        (config?.sensors(in: setting) ?? []).subtracting(reportedIDs).sorted()
+    }
+
+    static func unavailableSensorLabel(_ id: String) -> String {
+        "Unavailable saved ID in current sensor list: \(id)"
     }
 
     var body: some View {
@@ -196,6 +216,10 @@ struct ThermostatSetupView: View {
                     Text("Choose the thermostat's physical built-in sensor separately from room sensors. "
                          + Self.thermostatReadingExplanation)
                         .foregroundStyle(.secondary)
+                    if sensors.isEmpty {
+                        Text(Self.noRoomSensorsNotice)
+                            .foregroundStyle(.secondary)
+                    }
                     if let thermostatParticipationNotice {
                         Label(thermostatParticipationNotice, systemImage: "exclamationmark.triangle")
                     }
@@ -207,6 +231,21 @@ struct ThermostatSetupView: View {
                                 get: { draft.sensors(in: setting).contains(sensor.id) },
                                 set: { draft.set($0, sensor: sensor.id, in: setting) }
                             ))
+                        }
+                        ForEach(
+                            Self.unavailableSensorIDs(
+                                in: setting, config: initialConfig, reportedIDs: reportedSensorIDs
+                            ),
+                            id: \.self
+                        ) { id in
+                            Toggle(Self.unavailableSensorLabel(id), isOn: Binding(
+                                get: { draft.sensors(in: setting).contains(id) },
+                                set: { draft.set($0, sensor: id, in: setting) }
+                            ))
+                            .accessibilityLabel("\(Self.unavailableSensorLabel(id)), \(setting.title)")
+                            .accessibilityHint(
+                                "Turn off to remove this selection; turn on to restore it before saving."
+                            )
                         }
                         Picker("Thermostat built-in sensor", selection: Binding(
                             get: { draft.thermostat(in: setting) },

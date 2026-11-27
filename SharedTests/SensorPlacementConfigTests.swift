@@ -297,22 +297,27 @@ struct SensorPlacementConfigTests {
         #expect(service.thermostatParticipationNotice == nil)
     }
 
-    @Test("The setup renders on iOS and visionOS with only room sensors and a compatibility notice")
+    @Test("The setup renders with reported, unavailable and no room sensors")
     func setupViewRenders() throws {
         let result = try decode()
-        for notice in [nil, SensorPlacementService.thermostatUnsupportedNotice] {
-            let view = ThermostatSetupView(
-                sensors: result.sensors, config: sample, thermostatParticipationNotice: notice
-            ) { _ in }
-            #expect(view.sensors.map(\.id) == ["bedroom", "kitchen"])
-            #expect(view.thermostatParticipationNotice == notice)
-            let controller = UIHostingController(rootView: view)
-            controller.loadViewIfNeeded()
-            for size in [CGSize(width: 393, height: 852), CGSize(width: 1024, height: 768)] {
-                controller.view.frame = CGRect(origin: .zero, size: size)
-                controller.view.layoutIfNeeded()
+        let scenarios: [([PlacementInsights.Sensor], PlacementConfig?)] = [
+            (result.sensors, sample), ([], sample), ([], nil)
+        ]
+        for (sensors, config) in scenarios {
+            for notice in [nil, SensorPlacementService.thermostatUnsupportedNotice] {
+                let view = ThermostatSetupView(
+                    sensors: sensors, config: config, thermostatParticipationNotice: notice
+                ) { _ in }
+                #expect(view.sensors.map(\.id) == (sensors.isEmpty ? [] : ["bedroom", "kitchen"]))
+                #expect(view.thermostatParticipationNotice == notice)
+                let controller = UIHostingController(rootView: view)
+                controller.loadViewIfNeeded()
+                for size in [CGSize(width: 393, height: 852), CGSize(width: 1024, height: 768)] {
+                    controller.view.frame = CGRect(origin: .zero, size: size)
+                    controller.view.layoutIfNeeded()
+                }
+                #expect(controller.view != nil)
             }
-            #expect(controller.view != nil)
         }
     }
 

@@ -82,8 +82,8 @@ struct SensorPlacementDetailView: View {
             if let verdict = sensor.outlierVerdict {
                 PlacementVerdictBadge(verdict: verdict)
             } else if sensor.isThermostat {
-                Text("This analysis treats the reported thermostat temperature as an approximation of the "
-                     + "comfort average, so it isn't judged as a room.")
+                Text("When reported, the thermostat temperature may approximate the comfort average; "
+                     + "it isn't judged as a room.")
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             if let text = sensor.verdictSummary {
@@ -203,9 +203,7 @@ struct SensorPlacementDetailView: View {
     /// average, while older servers' per-sensor offsets compare with the mean of all sensors.
     static func offsetBaseline(_ sensor: PlacementInsights.Sensor) -> String {
         sensor.periodOffsets != nil
-            ? "Positive means warmer than the estimated effective comfort average (approximated by the reported "
-                + "thermostat temperature); "
-                + "negative means cooler."
+            ? "Positive means warmer than the estimated effective comfort average; negative means cooler."
             : "Positive means warmer than the average of all sensors; negative means cooler."
     }
 

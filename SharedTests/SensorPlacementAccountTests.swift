@@ -237,7 +237,7 @@ struct SensorPlacementAccountTests {
         #expect(service(PlacementConfigStore(account: "a", defaults: defaults())).canSaveConfig)
     }
 
-    @Test("Setup needs a reported room or thermostat and a stable, valid account")
+    @Test("Setup needs an insights response and a stable, valid account")
     func setupAvailability() throws {
         let store = PlacementConfigStore(account: "a", defaults: defaults())
         let thermostatOnly = try insights(rooms: [])
@@ -248,7 +248,7 @@ struct SensorPlacementAccountTests {
         }
         #expect(service(thermostatOnly, store).canEditConfig)
         #expect(service(roomsOnly, store).canEditConfig)
-        #expect(!service(noSensors, store).canEditConfig)
+        #expect(service(noSensors, store).canEditConfig)
         #expect(!service(nil, store).canEditConfig)
         #expect(!service(thermostatOnly, nil).canEditConfig)
         let session = AccountTestSession()
@@ -380,9 +380,10 @@ struct SensorPlacementAccountTests {
             + #""cooling": null}"#
         let current = try #require(try insights(rooms: ["bedroom"], sensorFields: fields).sensors.first)
         #expect(SensorPlacementDetailView.offsetBaseline(current).contains("effective comfort average"))
-        #expect(SensorPlacementDetailView.offsetBaseline(current).contains("approximated"))
+        #expect(!SensorPlacementDetailView.offsetBaseline(current).contains("thermostat"))
         #expect(SensorPlacementDetailView.offsetRows(current).map(\.label) == ["Overnight", "Home"])
         #expect(ThermostatSetupView.thermostatReadingExplanation.contains("approximation"))
+        #expect(ThermostatSetupView.thermostatReadingExplanation.contains("When HomeKit reports"))
         #expect(ThermostatSetupView.followMeExplanation.contains("assumes"))
         #expect(ThermostatSetupView.followMeExplanation.contains("if none are occupied"))
         #expect(ThermostatSetupView.followMeExplanation.contains("all participating sensors"))
