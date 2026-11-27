@@ -124,7 +124,7 @@ struct SensorPlacementSetupTests {
         draft.set(true, sensor: "missing-a", in: .home)
         #expect(draft == saved)
         draft.set(true, sensor: "missing-a", in: .sleep)
-        #expect(draft.sleep == ["missing-a", "missing-b"] && draft.home == saved.home)
+        #expect(draft.sleep == ["missing-a", "missing-b", "thermostat"] && draft.home == saved.home)
         draft.set(false, sensor: "missing-a", in: .sleep)
         #expect(draft == saved)
         // Cancelling leaves storage unchanged; save a removal and an addition in different settings.
