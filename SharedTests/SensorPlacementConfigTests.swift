@@ -49,6 +49,10 @@ private let configJSON = """
 }
 """
 
+private let unconfiguredJSON = configJSON.replacingOccurrences(
+    of: "\"participationConfigured\": true", with: "\"participationConfigured\": false"
+)
+
 @MainActor
 private final class ConfigTestSession {
     var valid = true
@@ -305,11 +309,14 @@ struct SensorPlacementConfigTests {
         ]
         for (sensors, config) in scenarios {
             for notice in [nil, SensorPlacementService.thermostatUnsupportedNotice] {
+                let analysisNotice = notice == nil ? nil : SensorPlacementService.setupNotUsedNotice
                 let view = ThermostatSetupView(
-                    sensors: sensors, config: config, thermostatParticipationNotice: notice
+                    sensors: sensors, config: config, thermostatParticipationNotice: notice,
+                    analysisNotice: analysisNotice
                 ) { _ in }
                 #expect(view.sensors.map(\.id) == (sensors.isEmpty ? [] : ["bedroom", "kitchen"]))
                 #expect(view.thermostatParticipationNotice == notice)
+                #expect(view.analysisNotice == analysisNotice)
                 let controller = UIHostingController(rootView: view)
                 controller.loadViewIfNeeded()
                 for size in [CGSize(width: 393, height: 852), CGSize(width: 1024, height: 768)] {
@@ -418,6 +425,7 @@ struct SensorPlacementConfigTests {
     @Test("A reduced retry preserves saved IDs until the user removes or clears them")
     func staleSensorUsesFreshRetry() async throws {
         let result = try decode()
+        let unconfigured = try decode(unconfiguredJSON)
         let store = PlacementConfigStore(account: "first", defaults: defaults())
         let stale = PlacementConfig(
             home: ["bedroom", "gone"], sleep: [], away: [], followMe: false,
@@ -430,7 +438,7 @@ struct SensorPlacementConfigTests {
             insights: result, sessionCheck: { true }, configStore: store, fetch: { config, _ in
                 requested.append(config)
                 if config?.home.contains("gone") == true { throw PlacementRequestError.http(400) }
-                return result
+                return config == nil ? unconfigured : result
             }
         )
         #expect(await service.refresh())
@@ -456,7 +464,7 @@ struct SensorPlacementConfigTests {
 
     @Test("An unusable config falls back to unconfigured insights with a clear message")
     func rejectedConfigFallsBack() async throws {
-        let result = try decode()
+        let result = try decode(unconfiguredJSON)
         let store = PlacementConfigStore(account: "first", defaults: defaults())
         let config = PlacementConfig(
             home: ["bedroom"], sleep: [], away: [], followMe: true,

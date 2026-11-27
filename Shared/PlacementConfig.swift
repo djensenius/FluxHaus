@@ -170,6 +170,7 @@ struct ThermostatSetupView: View {
     let reportedSensorIDs: Set<String>
     let wasConfigured: Bool
     let thermostatParticipationNotice: String?
+    let analysisNotice: String?
     let onSave: (PlacementConfig?) -> Void
     @State private var draft: PlacementConfig
     // Keep initially saved IDs visible in every setting throughout the editing session.
@@ -178,6 +179,7 @@ struct ThermostatSetupView: View {
 
     init(
         sensors: [PlacementInsights.Sensor], config: PlacementConfig?, thermostatParticipationNotice: String?,
+        analysisNotice: String? = nil,
         onSave: @escaping (PlacementConfig?) -> Void
     ) {
         // Never offer a reported thermostat ID as a room, even if a duplicate entry says otherwise.
@@ -188,6 +190,7 @@ struct ThermostatSetupView: View {
         self.reportedSensorIDs = Set(sensors.map(\.id))
         self.wasConfigured = config != nil
         self.thermostatParticipationNotice = thermostatParticipationNotice
+        self.analysisNotice = analysisNotice
         self.onSave = onSave
         _draft = State(initialValue: Self.initialDraft(config: config, roomIDs: ids))
         _initialConfig = State(initialValue: config)
@@ -222,6 +225,9 @@ struct ThermostatSetupView: View {
                     if sensors.isEmpty {
                         Text(Self.noRoomSensorsNotice)
                             .foregroundStyle(.secondary)
+                    }
+                    if let analysisNotice {
+                        Label(analysisNotice, systemImage: "exclamationmark.triangle")
                     }
                     if let thermostatParticipationNotice {
                         Label(thermostatParticipationNotice, systemImage: "exclamationmark.triangle")

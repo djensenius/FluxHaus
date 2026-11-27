@@ -404,6 +404,9 @@ struct SensorPlacementRevisionTests {
     private func insights(days: Int) throws -> PlacementInsights {
         let json = try #require(String(data: placementJSON, encoding: .utf8))
             .replacingOccurrences(of: "\"windowDays\": 14", with: "\"windowDays\": \(days)")
+            .replacingOccurrences(
+                of: "\"unknownUnitWindows\": 3", with: "\"unknownUnitWindows\": 3, \"participationConfigured\": true"
+            )
         return try JSONDecoder().decode(PlacementInsights.self, from: Data(json.utf8))
     }
 

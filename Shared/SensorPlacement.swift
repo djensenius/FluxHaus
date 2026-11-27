@@ -285,6 +285,8 @@ enum PlacementRequestError: Error {
 
     static let reducedConfigNotice = "Some saved sensor selections weren't used in these tips. "
         + "They remain saved and will be retried on refresh."
+    static let setupNotUsedNotice = "These tips don't account for your saved thermostat setup, including room sensor "
+        + "choices, built-in sensor choices and Follow Me. Your setup remains saved and will be retried on refresh."
     static let rejectedNotice = "Your thermostat setup couldn't be used, so these tips don't account for it. "
         + "Your saved setup is kept and will be retried on refresh."
     static let sensorsUnavailableNotice = "No room sensors were listed in this analysis, so these tips don't account "
@@ -322,7 +324,11 @@ enum PlacementRequestError: Error {
     var isLoading: Bool { isSessionValid && loading }
     var error: String? { isSessionValid ? storedError : nil }
     /// A non-fatal message when the tips couldn't use all of the saved thermostat setup.
-    var notice: String? { isSessionValid ? storedNotice : nil }
+    var notice: String? {
+        guard isSessionValid else { return nil }
+        if storedConfig == nil && storedNotice == Self.setupNotUsedNotice { return nil }
+        return storedNotice
+    }
     var thermostatParticipationNotice: String? {
         guard let insights, insights.coverage.thermostatParticipationSupported != true else { return nil }
         return Self.thermostatUnsupportedNotice
@@ -357,7 +363,8 @@ enum PlacementRequestError: Error {
         guard isSessionValid, let configStore, config != storedConfig else { return false }
         storedConfig = config
         storedError = nil
-        storedNotice = nil
+        // The displayed legacy tips still ignored the setup even if a replacement refresh fails.
+        if storedNotice != Self.setupNotUsedNotice { storedNotice = nil }
         configStore.save(config)
         configRevision &+= 1
         loadTask?.cancel()
@@ -424,7 +431,8 @@ enum PlacementRequestError: Error {
     ) async throws -> Outcome {
         do {
             let insights = try await fetch(config, sessionCheck)
-            return Outcome(insights: insights, thermostatIDs: insights.thermostatIDs, notice: nil)
+            let notice = config != nil && insights.coverage.participationConfigured != true ? setupNotUsedNotice : nil
+            return Outcome(insights: insights, thermostatIDs: insights.thermostatIDs, notice: notice)
         } catch PlacementRequestError.http(400) where config != nil {
             guard let config else { throw PlacementRequestError.http(400) }
             // Cached inventory may omit a returned sensor, so only fresh discovery selects the retry.
@@ -439,7 +447,8 @@ enum PlacementRequestError: Error {
                     let insights = try await fetch(reduced, sessionCheck)
                     let thermostatIDs = fresh.thermostatIDs.union(insights.thermostatIDs)
                     let saved = config.excluding(thermostatIDs)
-                    let notice = reduced.excluding(thermostatIDs) == saved ? nil : reducedConfigNotice
+                    let reducedNotice = reduced.excluding(thermostatIDs) == saved ? nil : reducedConfigNotice
+                    let notice = insights.coverage.participationConfigured == true ? reducedNotice : setupNotUsedNotice
                     return Outcome(insights: insights, thermostatIDs: thermostatIDs, notice: notice)
                 } catch PlacementRequestError.http(400) {
                     // The unconfigured response is still usable when the reduced request is rejected.

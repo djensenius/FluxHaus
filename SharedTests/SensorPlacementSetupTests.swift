@@ -8,7 +8,8 @@ import Testing
 @testable import FluxHaus
 
 private func setupInsights(
-    rooms: [String], includeThermostat: Bool = true, sensorFields: String = ""
+    rooms: [String], includeThermostat: Bool = true, sensorFields: String = "",
+    participationConfigured: Bool? = true, thermostatParticipationSupported: Bool? = nil
 ) throws -> PlacementInsights {
     let reported = rooms.map { ($0, false) } + (includeThermostat ? [("thermostat", true)] : [])
     let sensors = reported.map { id, thermostat in
@@ -18,10 +19,13 @@ private func setupInsights(
          "classification": "ok"\(sensorFields)}
         """
     }
+    let participation = participationConfigured.map { ", \"participationConfigured\": \($0)" } ?? ""
+    let thermostatSupport = thermostatParticipationSupported
+        .map { ", \"thermostatParticipationSupported\": \($0)" } ?? ""
     let json = """
     {"generatedAt": "2026-11-26T12:00:00Z", "windowDays": 14, "unit": "°C",
      "coverage": {"start": "2026-11-12T12:00:00Z", "end": "2026-11-26T12:00:00Z",
-       "hvacHistoryAvailable": true, "morningEvents": 0, "returnEvents": 0},
+       "hvacHistoryAvailable": true, "morningEvents": 0, "returnEvents": 0\(participation)\(thermostatSupport)},
      "sensors": [\(sensors.joined(separator: ","))], "recommendations": []}
     """
     return try JSONDecoder().decode(PlacementInsights.self, from: Data(json.utf8))
@@ -182,6 +186,7 @@ struct SensorPlacementSetupTests {
     func freshDiscoveryIncludesReturnedSensor() async throws {
         let cached = try setupInsights(rooms: ["bedroom"])
         let fresh = try setupInsights(rooms: ["bedroom", "returned"])
+        let discovery = try setupInsights(rooms: ["bedroom", "returned"], participationConfigured: false)
         let saved = PlacementConfig(
             home: ["bedroom", "returned", "removed"], sleep: ["returned"], away: ["removed"], followMe: false,
             thermostatHome: true, thermostatSleep: false, thermostatAway: nil
@@ -198,7 +203,7 @@ struct SensorPlacementSetupTests {
             insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
                 requests.append(config)
                 if config?.home.contains("removed") == true { throw PlacementRequestError.http(400) }
-                return fresh
+                return config == nil ? discovery : fresh
             }
         )
         #expect(await service.refresh())
@@ -212,7 +217,7 @@ struct SensorPlacementSetupTests {
     @Test("Freshly identified thermostat IDs are excluded while missing room IDs remain saved")
     func freshDiscoveryExcludesThermostat() async throws {
         let cached = try setupInsights(rooms: [], includeThermostat: false)
-        let fresh = try setupInsights(rooms: ["bedroom"])
+        let fresh = try setupInsights(rooms: ["bedroom"], participationConfigured: false)
         let reducedResponse = try setupInsights(rooms: ["bedroom"], includeThermostat: false)
         let recovered = try setupInsights(rooms: ["bedroom", "missing"], includeThermostat: false)
         let saved = PlacementConfig(
@@ -247,28 +252,32 @@ struct SensorPlacementSetupTests {
     @Test("Dropping only an identified thermostat does not claim saved room selections were omitted")
     func thermostatOnlyReduction() async throws {
         let cached = try setupInsights(rooms: [], includeThermostat: false)
-        let fresh = try setupInsights(rooms: ["bedroom"])
+        let discovery = try setupInsights(rooms: ["bedroom"], participationConfigured: false)
         let saved = PlacementConfig(home: ["bedroom", "thermostat"], sleep: [], away: [], followMe: false)
         let retained = saved.excluding(["thermostat"])
-        let store = store()
-        store.save(saved)
-        var requests: [PlacementConfig?] = []
-        let service = SensorPlacementService(
-            insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
-                requests.append(config)
-                if config?.home.contains("thermostat") == true { throw PlacementRequestError.http(400) }
-                return fresh
-            }
-        )
-        #expect(await service.refresh())
-        #expect(requests == [saved, nil, retained])
-        #expect(service.config == retained && store.load() == retained)
-        #expect(service.notice == nil)
+        for configured in [nil, false, true] as [Bool?] {
+            let fresh = try setupInsights(rooms: ["bedroom"], participationConfigured: configured)
+            let store = store()
+            store.save(saved)
+            var requests: [PlacementConfig?] = []
+            let service = SensorPlacementService(
+                insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                    requests.append(config)
+                    if config?.home.contains("thermostat") == true { throw PlacementRequestError.http(400) }
+                    return config == nil ? discovery : fresh
+                }
+            )
+            #expect(await service.refresh())
+            #expect(requests == [saved, nil, retained])
+            #expect(service.config == retained && store.load() == retained)
+            #expect(service.notice == (configured == true ? nil : SensorPlacementService.setupNotUsedNotice))
+        }
     }
 
     @Test("A rejected reduced retry leaves the saved setup and explains unconfigured tips")
     func rejectedReducedRetry() async throws {
-        let fresh = try setupInsights(rooms: ["bedroom"])
+        let fresh = try setupInsights(rooms: ["bedroom"], participationConfigured: false)
+        let recovered = try setupInsights(rooms: ["bedroom"])
         let saved = PlacementConfig(home: ["bedroom", "missing"], sleep: ["missing"], away: [], followMe: false)
         let reduced = saved.pruned(to: ["bedroom"])
         let store = store()
@@ -279,7 +288,7 @@ struct SensorPlacementSetupTests {
             insights: fresh, sessionCheck: { true }, configStore: store, fetch: { config, _ in
                 requests.append(config)
                 if config != nil && requests.count <= 3 { throw PlacementRequestError.http(400) }
-                return fresh
+                return config == nil ? fresh : recovered
             }
         )
         #expect(await service.refresh())
@@ -331,5 +340,160 @@ struct SensorPlacementSetupTests {
         #expect(try notice(window(start + ", " + end)) == nil)
         #expect(try notice(window(start)) == expected)
         #expect(try notice(window(end)) == expected)
+    }
+}
+
+@MainActor
+struct SensorPlacementCompatibilityTests {
+    private let setup = PlacementConfig(
+        home: ["bedroom"], sleep: ["office"], away: ["living"], followMe: true,
+        thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+    )
+
+    private func store(_ config: PlacementConfig?) -> PlacementConfigStore {
+        let defaults = UserDefaults(suiteName: "SensorPlacementCompatibilityTests-\(UUID().uuidString)")!
+        let store = PlacementConfigStore(account: "test-account", defaults: defaults)
+        store.save(config)
+        return store
+    }
+
+    @Test("A four-sensor legacy response warns that the whole saved setup was ignored until supported")
+    func legacyAndRecovery() async throws {
+        let rooms = ["bedroom", "office", "living"]
+        let legacy = try setupInsights(rooms: rooms, participationConfigured: nil)
+        let unsupported = try setupInsights(
+            rooms: rooms, participationConfigured: false, thermostatParticipationSupported: true
+        )
+        let supported = try setupInsights(
+            rooms: rooms, participationConfigured: true, thermostatParticipationSupported: true
+        )
+        #expect(legacy.sensors.count == 4)
+        #expect(legacy.coverage.participationConfigured == nil)
+        #expect(legacy.coverage.thermostatParticipationSupported == nil)
+        let request = SensorPlacementService.request(authorization: "Bearer synthetic", config: setup)
+        let query = try #require(request.url?.query)
+        #expect(query == "days=14&home=bedroom&sleep=office&away=living&followMe=true"
+                + "&thermostatHome=true&thermostatSleep=false")
+        let store = store(setup)
+        let savedData = store.defaults.data(forKey: store.key)
+        let session = SetupTestSession()
+        let responses = [legacy, legacy, unsupported, supported]
+        var requests: [PlacementConfig?] = []
+        var responseIndex = 0
+        var failNext = false
+        let service = SensorPlacementService(sessionCheck: { session.valid }, configStore: store, fetch: { config, _ in
+            requests.append(config)
+            if failNext { throw PlacementRequestError.http(503) }
+            defer { responseIndex += 1 }
+            return responses[responseIndex]
+        })
+        for _ in 0..<2 {
+            #expect(await service.refresh())
+            let notice = try #require(service.notice)
+            #expect(notice == SensorPlacementService.setupNotUsedNotice)
+            #expect(notice.contains("don't account") && notice.contains("room sensor choices"))
+            #expect(notice.contains("built-in sensor choices") && notice.contains("Follow Me"))
+            #expect(notice.contains("remains saved") && notice.contains("retried on refresh"))
+            #expect(service.thermostatParticipationNotice == SensorPlacementService.thermostatUnsupportedNotice)
+            #expect(service.config == setup && store.load() == setup)
+            #expect(store.defaults.data(forKey: store.key) == savedData)
+        }
+        var edited = setup
+        edited.setThermostat(false, in: .away)
+        #expect(service.updateConfig(edited))
+        let editedData = store.defaults.data(forKey: store.key)
+        #expect(service.notice == SensorPlacementService.setupNotUsedNotice && service.hasPendingConfig)
+        failNext = true
+        #expect(await service.refresh() == false)
+        #expect(service.error == "Could not load sensor placement (HTTP 503).")
+        #expect(service.notice == SensorPlacementService.setupNotUsedNotice)
+        #expect(service.pendingInsightsNotice == SensorPlacementService.pendingConfigNotice)
+        #expect(store.load() == edited && store.defaults.data(forKey: store.key) == editedData)
+        failNext = false
+        let editor = ThermostatSetupView(
+            sensors: legacy.sensors, config: service.config,
+            thermostatParticipationNotice: service.thermostatParticipationNotice, analysisNotice: service.notice
+        ) { _ in }
+        #expect(editor.analysisNotice == SensorPlacementService.setupNotUsedNotice)
+        #expect(editor.thermostatParticipationNotice == SensorPlacementService.thermostatUnsupportedNotice)
+        session.valid = false
+        #expect(service.notice == nil && service.thermostatParticipationNotice == nil && service.config == nil)
+        #expect(store.load() == edited)
+        session.valid = true
+        #expect(await service.refresh())
+        #expect(service.notice == SensorPlacementService.setupNotUsedNotice)
+        #expect(service.thermostatParticipationNotice == nil)
+        #expect(service.updateConfig(nil))
+        #expect(service.notice == nil && store.load() == nil)
+        #expect(service.updateConfig(edited))
+        #expect(service.notice == SensorPlacementService.setupNotUsedNotice && store.load() == edited)
+        let restoredData = store.defaults.data(forKey: store.key)
+        #expect(await service.refresh())
+        #expect(service.notice == nil && service.thermostatParticipationNotice == nil)
+        #expect(requests == [setup, setup, edited, edited, edited])
+        #expect(service.config == edited && store.load() == edited && !service.hasPendingConfig)
+        #expect(store.defaults.data(forKey: store.key) == restoredData)
+    }
+
+    @Test("A genuinely unconfigured request does not warn that a saved setup was ignored")
+    func unconfiguredRequests() async throws {
+        for configured in [nil, false, true] as [Bool?] {
+            let result = try setupInsights(rooms: ["bedroom"], participationConfigured: configured)
+            let store = store(nil)
+            var requests: [PlacementConfig?] = []
+            let service = SensorPlacementService(sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                requests.append(config)
+                return result
+            })
+            #expect(await service.refresh())
+            #expect(requests == [nil] && service.config == nil && store.load() == nil)
+            #expect(service.notice == nil)
+            #expect(service.thermostatParticipationNotice == SensorPlacementService.thermostatUnsupportedNotice)
+        }
+    }
+
+    @Test("Reduced replies warn accurately and a later refresh retries every saved choice")
+    func reducedRepliesAndRecovery() async throws {
+        let cached = try setupInsights(rooms: ["bedroom"], includeThermostat: false)
+        let discovery = try setupInsights(rooms: ["bedroom", "office"], participationConfigured: false)
+        let recovered = try setupInsights(
+            rooms: ["bedroom", "office", "removed"], thermostatParticipationSupported: true
+        )
+        let saved = PlacementConfig(
+            home: ["bedroom", "removed"], sleep: ["office"], away: ["removed"], followMe: true,
+            thermostatHome: true, thermostatSleep: false, thermostatAway: nil
+        )
+        let reduced = saved.pruned(to: ["bedroom", "office"])
+        for configured in [nil, false, true] as [Bool?] {
+            let response = try setupInsights(
+                rooms: ["bedroom", "office"], participationConfigured: configured,
+                thermostatParticipationSupported: true
+            )
+            let store = store(saved)
+            let savedData = store.defaults.data(forKey: store.key)
+            var requests: [PlacementConfig?] = []
+            let service = SensorPlacementService(
+                insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                    requests.append(config)
+                    switch requests.count {
+                    case 1: throw PlacementRequestError.http(400)
+                    case 2: return discovery
+                    case 3: return response
+                    default: return recovered
+                    }
+                }
+            )
+            #expect(await service.refresh())
+            #expect(requests == [saved, nil, reduced])
+            #expect(service.config == saved && store.load() == saved)
+            #expect(store.defaults.data(forKey: store.key) == savedData)
+            #expect(service.notice == (configured == true
+                ? SensorPlacementService.reducedConfigNotice : SensorPlacementService.setupNotUsedNotice))
+            #expect(service.thermostatParticipationNotice == nil)
+            #expect(await service.refresh())
+            #expect(requests == [saved, nil, reduced, saved])
+            #expect(service.config == saved && store.load() == saved && service.notice == nil)
+            #expect(store.defaults.data(forKey: store.key) == savedData)
+        }
     }
 }

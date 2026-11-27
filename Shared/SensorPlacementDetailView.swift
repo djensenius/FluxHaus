@@ -65,7 +65,7 @@ struct SensorPlacementDetailView: View {
             if let insights {
                 ThermostatSetupView(
                     sensors: insights.sensors, config: service.config,
-                    thermostatParticipationNotice: service.thermostatParticipationNotice
+                    thermostatParticipationNotice: service.thermostatParticipationNotice, analysisNotice: service.notice
                 ) { config in
                     if service.updateConfig(config) { reloadID += 1 }
                 }

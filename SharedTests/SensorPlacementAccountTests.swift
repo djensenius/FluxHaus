@@ -11,7 +11,7 @@ import Testing
 
 /// Placement insights reporting the given room sensors and, by default, the thermostat ("home").
 private func insights(
-    rooms: [String], sensorFields: String = "", includeThermostat: Bool = true
+    rooms: [String], sensorFields: String = "", includeThermostat: Bool = true, participationConfigured: Bool = true
 ) throws -> PlacementInsights {
     let reported = rooms.map { ($0, false) } + (includeThermostat ? [("home", true)] : [])
     let sensors = reported.map { id, thermostat in
@@ -24,7 +24,8 @@ private func insights(
     let json = """
     {"generatedAt": "2026-11-26T12:00:00Z", "windowDays": 14, "unit": "°C",
      "coverage": {"start": "2026-11-12T12:00:00Z", "end": "2026-11-26T12:00:00Z",
-       "hvacHistoryAvailable": true, "morningEvents": 0, "returnEvents": 0},
+       "hvacHistoryAvailable": true, "morningEvents": 0, "returnEvents": 0,
+       "participationConfigured": \(participationConfigured)},
      "sensors": [\(sensors.joined(separator: ","))], "recommendations": []}
     """
     return try JSONDecoder().decode(PlacementInsights.self, from: Data(json.utf8))
@@ -300,6 +301,7 @@ struct SensorPlacementAccountTests {
     func staleCacheUsesFreshSensors() async throws {
         let cached = try insights(rooms: ["bedroom", "gone"])
         let fresh = try insights(rooms: ["bedroom", "kitchen"])
+        let discovery = try insights(rooms: ["bedroom", "kitchen"], participationConfigured: false)
         let recovered = try insights(rooms: ["bedroom", "gone", "kitchen"])
         let store = PlacementConfigStore(account: "a", defaults: defaults())
         let stale = PlacementConfig(
@@ -316,7 +318,8 @@ struct SensorPlacementAccountTests {
                 if config?.home.contains("gone") == true && !inventory.sensorReturned {
                     throw PlacementRequestError.http(400)
                 }
-                return inventory.sensorReturned ? recovered : fresh
+                if inventory.sensorReturned { return recovered }
+                return config == nil ? discovery : fresh
             }
         )
         #expect(await service.refresh())
@@ -342,6 +345,7 @@ struct SensorPlacementAccountTests {
     @Test("An empty sensor list never prunes the setup: cached inventory is skipped, fresh retries correctly")
     func emptyCachedInventory() async throws {
         let fresh = try insights(rooms: ["bedroom", "kitchen"])
+        let discovery = try insights(rooms: ["bedroom", "kitchen"], participationConfigured: false)
         let store = PlacementConfigStore(account: "a", defaults: defaults())
         let stale = PlacementConfig(home: ["bedroom", "gone"], sleep: [], away: [], followMe: false)
         store.save(stale)
@@ -350,7 +354,7 @@ struct SensorPlacementAccountTests {
             insights: try insights(rooms: []), sessionCheck: { true }, configStore: store, fetch: { config, _ in
                 requested.append(config)
                 if config?.home.contains("gone") == true { throw PlacementRequestError.http(400) }
-                return fresh
+                return config == nil ? discovery : fresh
             }
         )
         #expect(await service.refresh())
@@ -363,7 +367,7 @@ struct SensorPlacementAccountTests {
 
     @Test("When fresh inventory is empty too, the saved setup is kept and unconfigured insights are shown")
     func emptyFreshInventory() async throws {
-        let empty = try insights(rooms: [])
+        let empty = try insights(rooms: [], participationConfigured: false)
         let store = PlacementConfigStore(account: "a", defaults: defaults())
         let saved = PlacementConfig(
             home: ["bedroom"], sleep: ["kitchen"], away: [], followMe: true,
