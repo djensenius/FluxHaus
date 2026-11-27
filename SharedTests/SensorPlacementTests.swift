@@ -216,7 +216,7 @@ struct SensorPlacementTests {
             #expect(!service.isSessionValid)
             #expect(service.insights == nil)
             continuation?.resume(returning: result)
-            await task.value
+            _ = await task.value
             #expect(service.insights == nil)
             #expect(service.error == nil)
             await service.refresh()
@@ -250,7 +250,7 @@ struct SensorPlacementTests {
         let task = Task { await service.refresh() }
         while !service.isLoading { await Task.yield() }
         task.cancel()
-        await task.value
+        _ = await task.value
         #expect(service.insights == nil)
         #expect(service.error == nil)
         #expect(!service.isLoading)
@@ -276,12 +276,12 @@ struct SensorPlacementTests {
         while continuations.count < 2 { await Task.yield() }
         #expect(service.isLoading)
         continuations[0].resume(returning: result)
-        await first.value
+        _ = await first.value
         #expect(service.isLoading)
         #expect(service.insights == nil)
 
         continuations[1].resume(returning: result)
-        await second.value
+        _ = await second.value
         #expect(!service.isLoading)
         #expect(service.insights != nil)
         #expect(service.error == nil)
@@ -292,9 +292,9 @@ struct SensorPlacementTests {
         let fourth = Task { await service.refresh() }
         while continuations.count < 4 { await Task.yield() }
         continuations[3].resume(returning: result)
-        await fourth.value
+        _ = await fourth.value
         continuations[2].resume(returning: stale)
-        await third.value
+        _ = await third.value
         #expect(service.insights?.windowDays == 14)
         #expect(!service.isLoading)
     }
