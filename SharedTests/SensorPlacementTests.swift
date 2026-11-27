@@ -398,3 +398,93 @@ struct SensorPlacementTests {
         #expect(service.error != nil)
     }
 }
+
+@MainActor
+struct SensorPlacementRevisionTests {
+    private func insights(days: Int) throws -> PlacementInsights {
+        let json = try #require(String(data: placementJSON, encoding: .utf8))
+            .replacingOccurrences(of: "\"windowDays\": 14", with: "\"windowDays\": \(days)")
+        return try JSONDecoder().decode(PlacementInsights.self, from: Data(json.utf8))
+    }
+
+    private func store() -> PlacementConfigStore {
+        let defaults = UserDefaults(suiteName: "SensorPlacementRevisionTests-\(UUID().uuidString)")!
+        return PlacementConfigStore(account: "a", defaults: defaults)
+    }
+
+    @Test("An outdated success or error is discarded; a failed replacement keeps a visible stale notice")
+    func changedWhileLoading() async throws {
+        for oldSucceeds in [true, false] {
+            let cached = try insights(days: 14)
+            let obsolete = try insights(days: 30)
+            let latest = try insights(days: 7)
+            let store = store()
+            let original = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+            var changed = original
+            changed.setThermostat(true, in: .home)
+            store.save(original)
+            var continuation: CheckedContinuation<PlacementInsights, Error>?
+            var requests: [PlacementConfig?] = []
+            let service = SensorPlacementService(
+                insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
+                    requests.append(config)
+                    if requests.count == 1 {
+                        return try await withCheckedThrowingContinuation { continuation = $0 }
+                    }
+                    if requests.count == 2 { throw PlacementRequestError.http(503) }
+                    return latest
+                }
+            )
+            let first = Task { await service.refresh() }
+            while continuation == nil { await Task.yield() }
+            #expect(service.updateConfig(changed))
+            #expect(service.pendingInsightsNotice == SensorPlacementService.pendingConfigNotice)
+            if oldSucceeds {
+                continuation?.resume(returning: obsolete)
+            } else {
+                continuation?.resume(throwing: PlacementRequestError.http(503))
+            }
+            #expect(await first.value == false)
+            #expect(service.insights?.windowDays == 14 && service.error == nil)
+            #expect(service.hasPendingConfig && store.load() == changed)
+            #expect(await service.refresh() == false)
+            #expect(service.error == "Could not load sensor placement (HTTP 503).")
+            #expect(service.insights?.windowDays == 14)
+            #expect(service.pendingInsightsNotice == SensorPlacementService.pendingConfigNotice)
+            #expect(service.hasPendingConfig)
+            #expect(await service.refresh())
+            #expect(service.insights?.windowDays == 7 && service.error == nil)
+            #expect(!service.hasPendingConfig && service.pendingInsightsNotice == nil)
+            #expect(requests == [original, changed, changed])
+            #expect(store.load() == changed)
+        }
+    }
+
+    @Test("A session replacement hides pending changes and discards an outdated completion")
+    func sessionChangeWhileLoading() async throws {
+        let cached = try insights(days: 14)
+        let obsolete = try insights(days: 30)
+        let store = store()
+        let session = PlacementTestSession()
+        let origin = session.id
+        let original = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
+        var changed = original
+        changed.setThermostat(false, in: .away)
+        store.save(original)
+        var continuation: CheckedContinuation<PlacementInsights, Never>?
+        let service = SensorPlacementService(
+            insights: cached, sessionCheck: { session.id == origin }, configStore: store, fetch: { _, _ in
+                await withCheckedContinuation { continuation = $0 }
+            }
+        )
+        let first = Task { await service.refresh() }
+        while continuation == nil { await Task.yield() }
+        #expect(service.updateConfig(changed))
+        session.id = "other-account"
+        continuation?.resume(returning: obsolete)
+        #expect(await first.value == false)
+        #expect(service.insights == nil && service.config == nil && service.error == nil)
+        #expect(service.pendingInsightsNotice == nil && !service.canEditConfig && !service.hasPendingConfig)
+        #expect(store.load() == changed)
+    }
+}

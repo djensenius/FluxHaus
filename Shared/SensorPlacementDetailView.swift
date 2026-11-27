@@ -33,6 +33,9 @@ struct SensorPlacementDetailView: View {
                     if let notice = service.notice {
                         Label(notice, systemImage: "info.circle")
                     }
+                    if let notice = service.pendingInsightsNotice {
+                        Label(notice, systemImage: "exclamationmark.triangle")
+                    }
                     if let notice = service.thermostatParticipationNotice {
                         Label(notice, systemImage: "exclamationmark.triangle")
                     }
@@ -79,8 +82,8 @@ struct SensorPlacementDetailView: View {
             if let verdict = sensor.outlierVerdict {
                 PlacementVerdictBadge(verdict: verdict)
             } else if sensor.isThermostat {
-                Text("Ecobee reports the comfort average of its participating sensors here, so it isn't "
-                     + "judged as a room.")
+                Text("This analysis treats the reported thermostat temperature as an approximation of the "
+                     + "comfort average, so it isn't judged as a room.")
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             if let text = sensor.verdictSummary {
@@ -130,8 +133,8 @@ struct SensorPlacementDetailView: View {
             heading("Comfort settings")
             let config = service.config
             if sensor.isThermostat {
-                Text("The thermostat reading is an average, not its built-in sensor's independent temperature. "
-                     + "The choices below describe the physical built-in sensor.")
+                Text(ThermostatSetupView.thermostatReadingExplanation
+                     + " The choices below describe the physical built-in sensor.")
                     .foregroundStyle(Theme.Colors.textSecondary)
                 ForEach(PlacementConfig.Setting.allCases) { setting in
                     LabeledContent(setting.title, value: config?.thermostatLabel(in: setting) ?? "Unknown")
@@ -160,7 +163,7 @@ struct SensorPlacementDetailView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Button(config == nil ? "Set Up Thermostat…" : "Edit Thermostat Setup…") { showSetup = true }
-                .disabled(service.insights?.roomSensorIDs.isEmpty ?? true || !service.canSaveConfig)
+                .disabled(!service.canEditConfig)
         }
     }
 
@@ -200,7 +203,8 @@ struct SensorPlacementDetailView: View {
     /// average, while older servers' per-sensor offsets compare with the mean of all sensors.
     static func offsetBaseline(_ sensor: PlacementInsights.Sensor) -> String {
         sensor.periodOffsets != nil
-            ? "Positive means warmer than the house's effective comfort average (what the thermostat reports); "
+            ? "Positive means warmer than the estimated effective comfort average (approximated by the reported "
+                + "thermostat temperature); "
                 + "negative means cooler."
             : "Positive means warmer than the average of all sensors; negative means cooler."
     }
@@ -235,11 +239,11 @@ struct SensorPlacementDetailView: View {
 }
 
 extension PlacementInsights.Sensor {
-    /// The thermostat's reading appears to be Ecobee's averaged comfort temperature, not a room.
-    var displayName: String { isThermostat ? "Thermostat (Ecobee average)" : name }
+    /// The thermostat's reported reading is treated as an approximate comfort average, not a room.
+    var displayName: String { isThermostat ? "Thermostat (reported temperature)" : name }
 
     /// The server's verdict (or one derived from the older `classification`); nil for the thermostat,
-    /// which is the comfort average rather than a room that can be an outlier.
+    /// whose reading approximates the comfort average rather than a room that can be an outlier.
     var outlierVerdict: PlacementInsights.Verdict? {
         if isThermostat { return nil }
         if let verdict { return verdict }

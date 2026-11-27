@@ -21,7 +21,7 @@ struct PlacementConfig: Codable, Equatable, Sendable {
     var sleep: Set<String>
     var away: Set<String>
     var followMe: Bool
-    // The physical sensor is separate from the thermostat's reported average.
+    // The physical sensor is separate from the thermostat's reported temperature.
     // Missing keys in an older saved setup decode as unknown, not excluded.
     var thermostatHome: Bool?
     var thermostatSleep: Bool?
@@ -76,7 +76,7 @@ struct PlacementConfig: Codable, Equatable, Sendable {
         sensors(in: setting).isEmpty && thermostat(in: setting) == false
     }
 
-    /// Drops the given ids (e.g. the thermostat's average, which is not a room sensor).
+    /// Drops the given ids (e.g. the thermostat's reported temperature, which is not a room sensor).
     func excluding(_ ids: Set<String>) -> PlacementConfig {
         PlacementConfig(
             home: home.subtracting(ids), sleep: sleep.subtracting(ids), away: away.subtracting(ids), followMe: followMe,
@@ -156,6 +156,10 @@ struct PlacementConfigStore {
 struct ThermostatSetupView: View {
     static let emptySettingNotice = "Ecobee uses the thermostat's built-in sensor if the last sensor is removed. "
         + "Check settings with no room sensors and an excluded thermostat in Ecobee; actual participation may differ."
+    static let thermostatReadingExplanation = "The analysis uses HomeKit's reported thermostat temperature as an "
+        + "approximation of the comfort average. The built-in sensor's independent temperature isn't available."
+    static let followMeExplanation = "The analysis assumes Follow Me averages occupied participating sensors; "
+        + "if none are occupied, it averages all participating sensors. Actual behavior may differ."
 
     let sensors: [PlacementInsights.Sensor]
     let wasConfigured: Bool
@@ -168,14 +172,18 @@ struct ThermostatSetupView: View {
         sensors: [PlacementInsights.Sensor], config: PlacementConfig?, thermostatParticipationNotice: String?,
         onSave: @escaping (PlacementConfig?) -> Void
     ) {
-        // The reported thermostat reading is Ecobee's comfort average, not a room sensor.
+        // The reported thermostat reading is treated as an average, not a room sensor.
         let rooms = sensors.filter { !$0.isThermostat }
         let ids = rooms.map(\.id)
         self.sensors = rooms
         self.wasConfigured = config != nil
         self.thermostatParticipationNotice = thermostatParticipationNotice
         self.onSave = onSave
-        _draft = State(initialValue: (config ?? .allIncluded(ids)).pruned(to: Set(ids)))
+        _draft = State(initialValue: Self.initialDraft(config: config, roomIDs: ids))
+    }
+
+    static func initialDraft(config: PlacementConfig?, roomIDs: [String]) -> PlacementConfig {
+        config ?? .allIncluded(roomIDs)
     }
 
     var body: some View {
@@ -183,11 +191,10 @@ struct ThermostatSetupView: View {
             Form {
                 Section {
                     Text("Match the room sensors each Ecobee comfort setting uses. HomeKit doesn't share these, "
-                         + "so tips need your setup to identify a room sensor that may skew the average.")
+                         + "so tips need your setup to identify a room sensor that may skew the estimated average.")
                         .foregroundStyle(.secondary)
                     Text("Choose the thermostat's physical built-in sensor separately from room sensors. "
-                         + "The displayed thermostat temperature is an average; its independent temperature "
-                         + "isn't available.")
+                         + Self.thermostatReadingExplanation)
                         .foregroundStyle(.secondary)
                     if let thermostatParticipationNotice {
                         Label(thermostatParticipationNotice, systemImage: "exclamationmark.triangle")
@@ -220,7 +227,7 @@ struct ThermostatSetupView: View {
                 Section {
                     Toggle("Follow Me", isOn: $draft.followMe)
                 } footer: {
-                    Text("With Follow Me, Ecobee averages only the participating sensors that detect someone.")
+                    Text(Self.followMeExplanation)
                 }
                 if wasConfigured {
                     Section {

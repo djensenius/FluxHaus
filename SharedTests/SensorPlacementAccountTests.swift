@@ -9,9 +9,12 @@ import Foundation
 import Testing
 @testable import FluxHaus
 
-/// Placement insights reporting the given room sensors plus the thermostat ("home").
-private func insights(rooms: [String], sensorFields: String = "") throws -> PlacementInsights {
-    let sensors = (rooms.map { ($0, false) } + [("home", true)]).map { id, thermostat in
+/// Placement insights reporting the given room sensors and, by default, the thermostat ("home").
+private func insights(
+    rooms: [String], sensorFields: String = "", includeThermostat: Bool = true
+) throws -> PlacementInsights {
+    let reported = rooms.map { ($0, false) } + (includeThermostat ? [("home", true)] : [])
+    let sensors = reported.map { id, thermostat in
         """
         {"id": "\(id)", "name": "\(id.capitalized)", "isThermostat": \(thermostat), "averageOffset": 0,
          "morningOffset": null, "returnOffset": null, "overshoot": null, "sampleCount": 10,
@@ -40,6 +43,11 @@ private func jwt(_ claims: [String: Any]) throws -> String {
 private final class FetchGate {
     var blocked = true
     var started = 0
+}
+
+@MainActor
+private final class AccountTestSession {
+    var valid = true
 }
 
 /// The keychain-held account id, simulated with AuthManager's pure rules: sign-in clears it before
@@ -229,6 +237,60 @@ struct SensorPlacementAccountTests {
         #expect(service(PlacementConfigStore(account: "a", defaults: defaults())).canSaveConfig)
     }
 
+    @Test("Setup needs a reported room or thermostat and a stable, valid account")
+    func setupAvailability() throws {
+        let store = PlacementConfigStore(account: "a", defaults: defaults())
+        let thermostatOnly = try insights(rooms: [])
+        let roomsOnly = try insights(rooms: ["bedroom"], includeThermostat: false)
+        let noSensors = try insights(rooms: [], includeThermostat: false)
+        func service(_ result: PlacementInsights?, _ store: PlacementConfigStore?) -> SensorPlacementService {
+            SensorPlacementService(insights: result, sessionCheck: { true }, configStore: store)
+        }
+        #expect(service(thermostatOnly, store).canEditConfig)
+        #expect(service(roomsOnly, store).canEditConfig)
+        #expect(!service(noSensors, store).canEditConfig)
+        #expect(!service(nil, store).canEditConfig)
+        #expect(!service(thermostatOnly, nil).canEditConfig)
+        let session = AccountTestSession()
+        let signedIn = SensorPlacementService(
+            insights: thermostatOnly, sessionCheck: { session.valid }, configStore: store
+        )
+        #expect(signedIn.canEditConfig)
+        session.valid = false
+        #expect(!signedIn.canEditConfig)
+    }
+
+    @Test("Editing and saving keeps unavailable rooms, including with thermostat-only discovery")
+    func editingPreservesUnavailableRooms() async throws {
+        for rooms in [["bedroom"], []] {
+            let result = try insights(rooms: rooms)
+            let store = PlacementConfigStore(account: "a", defaults: defaults())
+            let saved = PlacementConfig(
+                home: ["bedroom", "missing", "home"], sleep: ["missing"], away: ["missing"], followMe: true,
+                thermostatHome: nil, thermostatSleep: false, thermostatAway: true
+            )
+            store.save(saved)
+            let service = SensorPlacementService(
+                insights: result, sessionCheck: { true }, configStore: store, fetch: { _, _ in result }
+            )
+            let editor = ThermostatSetupView(
+                sensors: result.sensors, config: service.config, thermostatParticipationNotice: nil
+            ) { _ = service.updateConfig($0) }
+            var draft = ThermostatSetupView.initialDraft(config: service.config, roomIDs: editor.sensors.map(\.id))
+            #expect(draft == saved)
+            draft.setThermostat(true, in: .home)
+            editor.onSave(draft)
+            let expected = draft.excluding(["home"])
+            #expect(service.config == expected && store.load() == expected)
+            #expect(expected.home == ["bedroom", "missing"])
+            #expect(expected.sleep == ["missing"] && expected.away == ["missing"])
+            #expect(await service.refresh())
+            #expect(store.load() == expected)
+            let newDraft = ThermostatSetupView.initialDraft(config: nil, roomIDs: rooms)
+            #expect(newDraft.home == Set(rooms) && newDraft.thermostatHome == nil)
+        }
+    }
+
     @Test("A sensor the cache still lists but the fresh response doesn't is pruned and persisted")
     func staleCacheUsesFreshSensors() async throws {
         let cached = try insights(rooms: ["bedroom", "gone"])
@@ -318,7 +380,12 @@ struct SensorPlacementAccountTests {
             + #""cooling": null}"#
         let current = try #require(try insights(rooms: ["bedroom"], sensorFields: fields).sensors.first)
         #expect(SensorPlacementDetailView.offsetBaseline(current).contains("effective comfort average"))
+        #expect(SensorPlacementDetailView.offsetBaseline(current).contains("approximated"))
         #expect(SensorPlacementDetailView.offsetRows(current).map(\.label) == ["Overnight", "Home"])
+        #expect(ThermostatSetupView.thermostatReadingExplanation.contains("approximation"))
+        #expect(ThermostatSetupView.followMeExplanation.contains("assumes"))
+        #expect(ThermostatSetupView.followMeExplanation.contains("if none are occupied"))
+        #expect(ThermostatSetupView.followMeExplanation.contains("all participating sensors"))
     }
 
     @Test("A cancelled setup reload stays pending and is retried on return; success clears it")

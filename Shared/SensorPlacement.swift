@@ -247,7 +247,7 @@ struct PlacementInsights: Decodable, Sendable {
         }
     }
 
-    /// Physical room sensors that can participate in comfort settings (excludes the thermostat average).
+    /// Physical room sensors that can participate in comfort settings (excludes the thermostat reading).
     var roomSensorIDs: Set<String> { Set(sensors.filter { !$0.isThermostat }.map(\.id)) }
     var thermostatIDs: Set<String> { Set(sensors.filter(\.isThermostat).map(\.id)) }
 
@@ -292,6 +292,8 @@ enum PlacementRequestError: Error {
         + "your account. Sign out and sign in again to set it up."
     static let thermostatUnsupportedNotice = "This server can't use built-in thermostat sensor choices in its "
         + "analysis. Saved choices are kept for a server that supports them."
+    static let pendingConfigNotice = "These tips may reflect an earlier thermostat setup. "
+        + "The latest saved changes haven't been loaded yet."
 
     private struct Outcome: Sendable {
         let insights: PlacementInsights
@@ -326,8 +328,13 @@ enum PlacementRequestError: Error {
     }
     /// False when there's no stable account identity to save the setup under; setup is then unavailable.
     var canSaveConfig: Bool { configStore != nil }
+    /// A reported room or thermostat permits editing; an entirely empty discovery does not.
+    var canEditConfig: Bool { canSaveConfig && insights?.sensors.isEmpty == false }
     /// A setup change hasn't been loaded yet (e.g. its refresh was cancelled), so views should retry.
     var hasPendingConfig: Bool { isSessionValid && configRevision != appliedRevision }
+    var pendingInsightsNotice: String? {
+        hasPendingConfig && insights != nil ? Self.pendingConfigNotice : nil
+    }
 
     init(
         insights: PlacementInsights? = nil,
@@ -348,9 +355,11 @@ enum PlacementRequestError: Error {
         let config = config?.excluding(storedInsights?.thermostatIDs ?? [])
         guard isSessionValid, let configStore, config != storedConfig else { return false }
         storedConfig = config
+        storedError = nil
         storedNotice = nil
         configStore.save(config)
         configRevision &+= 1
+        loadTask?.cancel()
         return true
     }
 
@@ -387,7 +396,7 @@ enum PlacementRequestError: Error {
                 task.cancel()
             }
             try Task.checkCancellation()
-            guard loadGeneration == generation, isSessionValid else { return false }
+            guard loadGeneration == generation, isSessionValid, configRevision == revision else { return false }
             storedInsights = result.insights
             storedNotice = result.notice
             let final = result.config?.excluding(result.insights.thermostatIDs)
@@ -395,10 +404,11 @@ enum PlacementRequestError: Error {
                 storedConfig = final
                 configStore?.save(final)
             }
-            if configRevision == revision { appliedRevision = revision }
+            appliedRevision = revision
             return true
         } catch {
-            guard !Task.isCancelled, loadGeneration == generation, isSessionValid else { return false }
+            guard !Task.isCancelled, loadGeneration == generation, isSessionValid,
+                  configRevision == revision else { return false }
             if case PlacementRequestError.http(let code) = error {
                 storedError = "Could not load sensor placement (HTTP \(code))."
             } else {

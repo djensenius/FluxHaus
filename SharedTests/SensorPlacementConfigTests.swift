@@ -372,7 +372,7 @@ struct SensorPlacementConfigTests {
         }
     }
 
-    @Test("Per-sensor drill-down decodes; the thermostat is the Ecobee average; older servers degrade")
+    @Test("Per-sensor drill-down decodes; thermostat temperature is separate; older servers degrade")
     func drillDown() throws {
         let result = try decode()
         let bedroom = try #require(result.sensors.first)
@@ -392,10 +392,10 @@ struct SensorPlacementConfigTests {
         #expect(!SensorPlacementDetailView.patternLines(bedroom, unit: "°C").contains { $0.hasPrefix("Cooling:") })
 
         let thermostat = try #require(result.sensors.first(where: { $0.isThermostat }))
-        #expect(thermostat.displayName == "Thermostat (Ecobee average)")
+        #expect(thermostat.displayName == "Thermostat (reported temperature)")
         #expect(thermostat.outlierVerdict == nil)
         #expect(thermostat.occupiedShare == nil)  // superseded scalar shape is ignored
-        #expect(SensorPlacementView.name("home", in: result) == "Thermostat (Ecobee average)")
+        #expect(SensorPlacementView.name("home", in: result) == "Thermostat (reported temperature)")
 
         let kitchen = try #require(result.sensors.first(where: { $0.id == "kitchen" }))
         #expect(kitchen.displayName == "Kitchen")

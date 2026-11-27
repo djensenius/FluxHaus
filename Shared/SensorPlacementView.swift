@@ -103,6 +103,11 @@ struct SensorPlacementView: View {
                     .font(Theme.Fonts.bodyMedium)
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
+            if let notice = service.pendingInsightsNotice {
+                Label(notice, systemImage: "exclamationmark.triangle")
+                    .font(Theme.Fonts.bodyMedium)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+            }
             if let notice = service.thermostatParticipationNotice {
                 Label(notice, systemImage: "exclamationmark.triangle")
                     .font(Theme.Fonts.bodyMedium)
@@ -143,7 +148,7 @@ struct SensorPlacementView: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             Button(service.config == nil ? "Set Up Thermostat…" : "Edit Thermostat Setup…") { showSetup = true }
-                .disabled(insights.roomSensorIDs.isEmpty || !service.canSaveConfig)
+                .disabled(!service.canEditConfig)
         }
         .font(Theme.Fonts.bodyMedium)
     }
