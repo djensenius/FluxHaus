@@ -404,10 +404,10 @@ struct SensorPlacementConfigTests {
         #expect(!SensorPlacementDetailView.patternLines(bedroom, unit: "°C").contains { $0.hasPrefix("Cooling:") })
 
         let thermostat = try #require(result.sensors.first(where: { $0.isThermostat }))
-        #expect(thermostat.displayName == "Thermostat (reported temperature)")
+        #expect(thermostat.displayName == "Home")
         #expect(thermostat.outlierVerdict == nil)
         #expect(thermostat.occupiedShare == nil)  // superseded scalar shape is ignored
-        #expect(SensorPlacementView.name("home", in: result) == "Thermostat (reported temperature)")
+        #expect(SensorPlacementView.name("home", in: result) == "Home")
 
         let kitchen = try #require(result.sensors.first(where: { $0.id == "kitchen" }))
         #expect(kitchen.displayName == "Kitchen")

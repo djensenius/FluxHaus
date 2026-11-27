@@ -21,7 +21,7 @@ struct PlacementConfig: Codable, Equatable, Sendable {
     var sleep: Set<String>
     var away: Set<String>
     var followMe: Bool
-    // The physical sensor is separate from the thermostat's reported temperature.
+    // Physical-sensor participation is tracked separately from thermostat-associated temperature readings.
     // Missing keys in an older saved setup decode as unknown, not excluded.
     var thermostatHome: Bool?
     var thermostatSleep: Bool?
@@ -76,7 +76,7 @@ struct PlacementConfig: Codable, Equatable, Sendable {
         sensors(in: setting).isEmpty && thermostat(in: setting) == false
     }
 
-    /// Drops the given ids (e.g. the thermostat's reported temperature, which is not a room sensor).
+    /// Drops the given ids, such as thermostat-associated sensors excluded from room choices.
     func excluding(_ ids: Set<String>) -> PlacementConfig {
         PlacementConfig(
             home: home.subtracting(ids), sleep: sleep.subtracting(ids), away: away.subtracting(ids), followMe: followMe,
@@ -160,8 +160,8 @@ struct ThermostatSetupView: View {
         + "keep their per-setting selections unless you change them. For a setting with no room selections, "
         + "saving selects no room sensors."
     static let thermostatReadingExplanation = "The analysis estimates the comfort average from available readings. "
-        + "When HomeKit reports a thermostat temperature, it may serve as an approximation; the built-in sensor's "
-        + "independent temperature isn't available."
+        + "When an identified climate-reported thermostat temperature is available, it may serve as an approximation. "
+        + "A thermostat-associated sensor isn't necessarily that reading or the physical built-in sensor."
     static let followMeExplanation = "Follow Me isn't detected. For a new setup this switch starts off; match it to "
         + "your Ecobee setting. The analysis assumes Follow Me averages occupied participating sensors; "
         + "if none are occupied, it averages all participating sensors. Actual behavior may differ."

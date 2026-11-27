@@ -9,6 +9,9 @@ import Charts
 import SwiftUI
 
 struct SensorPlacementDetailView: View {
+    static let thermostatParticipationExplanation = ThermostatSetupView.thermostatReadingExplanation
+        + " The choices below describe the physical built-in sensor, not necessarily this listed sensor."
+
     let service: SensorPlacementService
     let sensorID: String
     @State private var showSetup = false
@@ -81,9 +84,8 @@ struct SensorPlacementDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             if let verdict = sensor.outlierVerdict {
                 PlacementVerdictBadge(verdict: verdict)
-            } else if sensor.isThermostat {
-                Text("When reported, the thermostat temperature may approximate the comfort average; "
-                     + "it isn't judged as a room.")
+            } else if let text = Self.thermostatFallback(sensor) {
+                Text(text)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
             if let text = sensor.verdictSummary {
@@ -133,8 +135,7 @@ struct SensorPlacementDetailView: View {
             heading("Comfort settings")
             let config = service.config
             if sensor.isThermostat {
-                Text(ThermostatSetupView.thermostatReadingExplanation
-                     + " The choices below describe the physical built-in sensor.")
+                Text(Self.thermostatParticipationExplanation)
                     .foregroundStyle(Theme.Colors.textSecondary)
                 ForEach(PlacementConfig.Setting.allCases) { setting in
                     LabeledContent(setting.title, value: config?.thermostatLabel(in: setting) ?? "Unknown")
@@ -183,6 +184,14 @@ struct SensorPlacementDetailView: View {
         Text(title)
             .font(Theme.Fonts.headerLarge())
             .accessibilityAddTraits(.isHeader)
+    }
+
+    /// Prefer the server's explanation; older responses need a conservative fallback.
+    static func thermostatFallback(_ sensor: PlacementInsights.Sensor) -> String? {
+        guard sensor.isThermostat, sensor.verdictSummary == nil else { return nil }
+        return sensor.isLegacyThermostatReading
+            ? "This reported thermostat temperature may approximate the comfort average; it isn't judged as a room."
+            : "This thermostat-associated sensor isn't identified as the comfort reading or judged as a room."
     }
 
     /// Offsets by period; falls back to the older per-sensor offsets when `periodOffsets` is absent.
@@ -237,11 +246,13 @@ struct SensorPlacementDetailView: View {
 }
 
 extension PlacementInsights.Sensor {
-    /// The thermostat's reported reading is treated as an approximate comfort average, not a room.
-    var displayName: String { isThermostat ? "Thermostat (reported temperature)" : name }
+    /// Older servers reserved this name for the identified climate-reported reading.
+    var isLegacyThermostatReading: Bool { isThermostat && name == "Thermostat (Ecobee average)" }
 
-    /// The server's verdict (or one derived from the older `classification`); nil for the thermostat,
-    /// whose reading approximates the comfort average rather than a room that can be an outlier.
+    var displayName: String { isLegacyThermostatReading ? "Thermostat (reported temperature)" : name }
+
+    /// The server's verdict (or one derived from the older `classification`); thermostat-associated
+    /// sensors aren't assessed as room outliers, even when their particular role is unknown.
     var outlierVerdict: PlacementInsights.Verdict? {
         if isThermostat { return nil }
         if let verdict { return verdict }

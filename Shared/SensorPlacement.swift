@@ -247,7 +247,7 @@ struct PlacementInsights: Decodable, Sendable {
         }
     }
 
-    /// Physical room sensors that can participate in comfort settings (excludes the thermostat reading).
+    /// IDs offered as room sensors for comfort settings, excluding thermostat-associated sensors.
     var roomSensorIDs: Set<String> { Set(sensors.filter { !$0.isThermostat }.map(\.id)) }
     var thermostatIDs: Set<String> { Set(sensors.filter(\.isThermostat).map(\.id)) }
 

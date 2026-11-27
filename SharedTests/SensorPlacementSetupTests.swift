@@ -312,7 +312,7 @@ struct SensorPlacementSetupTests {
         #expect(result.thermostatIDs.isEmpty)
         #expect(SensorPlacementDetailView.offsetBaseline(sensor)
                 == "Positive means warmer than the estimated effective comfort average; negative means cooler.")
-        #expect(ThermostatSetupView.thermostatReadingExplanation.contains("When HomeKit reports"))
+        #expect(ThermostatSetupView.thermostatReadingExplanation.contains("identified climate-reported"))
     }
 
     @Test("Zero cooling events describe available history only when there is no complete window")
