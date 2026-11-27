@@ -84,7 +84,7 @@ struct PlacementConfig: Codable, Equatable, Sendable {
         )
     }
 
-    /// Drops sensor ids the server no longer reports.
+    /// Restricts room ids to a discovered list for a request without changing the saved setup.
     func pruned(to known: Set<String>) -> PlacementConfig {
         PlacementConfig(
             home: home.intersection(known), sleep: sleep.intersection(known),
@@ -157,7 +157,8 @@ struct ThermostatSetupView: View {
     static let emptySettingNotice = "Ecobee uses the thermostat's built-in sensor if the last sensor is removed. "
         + "Check settings with no room sensors and an excluded thermostat in Ecobee; actual participation may differ."
     static let noRoomSensorsNotice = "No room sensors are listed in this analysis. Saved IDs not in the current list "
-        + "stay selected unless you change them. For a setting with no room selections, saving selects no room sensors."
+        + "keep their per-setting selections unless you change them. For a setting with no room selections, "
+        + "saving selects no room sensors."
     static let thermostatReadingExplanation = "The analysis estimates the comfort average from available readings. "
         + "When HomeKit reports a thermostat temperature, it may serve as an approximation; the built-in sensor's "
         + "independent temperature isn't available."
@@ -171,7 +172,7 @@ struct ThermostatSetupView: View {
     let thermostatParticipationNotice: String?
     let onSave: (PlacementConfig?) -> Void
     @State private var draft: PlacementConfig
-    // Keep initially saved selections visible after toggling them off, so they can be restored.
+    // Keep initially saved IDs visible in every setting throughout the editing session.
     @State private var initialConfig: PlacementConfig?
     @Environment(\.dismiss) private var dismiss
 
@@ -196,10 +197,12 @@ struct ThermostatSetupView: View {
         config ?? .allIncluded(roomIDs)
     }
 
-    static func unavailableSensorIDs(
-        in setting: PlacementConfig.Setting, config: PlacementConfig?, reportedIDs: Set<String>
-    ) -> [String] {
-        (config?.sensors(in: setting) ?? []).subtracting(reportedIDs).sorted()
+    static func unavailableSensorIDs(config: PlacementConfig?, reportedIDs: Set<String>) -> [String] {
+        guard let config else { return [] }
+        let savedIDs = PlacementConfig.Setting.allCases.reduce(into: Set<String>()) { ids, setting in
+            ids.formUnion(config.sensors(in: setting))
+        }
+        return savedIDs.subtracting(reportedIDs).sorted()
     }
 
     static func unavailableSensorLabel(_ id: String) -> String {
@@ -233,9 +236,7 @@ struct ThermostatSetupView: View {
                             ))
                         }
                         ForEach(
-                            Self.unavailableSensorIDs(
-                                in: setting, config: initialConfig, reportedIDs: reportedSensorIDs
-                            ),
+                            Self.unavailableSensorIDs(config: initialConfig, reportedIDs: reportedSensorIDs),
                             id: \.self
                         ) { id in
                             Toggle(Self.unavailableSensorLabel(id), isOn: Binding(
@@ -244,7 +245,7 @@ struct ThermostatSetupView: View {
                             ))
                             .accessibilityLabel("\(Self.unavailableSensorLabel(id)), \(setting.title)")
                             .accessibilityHint(
-                                "Turn off to remove this selection; turn on to restore it before saving."
+                                "Turn on to include this saved ID in this setting, or off to remove it."
                             )
                         }
                         Picker("Thermostat built-in sensor", selection: Binding(

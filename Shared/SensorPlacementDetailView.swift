@@ -31,7 +31,7 @@ struct SensorPlacementDetailView: View {
                         ProgressView("Refreshing sensor placement…")
                     }
                     if let notice = service.notice {
-                        Label(notice, systemImage: "info.circle")
+                        Label(notice, systemImage: "exclamationmark.triangle")
                     }
                     if let notice = service.pendingInsightsNotice {
                         Label(notice, systemImage: "exclamationmark.triangle")

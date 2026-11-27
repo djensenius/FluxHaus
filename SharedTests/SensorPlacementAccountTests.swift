@@ -50,6 +50,11 @@ private final class AccountTestSession {
     var valid = true
 }
 
+@MainActor
+private final class InventoryStatus {
+    var sensorReturned = false
+}
+
 /// The keychain-held account id, simulated with AuthManager's pure rules: sign-in clears it before
 /// storing new tokens, refresh keeps it, sign-out deletes it.
 private struct StoredAccount {
@@ -291,22 +296,27 @@ struct SensorPlacementAccountTests {
         }
     }
 
-    @Test("A sensor the cache still lists but the fresh response doesn't is pruned and persisted")
+    @Test("Fresh discovery reduces a rejected request without losing saved choices, then retries them")
     func staleCacheUsesFreshSensors() async throws {
         let cached = try insights(rooms: ["bedroom", "gone"])
         let fresh = try insights(rooms: ["bedroom", "kitchen"])
+        let recovered = try insights(rooms: ["bedroom", "gone", "kitchen"])
         let store = PlacementConfigStore(account: "a", defaults: defaults())
         let stale = PlacementConfig(
             home: ["bedroom", "gone"], sleep: ["gone"], away: [], followMe: false,
             thermostatHome: true, thermostatSleep: false, thermostatAway: nil
         )
         store.save(stale)
+        let savedData = store.defaults.data(forKey: store.key)
+        let inventory = InventoryStatus()
         var requested: [PlacementConfig?] = []
         let service = SensorPlacementService(
             insights: cached, sessionCheck: { true }, configStore: store, fetch: { config, _ in
                 requested.append(config)
-                if config?.home.contains("gone") == true { throw PlacementRequestError.http(400) }
-                return fresh
+                if config?.home.contains("gone") == true && !inventory.sensorReturned {
+                    throw PlacementRequestError.http(400)
+                }
+                return inventory.sensorReturned ? recovered : fresh
             }
         )
         #expect(await service.refresh())
@@ -315,10 +325,18 @@ struct SensorPlacementAccountTests {
             thermostatHome: true, thermostatSleep: false, thermostatAway: nil
         )
         #expect(requested == [stale, nil, corrected])
-        #expect(service.config == corrected)
-        #expect(store.load() == corrected)
-        #expect(service.notice == SensorPlacementService.prunedNotice)
+        #expect(service.config == stale && store.load() == stale)
+        #expect(store.defaults.data(forKey: store.key) == savedData)
+        #expect(service.notice == SensorPlacementService.reducedConfigNotice)
+        #expect(service.notice?.contains("weren't used") == true && service.notice?.contains("remain saved") == true)
         #expect(service.insights?.roomSensorIDs == ["bedroom", "kitchen"])
+        inventory.sensorReturned = true
+        #expect(await service.refresh())
+        #expect(requested == [stale, nil, corrected, stale])
+        #expect(service.config == stale && store.load() == stale)
+        #expect(store.defaults.data(forKey: store.key) == savedData)
+        #expect(service.insights?.roomSensorIDs == ["bedroom", "gone", "kitchen"])
+        #expect(service.notice == nil)
     }
 
     @Test("An empty sensor list never prunes the setup: cached inventory is skipped, fresh retries correctly")
@@ -337,9 +355,10 @@ struct SensorPlacementAccountTests {
         )
         #expect(await service.refresh())
         let corrected = PlacementConfig(home: ["bedroom"], sleep: [], away: [], followMe: false)
-        // No request with an emptied setup, which the server would accept and the app would persist.
+        // Empty cached inventory doesn't determine the retry; fresh discovery does.
         #expect(requested == [stale, nil, corrected])
-        #expect(store.load() == corrected)
+        #expect(service.config == stale && store.load() == stale)
+        #expect(service.notice == SensorPlacementService.reducedConfigNotice)
     }
 
     @Test("When fresh inventory is empty too, the saved setup is kept and unconfigured insights are shown")

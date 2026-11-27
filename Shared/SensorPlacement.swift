@@ -283,11 +283,12 @@ enum PlacementRequestError: Error {
     typealias SessionCheck = @MainActor () -> Bool
     typealias Fetch = @MainActor (PlacementConfig?, @escaping SessionCheck) async throws -> PlacementInsights
 
-    static let prunedNotice = "Sensors that are no longer reported were removed from your thermostat setup."
+    static let reducedConfigNotice = "Some saved sensor selections weren't used in these tips. "
+        + "They remain saved and will be retried on refresh."
     static let rejectedNotice = "Your thermostat setup couldn't be used, so these tips don't account for it. "
-        + "Review it in Thermostat setup."
-    static let sensorsUnavailableNotice = "Sensors aren't available right now, so these tips don't account for "
-        + "your thermostat setup. Your setup is kept and will be used once sensors are back."
+        + "Your saved setup is kept and will be retried on refresh."
+    static let sensorsUnavailableNotice = "No room sensors were listed in this analysis, so these tips don't account "
+        + "for your thermostat setup. Your saved setup is kept and will be retried on refresh."
     static let setupUnavailableNotice = "Thermostat setup can't be saved because this sign-in doesn't identify "
         + "your account. Sign out and sign in again to set it up."
     static let thermostatUnsupportedNotice = "This server can't use built-in thermostat sensor choices in its "
@@ -297,7 +298,7 @@ enum PlacementRequestError: Error {
 
     private struct Outcome: Sendable {
         let insights: PlacementInsights
-        let config: PlacementConfig?
+        let thermostatIDs: Set<String>
         let notice: String?
     }
 
@@ -320,7 +321,7 @@ enum PlacementRequestError: Error {
     var config: PlacementConfig? { isSessionValid ? storedConfig : nil }
     var isLoading: Bool { isSessionValid && loading }
     var error: String? { isSessionValid ? storedError : nil }
-    /// A non-fatal message about the thermostat setup (e.g. unknown sensors were dropped).
+    /// A non-fatal message when the tips couldn't use all of the saved thermostat setup.
     var notice: String? { isSessionValid ? storedNotice : nil }
     var thermostatParticipationNotice: String? {
         guard let insights, insights.coverage.thermostatParticipationSupported != true else { return nil }
@@ -376,11 +377,10 @@ enum PlacementRequestError: Error {
         let original = storedConfig
         let revision = configRevision
         let config = original?.excluding(storedInsights?.thermostatIDs ?? [])
-        let known = storedInsights?.roomSensorIDs
         let fetch = self.fetch
         let sessionCheck = self.sessionCheck
         let task = Task {
-            try await Self.load(config: config, known: known, sessionCheck: sessionCheck, fetch: fetch)
+            try await Self.load(config: config, sessionCheck: sessionCheck, fetch: fetch)
         }
         loadTask = task
         defer {
@@ -399,7 +399,7 @@ enum PlacementRequestError: Error {
             guard loadGeneration == generation, isSessionValid, configRevision == revision else { return false }
             storedInsights = result.insights
             storedNotice = result.notice
-            let final = result.config?.excluding(result.insights.thermostatIDs)
+            let final = config?.excluding(result.thermostatIDs)
             if final != original, storedConfig == original {
                 storedConfig = final
                 configStore?.save(final)
@@ -418,38 +418,34 @@ enum PlacementRequestError: Error {
         }
     }
 
-    /// Fetches with the config. If the server rejects it (HTTP 400, e.g. a stale sensor id), drops
-    /// unknown sensors and retries, falling back to unconfigured insights rather than a dead end.
+    /// If the server rejects the setup, retry with fresh discovery without changing the saved room IDs.
     private static func load(
-        config: PlacementConfig?, known: Set<String>?, sessionCheck: @escaping SessionCheck, fetch: Fetch
+        config: PlacementConfig?, sessionCheck: @escaping SessionCheck, fetch: Fetch
     ) async throws -> Outcome {
         do {
-            return Outcome(insights: try await fetch(config, sessionCheck), config: config, notice: nil)
+            let insights = try await fetch(config, sessionCheck)
+            return Outcome(insights: insights, thermostatIDs: insights.thermostatIDs, notice: nil)
         } catch PlacementRequestError.http(400) where config != nil {
             guard let config else { throw PlacementRequestError.http(400) }
-            // Retries with a pruned config; nil when the server rejects that too.
-            func retry(_ pruned: PlacementConfig) async throws -> Outcome? {
-                do {
-                    let insights = try await fetch(pruned, sessionCheck)
-                    return Outcome(insights: insights, config: pruned, notice: prunedNotice)
-                } catch PlacementRequestError.http(400) { return nil }
-            }
-            // Try the cached sensor list first, then the fresh unconfigured response, which may
-            // show that a sensor the cache still lists is gone. An empty list may be a temporary
-            // discovery failure, so it never prunes: the saved setup is kept for when sensors return.
-            var tried = config
-            if let known, !known.isEmpty, case let pruned = config.pruned(to: known), pruned != config {
-                if let outcome = try await retry(pruned) { return outcome }
-                tried = pruned
-            }
+            // Cached inventory may omit a returned sensor, so only fresh discovery selects the retry.
             let fresh = try await fetch(nil, sessionCheck)
-            let available = fresh.roomSensorIDs
+            let available = fresh.roomSensorIDs.subtracting(fresh.thermostatIDs)
             guard !available.isEmpty else {
-                return Outcome(insights: fresh, config: config, notice: sensorsUnavailableNotice)
+                return Outcome(insights: fresh, thermostatIDs: fresh.thermostatIDs, notice: sensorsUnavailableNotice)
             }
-            let pruned = config.pruned(to: available)
-            if pruned != config, pruned != tried, let outcome = try await retry(pruned) { return outcome }
-            return Outcome(insights: fresh, config: config, notice: rejectedNotice)
+            let reduced = config.excluding(fresh.thermostatIDs).pruned(to: available)
+            if reduced != config {
+                do {
+                    let insights = try await fetch(reduced, sessionCheck)
+                    let thermostatIDs = fresh.thermostatIDs.union(insights.thermostatIDs)
+                    let saved = config.excluding(thermostatIDs)
+                    let notice = reduced.excluding(thermostatIDs) == saved ? nil : reducedConfigNotice
+                    return Outcome(insights: insights, thermostatIDs: thermostatIDs, notice: notice)
+                } catch PlacementRequestError.http(400) {
+                    // The unconfigured response is still usable when the reduced request is rejected.
+                }
+            }
+            return Outcome(insights: fresh, thermostatIDs: fresh.thermostatIDs, notice: rejectedNotice)
         }
     }
 

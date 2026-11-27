@@ -415,8 +415,8 @@ struct SensorPlacementConfigTests {
         #expect(try decode(future).sensors.first?.outlierVerdict == .unknown)
     }
 
-    @Test("A rejected config drops unknown sensors and retries, persisting the pruned config")
-    func staleSensorIsPruned() async throws {
+    @Test("A reduced retry preserves saved IDs until the user removes or clears them")
+    func staleSensorUsesFreshRetry() async throws {
         let result = try decode()
         let store = PlacementConfigStore(account: "first", defaults: defaults())
         let stale = PlacementConfig(
@@ -433,16 +433,25 @@ struct SensorPlacementConfigTests {
                 return result
             }
         )
-        await service.refresh()
+        #expect(await service.refresh())
         let pruned = PlacementConfig(
             home: ["bedroom"], sleep: [], away: [], followMe: false,
             thermostatHome: true, thermostatSleep: false, thermostatAway: nil
         )
-        #expect(requested == [stale, pruned])
-        #expect(service.config == pruned)
-        #expect(store.load() == pruned)
-        #expect(service.notice == SensorPlacementService.prunedNotice)
+        #expect(requested == [stale, nil, pruned])
+        #expect(service.config == stale && store.load() == stale)
+        #expect(service.notice == SensorPlacementService.reducedConfigNotice)
         #expect(service.error == nil)
+        var edited = stale
+        edited.set(false, sensor: "gone", in: .home)
+        #expect(service.updateConfig(edited))
+        #expect(store.load() == pruned && service.notice == nil)
+        #expect(await service.refresh())
+        #expect(requested == [stale, nil, pruned, pruned])
+        #expect(service.updateConfig(nil))
+        #expect(store.load() == nil)
+        #expect(await service.refresh())
+        #expect(requested.last == .some(nil))
     }
 
     @Test("An unusable config falls back to unconfigured insights with a clear message")

@@ -99,7 +99,7 @@ struct SensorPlacementView: View {
             Text("These preliminary suggestions are based on historical patterns, not proof of their causes.")
                 .foregroundColor(Theme.Colors.textSecondary)
             if let notice = service.notice {
-                Label(notice, systemImage: "info.circle")
+                Label(notice, systemImage: "exclamationmark.triangle")
                     .font(Theme.Fonts.bodyMedium)
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
