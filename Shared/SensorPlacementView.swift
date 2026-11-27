@@ -322,7 +322,8 @@ struct SensorPlacementView: View {
 
     static func noCoolingHistoryNotice(_ coverage: PlacementInsights.Coverage) -> String? {
         guard coverage.coolingEvents == 0, coverage.coolingFrom == nil || coverage.coolingTo == nil else { return nil }
-        return "No cooling activity was found in the available history; there are no cooling tips."
+        return "No cooling tips are available. Cooling history may be unavailable or not assessed, "
+            + "or no usable cooling activity was identified in the records."
     }
 
     static func offset(_ value: Double?, unit: String?) -> String {
