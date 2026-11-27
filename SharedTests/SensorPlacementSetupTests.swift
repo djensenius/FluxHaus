@@ -377,15 +377,15 @@ struct SensorPlacementCompatibilityTests {
         let store = store(setup)
         let savedData = store.defaults.data(forKey: store.key)
         let session = SetupTestSession()
-        let responses = [legacy, legacy, unsupported, supported]
         var requests: [PlacementConfig?] = []
-        var responseIndex = 0
-        var failNext = false
         let service = SensorPlacementService(sessionCheck: { session.valid }, configStore: store, fetch: { config, _ in
             requests.append(config)
-            if failNext { throw PlacementRequestError.http(503) }
-            defer { responseIndex += 1 }
-            return responses[responseIndex]
+            switch requests.count {
+            case 1, 2: return legacy
+            case 3: throw PlacementRequestError.http(503)
+            case 4: return unsupported
+            default: return supported
+            }
         })
         for _ in 0..<2 {
             #expect(await service.refresh())
@@ -403,13 +403,11 @@ struct SensorPlacementCompatibilityTests {
         #expect(service.updateConfig(edited))
         let editedData = store.defaults.data(forKey: store.key)
         #expect(service.notice == SensorPlacementService.setupNotUsedNotice && service.hasPendingConfig)
-        failNext = true
         #expect(await service.refresh() == false)
         #expect(service.error == "Could not load sensor placement (HTTP 503).")
         #expect(service.notice == SensorPlacementService.setupNotUsedNotice)
         #expect(service.pendingInsightsNotice == SensorPlacementService.pendingConfigNotice)
         #expect(store.load() == edited && store.defaults.data(forKey: store.key) == editedData)
-        failNext = false
         let editor = ThermostatSetupView(
             sensors: legacy.sensors, config: service.config,
             thermostatParticipationNotice: service.thermostatParticipationNotice, analysisNotice: service.notice
