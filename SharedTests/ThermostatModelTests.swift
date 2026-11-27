@@ -278,6 +278,16 @@ struct IndoorCardSummaryTests {
         return IndoorCardSummary(state: IndoorCardSummary.currentState(thermostat: thermostat, polled: polled))
     }
 
+    @MainActor private func stateAfterReply(
+        _ reply: IndoorClimateState, polled: IndoorClimateState
+    ) async -> IndoorClimateState? {
+        let recorder = CommandRecorder()
+        recorder.reply = { _ in reply }
+        let thermostat = recorder.makeThermostat()
+        await thermostat.setMode("heat_cool")
+        return IndoorCardSummary.currentState(thermostat: thermostat, polled: polled)
+    }
+
     private func thermostatOnly(
         unit: String?, thermostatUnit: String? = nil, current: Double? = nil,
         available: Bool = true, timestamp: String = "2099-01-01T00:00:00Z"
@@ -395,6 +405,54 @@ struct IndoorCardSummaryTests {
         #expect(summary.coolest == "Coolest Den \(IndoorClimateFormat.temperature(68, unit: "°F"))")
         // The °C thermostat reading carried from the poll is shown in the reply's °F.
         #expect(summary.value == IndoorClimateFormat.temperature(21.3 * 9 / 5 + 32, unit: "°F"))
+    }
+
+    @Test("Polled rooms of unknown unit are dropped; the rest keep their own unit")
+    @MainActor func testUnknownUnitRoomsDropped() async throws {
+        let polled = IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z", unit: nil,
+            thermostat: thermostatOnly(unit: nil, thermostatUnit: "°C", current: 21.3).thermostat,
+            sensors: [
+                IndoorTemperatureSensor(entityId: "sensor.den", name: "Den", temperature: 22, unit: nil),
+                IndoorTemperatureSensor(entityId: "sensor.hall", name: "Hall", temperature: 20, unit: "°C")
+            ]
+        )
+        let reply = IndoorClimateState(
+            timestamp: "2099-01-01T00:00:00Z", unit: "°F",
+            thermostat: thermostatOnly(unit: nil, thermostatUnit: "°C").thermostat, sensors: []
+        )
+        let state = try #require(await stateAfterReply(reply, polled: polled))
+        // Den could be °C or °F, so it is not shown as the reply's °F.
+        #expect(state.sensors.map(\.entityId) == ["sensor.hall"])
+        #expect(state.sensors.map(\.unit) == ["°C"])
+        #expect(state.thermostat?.currentTemperature == 21.3)
+    }
+
+    @Test("A sensor's unit is never taken as the polled thermostat's unit")
+    @MainActor func testSensorUnitIsNotThermostatUnit() async throws {
+        let polled = IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z", unit: nil,
+            thermostat: thermostatOnly(unit: nil, current: 21.3).thermostat,
+            sensors: [IndoorTemperatureSensor(entityId: "sensor.hall", name: "Hall", temperature: 20, unit: "°C")]
+        )
+        let state = try #require(await stateAfterReply(thermostatOnly(unit: "°C"), polled: polled))
+        #expect(state.thermostat?.currentTemperature == nil)
+        // The room states its own unit, so it is still shown.
+        #expect(IndoorCardSummary(state: state).value == format(20))
+    }
+
+    @Test("When neither response states a unit, both are shown as they are")
+    @MainActor func testUnstatedResponsesShownAsTheyAre() async throws {
+        let rooms = [IndoorTemperatureSensor(entityId: "sensor.den", name: "Den", temperature: 22, unit: nil)]
+        let polled = IndoorClimateState(
+            timestamp: "2024-12-13T11:59:00Z", unit: nil,
+            thermostat: thermostatOnly(unit: nil, current: 21.3).thermostat, sensors: rooms
+        )
+        let state = try #require(await stateAfterReply(thermostatOnly(unit: nil), polled: polled))
+        #expect(state.thermostat?.currentTemperature == 21.3)
+        #expect(state.thermostat?.temperatureUnit == nil)
+        #expect(state.sensors == rooms)
+        #expect(IndoorCardSummary(state: state).status?.hasPrefix("Auto") == true)
     }
 
     @Test("An offline thermostat's last polled reading is not shown as current after a change")
