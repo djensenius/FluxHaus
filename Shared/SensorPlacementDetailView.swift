@@ -43,7 +43,7 @@ struct SensorPlacementDetailView: View {
                         Label(notice, systemImage: "exclamationmark.triangle")
                     }
                     summary(sensor)
-                    offsets(sensor, unit: insights.unit)
+                    offsets(sensor, unit: insights.unit, coverage: insights.coverage)
                     patterns(sensor, unit: insights.unit)
                     participation(sensor)
                     related(sensor, insights: insights)
@@ -88,14 +88,16 @@ struct SensorPlacementDetailView: View {
                 Text(text)
                     .foregroundStyle(Theme.Colors.textSecondary)
             }
-            if let text = sensor.verdictSummary {
+            if let text = sensor.displayVerdictSummary {
                 Text(text)
             }
             Text("Samples: \(sensor.sampleCount)").foregroundStyle(Theme.Colors.textSecondary)
         }
     }
 
-    private func offsets(_ sensor: PlacementInsights.Sensor, unit: String) -> some View {
+    private func offsets(
+        _ sensor: PlacementInsights.Sensor, unit: String, coverage: PlacementInsights.Coverage
+    ) -> some View {
         let rows = Self.offsetRows(sensor)
         return VStack(alignment: .leading, spacing: 8) {
             heading("Temperature offsets")
@@ -115,6 +117,9 @@ struct SensorPlacementDetailView: View {
                 }
                 Text(Self.offsetBaseline(sensor))
                     .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            ForEach(coverage.unitAssumptionNotices, id: \.self) { notice in
+                Text(notice).foregroundStyle(Theme.Colors.textSecondary)
             }
         }
     }
@@ -186,12 +191,10 @@ struct SensorPlacementDetailView: View {
             .accessibilityAddTraits(.isHeader)
     }
 
-    /// Prefer the server's explanation; older responses need a conservative fallback.
+    /// Prefer the server's explanation when it doesn't make the old unsupported average claim.
     static func thermostatFallback(_ sensor: PlacementInsights.Sensor) -> String? {
-        guard sensor.isThermostat, sensor.verdictSummary == nil else { return nil }
-        return sensor.isLegacyThermostatReading
-            ? "This reported thermostat temperature may approximate the comfort average; it isn't judged as a room."
-            : "This thermostat-associated sensor isn't identified as the comfort reading or judged as a room."
+        guard sensor.isThermostat, sensor.displayVerdictSummary == nil else { return nil }
+        return "This thermostat-associated sensor isn't identified as the comfort reading or judged as a room."
     }
 
     /// Offsets by period; falls back to the older per-sensor offsets when `periodOffsets` is absent.
@@ -246,10 +249,21 @@ struct SensorPlacementDetailView: View {
 }
 
 extension PlacementInsights.Sensor {
-    /// Older servers reserved this name for the identified climate-reported reading.
-    var isLegacyThermostatReading: Bool { isThermostat && name == "Thermostat (Ecobee average)" }
+    private static let legacyThermostatSummary = "This is Ecobee's average of the sensors in the active comfort "
+        + "setting (what it heats and cools to), not a room, so it isn't judged as an outlier."
 
-    var displayName: String { isLegacyThermostatReading ? "Thermostat (reported temperature)" : name }
+    /// Older servers gave every thermostat-associated sensor this name, regardless of its role.
+    private var hasLegacyThermostatName: Bool { isThermostat && name == "Thermostat (Ecobee average)" }
+
+    var displayName: String { hasLegacyThermostatName ? "Thermostat-associated sensor" : name }
+
+    /// The old server's blanket average claim did not identify this sensor's role.
+    var displayVerdictSummary: String? {
+        guard isThermostat, verdictSummary == Self.legacyThermostatSummary else {
+            return verdictSummary
+        }
+        return nil
+    }
 
     /// The server's verdict (or one derived from the older `classification`); thermostat-associated
     /// sensors aren't assessed as room outliers, even when their particular role is unknown.

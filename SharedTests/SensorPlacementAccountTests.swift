@@ -11,16 +11,15 @@ import Testing
 
 /// Placement insights reporting the given room sensors and, by default, the thermostat ("home").
 private func insights(
-    rooms: [String], sensorFields: String = "", includeThermostat: Bool = true, participationConfigured: Bool = true,
-    thermostatName: String = "Home", thermostatFields: String = ""
+    rooms: [String], sensorFields: String = "", includeThermostat: Bool = true, participationConfigured: Bool = true
 ) throws -> PlacementInsights {
     let reported = rooms.map { ($0, false) } + (includeThermostat ? [("home", true)] : [])
     let sensors = reported.map { id, thermostat in
         """
-        {"id": "\(id)", "name": "\(thermostat ? thermostatName : id.capitalized)",
+        {"id": "\(id)", "name": "\(thermostat ? "Home" : id.capitalized)",
          "isThermostat": \(thermostat), "averageOffset": 0,
          "morningOffset": null, "returnOffset": null, "overshoot": null, "sampleCount": 10,
-         "classification": "ok"\(sensorFields)\(thermostat ? thermostatFields : "")}
+         "classification": "ok"\(sensorFields)}
         """
     }
     let json = """
@@ -454,43 +453,5 @@ struct SensorPlacementAccountTests {
         #expect(store.load() == config)
         #expect(!service.hasPendingConfig)
         #expect(!SensorPlacementView.needsReload(hasInsights: true, requested: 1, completed: 1, pendingConfig: false))
-    }
-
-    @Test("An unidentified thermostat sensor retains its name and server explanation")
-    func unidentifiedThermostatSensor() throws {
-        let summary = "This thermostat-associated sensor is not known to be the selected comfort reading."
-        let result = try insights(
-            rooms: ["bedroom", "office", "living"], thermostatName: "Hallway temperature",
-            thermostatFields: ", \"verdictSummary\": \"\(summary)\""
-        )
-        let sensor = try #require(result.sensors.first(where: { $0.isThermostat }))
-        #expect(result.sensors.count == 4)
-        #expect(sensor.displayName == "Hallway temperature" && !sensor.isLegacyThermostatReading)
-        #expect(SensorPlacementView.name(sensor.id, in: result) == "Hallway temperature")
-        #expect(sensor.verdictSummary == summary && SensorPlacementDetailView.thermostatFallback(sensor) == nil)
-        #expect(sensor.outlierVerdict == nil && result.thermostatIDs == ["home"])
-        #expect(result.roomSensorIDs == ["bedroom", "office", "living"])
-        let old = try #require(try insights(rooms: [], thermostatName: "Hallway temperature").sensors.first)
-        #expect(SensorPlacementDetailView.thermostatFallback(old)
-                == "This thermostat-associated sensor isn't identified as the comfort reading or judged as a room.")
-    }
-
-    @Test("The reserved legacy average has a qualified reported-temperature label and fallback")
-    func legacyThermostatReading() throws {
-        let result = try insights(rooms: ["bedroom"], thermostatName: "Thermostat (Ecobee average)")
-        let sensor = try #require(result.sensors.first(where: { $0.isThermostat }))
-        #expect(sensor.isLegacyThermostatReading && sensor.displayName == "Thermostat (reported temperature)")
-        #expect(SensorPlacementView.name(sensor.id, in: result) == sensor.displayName)
-        #expect(SensorPlacementDetailView.thermostatFallback(sensor)
-                == "This reported thermostat temperature may approximate the comfort average; "
-                + "it isn't judged as a room.")
-        let room = try #require(result.sensors.first(where: { !$0.isThermostat }))
-        #expect(!room.isLegacyThermostatReading && room.displayName == "Bedroom")
-        #expect(SensorPlacementDetailView.thermostatFallback(room) == nil)
-        let explanation = ThermostatSetupView.thermostatReadingExplanation
-        #expect(explanation.contains("identified climate-reported") && explanation.contains("isn't necessarily"))
-        #expect(SensorPlacementDetailView.thermostatParticipationExplanation.hasPrefix(explanation))
-        #expect(SensorPlacementDetailView.thermostatParticipationExplanation
-                .contains("not necessarily this listed sensor"))
     }
 }

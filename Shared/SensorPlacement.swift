@@ -52,6 +52,13 @@ struct PlacementInsights: Decodable, Sendable {
         return formatter.date(from: value)
     }
 
+    struct UnitAssumptions: Decodable, Sendable {
+        let reportedTemperature: Bool
+        let setpoints: Bool
+        let coolingReportedTemperature: Bool
+        let coolingSetpoints: Bool
+    }
+
     struct Coverage: Decodable, Sendable {
         let start: String
         let end: String
@@ -62,6 +69,7 @@ struct PlacementInsights: Decodable, Sendable {
         let returnHistoryAvailable: Bool?
         let inferredMorningEvents: Int?
         let unknownUnitWindows: Int?
+        let unitAssumptions: UnitAssumptions?
         let participationConfigured: Bool?
         let thermostatParticipationSupported: Bool?
         let followMe: Bool?

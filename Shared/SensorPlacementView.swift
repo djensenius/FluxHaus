@@ -189,6 +189,9 @@ struct SensorPlacementView: View {
                 )
             }
             disclosures(coverage)
+            ForEach(coverage.unitAssumptionNotices, id: \.self) { notice in
+                Text(notice).foregroundStyle(Theme.Colors.textSecondary)
+            }
             if let count = coverage.unknownUnitWindows, count > 0 {
                 Text(
                     "15-minute sensor windows omitted for unknown or conflicting temperature units: \(count)"
@@ -424,6 +427,27 @@ struct SensorPlacementView: View {
             return false
         }
         return date < otherDate
+    }
+}
+
+extension PlacementInsights.Coverage {
+    var unitAssumptionNotices: [String] {
+        guard let assumptions = unitAssumptions else {
+            return ["The server didn't report whether historical reference-temperature or setpoint units were assumed."]
+        }
+        return [
+            Self.unitAssumptionNotice("Analysis window", reference: assumptions.reportedTemperature,
+                                      setpoints: assumptions.setpoints),
+            Self.unitAssumptionNotice("Cooling window", reference: assumptions.coolingReportedTemperature,
+                                      setpoints: assumptions.coolingSetpoints)
+        ].compactMap { $0 }
+    }
+
+    private static func unitAssumptionNotice(_ window: String, reference: Bool, setpoints: Bool) -> String? {
+        let sources = [reference ? "reference temperatures" : nil, setpoints ? "setpoints" : nil].compactMap { $0 }
+        guard !sources.isEmpty else { return nil }
+        return "\(window): the units of some \(sources.joined(separator: " and ")) "
+            + "were assumed from Home Assistant's last-known units."
     }
 }
 
