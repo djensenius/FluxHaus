@@ -33,19 +33,30 @@ struct PlacementInsights: Decodable, Sendable {
               coverage.inferredMorningEvents.map({ (0...coverage.morningEvents).contains($0) }) ?? true,
               coverage.hvacEarliestStateAt.map({ Self.isoDate($0) != nil }) ?? true,
               coverage.unknownUnitWindows.map({ $0 >= 0 }) ?? true,
-              sensors.allSatisfy({ $0.sampleCount >= 0 && !$0.id.isEmpty && !$0.name.isEmpty }) else {
+              coverage.wakeEvents.map({ $0 >= 0 }) ?? true, coverage.coolingEvents.map({ $0 >= 0 }) ?? true,
+              coverage.coolingFrom.map({ Self.isoDate($0) != nil }) ?? true,
+              coverage.coolingTo.map({ Self.isoDate($0) != nil }) ?? true,
+              sensors.allSatisfy({ $0.sampleCount >= 0 && !$0.id.isEmpty && !$0.name.isEmpty }),
+              sensors.allSatisfy({ $0.hasValidDrillDown }) else {
             throw DecodingError.dataCorruptedError(
                 forKey: .coverage, in: values, debugDescription: "Invalid placement insights"
             )
         }
     }
 
-    private static func isoDate(_ value: String) -> Date? {
+    static func isoDate(_ value: String) -> Date? {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = formatter.date(from: value) { return date }
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: value)
+    }
+
+    struct UnitAssumptions: Decodable, Sendable {
+        let reportedTemperature: Bool
+        let setpoints: Bool
+        let coolingReportedTemperature: Bool
+        let coolingSetpoints: Bool
     }
 
     struct Coverage: Decodable, Sendable {
@@ -58,6 +69,16 @@ struct PlacementInsights: Decodable, Sendable {
         let returnHistoryAvailable: Bool?
         let inferredMorningEvents: Int?
         let unknownUnitWindows: Int?
+        let unitAssumptions: UnitAssumptions?
+        let participationConfigured: Bool?
+        let thermostatParticipationSupported: Bool?
+        let followMe: Bool?
+        let occupancyAvailable: Bool?
+        let comfortScheduleAvailable: Bool?
+        let wakeEvents: Int?
+        let coolingFrom: String?
+        let coolingTo: String?
+        let coolingEvents: Int?
 
         var observedMorningEvents: Int? {
             inferredMorningEvents.map { morningEvents - $0 }
@@ -80,6 +101,18 @@ struct PlacementInsights: Decodable, Sendable {
         let sampleCount: Int
         // Keep unknown server classifications instead of failing the entire response.
         let classification: String
+        let wakeOffset: Double?
+        let coolingOffset: Double?
+        let participation: Participation?
+        let occupiedShare: OccupiedShare?
+        // Per-sensor drill-down (all optional; older servers omit them).
+        let verdict: Verdict?
+        let verdictSummary: String?
+        let periodOffsets: PeriodOffsets?
+        let wakeOvershoot: Double?
+        let coolingUndershoot: Double?
+        let consistency: Consistency?
+        let recommendationIds: [String]?
 
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: PlacementSensorKeys.self)
@@ -92,6 +125,31 @@ struct PlacementInsights: Decodable, Sendable {
             overshoot = try values.decode(Double?.self, forKey: .overshoot)
             sampleCount = try values.decode(Int.self, forKey: .sampleCount)
             classification = try values.decode(String.self, forKey: .classification)
+            wakeOffset = try values.decodeIfPresent(Double.self, forKey: .wakeOffset)
+            coolingOffset = try values.decodeIfPresent(Double.self, forKey: .coolingOffset)
+            participation = try values.decodeIfPresent(Participation.self, forKey: .participation)
+            // An earlier contract draft sent a scalar here; ignore any shape other than `{wake, home}`.
+            occupiedShare = (try? values.decodeIfPresent(OccupiedShare.self, forKey: .occupiedShare)) ?? nil
+            verdict = try values.decodeIfPresent(String.self, forKey: .verdict)
+                .map { Verdict(rawValue: $0) ?? .unknown }
+            verdictSummary = try values.decodeIfPresent(String.self, forKey: .verdictSummary)
+            periodOffsets = try values.decodeIfPresent(PeriodOffsets.self, forKey: .periodOffsets)
+            wakeOvershoot = try values.decodeIfPresent(Double.self, forKey: .wakeOvershoot)
+            coolingUndershoot = try values.decodeIfPresent(Double.self, forKey: .coolingUndershoot)
+            consistency = try values.decodeIfPresent(Consistency.self, forKey: .consistency)
+            recommendationIds = try values.decodeIfPresent([String].self, forKey: .recommendationIds)
+        }
+
+        fileprivate var hasValidDrillDown: Bool {
+            let shares = [occupiedShare?.wake, occupiedShare?.home].compactMap { $0 }
+            return shares.allSatisfy { (0...1).contains($0) } && (consistency?.isValid ?? true)
+        }
+
+        /// Recommendations about this sensor: the server's ids when given, else those naming it.
+        func relatedRecommendations(in insights: PlacementInsights) -> [Recommendation] {
+            let ranked = insights.rankedRecommendations
+            if let ids = recommendationIds { return ranked.filter { ids.contains($0.id) } }
+            return ranked.filter { $0.sensorId == id || $0.affectedSensorIds.contains(id) }
         }
 
         var classificationLabel: String {
@@ -105,6 +163,59 @@ struct PlacementInsights: Decodable, Sendable {
         }
     }
 
+    enum Verdict: String, Sendable {
+        case coldOutlier = "cold_outlier", warmOutlier = "warm_outlier", representative, insufficient, unknown
+    }
+
+    struct PeriodOffsets: Decodable, Equatable, Sendable {
+        let sleep: Double?
+        let wake: Double?
+        let home: Double?
+        let heatingRuns: Double?
+        let cooling: Double?
+    }
+
+    struct OccupiedShare: Decodable, Equatable, Sendable {
+        let wake: Double?
+        let home: Double?
+    }
+
+    /// Sampled local calendar dates whose mean offset was ≤ −0.5 (cold) or ≥ +0.5 (warm); dates may be partial.
+    struct Consistency: Decodable, Equatable, Sendable {
+        let days: Int?
+        let coldDays: Int?
+        let warmDays: Int?
+        let coolingDays: Int?
+        let coolingColdDays: Int?
+        let coolingWarmDays: Int?
+
+        var isValid: Bool {
+            [days, coldDays, warmDays, coolingDays, coolingColdDays, coolingWarmDays]
+                .allSatisfy { ($0 ?? 0) >= 0 }
+        }
+    }
+
+    struct Participation: Decodable, Equatable, Sendable {
+        let home: Bool?
+        let sleep: Bool?
+        let away: Bool?
+
+        func value(for setting: PlacementConfig.Setting) -> Bool? {
+            switch setting {
+            case .home: return home
+            case .sleep: return sleep
+            case .away: return away
+            }
+        }
+    }
+
+    // Server enums map unrecognized future values to `.unknown` instead of failing the response.
+    enum Mode: String, Sendable { case heating, cooling, unknown }
+
+    enum Period: String, Sendable { case wake, sleep, home, returning = "return", unknown }
+
+    enum ComfortSetting: String, Sendable { case home, sleep, away, unknown }
+
     struct Recommendation: Decodable, Identifiable, Sendable {
         let id: String
         let severity: String
@@ -112,6 +223,11 @@ struct PlacementInsights: Decodable, Sendable {
         let action: String
         let title: String
         let detail: String
+        let mode: Mode?
+        let period: Period?
+        let comfortSetting: ComfortSetting?
+        let affectedSensorIds: [String]
+        let likelyCauses: [String]
 
         init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: PlacementRecommendationKeys.self)
@@ -121,6 +237,12 @@ struct PlacementInsights: Decodable, Sendable {
             action = try values.decode(String.self, forKey: .action)
             title = try values.decode(String.self, forKey: .title)
             detail = try values.decode(String.self, forKey: .detail)
+            mode = try values.decodeIfPresent(String.self, forKey: .mode).map { Mode(rawValue: $0) ?? .unknown }
+            period = try values.decodeIfPresent(String.self, forKey: .period).map { Period(rawValue: $0) ?? .unknown }
+            comfortSetting = try values.decodeIfPresent(String.self, forKey: .comfortSetting)
+                .map { ComfortSetting(rawValue: $0) ?? .unknown }
+            affectedSensorIds = try values.decodeIfPresent([String].self, forKey: .affectedSensorIds) ?? []
+            likelyCauses = try values.decodeIfPresent([String].self, forKey: .likelyCauses) ?? []
         }
 
         var severityRank: Int {
@@ -132,6 +254,10 @@ struct PlacementInsights: Decodable, Sendable {
             }
         }
     }
+
+    /// IDs offered as room sensors for comfort settings, excluding thermostat-associated sensors.
+    var roomSensorIDs: Set<String> { Set(sensors.filter { !$0.isThermostat }.map(\.id)) }
+    var thermostatIDs: Set<String> { Set(sensors.filter(\.isThermostat).map(\.id)) }
 
     var rankedRecommendations: [Recommendation] {
         recommendations.enumerated().sorted {
@@ -145,10 +271,12 @@ struct PlacementInsights: Decodable, Sendable {
 
 private enum PlacementSensorKeys: String, CodingKey {
     case id, name, isThermostat, averageOffset, morningOffset, returnOffset, overshoot, sampleCount, classification
+    case wakeOffset, coolingOffset, participation, occupiedShare
+    case verdict, verdictSummary, periodOffsets, wakeOvershoot, coolingUndershoot, consistency, recommendationIds
 }
 
 private enum PlacementRecommendationKeys: String, CodingKey {
-    case id, severity, sensorId, action, title, detail
+    case id, severity, sensorId, action, title, detail, mode, period, comfortSetting, affectedSensorIds, likelyCauses
 }
 
 enum PlacementRequestError: Error {
@@ -161,40 +289,151 @@ enum PlacementRequestError: Error {
 @MainActor
 @Observable final class SensorPlacementService {
     typealias SessionCheck = @MainActor () -> Bool
+    typealias Fetch = @MainActor (PlacementConfig?, @escaping SessionCheck) async throws -> PlacementInsights
+
+    static let reducedConfigNotice = "Some saved sensor selections weren't used in these tips. "
+        + "They remain saved and will be retried on refresh."
+    static let setupNotUsedNotice = "These tips don't account for your saved thermostat setup, including room sensor "
+        + "choices, built-in sensor choices and Follow Me. Your setup remains saved and will be retried on refresh."
+    static let rejectedNotice = "Your thermostat setup couldn't be used, so these tips don't account for it. "
+        + "Your saved setup is kept and will be retried on refresh."
+    static let sensorsUnavailableNotice = "No room sensors were listed in this analysis, so these tips don't account "
+        + "for your thermostat setup. Your saved setup is kept and will be retried on refresh."
+    static let setupUnavailableNotice = "Thermostat setup can't be saved because this sign-in doesn't identify "
+        + "your account. Sign out and sign in again to set it up."
+    static let thermostatUnsupportedNotice = "This server can't use built-in thermostat sensor choices in its "
+        + "analysis. Saved choices are kept for a server that supports them."
+    static let pendingConfigNotice = "These tips may reflect an earlier thermostat setup. "
+        + "The latest saved changes haven't been loaded yet."
+    static let pendingInitialLoadError = "Thermostat setup changed while loading. Retry to load the latest setup."
+
+    struct Outcome: Sendable {
+        let insights: PlacementInsights
+        let thermostatIDs: Set<String>
+        let notice: String?
+    }
 
     private var storedInsights: PlacementInsights?
+    private var storedSnapshot: PlacementConfigSnapshot
     private var loading = false
     private var storedError: String?
-    @ObservationIgnored private var loadTask: Task<PlacementInsights, Error>?
+    private var storedNotice: String?
+    /// Bumped on every setup change; `appliedRevision` catches up only when a load succeeds.
+    private var configRevision = 0
+    private var appliedRevision = 0
+    @ObservationIgnored private var loadTask: Task<Outcome, Error>?
     @ObservationIgnored private var loadGeneration = 0
+    @ObservationIgnored private let configStore: PlacementConfigStore?
     private let sessionCheck: SessionCheck
-    private let fetch: @MainActor (@escaping SessionCheck) async throws -> PlacementInsights
+    private let fetch: Fetch
 
     var isSessionValid: Bool { sessionCheck() }
     var insights: PlacementInsights? { isSessionValid ? storedInsights : nil }
+    // Read storage on access; the store's in-process signal makes other windows redraw.
+    var configSnapshot: PlacementConfigSnapshot {
+        isSessionValid ? configStore?.snapshot() ?? .empty : .empty
+    }
+    var config: PlacementConfig? { configSnapshot.config }
     var isLoading: Bool { isSessionValid && loading }
-    var error: String? { isSessionValid ? storedError : nil }
+    var error: String? {
+        guard isSessionValid else { return nil }
+        if let storedError { return storedError }
+        return storedInsights == nil && !loading && hasPendingConfig ? Self.pendingInitialLoadError : nil
+    }
+    /// A non-fatal message when the tips couldn't use all of the saved thermostat setup.
+    var notice: String? {
+        guard isSessionValid, configSnapshot == storedSnapshot else { return nil }
+        if storedSnapshot.config == nil && storedNotice == Self.setupNotUsedNotice { return nil }
+        return storedNotice
+    }
+    var thermostatParticipationNotice: String? {
+        guard let insights, insights.coverage.thermostatParticipationSupported != true else { return nil }
+        return Self.thermostatUnsupportedNotice
+    }
+    /// False when there's no stable account identity to save the setup under; setup is then unavailable.
+    var canSaveConfig: Bool { configStore != nil }
+    /// A valid session, stable account and insights response permit editing, even without sensor history.
+    var canEditConfig: Bool { canSaveConfig && insights != nil }
+    /// A setup change hasn't been loaded yet (e.g. its refresh was cancelled), so views should retry.
+    var hasPendingConfig: Bool {
+        isSessionValid && (configRevision != appliedRevision || configSnapshot != storedSnapshot)
+    }
+    var pendingInsightsNotice: String? {
+        hasPendingConfig && insights != nil ? Self.pendingConfigNotice : nil
+    }
 
     init(
         insights: PlacementInsights? = nil,
         sessionCheck: @escaping SessionCheck = SensorPlacementService.currentSessionCheck(),
-        fetch: @escaping @MainActor (@escaping SessionCheck) async throws -> PlacementInsights = {
-            try await SensorPlacementService.fetchInsights(sessionCheck: $0)
-        }
+        configStore: PlacementConfigStore? = PlacementConfigStore.current(),
+        fetch: @escaping Fetch = { try await SensorPlacementService.fetchInsights(config: $0, sessionCheck: $1) }
     ) {
         self.storedInsights = insights
         self.sessionCheck = sessionCheck
+        self.configStore = configStore
+        self.storedSnapshot = configStore?.snapshot() ?? .empty
         self.fetch = fetch
     }
 
-    func refresh() async {
-        guard isSessionValid, !Task.isCancelled else { return }
+    /// Saves a new thermostat setup (nil clears it). Returns true when it changed and insights should reload.
+    @discardableResult
+    func updateConfig(_ config: PlacementConfig?) -> Bool {
+        updateConfig(config, expected: storedSnapshot) == .changed
+    }
+
+    /// An editor may save only against the setup from which its draft was created.
+    @discardableResult
+    func updateConfig(_ config: PlacementConfig?, expected: PlacementConfigSnapshot) -> PlacementConfigUpdateResult {
+        guard isSessionValid, let configStore else { return .unavailable }
+        syncConfig()
+        guard storedSnapshot == expected else { return .conflict }
+        let config = config?.excluding(storedInsights?.thermostatIDs ?? [])
+        guard configStore.snapshot() == expected else {
+            syncConfig()
+            return .conflict
+        }
+        guard config != storedSnapshot.config else { return .unchanged }
+        let saved = configStore.save(config)
+        configRevision &+= 1
+        storedSnapshot = saved
+        storedError = nil
+        // The displayed legacy tips still ignored the setup even if a replacement refresh fails.
+        if storedNotice != Self.setupNotUsedNotice { storedNotice = nil }
+        loadTask?.cancel()
+        return .changed
+    }
+
+    private func syncConfig() {
+        let current = configStore?.snapshot() ?? .empty
+        guard current != storedSnapshot else { return }
+        configRevision &+= 1
+        storedSnapshot = current
+        storedError = nil
+        if storedNotice != Self.setupNotUsedNotice { storedNotice = nil }
+        loadTask?.cancel()
+    }
+
+    /// Loads insights for the current setup. Returns true only on success (including an intentional
+    /// unconfigured fallback); a cancelled or failed load leaves a pending setup change pending.
+    @discardableResult
+    func refresh() async -> Bool {
+        guard isSessionValid, !Task.isCancelled else { return false }
+        syncConfig()
         loadTask?.cancel()
         loadGeneration &+= 1
         let generation = loadGeneration
         loading = true
         storedError = nil
-        let task = Task { try await fetch(sessionCheck) }
+        let original = storedSnapshot
+        let revision = configRevision
+        let config = original.config?.excluding(storedInsights?.thermostatIDs ?? [])
+        let fetch = self.fetch
+        let sessionCheck = self.sessionCheck
+        let configStore = self.configStore
+        let isCurrent: SessionCheck = { sessionCheck() && (configStore?.snapshot() ?? .empty) == original }
+        let task = Task {
+            try await Self.load(config: config, sessionCheck: isCurrent, fetch: fetch)
+        }
         loadTask = task
         defer {
             if loadGeneration == generation {
@@ -209,15 +448,27 @@ enum PlacementRequestError: Error {
                 task.cancel()
             }
             try Task.checkCancellation()
-            guard loadGeneration == generation, isSessionValid else { return }
-            storedInsights = result
+            guard loadGeneration == generation, isCurrent(), configRevision == revision else { return false }
+            storedInsights = result.insights
+            storedNotice = result.notice
+            let final = config?.excluding(result.thermostatIDs)
+            if final != original.config, storedSnapshot == original, let configStore,
+               configStore.snapshot() == original {
+                storedSnapshot = configStore.save(final)
+            }
+            guard isSessionValid, configRevision == revision,
+                  (configStore?.snapshot() ?? .empty) == storedSnapshot else { return false }
+            appliedRevision = revision
+            return true
         } catch {
-            guard !Task.isCancelled, loadGeneration == generation, isSessionValid else { return }
+            guard !Task.isCancelled, loadGeneration == generation, isCurrent(),
+                  configRevision == revision else { return false }
             if case PlacementRequestError.http(let code) = error {
                 storedError = "Could not load sensor placement (HTTP \(code))."
             } else {
                 storedError = "Could not load sensor placement. Please try again."
             }
+            return false
         }
     }
 
@@ -228,60 +479,5 @@ enum PlacementRequestError: Error {
             _ = AuthManager.shared.authState
             return origin != nil && AuthManager.shared.widgetSessionID() == origin
         }
-    }
-
-    static func request(authorization: String) -> URLRequest {
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.fluxhaus.io"
-        components.path = "/climate/placement-insights"
-        components.queryItems = [URLQueryItem(name: "days", value: "14")]
-        // The fixed URL components above always form a valid URL.
-        var request = URLRequest(url: components.url!)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue(authorization, forHTTPHeaderField: "Authorization")
-        return request
-    }
-
-    static func decode(data: Data, response: URLResponse) throws -> PlacementInsights {
-        guard let response = response as? HTTPURLResponse else { throw PlacementRequestError.invalidResponse }
-        guard (200...299).contains(response.statusCode) else { throw PlacementRequestError.http(response.statusCode) }
-        return try JSONDecoder().decode(PlacementInsights.self, from: data)
-    }
-
-    static func fetchInsights(
-        sessionCheck: @escaping SessionCheck,
-        authorization: @MainActor () -> String? = { AuthManager.shared.authorizationHeader() },
-        hasOIDCToken: @MainActor () -> Bool = { AuthManager.shared.getAccessToken() != nil },
-        ensureToken: @MainActor () async -> Bool = { await AuthManager.shared.ensureValidToken() },
-        refreshToken: @MainActor () async -> Bool = { await AuthManager.shared.refreshTokenIfNeeded() },
-        send: @MainActor (URLRequest) async throws -> (Data, URLResponse) = {
-            try await URLSession.shared.data(for: $0)
-        }
-    ) async throws -> PlacementInsights {
-        try checkSession(sessionCheck)
-        if hasOIDCToken() {
-            _ = await ensureToken()
-            try checkSession(sessionCheck)
-        }
-        guard let header = authorization() else { throw PlacementRequestError.unauthorized }
-        try checkSession(sessionCheck)
-        var (data, response) = try await send(request(authorization: header))
-        try checkSession(sessionCheck)
-        if (response as? HTTPURLResponse)?.statusCode == 401, hasOIDCToken() {
-            let refreshed = await refreshToken()
-            try checkSession(sessionCheck)
-            guard refreshed, let newHeader = authorization() else { throw PlacementRequestError.unauthorized }
-            try checkSession(sessionCheck)
-            (data, response) = try await send(request(authorization: newHeader))
-            try checkSession(sessionCheck)
-        }
-        return try decode(data: data, response: response)
-    }
-
-    private static func checkSession(_ check: SessionCheck) throws {
-        try Task.checkCancellation()
-        guard check() else { throw PlacementRequestError.sessionChanged }
     }
 }

@@ -100,7 +100,9 @@ enum Keychain {
 
     /// Items the app keeps in the keychain (legacy identity, without the data protection flag).
     private static var knownItems: [[String: Any]] {
-        let oidcAccounts = ["oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "widget_session_id"]
+        let oidcAccounts = [
+            "oidc_access_token", "oidc_refresh_token", "oidc_token_expiry", "oidc_account_id", "widget_session_id"
+        ]
         return oidcAccounts.map {
             [
                 kSecClass as String: kSecClassGenericPassword,
@@ -383,6 +385,28 @@ struct OIDCTokens: Codable {
         case idToken = "id_token"
         case expiresIn = "expires_in"
         case tokenType = "token_type"
+    }
+}
+
+/// A stable, non-secret account identifier: the SHA-256 of a JWT's `iss|sub` claims. Only the hash is
+/// ever stored, never the token or its claims, so per-account settings can survive sign-out and sign-in.
+enum OIDCAccount {
+    static func identifier(fromJWT token: String) -> String? {
+        let parts = token.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3 else { return nil }
+        var payload = parts[1].replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+        payload += String(repeating: "=", count: (4 - payload.count % 4) % 4)
+        guard let data = Data(base64Encoded: payload),
+              let claims = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let iss = claims["iss"] as? String, !iss.isEmpty,
+              let sub = claims["sub"] as? String, !sub.isEmpty else { return nil }
+        return SHA256.hash(data: Data("\(iss)|\(sub)".utf8)).map { String(format: "%02x", $0) }.joined()
+    }
+
+    /// The id to keep after storing tokens. Sign-in clears the previous id first, so `current` is
+    /// only carried over by a refresh, which may omit the ID token but stays on the same account.
+    static func storedID(current: String?, idToken: String?) -> String? {
+        idToken.flatMap(identifier(fromJWT:)) ?? current
     }
 }
 
@@ -737,6 +761,11 @@ private actor RefreshCoordinator {
     // MARK: - Token Management
     func getAccessToken() -> String? {
         return getKeychainItem(account: "oidc_access_token")
+    }
+
+    /// The signed-in account's stable hash from its ID token (see `OIDCAccount`), if one was received.
+    func accountID() -> String? {
+        getKeychainItem(account: "oidc_account_id")
     }
 
     /// Returns true if the access token is expired or will expire within the given margin.
@@ -1127,6 +1156,10 @@ private actor RefreshCoordinator {
         if let refreshToken = tokens.refreshToken {
             setKeychainItem(account: "oidc_refresh_token", value: refreshToken)
         }
+        let current = getKeychainItem(account: "oidc_account_id")
+        if let accountID = OIDCAccount.storedID(current: current, idToken: tokens.idToken), accountID != current {
+            setKeychainItem(account: "oidc_account_id", value: accountID)
+        }
     }
 
     // MARK: - Keychain Helpers
@@ -1187,6 +1220,8 @@ private actor RefreshCoordinator {
         deleteKeychainItem(account: "oidc_access_token")
         deleteKeychainItem(account: "oidc_refresh_token")
         deleteKeychainItem(account: "oidc_token_expiry")
+        // Only the active identity is dropped; per-account settings stay keyed by its hash for next sign-in.
+        deleteKeychainItem(account: "oidc_account_id")
     }
 
     // MARK: - PKCE Helpers
