@@ -76,7 +76,7 @@ struct SensorPlacementDayView: View {
             }
         }
         .task {
-            await load(date: nil)
+            await load(date: pendingDate)
         }
         .sheet(isPresented: $showDatePicker) {
             datePicker

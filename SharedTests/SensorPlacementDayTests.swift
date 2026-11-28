@@ -115,6 +115,13 @@ struct SensorPlacementDayTests {
         #expect(!PlacementDayCalendar.isValid("2026-02-29"))
     }
 
+    @Test("Interval labels preserve minutes in the house time zone")
+    func intervalTimeLabel() throws {
+        let zone = try #require(TimeZone(identifier: "America/Toronto"))
+        let date = try #require(PlacementInsights.isoDate("2026-03-08T06:05:00-04:00"))
+        #expect(PlacementDayCalendar.intervalTimeLabel(date, in: zone).contains(":05"))
+    }
+
     @Test("Bootstrap omits the phone date and carries the saved room and thermostat choices")
     func requestUsesSavedConfig() throws {
         let config = PlacementConfig(
@@ -214,6 +221,27 @@ struct SensorPlacementDayTests {
             seriesID: "test", name: "Test", times: [dates[0], dates[2]], values: [18, 19]
         )
         #expect(longGap.count == 2)
+    }
+
+    @Test("Chart series retain unique IDs when sensor display names collide")
+    func duplicateSensorNames() throws {
+        let source = try #require(String(data: placementDayJSON, encoding: .utf8))
+        let day = try insights(from: Data(source.replacingOccurrences(of: "Living Room", with: "Bedroom").utf8))
+        let segments = PlacementDayChartBuilder.segments(for: day)
+        let roomSegments = segments.filter { $0.seriesID == "bedroom" || $0.seriesID == "living" }
+        #expect(Set(roomSegments.map(\.seriesID)) == ["bedroom", "living"])
+        #expect(Set(roomSegments.map(\.name)) == ["Bedroom (bedroom)", "Bedroom (living)"])
+
+        let colors = MetricSeriesPalette.colorMap(
+            forSeries: [("bedroom", "Bedroom"), ("living", "Bedroom")]
+        )
+        #expect(Set(colors.keys) == ["bedroom", "living"])
+        #expect(colors["bedroom"] != colors["living"])
+
+        let occupancyNames = PlacementDayChartBuilder.contextBands(for: day)
+            .filter { $0.kind == .occupancy }
+            .map(\.trackName)
+        #expect(Set(occupancyNames) == ["Bedroom (bedroom) occupancy", "Bedroom (living) occupancy"])
     }
 
     @Test("Wake chart context bands align HVAC, comfort, and occupancy while preserving unknown")

@@ -14,6 +14,7 @@ struct PlacementDayChartPoint: Identifiable {
 
 struct PlacementDayChartSegment: Identifiable {
     let id: String
+    let seriesID: String
     let name: String
     let isSetpoint: Bool
     let isAverage: Bool
@@ -43,11 +44,13 @@ enum PlacementDayChartBuilder {
             guard let date = point.date, date >= lower, date < upper else { return nil }
             return (point, date)
         }
+        let roomSensors = insights.sensors.filter { !$0.isThermostat }
+        let names = disambiguatedNames(for: roomSensors)
         var result: [PlacementDayChartSegment] = []
-        for sensor in insights.sensors where !sensor.isThermostat {
+        for sensor in roomSensors {
             result += split(
                 seriesID: sensor.id,
-                name: sensor.name,
+                name: names[sensor.id] ?? sensor.name,
                 times: points.map(\.1),
                 values: points.map { $0.0.rooms[sensor.id] ?? nil }
             )
@@ -69,6 +72,14 @@ enum PlacementDayChartBuilder {
         return result
     }
 
+    static func disambiguatedNames(for sensors: [PlacementDayInsights.Sensor]) -> [String: String] {
+        let counts = Dictionary(grouping: sensors, by: \.name).mapValues(\.count)
+        return Dictionary(uniqueKeysWithValues: sensors.map { sensor in
+            let name = counts[sensor.name, default: 0] > 1 ? "\(sensor.name) (\(sensor.id))" : sensor.name
+            return (sensor.id, name)
+        })
+    }
+
     static func contextBands(for insights: PlacementDayInsights) -> [PlacementDayChartBand] {
         let lowerString = insights.wake?.context.from ?? insights.coverage.start
         let upperString = insights.wake?.context.end ?? insights.coverage.end
@@ -81,6 +92,7 @@ enum PlacementDayChartBuilder {
             return (point, date)
         }
         let roomSensors = insights.sensors.filter { !$0.isThermostat }
+        let names = disambiguatedNames(for: roomSensors)
         var bands: [PlacementDayChartBand] = []
         var intervalIndex = 0
 
@@ -102,7 +114,7 @@ enum PlacementDayChartBuilder {
                 let occupied = point?.occupied[sensor.id] ?? nil
                 bands.append(PlacementDayChartBand(
                     id: "occupancy-\(sensor.id)-\(intervalID)", start: start, end: end,
-                    row: index + 2, trackName: "\(sensor.name) occupancy", kind: .occupancy,
+                    row: index + 2, trackName: "\(names[sensor.id] ?? sensor.name) occupancy", kind: .occupancy,
                     value: occupied.map { $0 ? "Occupied" : "Unoccupied" } ?? "Unknown"
                 ))
             }
@@ -143,6 +155,7 @@ enum PlacementDayChartBuilder {
             guard !current.isEmpty else { return }
             segments.append(PlacementDayChartSegment(
                 id: "\(seriesID)-\(segmentIndex)",
+                seriesID: seriesID,
                 name: name,
                 isSetpoint: isSetpoint,
                 isAverage: isAverage,
@@ -174,15 +187,40 @@ enum PlacementDayChartBuilder {
 
 struct PlacementDayChartView: View {
     let insights: PlacementDayInsights
+    private let timeZone: TimeZone?
+    private let segments: [PlacementDayChartSegment]
+    private let contextBands: [PlacementDayChartBand]
+    private let trackCount: Int
+    private let colorMap: [String: Color]
+    private let range: ClosedRange<Date>?
+    private let temperatureDomain: ClosedRange<Double>
+    private let contextRowHeight: Double
+    private let yDomain: ClosedRange<Double>
 
-    private var timeZone: TimeZone? { TimeZone(identifier: insights.timeZone) }
-    private var segments: [PlacementDayChartSegment] { PlacementDayChartBuilder.segments(for: insights) }
-    private var contextBands: [PlacementDayChartBand] { PlacementDayChartBuilder.contextBands(for: insights) }
-    private var trackCount: Int { 2 + insights.sensors.filter { !$0.isThermostat }.count }
-    private var colorMap: [String: Color] {
-        MetricSeriesPalette.colorMap(for: insights.sensors.filter { !$0.isThermostat }.map(\.name))
+    init(insights: PlacementDayInsights) {
+        self.insights = insights
+        let roomSensors = insights.sensors.filter { !$0.isThermostat }
+        let segments = PlacementDayChartBuilder.segments(for: insights)
+        let temperatureDomain = Self.temperatureDomain(for: segments)
+        let contextRowHeight = max(
+            (temperatureDomain.upperBound - temperatureDomain.lowerBound) * 0.08,
+            0.2
+        )
+        self.timeZone = TimeZone(identifier: insights.timeZone)
+        self.segments = segments
+        self.contextBands = PlacementDayChartBuilder.contextBands(for: insights)
+        self.trackCount = 2 + roomSensors.count
+        self.colorMap = MetricSeriesPalette.colorMap(
+            forSeries: roomSensors.map { (id: $0.id, name: $0.name) }
+        )
+        self.range = Self.chartRange(for: insights)
+        self.temperatureDomain = temperatureDomain
+        self.contextRowHeight = contextRowHeight
+        let lowerY = temperatureDomain.lowerBound - Double(2 + roomSensors.count) * contextRowHeight
+        self.yDomain = lowerY...temperatureDomain.upperBound
     }
-    private var range: ClosedRange<Date>? {
+
+    private static func chartRange(for insights: PlacementDayInsights) -> ClosedRange<Date>? {
         let from = insights.wake?.context.from ?? insights.coverage.start
         let end = insights.wake?.context.end ?? insights.coverage.end
         guard let lower = PlacementInsights.isoDate(from), let upper = PlacementInsights.isoDate(end),
@@ -191,7 +229,8 @@ struct PlacementDayChartView: View {
         }
         return lower...upper
     }
-    private var temperatureDomain: ClosedRange<Double> {
+
+    private static func temperatureDomain(for segments: [PlacementDayChartSegment]) -> ClosedRange<Double> {
         let values = segments.flatMap { $0.points.map(\.value) }
         guard let minimum = values.min(), let maximum = values.max() else { return 0...1 }
         if minimum == maximum {
@@ -200,12 +239,6 @@ struct PlacementDayChartView: View {
         }
         let padding = (maximum - minimum) * 0.1
         return (minimum - padding)...(maximum + padding)
-    }
-    private var contextRowHeight: Double {
-        max((temperatureDomain.upperBound - temperatureDomain.lowerBound) * 0.08, 0.2)
-    }
-    private var yDomain: ClosedRange<Double> {
-        (temperatureDomain.lowerBound - Double(trackCount) * contextRowHeight)...temperatureDomain.upperBound
     }
 
     var body: some View {
@@ -300,15 +333,15 @@ struct PlacementDayChartView: View {
     }
 
     private var legend: some View {
-        let names = Array(Set(segments.map(\.name))).sorted()
+        let seriesIDs = Array(Set(segments.map(\.seriesID))).sorted()
         return LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), alignment: .leading)], alignment: .leading) {
-            ForEach(names, id: \.self) { name in
-                let segment = segments.first { $0.name == name }
+            ForEach(seriesIDs, id: \.self) { seriesID in
+                let segment = segments.first { $0.seriesID == seriesID }
                 HStack(spacing: 5) {
                     Capsule()
                         .fill(segment.map(color(for:)) ?? MetricSeriesPalette.outside)
                         .frame(width: 14, height: 3)
-                    Text(name)
+                    Text(segment?.name ?? seriesID)
                         .font(Theme.Fonts.caption)
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
@@ -318,8 +351,10 @@ struct PlacementDayChartView: View {
 
     private var contextLegend: some View {
         VStack(alignment: .leading, spacing: 5) {
+            let roomSensors = insights.sensors.filter { !$0.isThermostat }
+            let names = PlacementDayChartBuilder.disambiguatedNames(for: roomSensors)
             let rows = ["HVAC action", "Comfort setting"]
-                + insights.sensors.filter { !$0.isThermostat }.map { "\($0.name) occupancy" }
+                + roomSensors.map { "\((names[$0.id] ?? $0.name)) occupancy" }
             Text("Time-aligned rows, top to bottom: \(rows.joined(separator: ", ")). Faded gray indicates unknown.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
@@ -354,8 +389,8 @@ struct PlacementDayChartView: View {
                 + "\(maximum.formatted(.number.precision(.fractionLength(1)))) \(insights.unit)"
         }
         let activity = contextBands.map { band in
-            let start = PlacementDayCalendar.timeLabel(band.start, in: timeZone ?? .gmt)
-            let end = PlacementDayCalendar.timeLabel(band.end, in: timeZone ?? .gmt)
+            let start = PlacementDayCalendar.intervalTimeLabel(band.start, in: timeZone ?? .gmt)
+            let end = PlacementDayCalendar.intervalTimeLabel(band.end, in: timeZone ?? .gmt)
             return "\(band.trackName) \(band.value) from \(start) to \(end)"
         }
         return (temperatures + activity).joined(separator: ". ")
@@ -364,7 +399,7 @@ struct PlacementDayChartView: View {
     private func color(for segment: PlacementDayChartSegment) -> Color {
         if segment.isSetpoint { return Theme.Colors.warning }
         if segment.isAverage { return Theme.Colors.accent }
-        return colorMap[segment.name] ?? MetricSeriesPalette.outside
+        return colorMap[segment.seriesID] ?? MetricSeriesPalette.outside
     }
 
     private func lineStyle(for segment: PlacementDayChartSegment) -> StrokeStyle {

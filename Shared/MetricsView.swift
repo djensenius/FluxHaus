@@ -56,6 +56,20 @@ enum MetricSeriesPalette {
         }
         return map
     }
+
+    static func colorMap(forSeries series: [(id: String, name: String)]) -> [String: Color] {
+        var map: [String: Color] = [:]
+        var index = 0
+        for item in series.sorted(by: { $0.id < $1.id }) {
+            if isOutside(item.name) {
+                map[item.id] = outside
+            } else {
+                map[item.id] = palette[index % palette.count]
+                index += 1
+            }
+        }
+        return map
+    }
 }
 
 /// Reusable entry-point card that opens the detailed Kitchener outdoor

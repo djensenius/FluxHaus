@@ -265,6 +265,15 @@ enum PlacementDayCalendar {
         formatter.dateFormat = "h a z"
         return formatter.string(from: date)
     }
+
+    static func intervalTimeLabel(_ date: Date, in timeZone: TimeZone) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = timeZone
+        formatter.dateFormat = "h:mm a z"
+        return formatter.string(from: date)
+    }
 }
 
 @MainActor
