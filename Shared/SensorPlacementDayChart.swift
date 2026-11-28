@@ -320,7 +320,7 @@ struct PlacementDayChartView: View {
         VStack(alignment: .leading, spacing: 5) {
             let rows = ["HVAC action", "Comfort setting"]
                 + insights.sensors.filter { !$0.isThermostat }.map { "\($0.name) occupancy" }
-            Text("Time-aligned rows, bottom to top: \(rows.joined(separator: ", ")). Faded gray indicates unknown.")
+            Text("Time-aligned rows, top to bottom: \(rows.joined(separator: ", ")). Faded gray indicates unknown.")
                 .font(Theme.Fonts.caption)
                 .foregroundStyle(Theme.Colors.textSecondary)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 92), alignment: .leading)], alignment: .leading) {
