@@ -116,6 +116,12 @@ struct SensorPlacementView: View {
                     .font(Theme.Fonts.bodyMedium)
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
+            NavigationLink {
+                SensorPlacementDayView(service: service)
+            } label: {
+                Label("Look at a day", systemImage: "calendar")
+            }
+            .buttonStyle(.bordered)
             thermostatSetup(insights)
             coverage(insights)
             recommendations(insights)

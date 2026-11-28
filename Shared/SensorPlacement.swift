@@ -472,6 +472,22 @@ enum PlacementRequestError: Error {
         }
     }
 
+    func fetchDayInsights(date: String?) async throws -> DayOutcome {
+        guard isSessionValid else { throw PlacementRequestError.sessionChanged }
+        syncConfig()
+        let original = storedSnapshot
+        let config = original.config?.excluding(storedInsights?.thermostatIDs ?? [])
+        let store = configStore
+        let session = sessionCheck
+        let isCurrent: SessionCheck = { session() && (store?.snapshot() ?? .empty) == original }
+        let fetch: DayFetch = { date, config, sessionCheck in
+            try await PlacementDayAPI.fetch(date: date, config: config, sessionCheck: sessionCheck)
+        }
+        return try await Self.loadDay(
+            date: date, config: config, snapshot: original, sessionCheck: isCurrent, fetch: fetch
+        )
+    }
+
     static func currentSessionCheck() -> SessionCheck {
         let origin = AuthManager.shared.widgetSessionID()
         return {
