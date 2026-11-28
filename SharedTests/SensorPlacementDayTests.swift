@@ -84,6 +84,7 @@ struct SensorPlacementDayTests {
         #expect(day.wake?.rooms.first?.overSetpoint == nil)
         #expect(day.sensors.first?.unusual == nil)
         #expect(day.coverage.completeBuckets == 90)
+        #expect(day.coverage.unitAssumptionNotices.count == 2)
 
         let source = try #require(String(data: placementDayJSON, encoding: .utf8))
         for invalid in [
@@ -165,6 +166,27 @@ struct SensorPlacementDayTests {
         #expect(requests.allSatisfy { $0.url?.absoluteString.contains("bedroom") == true })
     }
 
+    @Test("Day requests retry with fresh discovery and pruned saved choices")
+    func unavailableSavedRoomFallback() async throws {
+        let config = PlacementConfig.allIncluded(["bedroom", "missing"])
+        let snapshot = PlacementConfigSnapshot(config: config, revision: "saved")
+        var requests: [PlacementConfig?] = []
+        let outcome = try await SensorPlacementService.loadDay(
+            date: "2026-03-08",
+            config: config,
+            snapshot: snapshot,
+            sessionCheck: { true },
+            fetch: { _, requestConfig, _ in
+                requests.append(requestConfig)
+                if requestConfig == config { throw PlacementRequestError.http(400) }
+                return try self.insights()
+            }
+        )
+        #expect(requests == [config, nil, .allIncluded(["bedroom"])])
+        #expect(outcome.notice == SensorPlacementService.reducedConfigNotice)
+        #expect(outcome.snapshot == snapshot)
+    }
+
     @Test("Older servers produce an explicit unsupported-capability state")
     func unsupportedStatus() throws {
         for status in [404, 405] {
@@ -192,5 +214,16 @@ struct SensorPlacementDayTests {
             seriesID: "test", name: "Test", times: [dates[0], dates[2]], values: [18, 19]
         )
         #expect(longGap.count == 2)
+    }
+
+    @Test("Wake chart context bands align HVAC, comfort, and occupancy while preserving unknown")
+    func chartContextBands() throws {
+        let day = try insights()
+        let bands = PlacementDayChartBuilder.contextBands(for: day)
+        #expect(bands.filter { $0.kind == .hvac }.map(\.value) == ["Heating", "Heating", "Idle", "Unknown"])
+        #expect(bands.filter { $0.kind == .comfort }.map(\.value) == ["Sleep", "Sleep", "Home", "Home"])
+        #expect(bands.filter { $0.id.hasPrefix("occupancy-bedroom-") }.map(\.value)
+                == ["Occupied", "Unknown", "Unoccupied", "Unoccupied"])
+        #expect(bands.allSatisfy { $0.end > $0.start })
     }
 }

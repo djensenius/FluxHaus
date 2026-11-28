@@ -143,6 +143,17 @@ struct PlacementDayCoverage: Decodable, Sendable {
     }
 }
 
+extension PlacementDayCoverage {
+    var unitAssumptionNotices: [String] {
+        [
+            unitAssumptions.setpoints
+                ? "Some thermostat setpoint units were assumed from Home Assistant's last-known units." : nil,
+            unitAssumptions.reportedTemperature
+                ? "Some reference-temperature units were assumed from Home Assistant's last-known units." : nil
+        ].compactMap { $0 }
+    }
+}
+
 struct PlacementDayWakeRoom: Decodable, Identifiable, Sendable {
     let sensorId: String
     let atSwitch: Double?
@@ -327,5 +338,69 @@ enum PlacementDayAPI {
             try checkSession()
         }
         return try decode(data: data, response: response)
+    }
+}
+
+extension SensorPlacementService {
+    typealias DayFetch = @MainActor (
+        String?, PlacementConfig?, @escaping SessionCheck
+    ) async throws -> PlacementDayInsights
+
+    struct DayOutcome: Sendable {
+        let insights: PlacementDayInsights
+        let notice: String?
+        let snapshot: PlacementConfigSnapshot
+    }
+
+    static func loadDay(
+        date: String?,
+        config: PlacementConfig?,
+        snapshot: PlacementConfigSnapshot,
+        sessionCheck: @escaping SessionCheck,
+        fetch: DayFetch
+    ) async throws -> DayOutcome {
+        func checkCurrent() throws {
+            try Task.checkCancellation()
+            guard sessionCheck() else { throw PlacementRequestError.sessionChanged }
+        }
+        func checkedFetch(_ config: PlacementConfig?) async throws -> PlacementDayInsights {
+            try checkCurrent()
+            do {
+                let result = try await fetch(date, config, sessionCheck)
+                try checkCurrent()
+                return result
+            } catch {
+                try checkCurrent()
+                throw error
+            }
+        }
+
+        do {
+            let insights = try await checkedFetch(config)
+            return DayOutcome(insights: insights, notice: nil, snapshot: snapshot)
+        } catch PlacementRequestError.http(400) where config != nil {
+            guard let config else { throw PlacementRequestError.http(400) }
+            let fresh = try await checkedFetch(nil)
+            let thermostatIDs = Set(fresh.sensors.filter(\.isThermostat).map(\.id))
+            let available = Set(fresh.sensors.filter { !$0.isThermostat }.map(\.id))
+            guard !available.isEmpty else {
+                return DayOutcome(insights: fresh, notice: sensorsUnavailableNotice, snapshot: snapshot)
+            }
+            let reduced = config.excluding(thermostatIDs).pruned(to: available)
+            if reduced != config {
+                do {
+                    let insights = try await checkedFetch(reduced)
+                    let discoveredThermostats = thermostatIDs.union(
+                        insights.sensors.filter(\.isThermostat).map(\.id)
+                    )
+                    let saved = config.excluding(discoveredThermostats)
+                    let notice = reduced.excluding(discoveredThermostats) == saved ? nil : reducedConfigNotice
+                    return DayOutcome(insights: insights, notice: notice, snapshot: snapshot)
+                } catch PlacementRequestError.http(400) {
+                    // The unconfigured response is still usable when the reduced request is rejected.
+                }
+            }
+            return DayOutcome(insights: fresh, notice: rejectedNotice, snapshot: snapshot)
+        }
     }
 }

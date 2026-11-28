@@ -9,6 +9,8 @@ struct SensorPlacementDayView: View {
     let service: SensorPlacementService
 
     @State private var insights: PlacementDayInsights?
+    @State private var displayedSnapshot: PlacementConfigSnapshot?
+    @State private var dayNotice: String?
     @State private var selectedDate: String?
     @State private var pendingDate: String?
     @State private var isLoading = false
@@ -16,6 +18,11 @@ struct SensorPlacementDayView: View {
     @State private var error: String?
     @State private var showDatePicker = false
     @State private var draftDate = Date()
+
+    private var isStale: Bool {
+        guard displayedSnapshot != nil, insights != nil else { return false }
+        return displayedSnapshot != service.configSnapshot
+    }
 
     var body: some View {
         ScrollView {
@@ -79,6 +86,20 @@ struct SensorPlacementDayView: View {
     private func dayContent(_ day: PlacementDayInsights) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.large) {
             dateSelector(day)
+            if isStale {
+                Label(
+                    "These results use an earlier saved thermostat setup.",
+                    systemImage: "exclamationmark.triangle"
+                )
+                Button("Reload with current setup") {
+                    request(selectedDate)
+                }
+                .disabled(isLoading)
+            }
+            if let dayNotice {
+                Label(dayNotice, systemImage: "info.circle")
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
             Text("House time zone: \(day.timeZone)")
                 .font(Theme.Fonts.bodySmall)
                 .foregroundStyle(Theme.Colors.textSecondary)
@@ -234,6 +255,9 @@ struct SensorPlacementDayView: View {
             if !day.coverage.hvacHistoryAvailable {
                 Label("Thermostat history is unavailable.", systemImage: "exclamationmark.triangle")
             }
+            ForEach(day.coverage.unitAssumptionNotices, id: \.self) { notice in
+                Label(notice, systemImage: "exclamationmark.triangle")
+            }
         }
         .font(Theme.Fonts.bodyMedium)
     }
@@ -242,22 +266,31 @@ struct SensorPlacementDayView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Sensor day vs. usual").font(Theme.Fonts.headerLarge()).accessibilityAddTraits(.isHeader)
             ForEach(day.sensors) { sensor in
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(sensor.name).fontWeight(.semibold)
-                    if sensor.isThermostat {
-                        Text("Thermostat-associated sensor; not compared as a room.")
-                    } else {
-                        Text("Selected-day offset: \(temperature(sensor.dayOffset, unit: day.unit))")
-                        Text("Usual baseline offset: \(temperature(sensor.baselineOffset, unit: day.unit))")
-                        Text("Day-to-baseline change: \(temperature(sensor.deviation, unit: day.unit))")
-                        Text("Assessment: \(assessment(sensor.unusual))")
+                NavigationLink {
+                    SensorPlacementDetailView(service: service, sensorID: sensor.id)
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(sensor.name).fontWeight(.semibold)
+                            if sensor.isThermostat {
+                                Text("Thermostat-associated sensor; not compared as a room.")
+                            } else {
+                                Text("Selected-day offset: \(temperature(sensor.dayOffset, unit: day.unit))")
+                                Text("Usual baseline offset: \(temperature(sensor.baselineOffset, unit: day.unit))")
+                                Text("Day-to-baseline change: \(temperature(sensor.deviation, unit: day.unit))")
+                                Text("Assessment: \(assessment(sensor.unusual))")
+                            }
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(Theme.Colors.textSecondary)
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.Colors.secondaryBackground)
+                    .cornerRadius(Theme.cornerRadius)
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Theme.Colors.secondaryBackground)
-                .cornerRadius(Theme.cornerRadius)
-                .accessibilityElement(children: .combine)
+                .buttonStyle(.plain)
             }
         }
         .font(Theme.Fonts.bodyMedium)
@@ -328,11 +361,13 @@ struct SensorPlacementDayView: View {
         do {
             let result = try await service.fetchDayInsights(date: date)
             guard !Task.isCancelled, service.isSessionValid else { return }
-            insights = result
-            selectedDate = result.date
-            pendingDate = result.date
-            if let zone = TimeZone(identifier: result.timeZone),
-               let date = PlacementDayCalendar.date(result.date, in: zone) {
+            insights = result.insights
+            displayedSnapshot = result.snapshot
+            dayNotice = result.notice
+            selectedDate = result.insights.date
+            pendingDate = result.insights.date
+            if let zone = TimeZone(identifier: result.insights.timeZone),
+               let date = PlacementDayCalendar.date(result.insights.date, in: zone) {
                 draftDate = date
             }
         } catch {
