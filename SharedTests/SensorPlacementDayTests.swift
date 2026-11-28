@@ -119,7 +119,7 @@ struct SensorPlacementDayTests {
     func intervalTimeLabel() throws {
         let zone = try #require(TimeZone(identifier: "America/Toronto"))
         let date = try #require(PlacementInsights.isoDate("2026-03-08T06:05:00-04:00"))
-        #expect(PlacementDayCalendar.intervalTimeLabel(date, in: zone).contains(":05"))
+        #expect(PlacementDayCalendar.intervalTimeLabel(date, in: zone).contains("6:05"))
     }
 
     @Test("Bootstrap omits the phone date and carries the saved room and thermostat choices")
